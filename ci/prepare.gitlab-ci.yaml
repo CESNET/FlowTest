@@ -1,0 +1,29 @@
+.docker:
+  stage: prepare
+  tags: [docker-shell]
+  variables: { DOCKER_BUILDKIT: 1 }
+  script: ["docker build $DOCKER_OPTS -t $DOCKER_IMAGE:$DOCKER_TAG --build-arg OS_DISTRO=$OS_DISTRO --build-arg OS_RELEASE=$OS_RELEASE -f docker/Dockerfile.gitlab-ci ."]
+
+docker [Oracle Linux 8]:
+  extends: .docker
+  variables:
+    OS_DISTRO: "oraclelinux"
+    OS_RELEASE: "8.5"
+    DOCKER_TAG: "ol8"
+
+docker [CentOS Stream 8]:
+  extends: .docker
+  variables:
+    OS_DISTRO: "quay.io/centos/centos"
+    OS_RELEASE: "stream8"
+    DOCKER_TAG: "centos8"
+
+docker-rebuild [Oracle Linux 8]:
+  extends: "docker [Oracle Linux 8]"
+  variables: { DOCKER_OPTS: --no-cache }
+  when: manual
+
+docker-rebuild [CentOS Stream 8]:
+  extends: "docker [CentOS Stream 8]"
+  variables: { DOCKER_OPTS: --no-cache }
+  when: manual

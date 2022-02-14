@@ -1,0 +1,38 @@
+editorconfig:
+  stage: check
+  needs: []
+  image: mstruebing/editorconfig-checker
+  script: [ec]
+
+cppcheck-style:
+  stage: check
+  allow_failure: true
+  script:
+    - "cppcheck --error-exitcode=2 --std=c++17 --xml-version=2 --enable=style,unusedFunction tools/ 2> cppcheck-style.xml | tee cppcheck-style.log"
+  after_script:
+    - cppcheck_junit cppcheck-style.xml cppcheck-style-junit.xml
+  artifacts:
+    paths: [cppcheck-style*.*]
+    reports: { junit: cppcheck-style-junit.xml }
+    when: always
+
+cppcheck-errors:
+  stage: check
+  script:
+    - "cppcheck --error-exitcode=2 --std=c++17 --xml-version=2 --enable=warning,performance,portability,information,missingInclude tools/ 2> cppcheck-errors.xml | tee cppcheck-errors.log"
+  after_script:
+    - cppcheck_junit cppcheck-errors.xml cppcheck-errors-junit.xml
+  artifacts:
+    paths: [cppcheck-errors*.*]
+    reports: { junit: cppcheck-errors-junit.xml }
+    when: always
+
+cincludes-order:
+  stage: check
+  script:
+    - "! grep -r -A 10 '#include <' tools | grep -B 10 '#include \"'"
+
+doxy-filename:
+  stage: check
+  script:
+    - "! grep -r '@file\\s.*' tools"
