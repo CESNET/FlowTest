@@ -1,0 +1,19 @@
+stages:
+  - prepare
+  - check
+  - build
+  - test
+
+default:
+  image: $DOCKER_IMAGE:ol8
+  interruptible: true
+
+include:
+  - local: 'ci/prepare.gitlab-ci.yaml'
+  - local: 'ci/check.gitlab-ci.yaml'
+  - local: 'ci/build.gitlab-ci.yaml'
+  - local: 'ci/test.gitlab-ci.yaml'
+
+variables:
+  GIT_STRATEGY: clone
+  DOCKER_IMAGE: $CI_PROJECT_PATH_SLUG/$CI_COMMIT_REF_SLUG

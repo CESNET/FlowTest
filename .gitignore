@@ -1,0 +1,8 @@
+# Default build directory
+build/
+
+# Visual Studio files
+.vscode/
+
+# JetBrains files
+.idea/

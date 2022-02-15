@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1.3-labs
+
+ARG OS_DISTRO=oraclelinux
+ARG OS_RELEASE=8.5
+
+FROM $OS_DISTRO:$OS_RELEASE as default
+
+ARG OS_DISTRO
+
+RUN <<EOF
+	dnf -y install dnf-plugins-core
+
+	if [[ "$OS_DISTRO" == *"oraclelinux"* ]]; then
+		dnf config-manager --set-enabled ol8_codeready_builder
+	else
+		dnf config-manager --set-enabled powertools
+	fi
+
+	if [[ "$OS_DISTRO" == *"oraclelinux"* ]]; then
+		dnf install -y oracle-epel-release-el8
+	else
+		dnf install -y epel-release
+	fi
+
+	dnf install -y \
+		git sudo make cmake rpm-build \
+		gcc gcc-c++ cppcheck \
+		python3 python3-virtualenv
+
+	dnf clean all
+EOF
+
+COPY ../Pipfile* /tmp/
+RUN python3 -m pip install pipenv && cd /tmp && pipenv install --system --deploy
+
+CMD ["/bin/bash"]
