@@ -22,3 +22,7 @@ indent_size = 2
 
 [{CMakeLists.txt,*.cmake}]
 indent_style = tab
+
+[*.{pcap,pcapng}]
+end_of_line = unset
+insert_final_newline = unset
