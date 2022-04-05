@@ -1,0 +1,42 @@
+# Check that ICMPv6 is properly parsed
+test:
+  name: ICMPv6 traffic
+  pcaps: ["ipv6-neighbor-discovery.pcap"]
+
+flows:
+  - src_ip:             "fe80::c001:2ff:fe40:0"
+    dst_ip:             "ff02::1:ffe4:0"
+    ip_version:         6
+    protocol:           58
+    bytes:              72
+    packets:            1
+    icmp_type:          135
+    icmp_code:          0
+    icmp_type_code:     34560
+  - src_ip:             "fe80::c002:3ff:fee4:0"
+    dst_ip:             "fe80::c001:2ff:fe40:0"
+    ip_version:         6
+    protocol:           58
+    bytes:              72
+    packets:            1
+    icmp_type:          136
+    icmp_code:          0
+    icmp_type_code:     34816
+  - src_ip:             "fe80::c002:3ff:fee4:0"
+    dst_ip:             "fe80::c001:2ff:fe40:0"
+    ip_version:         6
+    protocol:           58
+    bytes:              72
+    packets:            1
+    icmp_type:          135
+    icmp_code:          0
+    icmp_type_code:     34560
+  - src_ip:             "fe80::c001:2ff:fe40:0"
+    dst_ip:             "fe80::c002:3ff:fee4:0"
+    ip_version:         6
+    protocol:           58
+    bytes:              64
+    packets:            1
+    icmp_type:          136
+    icmp_code:          0
+    icmp_type_code:     34816
