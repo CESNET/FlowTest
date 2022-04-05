@@ -1,0 +1,17 @@
+# Check that packets with IPv6 header option Destination Options is parsed properly
+test:
+  name: IPv6 Option Destination Options
+  pcaps: ["ipv6-dst-opts.pcap"]
+
+flows:
+  - src_ip:            "f6ea1:86f8:169:115f:76a0:c016:3074:6f95"
+    dst_ip:            "2d8e:be9b:c3f:83bd:32a1:b5dd:aac6:353e"
+    ip_version:        6
+    protocol:          58
+    bytes:             288
+    packets:           1
+    tos:               0x88
+    ttl:               150
+    icmp_type:         128
+    icmp_code:         0
+    icmp_type_code:    32768
