@@ -1,0 +1,16 @@
+# Check that information from inner IP header are exported
+test:
+  name: Traffic in GRE tunnel
+  pcaps: ["gre.pcap"]
+
+flows:
+  - src_ip:            "1.1.1.1"
+    dst_ip:            "2.2.2.2"
+    ip_version:        4
+    protocol:          1
+    bytes:             500
+    bytes@rev:         500
+    bytes_outer:       620
+    bytes_outer@rev:   620
+    packets:           5
+    packets@rev:       5
