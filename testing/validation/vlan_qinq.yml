@@ -1,0 +1,16 @@
+# Check that two VLAN headers are correctly parsed and skipped
+test:
+  name: Two VLAN headers
+  pcaps: ["802.1Q_tunneling.pcap"]
+
+flows:
+  - src_ip:        "10.118.10.1"
+    dst_ip:        "10.118.10.2"
+    ip_version:    4
+    protocol:      1
+    bytes:         500
+    bytes@rev:     500
+    packets:       5
+    packets@rev:   5
+    vlan_id:       118
+    vlan_id_inner: 10

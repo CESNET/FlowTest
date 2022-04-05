@@ -1,0 +1,15 @@
+# Check that VLAN header is correctly parsed and skipped
+test:
+  name: Single VLAN header
+  pcaps: ["ICMP_across_dot1q.pcap"]
+
+flows:
+  - src_ip:      "192.168.123.2"
+    dst_ip:      "192.168.123.1"
+    ip_version:  4
+    protocol:    1
+    bytes:       500
+    bytes@rev:   400
+    packets:     5
+    packets@rev: 4
+    vlan_id:     123
