@@ -1,0 +1,17 @@
+# Check that IP header is properly parsed
+test:
+  name: Simple IPv4 traffic
+  pcaps: ["tls12.pcap"]
+
+flows:
+  - src_ip:      "192.168.56.101"
+    dst_ip:      "192.168.56.102"
+    ip_version:  4
+    protocol:    6
+    bytes:       751
+    bytes@rev:   1900
+    packets:     6
+    packets@rev: 4
+    tos:         0x00
+    ttl:         64
+    ttl@rev:     64

@@ -1,0 +1,14 @@
+# Check that probes identify ESP header correctly after IPv6 header
+test:
+  name: IPv6 with ESP
+  pcaps: ["ipv6-esp.pcap"]
+
+flows:
+  - src_ip:         "2001:470:e5bf:1001:8519:2d1f:c57d:fc4f"
+    dst_ip:         "2001:470:e5bf:dead:7db0:921:a2e9:1c21"
+    ip_version:     6
+    protocol:       50
+    bytes:          48
+    packets:        1
+    tos:            0x00
+    ttl:            63

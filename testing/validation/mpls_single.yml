@@ -1,0 +1,16 @@
+# Check that MPLS header is correctly parsed and skipped
+test:
+  name: Single MPLS header
+  pcaps: ["mpls-vpn-transport-vpn-labels.pcap"]
+
+flows:
+  - src_ip:           "1.1.1.1"
+    dst_ip:           "5.5.5.5"
+    ip_version:       4
+    protocol:         1
+    bytes:            500
+    bytes@rev:        500
+    packets:          5
+    packets@rev:      5
+    mpls_label_1:     272
+    mpls_label_1@rev: 305

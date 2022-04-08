@@ -1,0 +1,17 @@
+# Check that fragmented IP packets are properly parsed
+test:
+  name: Fragmented IPv4 traffic
+  pcaps: ["ipv4-udp-fragmented.pcap"]
+
+flows:
+  - src_ip:      "131.179.196.46"
+    dst_ip:      "131.179.196.220"
+    ip_version:  4
+    protocol:    17
+    bytes:       504
+    bytes@rev:   5467
+    packets:     4
+    packets@rev: 4
+    tos:         0x00
+    ttl:         64
+    ttl@rev:     64

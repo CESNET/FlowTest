@@ -1,0 +1,17 @@
+# Check that fragmented IPv6 packets are properly parsed
+test:
+  name: Fragmented IPv6 traffic
+  pcaps: ["ipv6-udp-fragmented.pcap"]
+
+flows:
+  - src_ip:      "2607:f010:3f9::11:0"
+    dst_ip:      "2607:f010:3f9::1001"
+    ip_version:  6
+    protocol:    17
+    bytes:       245
+    bytes@rev:   5579
+    packets:     2
+    packets@rev: 4
+    tos:         0x00
+    ttl:         64
+    ttl@rev:     64
