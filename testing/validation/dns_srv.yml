@@ -1,0 +1,34 @@
+# Check that at least one of the SRV servers are present in DNS response to type SRV request is present in the flow
+test:
+  name: DNS SRV Request
+  pcaps: ["dns_srv.pcap"]
+
+flows:
+  - src_ip:      "192.168.122.190"
+    dst_ip:      "192.168.122.189"
+    ip_version:  4
+    protocol:    17
+    bytes:       83
+    bytes@rev:   131
+    packets:     1
+    packets@rev: 1
+    tos:         0x00
+    ttl:         64
+    ttl@rev:     64
+    src_port:    55245
+    dst_port:    53
+    dns_id:      58778
+    _forward:
+      dns_req_flags:       0x0100
+      dns_req_query_type:  33
+      dns_req_query_class: 1
+      dns_req_query_name:  "_kerberos._udp.SAMBA.WINDOWS8.PRIVATE"
+    _reverse:
+      dns_resp_flags:      0x8580
+      dns_resp_rcode:      0
+      dns_resp_rr:
+        - name:            "_kerberos._udp.SAMBA.WINDOWS8.PRIVATE"
+          type:            33
+          class:           1
+          ttl:             900
+          data:            "0 100 88 s4dc1.samba.windows8.private"

@@ -1,0 +1,28 @@
+# Check that DNS response code NX domain is parsed properly
+test:
+  name: DNS NX Domain
+  pcaps: ["dns_nx_domain.pcap"]
+
+flows:
+  - src_ip:      "192.168.170.56"
+    dst_ip:      "217.13.4.24"
+    ip_version:  4
+    protocol:    17
+    bytes:       69
+    bytes@rev:   69
+    packets:     1
+    packets@rev: 1
+    tos:         0x00
+    ttl:         128
+    ttl@rev:     58
+    src_port:    1711
+    dst_port:    53
+    dns_id:      30307
+    _forward:
+      dns_req_flags:       0x0100
+      dns_req_query_type:  1
+      dns_req_query_class: 1
+      dns_req_query_name:  "GRIMM.utelsystems.local"
+    _reverse:
+      dns_res_flags:       0x8583
+      dns_resp_rcode:      3

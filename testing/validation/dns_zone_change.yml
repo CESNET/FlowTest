@@ -1,0 +1,28 @@
+# Check that Zone change notification is parsed properly from DNS Zone change notification request
+test:
+  name: DNS Zone Change Notification Request
+  pcaps: ["dns_zone_change.pcap"]
+
+flows:
+  - src_ip:      "192.168.3.250"
+    dst_ip:      "192.168.74.118"
+    ip_version:  4
+    protocol:    17
+    bytes:       105
+    packets:     1
+    tos:         0x00
+    ttl:         56
+    src_port:    31545
+    dst_port:    53
+    dns_id:      51350
+    _forward:
+      dns_req_flags:       0x2400
+      dns_req_query_type:  6
+      dns_req_query_class: 1
+      dns_req_query_name:  "kkkresort.com"
+      dns_resp_rr:
+        - name:            "kkkresort.com"
+          type:            6
+          class:           1
+          ttl:             0
+          data:            "du.ac vk.me 2020865903 28880 7200 604800 86400"

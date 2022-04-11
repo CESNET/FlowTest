@@ -1,0 +1,34 @@
+# Check that timezone information in DNS response to type SOA request is present in the flow
+test:
+  name: DNS SOA Request
+  pcaps: ["dns_soa.pcap"]
+
+flows:
+  - src_ip:      "192.168.1.13"
+    dst_ip:      "192.168.2.2"
+    ip_version:  4
+    protocol:    17
+    bytes:       62
+    bytes@rev:   120
+    packets:     1
+    packets@rev: 1
+    tos:         0x00
+    ttl:         128
+    ttl@rev:     64
+    src_port:    62626
+    dst_port:    53
+    dns_id:      57001
+    _forward:
+      dns_req_flags:       0x0000
+      dns_req_query_type:  6
+      dns_req_query_class: 1
+      dns_req_query_name:  "wickedgogrid.net"
+    _response:
+      dns_resp_flags:      0x8400
+      dns_resp_rcode:      0
+      dns_resp_rr:
+        - name:            "wickedgogrid.net"
+          type:            6
+          class:           1
+          ttl:             86400
+          data:            "ns1.gogrid.net hostmaster.gogrid.net 2012042305 28800 7200 604800 86400"
