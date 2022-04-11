@@ -1,0 +1,28 @@
+# Check that DNS response code Server Failure is parsed properly
+test:
+  name: DNS Server Failure
+  pcaps: ["dns_server_failure.pcap"]
+
+flows:
+  - src_ip:      "192.168.236.146"
+    dst_ip:      "192.168.93.24"
+    ip_version:  4
+    protocol:    17
+    bytes:       67
+    bytes@rev:   67
+    packets:     1
+    packets@rev: 1
+    tos:         0x00
+    ttl:         128
+    ttl@rev:     59
+    src_port:    60643
+    dst_port:    53
+    dns_id:      313
+    _forward:
+      dns_req_flags:       0x0100
+      dns_req_query_type:  1
+      dns_req_query_class: 1
+      dns_req_query_name:  "ia-dns.net"
+    _reverse:
+      dns_resp_flags:      0x8182
+      dns_resp_rcode:      2

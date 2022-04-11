@@ -1,0 +1,34 @@
+# Check that the canonical name from DNS response to CNAME request is present in the flow
+test:
+  name: DNS CNAME Request
+  pcaps: ["dns_cname.pcap"]
+
+flows:
+  - src_ip:      "192.168.233.84"
+    dst_ip:      "192.168.179.148"
+    ip_version:  4
+    protocol:    17
+    bytes:       62
+    bytes@rev:   87
+    packets:     1
+    packets@rev: 1
+    tos:         0x00
+    ttl:         128
+    ttl@rev:     59
+    src_port:    59961
+    dst_port:    53
+    dns_id:      38661
+    _forward:
+      dns_req_flags:       0x0100
+      dns_req_query_type:  5
+      dns_req_query_class: 1
+      dns_req_query_name:  "se-ssl-cloud.com"
+    _reverse:
+      dns_resp_flags:      0x8180
+      dns_resp_rcode:      0
+      dns_resp_rr:
+        - name:            "se-ssl-cloud.com"
+          type:            5
+          class:           1
+          ttl:             300
+          data:            "glaston.net"

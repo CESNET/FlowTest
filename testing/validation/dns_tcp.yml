@@ -1,0 +1,189 @@
+# Check that DNS can be parsed even when TCP is used as transport
+test:
+  name: DNS TCP (A)
+  pcaps: ["dns_tcp.pcap"]
+
+flows:
+  - src_ip:      "193.24.227.230"
+    dst_ip:      "9.9.9.9"
+    ip_version:  4
+    protocol:    6
+    bytes:       83
+    bytes@rev:   595
+    packets:     1
+    packets@rev: 1
+    tos:         0x00
+    ttl:         64
+    ttl@rev:     59
+    src_port:    42058
+    dst_port:    53
+    dns_id:      40226
+    _forward:
+      dns_req_flags:       0x0100
+      dns_req_query_type:  1
+      dns_req_query_class: 1
+      dns_req_query_name:  "32dual-long.weberdns.de"
+    _reverse:
+      dns_resp_flags:      0x8180
+      dns_resp_rcode:      0
+      dns_resp_rr:
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "25.139.43.240"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "227.111.74.145"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "217.132.110.227"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "78.32.176.45"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "51.249.172.82"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "240.135.246.27"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "91.126.49.133"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "173.97.206.73"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "247.238.28.248"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "87.238.25.72"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "71.208.213.107"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "146.113.163.192"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "108.121.171.182"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "240.113.78.143"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "205.180.219.199"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "250.34.146.41"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "221.87.65.135"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "164.252.66.38"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "11.21.14.165"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "199.213.98.85"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "189.72.205.31"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "15.23.87.37"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "107.238.102.42"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "72.70.214.193"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "102.85.151.119"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "254.2.0.78"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "249.122.228.166"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "231.120.56.19"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "164.92.11.239"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "8.8.183.140"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "220.252.94.11"
+        - name:            "32dual-long.weberdns.de"
+          type:            1
+          class:           1
+          ttl:             3600
+          data:            "34.31.140.14"

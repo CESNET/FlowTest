@@ -1,0 +1,38 @@
+# Check that at least one of the IPv6 addresses present in DNS response to type AAAA request is present in the flow
+test:
+  name: Simple DNS AAAA Request
+  pcaps: ["dns_aaaa.pcap"]
+
+flows:
+  - src_ip:      "192.168.141.135"
+    dst_ip:      "192.168.94.13"
+    ip_version:  4
+    protocol:    17
+    bytes:       75
+    bytes@rev:   686
+    packets:     1
+    packets@rev: 1
+    tos:         0x00
+    ttl:         62
+    ttl@rev:     47
+    src_port:    63563
+    dst_port:    53
+    dns_id:      62070
+    _forward:
+      dns_req_flags:       0x0010
+      dns_req_query_type:  28
+      dns_req_query_class: 1
+      dns_req_query_name:  "door2doorcargo.com"
+    _reverse:
+      dns_resp_flags:      0x8410
+      dns_resp_rcode:      0
+      dns_resp_rr:
+        - name:            "door2doorcargo.com"
+          type:            28
+          class:           1
+          ttl:             86400
+          data:            "fe80::189a:6d10:7f6b:349e"
+        - name:            "door2doorcargo.com"
+          type:            46
+          class:           1
+          ttl:             86400
