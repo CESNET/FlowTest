@@ -1,0 +1,23 @@
+# Check that TLS 1.0 is properly parsed
+test:
+  name: Simple TLS 1.0 traffic
+  pcaps: ["tls10.pcap"]
+
+flows:
+  - src_ip:                  "192.168.56.101"
+    dst_ip:                  "192.168.56.102"
+    ip_version:              4
+    protocol:                6
+    bytes:                   651
+    bytes@rev:               1906
+    packets:                 6
+    packets@rev:             4
+    tls_server_version:      0x0301
+    tls_cipher_suite:        0xc014
+    tls_client_version:      0x0301
+    tls_issuer_cn:           "server.blah.com"
+    tls_subject_cn:          "server.blah.com"
+    tls_validity_not_before: 1502118257
+    tls_validity_not_after:  1533654257
+    tls_public_key_alg:      "1.2.840.113549.1.1.1"
+    tls_ja3:                 "c26335baa54cc3ff4227ebb3876c114f"
