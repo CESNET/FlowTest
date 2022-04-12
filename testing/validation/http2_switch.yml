@@ -1,0 +1,24 @@
+# Check that HTTP version 2.0 is parsed properly after switching from HTTP 1.1
+test:
+  name: HTTP 2.0
+  pcaps: ["http2_switch.pcap"]
+
+flows:
+  - src_ip:      "10.9.0.2"
+    dst_ip:      "139.162.123.134"
+    ip_version:  4
+    protocol:    6
+    bytes:       446
+    bytes@rev:   478
+    packets:     4
+    packets@rev: 2
+    tos:         0x00
+    ttl:         64
+    ttl@rev:     53
+    src_port:    58038
+    dst_port:    80
+    http_host:         "nghttp2.org"
+    http_url:          "/robots.txt"
+    http_method:       "GET"
+    http_status_code:  200
+    http_agent:        "curl/7.61.0"

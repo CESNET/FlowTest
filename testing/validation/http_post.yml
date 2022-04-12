@@ -1,0 +1,25 @@
+# Check that HTTP Post method is properly parsed from HTTP request
+test:
+  name: HTTP Post Method
+  pcaps: ["http_post.pcap"]
+
+flows:
+  - src_ip:      "192.168.158.139"
+    dst_ip:      "162.159.241.165"
+    ip_version:  4
+    protocol:    6
+    bytes:       429
+    bytes@rev:   2033
+    packets:     6
+    packets@rev: 6
+    tos:         0x00
+    ttl:         128
+    ttl@rev:     128
+    src_port:    4769
+    dst_port:    80
+    http_host:         "ask.wireshark.org"
+    http_url:          "/"
+    http_method:       "POST"
+    http_status_code:  403
+    http_agent:        "curl/7.26.0"
+    http_content_type: "text/html"

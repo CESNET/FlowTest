@@ -1,0 +1,25 @@
+# Check that HTTP Get method is properly parsed from HTTP request
+test:
+  name: HTTP Get Method
+  pcaps: ["http_get.pcap"]
+
+flows:
+  - src_ip:      "192.168.1.140"
+    dst_ip:      "174.143.213.184"
+    ip_version:  4
+    protocol:    6
+    bytes:       1234
+    bytes@rev:   23041
+    packets:     21
+    packets@rev: 19
+    tos:         0x00
+    ttl:         64
+    ttl@rev:     251
+    src_port:    57678
+    dst_port:    80
+    http_host:         "packetlife.net"
+    http_url:          "/images/layout/logo.png"
+    http_method:       "GET"
+    http_status_code:  200
+    http_agent:        "Wget/1.12 (linux-gnu)"
+    http_content_type: "image/png"

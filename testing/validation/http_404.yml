@@ -1,0 +1,25 @@
+# Check that HTTP 404 error response code is parsed properly
+test:
+  name: HTTP Error 404
+  pcaps: ["http_404.pcap"]
+
+flows:
+  - src_ip:      "192.168.1.11"
+    dst_ip:      "192.168.1.1"
+    ip_version:  4
+    protocol:    6
+    bytes:       657
+    bytes@rev:   867
+    packets:     6
+    packets@rev: 5
+    tos:         0x00
+    ttl:         128
+    ttl@rev:     254
+    src_port:    50820
+    dst_port:    80
+    http_host:         "192.168.1.1"
+    http_url:          "/check.lp?dsl=1&old_dsl=Up"
+    http_method:       "GET"
+    http_status_code:  404
+    http_agent:        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063"
+    http_referer:      "http://192.168.1.1/"
