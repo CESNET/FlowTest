@@ -44,3 +44,11 @@ isort:
   artifacts:
     paths: [isort.log]
     when: always
+
+black:
+  stage: check
+  script:
+    - black --check --diff . | tee black.log
+  artifacts:
+    paths: [black.log]
+    when: always
