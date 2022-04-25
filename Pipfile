@@ -7,6 +7,7 @@ name = "pypi"
 cppcheck-junit = "*"
 
 [dev-packages]
+isort = "*"
 
 [requires]
 python_version = "3.6"
