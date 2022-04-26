@@ -31,6 +31,6 @@ RUN <<EOF
 EOF
 
 COPY ../Pipfile* /tmp/
-RUN python3 -m pip install 'pipenv<=2022.4.8' && cd /tmp && pipenv install --system --deploy
+RUN python3 -m pip install 'pipenv<=2022.4.8' && cd /tmp && pipenv install --system --dev --deploy
 
 CMD ["/bin/bash"]

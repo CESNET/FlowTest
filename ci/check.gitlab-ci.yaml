@@ -36,3 +36,19 @@ doxy-filename:
   stage: check
   script:
     - "! grep -r '@file\\s.*' tools"
+
+isort:
+  stage: check
+  script:
+    - isort --check --diff . | tee isort.log
+  artifacts:
+    paths: [isort.log]
+    when: always
+
+black:
+  stage: check
+  script:
+    - black --check --diff . | tee black.log
+  artifacts:
+    paths: [black.log]
+    when: always
