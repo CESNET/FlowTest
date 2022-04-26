@@ -8,8 +8,9 @@ SPDX-License-Identifier: BSD-3-Clause
 import argparse
 
 from .interface import InputException, InputInterface
+from .nffile import Nffile
 
-flow_readers = []
+flow_readers = [Nffile]
 
 
 def init_reader(name, args: argparse.Namespace) -> InputInterface:
