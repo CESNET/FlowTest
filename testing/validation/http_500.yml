@@ -1,0 +1,26 @@
+# Check that HTTP 500 error response code is parsed properly
+test:
+  name: HTTP Error 500
+  pcaps: ["http_500.pcap"]
+
+flows:
+  - src_ip:      "192.168.0.113"
+    dst_ip:      "209.31.22.39"
+    ip_version:  4
+    protocol:    6
+    bytes:       931
+    bytes@rev:   4298
+    packets:     6
+    packets@rev: 6
+    tos:         0x00
+    ttl:         128
+    ttl@rev:     49
+    src_port:    3541
+    dst_port:    80
+    http_host:         "www.frys.com"
+    http_url:          "/category/Outpost/Notebooks+&+Tablets/View+All+Notebooks?site=sa:Notebook%20Pod:Pod2"
+    http_method:       "GET"
+    http_status_code:  500
+    http_agent:        "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 (.NET CLR 3.5.30729)"
+    http_content_type: "text/html"
+    http_referer:      "http://www.frys.com/template/notebook/"

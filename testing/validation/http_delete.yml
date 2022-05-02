@@ -1,0 +1,25 @@
+# Check that HTTP Delete method is properly parsed from HTTP request
+test:
+  name: HTTP Delete Method
+  pcaps: ["http_delete.pcap"]
+
+flows:
+  - src_ip:      "192.168.50.44"
+    dst_ip:      "172.217.23.206"
+    ip_version:  4
+    protocol:    6
+    bytes:       539
+    bytes@rev:   1777
+    packets:     2
+    packets@rev: 1
+    tos:         0x00
+    ttl:         64
+    ttl@rev:     52
+    src_port:    40942
+    dst_port:    80
+    http_host:         "google.com"
+    http_url:          "/"
+    http_method:       "DELETE"
+    http_status_code:  405
+    http_agent:        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/53.0.2785.143 Chrome/53.0.2785.143 Safari/537.36"
+    http_content_type: "text/html"
