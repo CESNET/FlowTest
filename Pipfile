@@ -7,7 +7,7 @@ name = "pypi"
 cppcheck-junit = "*"
 
 [dev-packages]
-isort = "*"
+pylint = "*"
 black = "*"
 
 [requires]

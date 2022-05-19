@@ -1,5 +1,10 @@
-[tool.isort]
-profile = "black"
-
 [tool.black]
 line-length = 120
+
+[tool.pylint.messages_control]
+max-line-length = 120
+disable = "E0401"
+
+[tool.pylint.design]
+max-attributes=10
+max-args=10

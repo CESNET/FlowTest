@@ -37,12 +37,12 @@ doxy-filename:
   script:
     - "! grep -r '@file\\s.*' tools"
 
-isort:
+pylint:
   stage: check
   script:
-    - isort --check --diff . | tee isort.log
+    - pylint tools | tee pylint.log
   artifacts:
-    paths: [isort.log]
+    paths: [pylint.log]
     when: always
 
 black:
