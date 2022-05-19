@@ -18,8 +18,6 @@ from profiler.flow import Flow
 class OutputException(Exception):
     """Basic exception raised by output writer."""
 
-    pass
-
 
 class ProfileWriter:
     """Writes flow objects in CSV format into a file.
@@ -58,6 +56,7 @@ class ProfileWriter:
         self._header = header
         self._compress = compress
         self._written_cnt = 0
+        self._fd = None
 
     def __enter__(self) -> "ProfileWriter":
         """Open the CSV file for writing (discard current content) and write the header line.
@@ -79,9 +78,9 @@ class ProfileWriter:
                 self._fd = gzip.open(self._name, "wb")
             else:
                 self._fd = open(self._name, "w", encoding="ascii")
-        except (OSError, IOError) as e:
-            logging.getLogger().error("Unable to initialize output: %s", str(e))
-            raise OutputException(str(e))
+        except (OSError, IOError) as err:
+            logging.getLogger().error("Unable to initialize output: %s", str(err))
+            raise OutputException(str(err)) from err
 
         self.write(self._header)
         return self
@@ -105,9 +104,9 @@ class ProfileWriter:
                 self._fd.write((str(flow) + "\n").encode())
             else:
                 self._fd.write(str(flow) + "\n")
-        except (OSError, IOError) as e:
-            logging.getLogger().error("Unable to write to file: %s. Reason: %s", self._name, str(e))
-            raise OutputException(str(e))
+        except (OSError, IOError) as err:
+            logging.getLogger().error("Unable to write to file: %s. Reason: %s", self._name, str(err))
+            raise OutputException(str(err)) from err
 
         self._written_cnt += 1
 
@@ -138,6 +137,8 @@ class ProfileWriter:
         BaseException
             Unhandled exception.
         """
-        self._fd.close()
+        if self._fd is not None:
+            self._fd.close()
+
         logging.getLogger().info("%d lines written to %s", self._written_cnt, self._name)
         return ex_type is None
