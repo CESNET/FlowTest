@@ -16,8 +16,6 @@ from profiler.flow import Flow
 class InputException(Exception):
     """Basic exception raised by input readers."""
 
-    pass
-
 
 class InputInterface:
     """Abstract class defining interface between input readers and the core of the profiler."""

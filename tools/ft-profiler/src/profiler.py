@@ -25,7 +25,7 @@ LOGGING_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 logging.basicConfig(level=logging.DEBUG, format=LOGGING_FORMAT, datefmt=LOGGING_DATE_FORMAT)
 
 
-def process_flows(reader: InputInterface, writer: ProfileWriter, it: int, at: int, limit: int) -> None:
+def process_flows(reader: InputInterface, writer: ProfileWriter, inact: int, act: int, limit: int) -> None:
     """Acquire new flows from the reader. Put flows into a flow cache. Pass flows from flow cache to the writer.
 
     Parameters
@@ -34,9 +34,9 @@ def process_flows(reader: InputInterface, writer: ProfileWriter, it: int, at: in
         Reader to be used for acquiring new flows.
     writer : ProfileWriter
         Writer where anonymous flows are written.
-    it : int
+    inact : int
         Inactive timeout.
-    at : int
+    act : int
         Active timeout.
     limit : int
         Maximum number of flows which can be stored into a cache.
@@ -48,23 +48,30 @@ def process_flows(reader: InputInterface, writer: ProfileWriter, it: int, at: in
     OutputException
         If the writer encountered an unrecoverable error.
     """
-    cache = FlowCache(it, at, limit)
+    cache = FlowCache(inact, act, limit)
     input_reader = iter(reader)
     try:
         while True:
             flow = next(input_reader)
             # Immediately write flows which were return by the cache due to hash collision or size limit.
-            for f in cache.add_flow(flow):
-                writer.write(f)
+            for export_flow in cache.add_flow(flow):
+                writer.write(export_flow)
     except KeyboardInterrupt:
         reader.terminate()
     except StopIteration:
         # Get content of the flow cache and write it to the output.
-        for f in cache.remove_flows():
-            writer.write(f)
+        for export_flow in cache.remove_flows():
+            writer.write(export_flow)
 
 
 def main() -> int:
+    """Entry point.
+
+    Returns
+    -------
+    int
+        Exit code.
+    """
     parser = argparse.ArgumentParser(prog="Profiler")
     parser.add_argument("-V", "--version", action="version", version="%(prog)s 1.0")
     parser.add_argument(
@@ -104,8 +111,8 @@ def main() -> int:
     )
     subparsers = parser.add_subparsers(dest="reader", help="Flow Readers")
 
-    for r in flow_readers:
-        r.add_argument_parser(subparsers)
+    for reader in flow_readers:
+        reader.add_argument_parser(subparsers)
 
     args = parser.parse_args()
 
@@ -113,8 +120,8 @@ def main() -> int:
         reader = init_reader(args.reader, args)
         with ProfileWriter(args.output, Flow.FLOW_CSV_FORMAT, compress=args.gzip) as writer:
             process_flows(reader, writer, args.inactive * 1000, args.active * 1000, args.memory * 1048576 // Flow.SIZE)
-    except (InputException, OutputException) as e:
-        logging.getLogger().error(e)
+    except (InputException, OutputException) as err:
+        logging.getLogger().error(err)
         return 1
 
     return 0

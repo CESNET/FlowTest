@@ -46,7 +46,7 @@ class FlowCache:
         self._at = active_timeout
         self._limit = limit
         self._now = 0
-        self._cache = dict()
+        self._cache = {}
 
     def add_flow(self, flow: Flow) -> List[Flow]:
         """Add flow to a flow cache. May return older flow in case of hash collision.

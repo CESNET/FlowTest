@@ -49,7 +49,7 @@ class Nffile(InputInterface):
         logging.getLogger().info("Initiating flow data reader: %s", self.NAME)
         nfdump_bin = shutil.which("nfdump")
         if nfdump_bin is None:
-            raise InputException(f"Unable to locate or execute Nfdump binary")
+            raise InputException("Unable to locate or execute Nfdump binary")
 
         self._cmd = [nfdump_bin, "-qN", "-M", args.multidir, "-R", args.read, "-o", self.NFDUMP_FORMAT, "-6"]
         if args.count > 0:
@@ -104,30 +104,30 @@ class Nffile(InputInterface):
         while True:
             output = self._process.stdout.readline()
             if len(output) == 0:
-                ec = self._process.poll()
+                ret_code = self._process.poll()
                 # Nfdump still running but empty line observed.
-                if ec is None:
+                if ret_code is None:
                     logging.getLogger().debug("nfdump process passed empty line")
                     continue
 
                 # Nfdump exited with an error.
-                if ec != 0:
-                    logging.getLogger().warning("nfdump process exited with code=%d, data may be incomplete", ec)
+                if ret_code != 0:
+                    logging.getLogger().warning("nfdump process exited with code=%d, data may be incomplete", ret_code)
 
                 # Nfdump exited gracefully.
                 raise StopIteration
 
             try:
                 # %msec,%td,%pr,%sa,%da,%sp,%dp,%pkt,%byt
-                start, dur, proto, s_addr, d_addr, s_port, d_port, pkt, bt = map(
+                start, dur, proto, s_addr, d_addr, s_port, d_port, pkts, bts = map(
                     str.strip, output.decode().split(sep=",")
                 )
-            except ValueError as e:
-                logging.getLogger().error("processing line=%s error=%s", output.decode(), str(e))
-                error = self._process.stderr.readline()
-                if len(error) > 0:
-                    logging.getLogger().error(error.decode())
-                    raise InputException(f"Nfdump error: {error.decode()}") from e
+            except ValueError as err:
+                logging.getLogger().error("processing line=%s error=%s", output.decode(), str(err))
+                stderr = self._process.stderr.readline()
+                if len(stderr) > 0:
+                    logging.getLogger().error(stderr.decode())
+                    raise InputException(f"Nfdump error: {stderr.decode()}") from err
 
                 continue
 
@@ -145,8 +145,8 @@ class Nffile(InputInterface):
                 d_addr,
                 int(s_port),
                 int(d_port),
-                int(pkt),
-                int(bt),
+                int(pkts),
+                int(bts),
             )
 
     def _start_nfdump_process(self) -> None:
@@ -158,6 +158,7 @@ class Nffile(InputInterface):
             Nfdump process exited unexpectedly with an error.
         """
         logging.getLogger().debug(self._cmd)
+        # pylint: disable=R1732
         self._process = subprocess.Popen(self._cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         # Check if Nfdump has failed.
@@ -167,10 +168,10 @@ class Nffile(InputInterface):
             # Probably not failed.
             pass
         else:
-            ec = self._process.returncode
-            if ec != 0:
+            ret_code = self._process.returncode
+            if ret_code != 0:
                 error = self._process.stderr.readline()
-                logging.getLogger().error("Nfdump ec: %d, error: %s", ec, error.decode())
+                logging.getLogger().error("Nfdump return code: %d, error: %s", ret_code, error.decode())
                 raise InputException("Nfdump error")
 
     def terminate(self) -> None:

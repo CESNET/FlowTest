@@ -57,23 +57,23 @@ class Flow:
 
     def __init__(
         self,
-        ts: int,
-        te: int,
+        t_start: int,
+        t_end: int,
         proto: int,
         s_addr: str,
         d_addr: str,
         s_port: int,
         d_port: int,
-        pkt: int,
-        bt: int,
+        pkts: int,
+        bts: int,
     ) -> None:
         """Initialize flow object.
 
         Parameters
         ----------
-        ts : int
+        t_start : int
             Time of the first packet in milliseconds.
-        te : int
+        t_end : int
             Time of the last packet in milliseconds.
         proto : int
             L4 protocol number.
@@ -85,15 +85,15 @@ class Flow:
             Source port.
         d_port : int
             Destination port.
-        pkt : int
+        pkts : int
             Number of transmitted packets.
-        bt : int
+        bts : int
             Number of transmitted bytes.
         """
-        self.start_time = ts
-        self.end_time = te
-        self.packets = pkt
-        self.bytes = bt
+        self.start_time = t_start
+        self.end_time = t_end
+        self.packets = pkts
+        self.bytes = bts
 
         if proto not in [6, 17]:
             s_port = 0
