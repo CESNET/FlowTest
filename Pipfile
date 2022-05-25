@@ -12,6 +12,7 @@ pylint = "*"
 black = "*"
 build = "*"
 pytest = "*"
+twine = "*"
 
 [requires]
 python_version = "3.6"
