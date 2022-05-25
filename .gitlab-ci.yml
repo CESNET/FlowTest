@@ -3,6 +3,7 @@ stages:
   - check
   - build
   - test
+  - upload
 
 default:
   image: $DOCKER_IMAGE:ol8
@@ -13,6 +14,7 @@ include:
   - local: 'ci/check.gitlab-ci.yaml'
   - local: 'ci/build.gitlab-ci.yaml'
   - local: 'ci/test.gitlab-ci.yaml'
+  - local: 'ci/upload.gitlab-ci.yaml'
 
 variables:
   GIT_STRATEGY: clone
