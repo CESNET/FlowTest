@@ -9,6 +9,7 @@ cppcheck-junit = "*"
 [dev-packages]
 pylint = "*"
 black = "*"
+build = "*"
 
 [requires]
 python_version = "3.6"
