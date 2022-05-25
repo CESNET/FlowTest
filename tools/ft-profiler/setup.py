@@ -10,14 +10,30 @@ SPDX-License-Identifier: BSD-3-Clause
 Setup script with necessary information to create python package.
 """
 
-from setuptools import setup
+import setuptools
 
-setup(
-    name="ft-profiler",
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+setuptools.setup(
+    name="ftprofiler",
     version="1.0.0",
-    description="Tool for creating network profile from netflow data in a specified time interval.",
     author="Flowmon Networks a.s.",
+    author_email="support@flowmon.com",
+    description="Tool for creating network profile from netflow data in a specified time interval.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: BSD-3-Clause",
+        "Operating System :: OS Independent",
+    ],
+    entry_points={
+        "console_scripts": [
+            "ftprofiler=ftprofiler.core:main",
+        ],
+    },
     python_requires=">=3.6",
-    packages=["profiler"],
-    package_dir={"profiler": "src"},
+    packages=setuptools.find_packages(where="src"),
+    package_dir={"": "src"},
 )

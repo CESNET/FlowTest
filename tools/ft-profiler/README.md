@@ -18,7 +18,10 @@ Network profile **does not** contain ARP traffic.
 
 ## Build and Installation
 
-TODO
+Run `python3 -m build` to build the **ftprofiler** package. The resulting source files (.tar.gz) and wheel (.whl) file
+can be found in `dist/` directory.
+
+Preferred installation is done using command `python3 -m pip install <path to the wheel file>`.
 
 ## Architecture
 
@@ -51,7 +54,7 @@ Output of the profiler is a CSV file containing anonymized biflow records with f
 
 ## Usage
 
-Start the profiler by running `python3 profiler.py <args>`.
+Start the profiler by running `ftprofiler <args>`.
 
 Arguments:
 ```
@@ -77,7 +80,7 @@ arguments:
 Flow readers are capable to acquire flow records from the system by different means.
 **Only one** flow reader can be specified when starting the Profiler.
 
-All flow readers must implement interface defined [here](src/profiler/readers/interface.py).
+All flow readers must implement interface defined [here](src/ftprofiler/readers/interface.py).
 
 ### Nffile Reader
 
