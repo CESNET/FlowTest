@@ -12,8 +12,8 @@ import logging
 import shutil
 import subprocess
 
-from profiler.flow import Flow
-from profiler.readers.interface import InputException, InputInterface
+from ftprofiler.flow import Flow
+from ftprofiler.readers.interface import InputException, InputInterface
 
 
 class Nffile(InputInterface):
