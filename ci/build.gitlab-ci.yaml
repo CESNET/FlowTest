@@ -28,3 +28,11 @@ rpmbuild [Oracle Linux 8]:
 rpmbuild [CentOS Stream 8]:
     extends: .rpmbuild
     variables: { DOCKER_TAG: centos8 }
+
+python package build:
+  stage: build
+  script:
+    - cd tools/ft-profiler
+    - python3 -m build
+  artifacts:
+    paths: [tools/**/*.whl, tools/**/*.tar.gz]
