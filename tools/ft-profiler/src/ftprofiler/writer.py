@@ -12,7 +12,7 @@ import logging
 from types import TracebackType
 from typing import Optional, Type
 
-from profiler.flow import Flow
+from ftprofiler.flow import Flow
 
 
 class OutputException(Exception):

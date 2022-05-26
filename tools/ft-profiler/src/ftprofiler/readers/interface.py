@@ -10,7 +10,7 @@ Contains interface definition which all input flow readers must implement.
 import argparse
 from abc import ABCMeta, abstractmethod
 
-from profiler.flow import Flow
+from ftprofiler.flow import Flow
 
 
 class InputException(Exception):

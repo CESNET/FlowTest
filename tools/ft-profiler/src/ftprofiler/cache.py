@@ -10,7 +10,7 @@ Flow cache for temporarily storing and manipulating with flows.
 import logging
 from typing import List, Optional
 
-from profiler.flow import Flow
+from ftprofiler.flow import Flow
 
 
 class FlowCache:

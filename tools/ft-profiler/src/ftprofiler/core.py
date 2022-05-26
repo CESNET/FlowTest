@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 """
 Author(s): Tomas Jansky <Tomas.Jansky@progress.com>
 
@@ -13,12 +10,11 @@ acquire flows from input reader and pass them to flow cache and then to the writ
 
 import argparse
 import logging
-import sys
 
-from profiler.cache import FlowCache
-from profiler.flow import Flow
-from profiler.readers import InputException, InputInterface, flow_readers, init_reader
-from profiler.writer import OutputException, ProfileWriter
+from ftprofiler.cache import FlowCache
+from ftprofiler.flow import Flow
+from ftprofiler.readers import InputException, InputInterface, flow_readers, init_reader
+from ftprofiler.writer import OutputException, ProfileWriter
 
 LOGGING_FORMAT = "%(asctime)-15s,%(name)s,[%(levelname)s],%(filename)s:%(funcName)s - %(message)s"
 LOGGING_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -125,7 +121,3 @@ def main() -> int:
         return 1
 
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
