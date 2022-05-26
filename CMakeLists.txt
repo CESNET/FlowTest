@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.12)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 1)
