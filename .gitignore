@@ -6,3 +6,6 @@ build/
 
 # JetBrains files
 .idea/
+
+# Compiled Python Files
+*.pyc

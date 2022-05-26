@@ -5,11 +5,13 @@ name = "pypi"
 
 [packages]
 cppcheck-junit = "*"
+fabric = "*"
 
 [dev-packages]
 pylint = "*"
 black = "*"
 build = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.6"
