@@ -28,6 +28,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
 
 find_package(PCAP REQUIRED)
+find_package(Threads REQUIRED)
 
 add_subdirectory(tools)
 add_subdirectory(pkg)
