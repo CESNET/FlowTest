@@ -183,6 +183,11 @@ class Flow:
             self._merge(flow)
             return True
 
+        # Was the flow exported due to hash collision (even before inactive timeout and has 1 packet)
+        if flow.packets == 1 and abs(flow.start_time - self.end_time) < inactive_timeout:
+            self._merge(flow)
+            return True
+
         # Check if the duration of the original flow is too short to be the result of splitting by active timeout.
         if self.end_time - self.start_time < active_timeout - inactive_timeout:
             return False
