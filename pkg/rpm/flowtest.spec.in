@@ -11,6 +11,9 @@ BuildRequires: gcc >= 8
 BuildRequires: gcc-c++ >= 8
 BuildRequires: make
 BuildRequires: cmake >= 3.12
+BuildRequires: libpcap-devel
+
+Requires: libpcap
 
 %description
 The package contains tools, configuration files and traffic samples

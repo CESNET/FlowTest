@@ -25,6 +25,7 @@ RUN <<EOF
 	dnf install -y \
 		git sudo make cmake rpm-build \
 		gcc gcc-c++ cppcheck \
+		libpcap-devel \
 		python3 python3-virtualenv
 
 	dnf clean all
