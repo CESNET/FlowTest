@@ -7,10 +7,11 @@ SPDX-License-Identifier: BSD-3-Clause
 
 import argparse
 
+from .csvfile import CSVFile
 from .interface import InputException, InputInterface
 from .nffile import Nffile
 
-flow_readers = [Nffile]
+flow_readers = [Nffile, CSVFile]
 
 
 def init_reader(name, args: argparse.Namespace) -> InputInterface:
