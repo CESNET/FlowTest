@@ -1,0 +1,20 @@
+# Check that TLS traffic with a malformed certificate is properly parsed
+test:
+  name: TLS malformed certificate traffic
+  pcaps: ["tls_malformed_cert.pcap"]
+
+flows:
+  - src_ip:      "192.168.1.25"
+    dst_ip:      "192.168.1.44"
+    ip_version:  4
+    protocol:    6
+    bytes:       352
+    bytes@rev:   6762
+    packets:     3
+    packets@rev: 7
+    src_port:    60002
+    dst_port:    8443
+    tls_server_version:      0x0303
+    tls_cipher_suite:        0xc030
+    tls_client_version:      0x0303
+    tls_ja3:     "fbe7e189e37a07ee33706f86bc746344"
