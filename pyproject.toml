@@ -8,3 +8,8 @@ disable = "E0401"
 [tool.pylint.design]
 max-attributes=10
 max-args=10
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "tools/ft-profiler/src",
+]
