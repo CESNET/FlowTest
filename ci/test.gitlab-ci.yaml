@@ -14,3 +14,11 @@ install [CentOS Stream 8]:
     extends: .install
     needs: ["rpmbuild [CentOS Stream 8]"]
     variables: { DOCKER_TAG: centos8 }
+
+pytest:
+  stage: test
+  script:
+    - pytest -v -s -m "not dev" | tee pytest.log
+  artifacts:
+    paths: [ pytest.log ]
+    when: always
