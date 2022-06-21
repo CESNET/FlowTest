@@ -13,6 +13,7 @@ black = "*"
 build = "*"
 pytest = "*"
 twine = "*"
+hypothesis = "*"
 
 [requires]
 python_version = "3.6"
