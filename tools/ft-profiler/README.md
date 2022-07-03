@@ -15,6 +15,7 @@ Network profile **does not** contain ARP traffic.
 * [Usage](#usage)
 * [Flow Readers](#flow-readers)
     * [Nffile Reader](#nffile-reader)
+    * [Fdsfile Reader](#fdsfile-reader)
 
 ## Build and Installation
 
@@ -59,7 +60,7 @@ Start the profiler by running `ftprofiler <args>`.
 Arguments:
 ```
 positional arguments:
-  {nffile}              Flow Readers
+  {nffile,fdsfile}      Flow Readers
 
 arguments:
   -h, --help            show this help message and exit
@@ -102,4 +103,19 @@ arguments:
   -r ROUTER, --router ROUTER
                         IP address where exporter process creates flow (default: 127.0.0.1)
   -R READ, --read READ  specify files to be read by nfdump. Nfdump -R argument (man nfdump)
+```
+
+### Fdsfile Reader
+
+Fdsfile reader internally starts **fdsdump** process which reads files in **fds** format, which are passed as argument.
+
+Arguments:
+```
+arguments:
+  -h, --help            show this help message and exit
+  -c COUNT, --count COUNT
+                        limit the number of records read by fdsdump (default: 0 - unlimited)
+  -F FILTER, --filter FILTER
+                        filter records, specified in bpf-like syntax (see fdsdump -F switch documentation)
+  -R READ, --read READ  specify files to be read by fdsdump. Supports glob patterns.
 ```
