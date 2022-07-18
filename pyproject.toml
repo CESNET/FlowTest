@@ -5,6 +5,9 @@ line-length = 120
 max-line-length = 120
 disable = "E0401"
 
+[tool.pylint.similarities]
+ignore-imports = true
+
 [tool.pylint.design]
 max-attributes=10
 max-args=10
