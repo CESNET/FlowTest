@@ -1,0 +1,19 @@
+# Check that TLS communication resulting in incompatible cipher suites is properly parsed
+test:
+  name: TLS cipher error traffic
+  pcaps: ["tls_cipher_error.pcap"]
+
+flows:
+  - src_ip:      "192.168.1.29"
+    dst_ip:      "192.168.1.25"
+    ip_version:  4
+    protocol:    6
+    bytes:       432
+    bytes@rev:   275
+    packets:     6
+    packets@rev: 5
+    src_port:    44328
+    dst_port:    8443
+    tls_server_version:      0x0303
+    tls_client_version:      0x0303
+    tls_ja3:     "1d99b35397a2e20c43b933aa64e8356e"

@@ -1,0 +1,20 @@
+# Check that HTTP 400 error response code is parsed properly
+test:
+  name: HTTP Error 400
+  pcaps: ["http_400.pcap"]
+
+flows:
+  - src_ip:      "192.168.1.36"
+    dst_ip:      "192.168.1.25"
+    ip_version:  4
+    protocol:    6
+    bytes:       518
+    bytes@rev:   996
+    packets:     7
+    packets@rev: 5
+    src_port:    55020
+    dst_port:    8080
+    http_host:         "192.168.1.25:8000"
+    http_status_code:  400
+    http_agent:        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"
+    http_content_type: "text/html;charset=utf-8"

@@ -1,0 +1,20 @@
+# Check that TLS communication resulting in invalid certificate error is properly parsed
+test:
+  name: TLS invalid certificate traffic
+  pcaps: ["tls_invalid_cert.pcap"]
+
+flows:
+  - src_ip:      "192.168.1.29"
+    dst_ip:      "192.168.1.25"
+    ip_version:  4
+    protocol:    6
+    bytes:       919
+    bytes@rev:   1561
+    packets:     7
+    packets@rev: 4
+    src_port:    44300
+    dst_port:    8443
+    tls_server_version:      0x0304
+    tls_cipher_suite:        0x1302
+    tls_client_version:      0xeaea
+    tls_ja3:     "bcfedf9f1709891a892b5bb1571df55c"
