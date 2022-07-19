@@ -3,10 +3,7 @@ line-length = 120
 
 [tool.pylint.messages_control]
 max-line-length = 120
-disable = "E0401"
-
-[tool.pylint.similarities]
-ignore-imports = true
+disable = "E0401, R0801"
 
 [tool.pylint.design]
 max-attributes=10

@@ -10,8 +10,9 @@ import argparse
 from .csvfile import CSVFile
 from .interface import InputException, InputInterface
 from .nffile import Nffile
+from .fdsfile import Fdsfile
 
-flow_readers = [Nffile, CSVFile]
+flow_readers = [Nffile, CSVFile, Fdsfile]
 
 
 def init_reader(name, args: argparse.Namespace) -> InputInterface:
