@@ -16,6 +16,7 @@ Network profile **does not** contain ARP traffic.
 * [Flow Readers](#flow-readers)
     * [Nffile Reader](#nffile-reader)
     * [Fdsfile Reader](#fdsfile-reader)
+    * [CSVFile Reader](#csvfile-reader)
 
 ## Build and Installation
 
@@ -118,4 +119,25 @@ arguments:
   -F FILTER, --filter FILTER
                         filter records, specified in bpf-like syntax (see fdsdump -F switch documentation)
   -R READ, --read READ  specify files to be read by fdsdump. Supports glob patterns.
+```
+
+### CSVFile Reader
+
+CSVFile reader processes a file in CSV format with the following fields:
+
+```
+START_TIME (float unix timestamp in seconds, e.g., 1438603883.553), DURATION (float in seconds, e.g., 10.5),
+PROTO (L4), SRC_IP, DST_IP, SRC_PORT, DST_PORT, PACKETS, BYTES
+```
+
+Lines starting with char # are skipped. Fields in the header do not need to be in this exact order.
+First row must contain the header.
+
+This reader is mainly used for debugging and testing purposes.
+
+Arguments:
+```
+arguments:
+  -h, --help           show this help message and exit
+  -f FILE, --file FILE path to a CSV file which should be processed
 ```
