@@ -47,7 +47,7 @@ class NffileHelper:
             f"not proto ARP and router ip {mock_argparse.router} and in if {mock_argparse.ifcid}",
         ]
         if count > 0:
-            cmd[-1:-1] = ["-c", mock_argparse.count]  # add to last but one position
+            cmd[-1:-1] = ["-c", str(mock_argparse.count)]  # add to last but one position
         return mock_argparse, cmd
 
     @staticmethod

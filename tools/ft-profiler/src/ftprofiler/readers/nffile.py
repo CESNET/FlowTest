@@ -53,7 +53,7 @@ class Nffile(InputInterface):
 
         self._cmd = [nfdump_bin, "-qN", "-M", args.multidir, "-R", args.read, "-o", self.NFDUMP_FORMAT, "-6"]
         if args.count > 0:
-            self._cmd += ["-c", args.count]
+            self._cmd += ["-c", str(args.count)]
 
         # Skip ARP communication and select data from only a single exporter process.
         self._cmd.append(f"not proto ARP and router ip {args.router} and in if {args.ifcid}")
