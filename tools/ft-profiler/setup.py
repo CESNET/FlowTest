@@ -17,7 +17,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="ftprofiler",
-    version="1.0.0",
+    version="1.1.0",
     author="Flowmon Networks a.s.",
     author_email="support@flowmon.com",
     description="Tool for creating network profile from netflow data in a specified time interval.",
