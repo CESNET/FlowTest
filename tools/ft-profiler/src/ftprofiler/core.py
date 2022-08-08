@@ -69,7 +69,7 @@ def main() -> int:
         Exit code.
     """
     parser = argparse.ArgumentParser(prog="Profiler")
-    parser.add_argument("-V", "--version", action="version", version="%(prog)s 1.0")
+    parser.add_argument("-V", "--version", action="version", version="%(prog)s 1.1.0")
     parser.add_argument(
         "-o",
         "--output",
