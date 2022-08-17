@@ -4,6 +4,8 @@ test:
   pcaps: ["ipv6-esp.pcap"]
   required_protocols: ["ipv6"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:         "2001:470:e5bf:1001:8519:2d1f:c57d:fc4f"
     dst_ip:         "2001:470:e5bf:dead:7db0:921:a2e9:1c21"

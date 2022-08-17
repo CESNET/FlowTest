@@ -4,6 +4,8 @@ test:
   pcaps: ["ipv6-auth-header.pcap"]
   required_protocols: ["ipv6"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:         "fe80::21e:7aff:fe79:3f10"
     dst_ip:         "ff02::5"

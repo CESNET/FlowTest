@@ -4,6 +4,8 @@ test:
   pcaps: ["icmp.pcap"]
   required_protocols: ["icmp"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:             "192.168.158.139"
     dst_ip:             "174.137.42.77"

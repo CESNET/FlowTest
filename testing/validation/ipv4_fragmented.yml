@@ -4,6 +4,8 @@ test:
   pcaps: ["ipv4-udp-fragmented.pcap"]
   required_protocols: ["ipv4"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:      "131.179.196.46"
     dst_ip:      "131.179.196.220"

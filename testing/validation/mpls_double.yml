@@ -4,6 +4,8 @@ test:
   pcaps: ["mpls-vpn-transport-vpn-labels.pcap"]
   required_protocols: ["mpls"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:           "1.1.1.1"
     dst_ip:           "5.5.5.5"

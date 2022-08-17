@@ -13,6 +13,8 @@ flows:
     bytes@rev:          1903
     packets:            7
     packets@rev:        6
+    src_port:           34152
+    dst_port:           443
     tls_server_version: 0x7f1c
     tls_cipher_suite:   0x1302
     tls_sni:            "dogfish"

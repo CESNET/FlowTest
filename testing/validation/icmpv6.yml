@@ -4,6 +4,8 @@ test:
   pcaps: ["ipv6-neighbor-discovery.pcap"]
   required_protocols: ["icmpv6"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:             "fe80::c001:2ff:fe40:0"
     dst_ip:             "ff02::1:ffe4:0"

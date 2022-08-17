@@ -4,6 +4,8 @@ test:
   pcaps: ["gre.pcap"]
   required_protocols: ["gre"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:            "1.1.1.1"
     dst_ip:            "2.2.2.2"

@@ -4,6 +4,8 @@ test:
   pcaps: ["802.1Q_tunneling.pcap"]
   required_protocols: ["vlan"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:        "10.118.10.1"
     dst_ip:        "10.118.10.2"

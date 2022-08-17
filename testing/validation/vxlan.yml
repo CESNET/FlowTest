@@ -4,6 +4,8 @@ test:
   pcaps: ["vxlan.pcap"]
   required_protocols: ["eth", "vxlan"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:           "10.0.0.1"
     dst_ip:           "10.0.0.2"

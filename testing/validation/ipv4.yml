@@ -4,6 +4,8 @@ test:
   pcaps: ["tls12.pcap"]
   required_protocols: ["ipv4"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:      "192.168.56.101"
     dst_ip:      "192.168.56.102"
