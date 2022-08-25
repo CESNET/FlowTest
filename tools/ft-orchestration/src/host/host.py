@@ -8,6 +8,7 @@ Module implements Host class providing remote command
 execution and file synchronization.
 """
 
+import glob
 import logging
 import pathlib
 
@@ -98,7 +99,9 @@ class Host:
         Method automatically synchronizes files/directories if
         command is executed on remote machine.
 
-        Note: wildcards (*) are not supported. Use directory instead.
+        If path with wildcards is present in command, it is replaced
+        with list of all matched paths. For example, "ls *.txt sample.md"
+        can be replaced with "ls a.txt b.txt c.txt sample.md".
 
         Parameters
         ----------
@@ -133,12 +136,15 @@ class Host:
             asynchronous_args["pty"] = True
             return self._connection.local(command, hide=True, **asynchronous_args, warn=(not check_rc), timeout=timeout)
 
-        for item in command.split():
-            path = pathlib.Path(item)
-            if path.exists() and (path.is_dir() or path.is_file()):
-                storage_dir = self._storage.get_remote_directory()
-                self._storage.push(str(path))
-                command = command.replace(str(path), f"{storage_dir}/{path.name}")
+        storage_dir = self._storage.get_remote_directory()
+        for local_path in command.split():
+            remote_path = ""
+            for path in glob.glob(local_path):
+                self._storage.push(str(pathlib.Path(path)))
+                remote_path += str(pathlib.Path(storage_dir, pathlib.Path(path).name))
+                remote_path += " "
+            if len(remote_path) > 0:
+                command = command.replace(local_path, remote_path)
 
         return self._connection.run(command, hide=True, warn=(not check_rc), timeout=timeout, **asynchronous_args)
 
