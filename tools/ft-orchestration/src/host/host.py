@@ -12,6 +12,7 @@ import logging
 import pathlib
 
 import fabric
+import invoke
 from src.host.common import get_real_user, ssh_agent_enabled
 from src.host.storage import RemoteStorage
 
@@ -149,8 +150,9 @@ class Host:
         asynchronous mode. Otherwise, it won't have any effect.
 
         User must manually call ``join`` or ``wait_until_finished`` to get
-        execution result (return code will be probably nonzero as command
-        was forcefully killed).
+        execution result. Method tries to gracefully terminate
+        process (via CTRL+C). If it fails, process is killed after 5 seconds.
+        In that case return code can be non-zero.
 
         Parameters
         ----------
@@ -158,8 +160,15 @@ class Host:
             Promise from ``run`` method.
         """
 
-        if promise.runner.opts["asynchronous"] and promise.runner.opts["pty"]:
-            promise.runner.kill()
+        if isinstance(promise, invoke.runners.Promise) and promise.runner.opts["asynchronous"]:
+            if promise.runner.process_is_finished:
+                return
+
+            # Try to gracefully terminate process
+            promise.runner.send_interrupt(KeyboardInterrupt)
+            # If it won't terminate within 5 seconds, kill it
+            promise.runner.start_timer(5)
+            promise.runner.wait()
 
     @staticmethod
     def wait_until_finished(promise):
@@ -180,7 +189,7 @@ class Host:
             Updated result.
         """
 
-        if hasattr(promise, "join"):
+        if isinstance(promise, invoke.runners.Promise):
             return promise.join()
 
         return None
