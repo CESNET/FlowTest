@@ -41,6 +41,8 @@ class Host:
     def __init__(self, host="localhost", storage=None):
 
         self._connection = fabric.Connection(host, user=get_real_user())
+        self._storage = storage
+        self._host = host
 
         if host == "localhost":
             self._local = True
@@ -55,7 +57,39 @@ class Host:
 
             self._local = False
             self._connection.open()
-            self._storage = storage
+
+    def is_local(self):
+        """Return True if host is local or False if host is remote.
+
+        Returns
+        -------
+        bool
+            Return True if host is local or False if host is remote.
+        """
+
+        return self._local
+
+    def get_storage(self):
+        """Get remote storage class.
+
+        Returns
+        -------
+        None or storage.RemoteStorage
+            Storage if host is remote. None if host is localhost.
+        """
+
+        return self._storage
+
+    def get_host(self):
+        """Get hostname/IP address.
+
+        Returns
+        -------
+        string
+            Hostname/IP address.
+        """
+
+        return self._host
 
     def run(self, command, asynchronous=False, check_rc=True, timeout=None):
         """Run command.
