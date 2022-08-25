@@ -8,13 +8,11 @@ Ipfixcol2 collector reads NetFlow/IPFIX data supplied by exporter and stores it
 as FDS file.
 """
 
-import glob
 import logging
-import os
 import pathlib
 import shutil
-import subprocess
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 
 from src.collector.fdsdump import Fdsdump
@@ -27,10 +25,12 @@ class Ipfixcol2(CollectorInterface):
 
     Attributes
     ----------
-    _cmd : list of strings
-        Arguments passed to the ipfixcol2 process on startup.
-    _process : subprocess.Popen
-        Ipfixcol2 process.
+    _host : Host
+        Host class with established connection.
+    _cmd : string
+        Ipfixcol2 command for startup.
+    _process : invoke.runners.Promise
+        Representation of Ipfixcol2 process.
     _fdsdump : Fdsdump
         Fdsdump instance.
     _input_plugin : str
@@ -38,7 +38,7 @@ class Ipfixcol2(CollectorInterface):
     _port : int
         Listening port.
     _work_dir: str
-        Working directory.
+        Local working directory.
     """
 
     NAME = "ipfixcol2"
@@ -47,26 +47,28 @@ class Ipfixcol2(CollectorInterface):
     # traverse YYYY/MM/DD directory structure
     FDS_FILE = "*/*/*/*.fds"
 
-    def __init__(self, input_plugin="udp", port=4739, work_dir=None):  # pylint: disable=super-init-not-called
+    def __init__(self, host, input_plugin="udp", port=4739):  # pylint: disable=super-init-not-called
         """Initialize the collector.
 
         Parameters
         ----------
+        host : Host
+            Host class with established connection.
         input_plugin : str, optional
             Input plugin. Only 'udp' and 'tcp' plugins are supported.
         port : int, optional
             Listen for incoming NetFlow/IPFIX data on this port.
-        work_dir : str, optional
-            Working directory. If not set, temp directory is created.
-            Warning: directory is deleted when using 'cleanup' method.
 
         Raises
         ------
         CollectorException
             Bad parameter values.
             Ipfixcol2 could not be located.
-            Base directory could not be created.
         """
+
+        if host.run("command -v ipfixcol2", check_rc=False).exited != 0:
+            logging.getLogger().error("ipfixcol2 is missing")
+            raise CollectorException("Unable to locate or execute ipfixcol2 binary")
 
         if input_plugin not in ("udp", "tcp"):
             raise CollectorException(f"Only 'tcp' and 'udp' input plugins are supported, not '{input_plugin}'")
@@ -74,22 +76,11 @@ class Ipfixcol2(CollectorInterface):
         if not isinstance(port, int) or not 0 <= port <= 65535:
             raise CollectorException("Bad port")
 
-        if work_dir is not None:
-            try:
-                os.makedirs(work_dir, exist_ok=True)
-            except Exception as exc:
-                raise CollectorException(f"Cannot create working directory '{work_dir}': {exc}") from exc
-            self._work_dir = work_dir
-        else:
-            self._work_dir = tempfile.mkdtemp()
-
         logging.getLogger().info("Initiating collector: %s", self.NAME)
 
-        ipfixcol2_bin = shutil.which("ipfixcol2")
-        if ipfixcol2_bin is None:
-            raise CollectorException("Unable to locate or execute ipfixcol2 binary")
-
-        self._cmd = [ipfixcol2_bin, "-c", str(pathlib.Path(self._work_dir, self.CONFIG_FILE))]
+        self._host = host
+        self._work_dir = tempfile.mkdtemp()
+        self._cmd = f"ipfixcol2 -c {pathlib.Path(self._work_dir, self.CONFIG_FILE)}"
         self._process = None
         self._fdsdump = None
         self._input_plugin = input_plugin
@@ -134,7 +125,14 @@ class Ipfixcol2(CollectorInterface):
         inpt_params_port.text = f"{self._port}"
         outpt_name.text = "FDS output plugin"
         outpt_plugin.text = "fds"
-        outpt_params_storage.text = self._work_dir
+
+        # Host class replaces local paths with remote paths in command strings,
+        # but paths stored in file must be set for target remote machine
+        if self._host.is_local():
+            outpt_params_storage.text = self._work_dir
+        else:
+            outpt_params_storage.text = self._host.get_storage().get_remote_directory()
+
         outpt_params_compression.text = "lz4"
 
         # store all data in one file, do not split it over multiple files
@@ -157,40 +155,42 @@ class Ipfixcol2(CollectorInterface):
             self.stop()
 
         self._create_xml_config()
+        self._process = self._host.run(self._cmd, asynchronous=True, check_rc=False)
+        time.sleep(1)
 
-        # pylint: disable=R1732
-        self._process = subprocess.Popen(self._cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        try:
-            return_code = self._process.wait(2)
-        except subprocess.TimeoutExpired:
-            # Probably OK.
-            pass
-        else:
-            if return_code != 0:
-                error = self._process.stderr.readline()
-                logging.getLogger().error("ipfixcol2 return code: %d, error: %s", return_code, error.decode())
+        runner = self._process.runner
+        if runner.process_is_finished:
+            res = self._process.join()
+            if res.failed:
+                # If pty is true, stderr is redirected to stdout
+                err = res.stdout if runner.opts["pty"] else res.stderr
+                logging.getLogger().error("ipfixcol2 return code: %d, error: %s", res.return_code, err)
                 raise CollectorException("ipfixcol2 startup error")
 
     def stop(self):
         """Stop ipfixcol2 process."""
 
-        self._process.terminate()
-        try:
-            self._process.wait(3)
-        except TimeoutError:
-            self._process.kill()
+        if self._process is None:
+            return
 
-        while True:
-            error = self._process.stderr.readline()
-            if len(error) == 0:
-                break
-            logging.getLogger().error("ipfixcol2 runtime error: %s", error.decode())
+        self._host.stop(self._process)
+        res = self._host.wait_until_finished(self._process)
+        runner = self._process.runner
+
+        if res.failed:
+            # If pty is true, stderr is redirected to stdout
+            # Since stdout could be filled with normal output, print only last 1 line
+            err = runner.stdout[-1] if runner.opts["pty"] else runner.stderr
+            logging.getLogger().error("ipfixcol2 runtime error: %s, error: %s", res.return_code, err)
+            raise CollectorException("ipfixcol2 runtime error")
 
         self._process = None
 
     def cleanup(self):
         """Delete working directory."""
+
+        if not self._host.is_local():
+            self._host.get_storage().remove_all()
 
         shutil.rmtree(self._work_dir, ignore_errors=True)
 
@@ -215,9 +215,16 @@ class Ipfixcol2(CollectorInterface):
             Flow reader fdsdump.
         """
 
-        # use glob module for paths with wildcards
-        fds_file = glob.glob(str(pathlib.Path(self._work_dir, self.FDS_FILE)))
-        if len(fds_file) != 1:
-            raise CollectorException(f"Located zero or more than one FDS file: {fds_file}")
+        # pylint: disable=protected-access
+        if self._fdsdump is not None and self._fdsdump._process is not None:
+            self._fdsdump._stop()
+        self._fdsdump = None
 
-        return Fdsdump(fds_file[0])
+        if self._host.is_local():
+            work_dir = self._work_dir
+        else:
+            work_dir = self._host.get_storage().get_remote_directory()
+
+        self._fdsdump = Fdsdump(self._host, str(pathlib.Path(work_dir, self.FDS_FILE)))
+
+        return self._fdsdump
