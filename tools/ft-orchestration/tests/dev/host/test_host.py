@@ -9,14 +9,13 @@ Simple development tests of Host and Storage class.
 
 import os
 
+import pytest
 from src.host.host import Host
 from src.host.storage import RemoteStorage
 
-import pytest
-
 HOST = os.environ.get("PYTEST_TEST_HOST")
 STORAGE = RemoteStorage(HOST) if HOST else None
-
+FILES_DIR = f"{os.getcwd()}/tests/dev/host/files"
 
 # pylint: disable=unused-argument
 @pytest.mark.dev
@@ -24,8 +23,10 @@ def test_host_local_ls_single_file(require_root):
     """Test 'ls' command on single file on localhost."""
 
     host = Host()
-    res = host.run("ls tests/dev/host/files/a.txt | xargs echo")
-    assert res.stdout.strip() == "tests/dev/host/files/a.txt"
+    res = host.run(f"ls {FILES_DIR}/a.txt | xargs echo")
+    assert host.is_local()
+    assert host.get_storage() is None
+    assert res.stdout.strip() == f"{FILES_DIR}/a.txt"
 
 
 @pytest.mark.dev
@@ -33,7 +34,7 @@ def test_host_local_cat_single_file(require_root):
     """Test 'cat' command on single file on localhost."""
 
     host = Host()
-    res = host.run("cat tests/dev/host/files/a.txt")
+    res = host.run(f"cat {FILES_DIR}/a.txt")
     assert res.stdout.strip() == "a"
 
 
@@ -42,7 +43,7 @@ def test_host_local_cat_two_files(require_root):
     """Test 'cat' command on two files on localhost."""
 
     host = Host()
-    res = host.run("cat tests/dev/host/files/a.txt tests/dev/host/files/b.txt")
+    res = host.run(f"cat {FILES_DIR}/a.txt {FILES_DIR}/b.txt")
     # Remove any newlines from output
     assert res.stdout.replace("\r\n", "").replace("\n", "") == "ab"
 
@@ -52,7 +53,7 @@ def test_host_local_ls_dir(require_root):
     """Test 'ls' command on directory on localhost."""
 
     host = Host()
-    res = host.run("ls tests/dev/host/files")
+    res = host.run(f"ls {FILES_DIR}")
     assert res.stdout.strip() == "a.txt  b.txt  c.txt"
 
 
@@ -62,7 +63,9 @@ def test_host_remote_ls_single_file(require_root):
     """Test 'ls' command on single file on remote host."""
 
     host = Host(HOST, STORAGE)
-    res = host.run("ls tests/dev/host/files/a.txt | xargs echo")
+    res = host.run(f"ls {FILES_DIR}/a.txt | xargs echo")
+    assert not host.is_local()
+    assert host.get_storage() is not None
     assert res.stdout.strip() == STORAGE.get_remote_directory() + "/a.txt"
 
 
@@ -72,7 +75,7 @@ def test_host_remote_cat_single_file(require_root):
     """Test 'cat' command on single file on remote host."""
 
     host = Host(HOST, STORAGE)
-    res = host.run("cat tests/dev/host/files/a.txt")
+    res = host.run(f"cat {FILES_DIR}/a.txt")
     assert res.stdout.strip() == "a"
 
 
@@ -82,8 +85,8 @@ def test_host_remote_cat_two_files(require_root):
     """Test 'cat' command on two files on remote host."""
 
     host = Host(HOST, STORAGE)
-    res = host.run("cat tests/dev/host/files/a.txt tests/dev/host/files/b.txt")
-    assert res.stdout.strip() == "a\nb"
+    res = host.run(f"cat {FILES_DIR}/a.txt {FILES_DIR}/b.txt")
+    assert res.stdout.strip() == "a\r\nb"
 
 
 @pytest.mark.dev
@@ -92,8 +95,8 @@ def test_host_remote_ls_dir(require_root):
     """Test 'ls' command on directory on remote host."""
 
     host = Host(HOST, STORAGE)
-    res = host.run("ls tests/dev/host/files")
-    assert res.stdout.strip() == "a.txt\nb.txt\nc.txt"
+    res = host.run(f"ls {FILES_DIR}")
+    assert res.stdout.strip() == "a.txt  b.txt  c.txt"
 
 
 @pytest.mark.dev
