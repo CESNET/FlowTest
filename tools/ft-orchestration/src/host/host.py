@@ -53,12 +53,13 @@ class Host:
                 logging.getLogger().error("Storage must be set when host isn't localhost.")
                 raise TypeError("Storage must be set when host isn't localhost.")
 
-            if not ssh_agent_enabled():
-                logging.getLogger().error("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
-                raise EnvironmentError("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
-
             self._local = False
-            self._connection.open()
+
+        if not ssh_agent_enabled():
+            logging.getLogger().error("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
+            raise EnvironmentError("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
+
+        self._connection.open()
 
     def is_local(self):
         """Return True if host is local or False if host is remote.
@@ -142,20 +143,7 @@ class Host:
             Then ``join()`` must be called on Promise to get Result.
         """
 
-        if asynchronous:
-            # 'pty' must be True so that kill() command can
-            # reach remote shell. Otherwise, kill() will terminate
-            # local process but remote process will not be terminated.
-            asynchronous_args = {"asynchronous": True, "pty": True}
-        else:
-            asynchronous_args = {}
-
-        if self._local:
-            # 'pty' must be True otherwise termination via timeout won't work properly
-            asynchronous_args["pty"] = True
-            return self._connection.local(command, hide=True, **asynchronous_args, warn=(not check_rc), timeout=timeout)
-
-        if path_replacement:
+        if path_replacement and not self._local:
             storage_dir = self._storage.get_remote_directory()
             for local_path in command.split():
                 remote_path = ""
@@ -166,7 +154,12 @@ class Host:
                 if len(remote_path) > 0:
                     command = command.replace(local_path, remote_path)
 
-        return self._connection.run(command, hide=True, warn=(not check_rc), timeout=timeout, **asynchronous_args)
+        # If pty is not True, then some programs don't work correctly (for example,
+        # termination via timeout might not work). However, problem is then that
+        # stderr and stdout is mixed into stdout (and stderr is empty).
+        return self._connection.run(
+            command, hide=True, warn=(not check_rc), timeout=timeout, pty=True, asynchronous=asynchronous
+        )
 
     @staticmethod
     def stop(promise):
