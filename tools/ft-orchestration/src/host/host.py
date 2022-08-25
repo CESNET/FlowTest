@@ -93,11 +93,18 @@ class Host:
 
         return self._host
 
-    def run(self, command, asynchronous=False, check_rc=True, timeout=None):
+    def run(
+        self,
+        command,
+        asynchronous=False,
+        check_rc=True,
+        timeout=None,
+        path_replacement=True,
+    ):
         """Run command.
 
-        Method automatically synchronizes files/directories if
-        command is executed on remote machine.
+        By default, method automatically synchronizes files/directories
+        if command is executed on remote machine.
 
         If path with wildcards is present in command, it is replaced
         with list of all matched paths. For example, "ls *.txt sample.md"
@@ -115,6 +122,18 @@ class Host:
         timeout : float, optional
             Raise ``CommandTimedOut`` if command doesn't finish within
             specified timeout (in seconds).
+        path_replacement: bool
+            By default, method automatically synchronizes files/directories if
+            command is executed on remote machine. This is done by replacing
+            local paths with remote paths in ``command`` string. Sometimes this might
+            not always work as expected. Then path replacement can be disabled
+            by setting this parameter to False. Note that caller is then responsible
+            for providing correct paths on remote execution.
+
+            For example: command creates file. If command is run on remote
+            machine, then file is created there and not on local machine. Since
+            file doesn't exist locally, it is not recognized as path and thus
+            it is not replaced.
 
         Returns
         -------
@@ -136,15 +155,16 @@ class Host:
             asynchronous_args["pty"] = True
             return self._connection.local(command, hide=True, **asynchronous_args, warn=(not check_rc), timeout=timeout)
 
-        storage_dir = self._storage.get_remote_directory()
-        for local_path in command.split():
-            remote_path = ""
-            for path in glob.glob(local_path):
-                self._storage.push(str(pathlib.Path(path)))
-                remote_path += str(pathlib.Path(storage_dir, pathlib.Path(path).name))
-                remote_path += " "
-            if len(remote_path) > 0:
-                command = command.replace(local_path, remote_path)
+        if path_replacement:
+            storage_dir = self._storage.get_remote_directory()
+            for local_path in command.split():
+                remote_path = ""
+                for path in glob.glob(local_path):
+                    self._storage.push(str(pathlib.Path(path)))
+                    remote_path += str(pathlib.Path(storage_dir, pathlib.Path(path).name))
+                    remote_path += " "
+                if len(remote_path) > 0:
+                    command = command.replace(local_path, remote_path)
 
         return self._connection.run(command, hide=True, warn=(not check_rc), timeout=timeout, **asynchronous_args)
 
