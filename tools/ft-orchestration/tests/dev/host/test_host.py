@@ -30,6 +30,15 @@ def test_host_local_ls_single_file(require_root):
 
 
 @pytest.mark.dev
+def test_host_local_ls_single_file_wildcard(require_root):
+    """Test 'ls' command on single file on localhost."""
+
+    host = Host()
+    res = host.run(f"ls {os.getcwd()}/t?sts/*/h*s?/*****/a.txt | xargs echo")
+    assert res.stdout.strip() == f"{FILES_DIR}/a.txt"
+
+
+@pytest.mark.dev
 def test_host_local_cat_single_file(require_root):
     """Test 'cat' command on single file on localhost."""
 
@@ -66,6 +75,16 @@ def test_host_remote_ls_single_file(require_root):
     res = host.run(f"ls {FILES_DIR}/a.txt | xargs echo")
     assert not host.is_local()
     assert host.get_storage() is not None
+    assert res.stdout.strip() == STORAGE.get_remote_directory() + "/a.txt"
+
+
+@pytest.mark.dev
+@pytest.mark.skipif(HOST is None, reason="remote host not defined")
+def test_host_remote_ls_single_file_wildcard(require_root):
+    """Test 'ls' command on single file on remote host."""
+
+    host = Host(HOST, STORAGE)
+    res = host.run(f"ls {os.getcwd()}/t?sts/*/h*s?/*****/a.txt | xargs echo")
     assert res.stdout.strip() == STORAGE.get_remote_directory() + "/a.txt"
 
 
@@ -138,4 +157,29 @@ def test_host_remote_delete_files(require_root):
 
     STORAGE.remove_all()
     res = host.run(f"ls {STORAGE.get_remote_directory()}")
+    assert res.stdout == ""
+
+
+@pytest.mark.dev
+@pytest.mark.skipif(HOST is None, reason="remote host not defined")
+def test_host_remote_custom_directory(require_root):
+    """Test for using custom working directory for remote host/storage."""
+
+    work_dir = "/tmp/test_host_remote_custom_directory"
+
+    # Create custom directory on remote
+    host = Host(HOST, STORAGE)
+    host.run(f"mkdir -p {work_dir}", path_replacement=False)
+
+    # Redefine host with new remote storage
+    host = Host(HOST, RemoteStorage(HOST, work_dir=work_dir))
+    assert host.get_storage().get_remote_directory() == work_dir
+
+    res = host.run(f"ls {FILES_DIR}/a.txt | xargs echo")
+    assert res.stdout.strip() == f"{work_dir}/a.txt"
+
+    host.get_storage().remove_all()
+    res = host.run(f"ls {work_dir}")
+    assert res.stdout == ""
+    res = host.run(f"ls {host.get_storage().get_remote_directory()}")
     assert res.stdout == ""
