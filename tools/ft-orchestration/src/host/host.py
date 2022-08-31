@@ -8,10 +8,12 @@ Module implements Host class providing remote command
 execution and file synchronization.
 """
 
+import glob
 import logging
 import pathlib
 
 import fabric
+import invoke
 from src.host.common import get_real_user, ssh_agent_enabled
 from src.host.storage import RemoteStorage
 
@@ -41,6 +43,8 @@ class Host:
     def __init__(self, host="localhost", storage=None):
 
         self._connection = fabric.Connection(host, user=get_real_user())
+        self._storage = storage
+        self._host = host
 
         if host == "localhost":
             self._local = True
@@ -49,21 +53,63 @@ class Host:
                 logging.getLogger().error("Storage must be set when host isn't localhost.")
                 raise TypeError("Storage must be set when host isn't localhost.")
 
-            if not ssh_agent_enabled():
-                logging.getLogger().error("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
-                raise EnvironmentError("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
-
             self._local = False
-            self._connection.open()
-            self._storage = storage
 
-    def run(self, command, asynchronous=False, check_rc=True, timeout=None):
+        if not ssh_agent_enabled():
+            logging.getLogger().error("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
+            raise EnvironmentError("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
+
+        self._connection.open()
+
+    def is_local(self):
+        """Return True if host is local or False if host is remote.
+
+        Returns
+        -------
+        bool
+            Return True if host is local or False if host is remote.
+        """
+
+        return self._local
+
+    def get_storage(self):
+        """Get remote storage class.
+
+        Returns
+        -------
+        None or storage.RemoteStorage
+            Storage if host is remote. None if host is localhost.
+        """
+
+        return self._storage
+
+    def get_host(self):
+        """Get hostname/IP address.
+
+        Returns
+        -------
+        string
+            Hostname/IP address.
+        """
+
+        return self._host
+
+    def run(
+        self,
+        command,
+        asynchronous=False,
+        check_rc=True,
+        timeout=None,
+        path_replacement=True,
+    ):
         """Run command.
 
-        Method automatically synchronizes files/directories if
-        command is executed on remote machine.
+        By default, method automatically synchronizes files/directories
+        if command is executed on remote machine.
 
-        Note: wildcards (*) are not supported. Use directory instead.
+        If path with wildcards is present in command, it is replaced
+        with list of all matched paths. For example, "ls *.txt sample.md"
+        can be replaced with "ls a.txt b.txt c.txt sample.md".
 
         Parameters
         ----------
@@ -77,6 +123,18 @@ class Host:
         timeout : float, optional
             Raise ``CommandTimedOut`` if command doesn't finish within
             specified timeout (in seconds).
+        path_replacement: bool
+            By default, method automatically synchronizes files/directories if
+            command is executed on remote machine. This is done by replacing
+            local paths with remote paths in ``command`` string. Sometimes this might
+            not always work as expected. Then path replacement can be disabled
+            by setting this parameter to False. Note that caller is then responsible
+            for providing correct paths on remote execution.
+
+            For example: command creates file. If command is run on remote
+            machine, then file is created there and not on local machine. Since
+            file doesn't exist locally, it is not recognized as path and thus
+            it is not replaced.
 
         Returns
         -------
@@ -85,27 +143,23 @@ class Host:
             Then ``join()`` must be called on Promise to get Result.
         """
 
-        if asynchronous:
-            # 'pty' must be True so that kill() command can
-            # reach remote shell. Otherwise, kill() will terminate
-            # local process but remote process will not be terminated.
-            asynchronous_args = {"asynchronous": True, "pty": True}
-        else:
-            asynchronous_args = {}
+        if path_replacement and not self._local:
+            storage_dir = self._storage.get_remote_directory()
+            for local_path in command.split():
+                remote_path = ""
+                for path in glob.glob(local_path):
+                    self._storage.push(str(pathlib.Path(path)))
+                    remote_path += str(pathlib.Path(storage_dir, pathlib.Path(path).name))
+                    remote_path += " "
+                if len(remote_path) > 0:
+                    command = command.replace(local_path, remote_path)
 
-        if self._local:
-            # 'pty' must be True otherwise termination via timeout won't work properly
-            asynchronous_args["pty"] = True
-            return self._connection.local(command, hide=True, **asynchronous_args, warn=(not check_rc), timeout=timeout)
-
-        for item in command.split():
-            path = pathlib.Path(item)
-            if path.exists() and (path.is_dir() or path.is_file()):
-                storage_dir = self._storage.get_remote_directory()
-                self._storage.push(str(path))
-                command = command.replace(str(path), f"{storage_dir}/{path.name}")
-
-        return self._connection.run(command, hide=True, warn=(not check_rc), timeout=timeout, **asynchronous_args)
+        # If pty is not True, then some programs don't work correctly (for example,
+        # termination via timeout might not work). However, problem is then that
+        # stderr and stdout is mixed into stdout (and stderr is empty).
+        return self._connection.run(
+            command, hide=True, warn=(not check_rc), timeout=timeout, pty=True, asynchronous=asynchronous
+        )
 
     @staticmethod
     def stop(promise):
@@ -115,8 +169,9 @@ class Host:
         asynchronous mode. Otherwise, it won't have any effect.
 
         User must manually call ``join`` or ``wait_until_finished`` to get
-        execution result (return code will be probably nonzero as command
-        was forcefully killed).
+        execution result. Method tries to gracefully terminate
+        process (via CTRL+C). If it fails, process is killed after 5 seconds.
+        In that case return code can be non-zero.
 
         Parameters
         ----------
@@ -124,8 +179,15 @@ class Host:
             Promise from ``run`` method.
         """
 
-        if promise.runner.opts["asynchronous"] and promise.runner.opts["pty"]:
-            promise.runner.kill()
+        if isinstance(promise, invoke.runners.Promise) and promise.runner.opts["asynchronous"]:
+            if promise.runner.process_is_finished:
+                return
+
+            # Try to gracefully terminate process
+            promise.runner.send_interrupt(KeyboardInterrupt)
+            # If it won't terminate within 5 seconds, kill it
+            promise.runner.start_timer(5)
+            promise.runner.wait()
 
     @staticmethod
     def wait_until_finished(promise):
@@ -146,7 +208,7 @@ class Host:
             Updated result.
         """
 
-        if hasattr(promise, "join"):
+        if isinstance(promise, invoke.runners.Promise):
             return promise.join()
 
         return None
