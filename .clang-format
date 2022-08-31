@@ -1,0 +1,16 @@
+AccessModifierOffset: '0'
+AllowShortBlocksOnASingleLine: 'false'
+AllowShortCaseLabelsOnASingleLine: 'false'
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: 'false'
+Cpp11BracedListStyle: 'true'
+IndentWidth: '4'
+Language: Cpp
+NamespaceIndentation: None
+PointerAlignment: Left
+SortIncludes: 'true'
+SpaceAfterTemplateKeyword: 'true'
+SpaceBeforeAssignmentOperators: 'true'
+SpaceBeforeCpp11BracedList: 'true'
+TabWidth: '4'
+UseTab: ForContinuationAndIndentation
