@@ -20,60 +20,46 @@ using IPv4Address = pcpp::IPv4Address;
 using IPv6Address = pcpp::IPv6Address;
 
 /**
- * @brief A generator of MAC addresses
+ * @brief Generator of unique MAC/IP addresses based on a pseudorandom generator
+ *
  */
-class MacAddressGenerator {
+class AddressGenerators {
 public:
 	/**
-	 * @brief Generate next address
+	 * @brief Construct a new Address Generators object
 	 *
-	 * @return The address
+	 * @param seed  The seed value of the pseudorandom seed generator
 	 */
-	MacAddress Generate();
+	AddressGenerators(uint32_t seed = 1);
 
-private:
-	std::array<uint8_t, 6> _currentAddr = {0};
-};
-
-/**
- * @brief A generator of IPv4 addresses
- */
-class IPv4AddressGenerator {
-public:
 	/**
-	 * @brief Generate next address
+	 * @brief Generate a MAC address
 	 *
-	 * @return The address
+	 * @return MacAddress
 	 */
-	IPv4Address Generate();
+	MacAddress GenerateMac();
 
-private:
-	std::array<uint8_t, 4> _currentAddr = {0};
-};
-
-/**
- * @brief A generator of IPv6 addresses
- */
-class IPv6AddressGenerator {
-public:
 	/**
-	 * @brief Generate next address
+	 * @brief Generate an IPv4 address
 	 *
-	 * @return The address
+	 * @return IPv4Address
 	 */
-	IPv6Address Generate();
+	IPv4Address GenerateIPv4();
+
+	/**
+	 * @brief Generate an IPv6 address
+	 *
+	 * @return IPv6Address
+	 */
+	IPv6Address GenerateIPv6();
 
 private:
-	std::array<uint8_t, 16> _currentAddr = {0};
-};
+	uint32_t _capacity = 0;
+	uint32_t _state;
+	uint32_t _seedState;
 
-/**
- * @brief A container for all the address generators
- */
-struct AddressGenerators {
-	MacAddressGenerator _mac;
-	IPv4AddressGenerator _ipv4;
-	IPv6AddressGenerator _ipv6;
+	uint32_t NextValue();
+	void NextSeed();
 };
 
 } // namespace generator

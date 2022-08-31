@@ -47,8 +47,8 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 	_tsLast(profile._endTime),
 	_id(id)
 {
-	MacAddress macSrc = addressGenerators._mac.Generate();
-	MacAddress macDst = addressGenerators._mac.Generate();
+	MacAddress macSrc = addressGenerators.GenerateMac();
+	MacAddress macDst = addressGenerators.GenerateMac();
 	AddLayer(std::make_unique<Ethernet>(macSrc, macDst));
 
 	switch (profile._l3Proto) {
@@ -56,14 +56,14 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 		throw std::runtime_error("Unknown L3 protocol");
 
 	case L3Protocol::Ipv4: {
-		IPv4Address ipSrc = addressGenerators._ipv4.Generate();
-		IPv4Address ipDst = addressGenerators._ipv4.Generate();
+		IPv4Address ipSrc = addressGenerators.GenerateIPv4();
+		IPv4Address ipDst = addressGenerators.GenerateIPv4();
 		AddLayer(std::make_unique<IPv4>(ipSrc, ipDst));
 	} break;
 
 	case L3Protocol::Ipv6: {
-		IPv6Address ipSrc = addressGenerators._ipv6.Generate();
-		IPv6Address ipDst = addressGenerators._ipv6.Generate();
+		IPv6Address ipSrc = addressGenerators.GenerateIPv6();
+		IPv6Address ipDst = addressGenerators.GenerateIPv6();
 		AddLayer(std::make_unique<IPv6>(ipSrc, ipDst));
 	} break;
 	}
