@@ -3,6 +3,7 @@ add_executable(ft-generator
 	calendar.cpp calendar.h
 	config.h config.cpp
 	flow.cpp flow.h
+	flowplanhelper.cpp flowplanhelper.h
 	flowprofile.cpp flowprofile.h
 	generator.cpp generator.h
 	layer.h layer.cpp
