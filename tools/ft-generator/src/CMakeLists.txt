@@ -8,6 +8,7 @@ add_executable(ft-generator
 	generator.cpp generator.h
 	layer.h layer.cpp
 	layers/ethernet.h layers/ethernet.cpp
+	layers/icmpecho.h layers/icmpecho.cpp
 	layers/ipv4.h layers/ipv4.cpp
 	layers/ipv6.h layers/ipv6.cpp
 	layers/payload.h layers/payload.cpp
