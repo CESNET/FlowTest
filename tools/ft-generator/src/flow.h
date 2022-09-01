@@ -127,6 +127,13 @@ private:
 	 * @brief Plan packets sizes.
 	 */
 	void PlanPacketsSizes();
+
+	/**
+	 * @brief Create icmp layer
+	 *
+	 * @return std::unique_ptr<Layer>
+	 */
+	std::unique_ptr<Layer> MakeIcmpLayer();
 };
 
 } // namespace generator

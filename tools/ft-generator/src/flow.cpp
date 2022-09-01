@@ -13,6 +13,8 @@
 #include "packetflowspan.h"
 #include "valuegenerator.h"
 #include "layers/ethernet.h"
+#include "layers/icmpecho.h"
+#include "layers/icmprandom.h"
 #include "layers/ipv4.h"
 #include "layers/ipv6.h"
 #include "layers/payload.h"
@@ -28,6 +30,8 @@
 #include <vector>
 
 namespace generator {
+
+static constexpr int ICMP_HEADER_SIZE = sizeof(pcpp::icmphdr);
 
 const static std::vector<IntervalInfo> PacketSizeProbabilities{
 	{64, 79, 0.2824},
@@ -84,8 +88,9 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 		AddLayer(std::make_unique<Udp>(portSrc, portDst));
 	} break;
 
-	case L4Protocol::Icmp:
-		throw std::runtime_error("ICMP not implemented");
+	case L4Protocol::Icmp: {
+		AddLayer(MakeIcmpLayer());
+	} break;
 
 	case L4Protocol::Icmpv6:
 		throw std::runtime_error("ICMPv6 not implemented");
@@ -94,6 +99,42 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 	AddLayer(std::make_unique<Payload>());
 
 	Plan();
+}
+
+std::unique_ptr<Layer> Flow::MakeIcmpLayer()
+{
+	double fwdRevRatioDiff = 1.0;
+	if (_fwdPackets + _revPackets > 0) {
+		double min = std::min(_fwdPackets, _revPackets);
+		double max = std::max(_fwdPackets, _revPackets);
+		fwdRevRatioDiff = 1.0 - (min / max);
+	}
+
+	double bytesPerPkt = (_fwdBytes + _revBytes) / (_fwdPackets + _revPackets);
+
+	/*
+	 * A simple heuristic to choose the proper ICMP packet generation strategy based
+	 * on the flow characteristics
+	 *
+	 * NOTE: Might need further evaluation if this is a "good enough" way to do this
+	 * and/or some tweaking
+	*/
+	std::unique_ptr<Layer> layer;
+	if ((_fwdPackets <= 3 || _revPackets <= 3) && (bytesPerPkt <= 1.10 * ICMP_HEADER_SIZE)) {
+		// Low amount of small enough packets
+		layer = std::make_unique<IcmpRandom>();
+	} else if (fwdRevRatioDiff <= 0.2) {
+		// About the same number of packets in both directions
+		layer = std::make_unique<IcmpEcho>();
+	} else if (bytesPerPkt <= 1.10 * ICMP_HEADER_SIZE) {
+		// Small enough packets
+		layer = std::make_unique<IcmpRandom>();
+	} else {
+		// Enough packets and many of them
+		layer = std::make_unique<IcmpEcho>();
+	}
+
+	return layer;
 }
 
 Flow::~Flow()
