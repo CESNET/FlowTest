@@ -1,0 +1,188 @@
+# Author(s): Jan Sobol <sobol@cesnet.cz>
+#
+# Copyright: (C) 2022 CESNET, z.s.p.o.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Mapping table used for mapping collector output in JSON to normalized YAML format (YAML test description).
+
+# format:
+#   'JSON_key':                                 -- IPFIX attribute
+#     map: YAML_key                             -- attribute name in annotation
+#     converter: 'name_of_converter_function'   -- optionally convert attribute value
+
+# standard IANA
+'iana:octetDeltaCount':
+  map: bytes
+'iana@reverse:octetDeltaCount@reverse':
+  map: bytes@rev
+'iana:packetDeltaCount':
+  map: packets
+'iana@reverse:packetDeltaCount@reverse':
+  map: packets@rev
+'iana:protocolIdentifier':
+  map: protocol
+  # converter: protocol_identifier_to_number  # fdsdump output has protocol number
+'iana:ipClassOfService':
+  map: tos
+'iana:tcpControlBits':
+  map: tcp_flags
+  # converter: flags_to_hex  # fdsdump output has tcp flags as number
+'iana@reverse:tcpControlBits@reverse':
+  map: tcp_flags@rev
+  # converter: flags_to_hex  # fdsdump output has tcp flags as number
+'iana:sourceTransportPort':
+  map: src_port
+'iana:destinationTransportPort':
+  map: dst_port
+'iana:sourceIPv4Address':
+  map: src_ip
+'iana:sourceIPv6Address':
+  map: src_ip
+'iana:destinationIPv4Address':
+  map: dst_ip
+'iana:destinationIPv6Address':
+  map: dst_ip
+'iana:sourceMacAddress':
+  map: src_mac
+'iana:destinationMacAddress':
+  map: dst_mac
+'iana:ipTTL':
+  map: ttl
+'iana@reverse:ipTTL@reverse':
+  map: ttl@rev
+'iana:bgpSourceAsNumber':
+  map: src_asn
+'iana:bgpDestinationAsNumber':
+  map: dst_asn
+'iana:vlanId':
+  map: vlan_id
+'iana:dot1qVlanId':
+  map: vlan_id
+'iana:postVlanId':
+  map: vlan_id_inner
+'iana:dot1qCustomerVlanId':
+  map: vlan_id_inner
+'flowmon:vxlanVNI':
+  map: vxlan_id
+'iana:ipVersion':
+  map: ip_version
+'iana:mplsTopLabelStackSection':
+  map: mpls_label_1
+'iana:mplsLabelStackSection2':
+  map: mpls_label_2
+'iana@reverse:mplsTopLabelStackSection@reverse':
+  map: mpls_label_1@rev
+'iana@reverse:mplsLabelStackSection2@reverse':
+  map: mpls_label_2@rev
+'iana:tcpOptions':
+  map: tcp_options
+'iana@reverse:tcpOptions@reverse':
+  map: tcp_options@rev
+'cesnet:tcpSynSize':
+  map: tcp_syn_size
+'flowmon:tcpSynSize':
+  map: tcp_syn_size
+'flowmon:tcpSynTtl':
+  map: ttl
+'iana:icmpTypeIPv4':
+  map: icmp_type
+'iana:icmpTypeIPv6':
+  map: icmp_type
+'iana@reverse:icmpTypeIPv4@reverse':
+  map: icmp_type@rev
+'iana@reverse:icmpTypeIPv6@reverse':
+  map: icmp_type@rev
+'iana:icmpCodeIPv4':
+  map: icmp_code
+'iana:icmpCodeIPv6':
+  map: icmp_code
+'iana@reverse:icmpCodeIPv4@reverse':
+  map: icmp_type@rev
+'iana@reverse:icmpCodeIPv6@reverse':
+  map: icmp_type@rev
+'iana:icmpTypeCodeIPv4':
+  map: icmp_type_code
+'iana:icmpTypeCodeIPv6':
+  map: icmp_type_code
+'iana@reverse:icmpTypeCodeIPv4@reverse':
+  map: icmp_type_code@rev
+'iana@reverse:icmpTypeCodeIPv6@reverse':
+  map: icmp_type_code@rev
+
+# DNS
+'flowmon:dnsId':
+  map: dns_id
+'flowmon:dnsFlagsCodes':
+  map: dns_flags
+'cesnet:DNSQType':
+  map: dns_req_query_type
+'flowmon:dnsQtype':
+  map: dns_req_query_type
+'cesnet:DNSClass':
+  map: dns_req_query_class
+'flowmon:dnsQclass':
+  map: dns_req_query_class
+'cesnet:DNSName':
+  map: dns_req_query_name
+'flowmon:dnsQname':
+  map: dns_req_query_name
+'cesnet:DNSRCode':
+  map: dns_resp_rcode
+
+# DNS Resource Record
+'flowmon:dnsCrrName':
+  map: dns_resp_rr.name
+'flowmon:dnsCrrType':
+  map: dns_resp_rr.type
+'flowmon:dnsCrrClass':
+  map: dns_resp_rr.class
+'cesnet:DNSRRTTL':
+  map: dns_resp_rr.ttl
+'flowmon:dnsCrrTtl':
+  map: dns_resp_rr.ttl
+'cesnet:DNSRData':
+  map: dns_resp_rr.data
+'flowmon:dnsCrrRdata':
+  map: dns_resp_rr.data
+
+# HTTP
+'flowmon:httpHost':
+  map: http_host
+'flowmon:httpUrl':
+  map: http_url
+'cesnet:httpMethod':
+  map: http_method
+'flowmon:httpMethodMask':
+  map: http_method_id
+'flowmon:httpStatusCode':
+  map: http_status_code
+'flowmon:httpUserAgent':
+  map: http_agent
+'flowmon:httpContentType':
+  map: http_content_type
+'flowmon:httpReferer':
+  map: http_refer
+
+# TLS
+'flowmon:tlsServerVersion':
+  map: tls_server_version
+'flowmon:tlsCipherSuite':
+  map: tls_cipher_suite
+'flowmon:tlsAlpn':
+  map: tls_alpn
+'flowmon:tlsSni':
+  map: tls_sni
+'flowmon:tlsClientVersion':
+  map: tls_client_version
+'flowmon:tlsIssuerCn':
+  map: tls_issuer_cn
+'flowmon:tlsSubjectCn':
+  map: tls_subject_cn
+'flowmon:tlsValidityNotBefore':
+  map: tls_validity_not_before
+'flowmon:tlsValidityNotAfter':
+  map: tls_validity_not_after
+'flowmon:tlsPublicKeyAlg':
+  map: tls_public_key_alg
+'flowmon:tlsJa3Fingerprint':
+  map: tls_ja3
