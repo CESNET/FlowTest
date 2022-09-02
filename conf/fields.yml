@@ -77,9 +77,10 @@ fields:
     dns_id:
         type:      int
         direction: always
-    dns_req_flags:
+    dns_flags:
         type:      int
         direction: always
+        reverse:   dns_flags@rev
     dns_req_query_type:
         type:      int
         direction: always
@@ -88,9 +89,6 @@ fields:
         direction: always
     dns_req_query_name:
         type:      string
-        direction: always
-    dns_resp_flags:
-        type:      int
         direction: always
     dns_resp_rcode:
         type:      int

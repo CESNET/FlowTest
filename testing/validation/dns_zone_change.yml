@@ -15,7 +15,7 @@ flows:
     dst_port:    53
     dns_id:      51350
     _forward:
-      dns_req_flags:       0x2400
+      dns_flags:           0x2400
       dns_req_query_type:  6
       dns_req_query_class: 1
       dns_req_query_name:  "kkkresort.com"

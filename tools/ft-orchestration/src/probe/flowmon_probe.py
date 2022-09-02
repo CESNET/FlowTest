@@ -82,11 +82,10 @@ FIELDS = {
     ],
     "dns": [
         "dns_id",
-        "dns_req_flags",
+        "dns_flags",
         "dns_req_query_type",
         "dns_req_query_class",
         "dns_req_query_name",
-        "dns_resp_flags",
         "dns_resp_rcode",
         "dns_resp_rr",
         "dns_resp_rr.name",
