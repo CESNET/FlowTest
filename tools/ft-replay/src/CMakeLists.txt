@@ -6,6 +6,8 @@ add_executable(ft-replay
 	packet.cpp
 	rawPacketProvider.hpp
 	rawPacketProvider.cpp
+	packetBuilder.hpp
+	packetBuilder.cpp
 )
 
 target_link_libraries(ft-replay
