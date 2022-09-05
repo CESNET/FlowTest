@@ -196,9 +196,9 @@ class FlowmonProbe(ProbeInterface):
             logging.getLogger().error("Unable to create json configuration file %s", err)
             raise ProbeException(f"Unable to create json configuration file : {err}") from err
 
-        self._host._storage.push(local_conf_file)
+        self._host.get_storage().push(local_conf_file)
         shutil.rmtree(local_temp_dir)
-        self._temporary_dir = self._host._storage.get_remote_directory()
+        self._temporary_dir = self._host.get_storage().get_remote_directory()
         self._probe_json_conf = Path(self._temporary_dir) / self._probe_json
 
     def _get_appliance_attributes(self, input_plugin):
@@ -222,15 +222,16 @@ class FlowmonProbe(ProbeInterface):
     def _read_dpdk_info_file(self):
         """Read configuration details for the dpdk"""
 
-        ifc_map = (self._host.run(f"cat {DPDK_INFO_FILE} | grep {self._interface}", check_rc=False).stdout).split()
+        ifc_map = self._host.run(f"cat {DPDK_INFO_FILE} | grep {self._interface}", check_rc=False).stdout.split()
         if len(ifc_map) == 12:
-            dpdk_info = {}
-            dpdk_info["device"] = ifc_map[0]
-            dpdk_info["driver_name"] = ifc_map[4]
-            dpdk_info["numa_node"] = int(ifc_map[6])
-            dpdk_info["pmd"] = ifc_map[8]
-            dpdk_info["cores"] = ifc_map[9]
-            dpdk_info["ifindex"] = int(ifc_map[11])
+            dpdk_info = {
+                "device": ifc_map[0],
+                "driver_name": ifc_map[4],
+                "numa_node": int(ifc_map[6]),
+                "pmd": ifc_map[8],
+                "cores": ifc_map[9],
+                "ifindex": int(ifc_map[11]),
+            }
             return dpdk_info
         logging.getLogger().error("Unable to find interface %s in %d", self._temporary_dir, DPDK_INFO_FILE)
         raise ProbeException(f"Unable to find interface {self._interface} in {DPDK_INFO_FILE}.")
