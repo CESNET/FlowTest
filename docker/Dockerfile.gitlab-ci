@@ -26,7 +26,8 @@ RUN <<EOF
 		git sudo make cmake rpm-build \
 		gcc gcc-c++ cppcheck \
 		libpcap-devel \
-		python3 python3-virtualenv
+		python3 python3-virtualenv \
+		xxhash-devel
 
 	dnf clean all
 EOF
