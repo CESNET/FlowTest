@@ -4,9 +4,12 @@ add_executable(ft-replay
 	config.cpp
 	packet.hpp
 	packet.cpp
+	rawPacketProvider.hpp
+	rawPacketProvider.cpp
 )
 
 target_link_libraries(ft-replay
+	PRIVATE common
 	-lpcap
 	-lxxhash
 )
