@@ -13,6 +13,10 @@ from typing import List, Optional
 from ftprofiler.flow import Flow
 
 
+class FlowCacheException(Exception):
+    """Basic exception raised by flow cache."""
+
+
 class FlowCache:
     """Cache for storing flows in order to join flows into biflows and join flows split by active timeout.
 
@@ -67,6 +71,11 @@ class FlowCache:
         -------
         List[Flow]
             List of Flow objects.
+
+        Raises
+        ------
+        FlowCacheException
+            Cache overflow.
         """
 
         if flow.end_time > self._now:
@@ -96,7 +105,10 @@ class FlowCache:
             # Flows are not strictly ordered based on start time (start time trend of flows is generally increasing),
             # therefore the active timeout is multiplied by a constant here, so we don't remove flows for which
             # extending flow could still arrive.
-            return self.remove_flows(self._now - 1.5 * self._at)
+            flows = self.remove_flows(self._now - 1.5 * self._at)
+            if not flows:
+                raise FlowCacheException("Flow cache is full and cannot hold all active flows! Increase memory limit.")
+            return flows
 
         return []
 
