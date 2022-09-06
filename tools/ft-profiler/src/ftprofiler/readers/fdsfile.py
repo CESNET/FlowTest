@@ -101,7 +101,7 @@ class Fdsfile(InputInterface):
         InputException
             Fdsdump process exited unexpectedly with an error.
         """
-
+        # pylint: disable=R0912
         if not self._process:
             logging.getLogger().error("fdsdump process not started")
             raise InputException("fdsdump process not started")
@@ -144,7 +144,12 @@ class Fdsfile(InputInterface):
                 start = rec["flowstart"]
                 end = rec["flowend"]
 
-            except (json.decoder.JSONDecodeError, KeyError) as err:
+                if s_addr is None:
+                    raise ValueError("missing srcip")
+                if d_addr is None:
+                    raise ValueError("missing dstip")
+
+            except (json.decoder.JSONDecodeError, KeyError, ValueError) as err:
                 logging.getLogger().error("processing line=%s error=%s", output.decode("utf-8"), str(err))
                 stderr = self._process.stderr.readline()
                 if len(stderr) > 0:
@@ -155,6 +160,10 @@ class Fdsfile(InputInterface):
 
             start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S.%fZ")
             end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ")
+            if s_port is None:
+                s_port = 0
+            if d_port is None:
+                d_port = 0
 
             if not self._zero_time:
                 self._zero_time = start
