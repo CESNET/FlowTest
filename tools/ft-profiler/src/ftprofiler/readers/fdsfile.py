@@ -11,7 +11,6 @@ import json
 import logging
 import shutil
 import subprocess
-from datetime import datetime
 
 from ftprofiler.flow import Flow
 from ftprofiler.readers.interface import InputException, InputInterface
@@ -51,7 +50,11 @@ class Fdsfile(InputInterface):
         if fdsdump_bin is None:
             raise InputException("Unable to locate or execute Fdsdump binary")
 
-        self._cmd = [fdsdump_bin, "-o", "json:srcip,dstip,srcport,dstport,proto,pkts,bytes,flowstart,flowend,tcpflags"]
+        self._cmd = [
+            fdsdump_bin,
+            "-o",
+            "json:srcip,dstip,srcport,dstport,proto,pkts,bytes,flowstart,flowend,tcpflags;timestamp=unix",
+        ]
 
         for read_pattern in args.read:
             self._cmd += ["-r", read_pattern]
@@ -141,7 +144,7 @@ class Fdsfile(InputInterface):
                 proto = rec["proto"]
                 pkts = rec["pkts"]
                 bts = rec["bytes"]
-                start = rec["flowstart"]
+                start = rec["flowstart"]  # Unix timestamp in milliseconds
                 end = rec["flowend"]
 
                 if s_addr is None:
@@ -158,8 +161,8 @@ class Fdsfile(InputInterface):
 
                 continue
 
-            start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S.%fZ")
-            end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ")
+            start = int(start)
+            end = int(end)
             if s_port is None:
                 s_port = 0
             if d_port is None:
@@ -169,8 +172,8 @@ class Fdsfile(InputInterface):
                 self._zero_time = start
 
             return Flow(
-                int((start - self._zero_time).total_seconds() * 1000),
-                int((end - self._zero_time).total_seconds() * 1000),
+                start - self._zero_time,
+                end - self._zero_time,
                 int(proto),
                 s_addr,
                 d_addr,
