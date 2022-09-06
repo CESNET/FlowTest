@@ -23,16 +23,26 @@ FLOWMONEXP_BIN = "/usr/bin/flowmonexp5"
 QUEUE_SIZE = 22
 DPDK_INFO_FILE = "/data/components/dpdk-tools/stats/ifc_map.csv"
 
+PLUGIN_PARAMS = {
+    "as-helper": "/etc/flowmon/flowmon-as.txt",
+    "l2": "protocols=MPLS#VLAN#MAC,mac-crc=0,vlan-crc=0,mpls-crc=0",
+    "tls": "fields=MAIN#CLIENT#CERT#JA3",
+    "vxlan": "port=4789,export_vni=1,decapsulation=1",
+}
+
 PROTOCOLS_TO_PLUGINS = {
     "mac": "l2",
     "vlan": "l2",
     "mpls": "l2",
     "tcp": "extended_tcp",
-    "as": "as_helper",
+    "as": "as-helper",
     "ipv4": "extended_tcp",
+    "ipv6": "extended_tcp",
     "dns": "dns",
     "http": "http",
     "tls": "tls",
+    "gre": "gre",
+    "vxlan": "vxlan",
 }
 
 SPECIAL_FIELDS = {"dns_resp_rr": "OneInArray"}
@@ -61,7 +71,7 @@ FIELDS = {
     "vxlan": [
         "vxlan_id",
     ],
-    "as_helper": [
+    "as-helper": [
         "src_asn",
         "dst_asn",
     ],
@@ -268,7 +278,7 @@ class FlowmonProbe(ProbeInterface):
         """Responsible for compiling part of the probe
         configuration consisting of used export plugins"""
 
-        self._settings["PROCESS"] = [{"NAME": item, "PARAMS": ""} for item in self._plugins]
+        self._settings["PROCESS"] = [{"NAME": item, "PARAMS": PLUGIN_PARAMS.get(item, "")} for item in self._plugins]
 
     def _set_filters(self, attributes):
         """Compiles probe configuration regarding used filters."""
