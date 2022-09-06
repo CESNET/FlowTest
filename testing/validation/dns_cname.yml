@@ -2,6 +2,7 @@
 test:
   name: DNS CNAME Request
   pcaps: ["dns_cname.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.233.84"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   87
     packets:     1
     packets@rev: 1
-    tos:         0x00
-    ttl:         128
-    ttl@rev:     59
     src_port:    59961
     dst_port:    53
     dns_id:      38661

@@ -2,6 +2,7 @@
 test:
   name: HTTP 2.0
   pcaps: ["http2_switch.pcap"]
+  required_protocols: ["http"]
 
 flows:
   - src_ip:      "10.9.0.2"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   478
     packets:     4
     packets@rev: 2
-    tos:         0x00
-    ttl:         64
-    ttl@rev:     53
     src_port:    58038
     dst_port:    80
     http_host:         "nghttp2.org"

@@ -2,6 +2,7 @@
 test:
   name: TLS cipher error traffic
   pcaps: ["tls_cipher_error.pcap"]
+  required_protocols: ["tls"]
 
 flows:
   - src_ip:      "192.168.1.29"

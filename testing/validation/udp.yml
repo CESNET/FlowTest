@@ -2,6 +2,7 @@
 test:
   name: Simple UDP traffic
   pcaps: ["dns_mx.pcap"]
+  required_protocols: []
 
 flows:
   - src_ip:          "192.168.170.8"

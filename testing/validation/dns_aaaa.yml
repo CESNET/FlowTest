@@ -2,6 +2,7 @@
 test:
   name: Simple DNS AAAA Request
   pcaps: ["dns_aaaa.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.141.135"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   686
     packets:     1
     packets@rev: 1
-    tos:         0x00
-    ttl:         62
-    ttl@rev:     47
     src_port:    63563
     dst_port:    53
     dns_id:      62070

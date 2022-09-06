@@ -2,6 +2,7 @@
 test:
   name: IPv6 Option Hop-by-Hop
   pcaps: ["ipv6-hop-by-hop.pcap"]
+  required_protocols: ["ipv6", "icmpv6"]
 
 flows:
   - src_ip:            "fe80::a6cf:65f:272a:9453"

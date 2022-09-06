@@ -2,6 +2,7 @@
 test:
   name: TLS invalid certificate traffic
   pcaps: ["tls_invalid_cert.pcap"]
+  required_protocols: ["tls"]
 
 flows:
   - src_ip:      "192.168.1.29"

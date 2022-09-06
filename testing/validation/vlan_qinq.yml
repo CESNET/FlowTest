@@ -2,6 +2,7 @@
 test:
   name: Two VLAN headers
   pcaps: ["802.1Q_tunneling.pcap"]
+  required_protocols: ["vlan"]
 
 flows:
   - src_ip:        "10.118.10.1"

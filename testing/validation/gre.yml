@@ -2,6 +2,7 @@
 test:
   name: Traffic in GRE tunnel
   pcaps: ["gre.pcap"]
+  required_protocols: ["gre"]
 
 flows:
   - src_ip:            "1.1.1.1"

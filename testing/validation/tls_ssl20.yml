@@ -2,6 +2,7 @@
 test:
   name: Simple SSL 2.0 traffic
   pcaps: ["ssl-v2.pcap"]
+  required_protocols: ["tls"]
 
 flows:
   - src_ip:                  "10.10.1.89"

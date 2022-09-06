@@ -2,6 +2,7 @@
 test:
   name: Simple TLS 1.2 traffic
   pcaps: ["tls12_alpn.pcap"]
+  required_protocols: ["tls"]
 
 flows:
   - src_ip:                  "147.251.44.18"

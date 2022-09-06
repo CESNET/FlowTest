@@ -2,6 +2,7 @@
 test:
   name: HTTP Delete Method
   pcaps: ["http_delete.pcap"]
+  required_protocols: ["http"]
 
 flows:
   - src_ip:      "192.168.50.44"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   1777
     packets:     2
     packets@rev: 1
-    tos:         0x00
-    ttl:         64
-    ttl@rev:     52
     src_port:    40942
     dst_port:    80
     http_host:         "google.com"

@@ -2,6 +2,7 @@
 test:
   name: HTTP Post Method
   pcaps: ["http_post.pcap"]
+  required_protocols: ["http"]
 
 flows:
   - src_ip:      "192.168.158.139"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   2033
     packets:     6
     packets@rev: 6
-    tos:         0x00
-    ttl:         128
-    ttl@rev:     128
     src_port:    4769
     dst_port:    80
     http_host:         "ask.wireshark.org"

@@ -2,6 +2,7 @@
 test:
   name: Simple DNS A Request
   pcaps: ["dns_a.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.21.89"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   99
     packets:     1
     packets@rev: 1
-    tos:         0x00
-    ttl:         64
-    ttl@rev:     57
     src_port:    40980
     dst_port:    53
     dns_id:      14402
