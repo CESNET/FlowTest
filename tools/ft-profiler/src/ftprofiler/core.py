@@ -11,7 +11,7 @@ acquire flows from input reader and pass them to flow cache and then to the writ
 import argparse
 import logging
 
-from ftprofiler.cache import FlowCache
+from ftprofiler.cache import FlowCacheException, FlowCache
 from ftprofiler.flow import Flow
 from ftprofiler.readers import InputException, InputInterface, flow_readers, init_reader
 from ftprofiler.writer import OutputException, ProfileWriter
@@ -116,7 +116,7 @@ def main() -> int:
         reader = init_reader(args.reader, args)
         with ProfileWriter(args.output, Flow.FLOW_CSV_FORMAT, compress=args.gzip) as writer:
             process_flows(reader, writer, args.inactive * 1000, args.active * 1000, args.memory * 1048576 // Flow.SIZE)
-    except (InputException, OutputException) as err:
+    except (InputException, FlowCacheException, OutputException) as err:
         logging.getLogger().error(err)
         return 1
 
