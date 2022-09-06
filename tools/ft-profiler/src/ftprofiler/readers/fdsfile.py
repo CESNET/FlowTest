@@ -11,7 +11,6 @@ import json
 import logging
 import shutil
 import subprocess
-from datetime import datetime
 
 from ftprofiler.flow import Flow
 from ftprofiler.readers.interface import InputException, InputInterface
@@ -51,7 +50,11 @@ class Fdsfile(InputInterface):
         if fdsdump_bin is None:
             raise InputException("Unable to locate or execute Fdsdump binary")
 
-        self._cmd = [fdsdump_bin, "-o", "json:srcip,dstip,srcport,dstport,proto,pkts,bytes,flowstart,flowend,tcpflags"]
+        self._cmd = [
+            fdsdump_bin,
+            "-o",
+            "json:srcip,dstip,srcport,dstport,proto,pkts,bytes,flowstart,flowend,tcpflags;timestamp=unix",
+        ]
 
         for read_pattern in args.read:
             self._cmd += ["-r", read_pattern]
@@ -101,7 +104,7 @@ class Fdsfile(InputInterface):
         InputException
             Fdsdump process exited unexpectedly with an error.
         """
-
+        # pylint: disable=R0912
         if not self._process:
             logging.getLogger().error("fdsdump process not started")
             raise InputException("fdsdump process not started")
@@ -141,10 +144,15 @@ class Fdsfile(InputInterface):
                 proto = rec["proto"]
                 pkts = rec["pkts"]
                 bts = rec["bytes"]
-                start = rec["flowstart"]
+                start = rec["flowstart"]  # Unix timestamp in milliseconds
                 end = rec["flowend"]
 
-            except (json.decoder.JSONDecodeError, KeyError) as err:
+                if s_addr is None:
+                    raise ValueError("missing srcip")
+                if d_addr is None:
+                    raise ValueError("missing dstip")
+
+            except (json.decoder.JSONDecodeError, KeyError, ValueError) as err:
                 logging.getLogger().error("processing line=%s error=%s", output.decode("utf-8"), str(err))
                 stderr = self._process.stderr.readline()
                 if len(stderr) > 0:
@@ -153,15 +161,19 @@ class Fdsfile(InputInterface):
 
                 continue
 
-            start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S.%fZ")
-            end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ")
+            start = int(start)
+            end = int(end)
+            if s_port is None:
+                s_port = 0
+            if d_port is None:
+                d_port = 0
 
             if not self._zero_time:
                 self._zero_time = start
 
             return Flow(
-                int((start - self._zero_time).total_seconds() * 1000),
-                int((end - self._zero_time).total_seconds() * 1000),
+                start - self._zero_time,
+                end - self._zero_time,
                 int(proto),
                 s_addr,
                 d_addr,
