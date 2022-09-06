@@ -16,6 +16,7 @@ target_link_libraries(ft-replay
 	PRIVATE common
 	-lpcap
 	-lxxhash
+	-lpthread
 )
 
 install(TARGETS ft-replay DESTINATION ${INSTALL_DIR_BIN})
