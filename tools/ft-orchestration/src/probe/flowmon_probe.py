@@ -92,7 +92,7 @@ FIELDS = {
         "dns_resp_rr.type",
         "dns_resp_rr.class",
         "dns_resp_rr.ttl",
-        "dns_resp_rr.data",
+        "dns_resp_rr.flowmon_data",
     ],
     "http": [
         "http_host",

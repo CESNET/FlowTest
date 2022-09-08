@@ -30,3 +30,4 @@ flows:
           class:           1
           ttl:             86400
           data:            "ns1.gogrid.net hostmaster.gogrid.net 2012042305 28800 7200 604800 86400"
+          flowmon_data:    "0x6E73312E676F677269642E6E657420686F73746D61737465722E676F677269642E6E65742077ED54410000708000001C2000093A800001518"

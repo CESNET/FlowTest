@@ -30,8 +30,10 @@ flows:
           class:           1
           ttl:             136
           data:            "192.168.73.162"
+          flowmon_data:    "0xC0A849A2"
         - name:            "newportconceptsla.com"
           type:            1
           class:           1
           ttl:             136
           data:            "192.168.215.181"
+          flowmon_data:    "0xC0A8D7B5"

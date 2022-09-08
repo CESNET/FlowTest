@@ -30,28 +30,34 @@ flows:
           class:           1
           ttl:             552
           data:            "40 smtp4.google.com"
+          flowmon_data:    "0x0028736D7470342E676F6F676C652E636F6"
         - name:            "google.com"
           type:            15
           class:           1
           ttl:             552
           data:            "10 smtp5.google.com"
+          flowmon_data:    "0x000A736D7470352E676F6F676C652E636F6"
         - name:            "google.com"
           type:            15
           class:           1
           ttl:             552
           data:            "10 smtp6.google.com"
+          flowmon_data:    "0x000A736D7470652E676F6F676C652E636F6"
         - name:            "google.com"
           type:            15
           class:           1
           ttl:             552
           data:            "10 smtp1.google.com"
+          flowmon_data:    "0x000A736D7470312E676F6F676C652E636F6"
         - name:            "google.com"
           type:            15
           class:           1
           ttl:             552
           data:            "10 smtp2.google.com"
+          flowmon_data:    "0x000A736D7470322E676F6F676C652E636F6"
         - name:            "google.com"
           type:            15
           class:           1
           ttl:             552
           data:            "40 smtp3.google.com"
+          flowmon_data:    "0x0028736D7470332E676F6F676C652E636F6"

@@ -30,3 +30,4 @@ flows:
           class:           1
           ttl:             900
           data:            "0 100 88 s4dc1.samba.windows8.private"
+          flowmon_data:    "0x00000064005873346463312E73616D62612E77696E646F7773382E70726976617465"

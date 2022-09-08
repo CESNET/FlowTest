@@ -30,6 +30,7 @@ flows:
           class:           1
           ttl:             86400
           data:            "fe80::189a:6d10:7f6b:349e"
+          flowmon_data:    "0xFE80000000000000189A6D107F6B349E"
         - name:            "door2doorcargo.com"
           type:            46
           class:           1

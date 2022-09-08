@@ -30,3 +30,4 @@ flows:
           class:           1
           ttl:             300
           data:            "glaston.net"
+          flowmon_data:    "0x676C6173746F6E2E6E6574"

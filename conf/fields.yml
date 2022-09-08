@@ -112,6 +112,9 @@ fields:
             data:
                 type:      string
                 direction: always
+            flowmon_data:
+                type:      string
+                direction: always
     http_host:
         type:      string
         direction: any
