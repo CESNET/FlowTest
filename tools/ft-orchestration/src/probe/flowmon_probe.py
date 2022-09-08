@@ -336,15 +336,11 @@ class FlowmonProbe(ProbeInterface):
             time.sleep(2)
         try:
             self._host.run(f"sudo {cmd}", check_rc=True)
-            time.sleep(1)
-        except invoke.exceptions.UnexpectedExit as err:
+            time.sleep(3)
+            self._pid = int(self._host.run(f"cat {self._pidfile}", check_rc=True).stdout)
+        except (invoke.exceptions.UnexpectedExit, ValueError) as err:
             logging.getLogger().error("Unable to start probe on %s.", self._interface)
             raise ProbeException(f"Unable to start probe on {self._interface}.") from err
-        try:
-            self._pid = self._host.run(f"cat {self._pidfile}", check_rc=False).stdout
-        except ValueError as err:
-            logging.getLogger().error("Unable to get pid of probe on %s", self._interface)
-            raise ProbeException(f"Unable to get pid of probe on {self._interface}.") from err
 
     def stop(self):
         """Stop the flowmonexp5 process"""
