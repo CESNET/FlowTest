@@ -316,7 +316,7 @@ class FlowmonProbe(ProbeInterface):
 
         Returns
         -------
-        List
+        Dict
             of special fields with way to evaluate them
         """
 
