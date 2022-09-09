@@ -41,8 +41,8 @@ public:
 	uint64_t _revPackets = 0;   //< Number of packets in reverse direction
 	uint64_t _fwdBytes = 0;     //< Number of bytes in forward direction
 	uint64_t _revBytes = 0;     //< Number of bytes in reverse direction
-	uint64_t _tsFirst = 0;      //< Timestamp of the first packet
-	uint64_t _tsLast = 0;       //< Timestamp of the last packet
+	int64_t _tsFirst = 0;       //< Timestamp of the first packet
+	int64_t _tsLast = 0;        //< Timestamp of the last packet
 	std::list<Packet> _packets; //< The planned packets
 
 	/**

@@ -220,9 +220,9 @@ void Flow::PlanPacketsTimestamps()
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<uint64_t> dis(_tsFirst, _tsLast);
+	std::uniform_int_distribution<int64_t> dis(_tsFirst, _tsLast);
 
-	std::vector<uint64_t> timestamps({_tsFirst, _tsLast});
+	std::vector<int64_t> timestamps({_tsFirst, _tsLast});
 
 	size_t timestampsToGen = _packets.size() > 2 ? _packets.size() - 2 : 0;
 
