@@ -8,6 +8,9 @@
 
 #include "config.hpp"
 #include "logger.h"
+#include "outputPluginFactory.hpp"
+#include "outputPlugin.hpp"
+#include "outputQueue.hpp"
 #include "packetQueueProvider.hpp"
 #include "packetBuilder.hpp"
 #include "rawPacketProvider.hpp"
@@ -18,9 +21,6 @@
 #include <vector>
 
 using namespace replay;
-
-class OutputPlugin; // placeholder
-class OutputQueue; // placeholder
 
 void ReplicationThread(
 	const std::unique_ptr<PacketQueue> packetQueue,
@@ -53,10 +53,11 @@ int main(int argc, char **argv)
 	}
 
 	size_t queueCount = 16; // placeholder
-	OutputPlugin *outputPlugin; // placeholder
-	(void) outputPlugin;
+	std::unique_ptr<OutputPlugin> outputPlugin;
 
 	try {
+		outputPlugin = OutputPluginFactory::instance()
+			.Create(config.GetOutputPluginSpecification());
 		RawPacketProvider packetProvider(config.GetInputPcapFile());
 		PacketQueueProvider packetQueueProvider(queueCount);
 		const RawPacket *rawPacket;
@@ -71,8 +72,7 @@ int main(int argc, char **argv)
 
 		for (size_t queueId = 0; queueId < queueCount; queueId++) {
 			auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
-			//OutputQueue *outputQueue = outputPlugin->GetQueue(queueId);
-			OutputQueue *outputQueue; // placeholder
+			OutputQueue *outputQueue = outputPlugin->GetQueue(queueId);
 			std::thread thread(ReplicationThread, std::move(packetQueue), outputQueue);
 			threads.emplace_back(std::move(thread));
 		}
