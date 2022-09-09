@@ -13,6 +13,7 @@ add_executable(ft-replay
 	outputPlugin.hpp
 	outputPluginFactory.hpp
 	outputPluginFactory.cpp
+	outputPluginFactoryRegistrator.hpp
 )
 
 target_link_libraries(ft-replay
