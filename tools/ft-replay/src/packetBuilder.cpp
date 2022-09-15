@@ -20,7 +20,7 @@ namespace replay {
 
 struct VlanHeader {
 	uint16_t vlanTci;
-  	uint16_t etherType;
+	uint16_t etherType;
 } __attribute__((packed));
 
 void PacketBuilder::SetVlan(uint16_t vlanID)

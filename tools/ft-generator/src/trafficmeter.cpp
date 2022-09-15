@@ -81,8 +81,8 @@ void TrafficMeter::RecordPacket(uint64_t flowId, int64_t time, Direction dir, co
 	if (dir == Direction::Forward) {
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
 			ExtractPacketParams(packet, rec._l3Proto, rec._l4Proto,
-				                rec._fwdMacAddr, rec._fwdIpAddr, rec._fwdPort,
-				                rec._revMacAddr, rec._revIpAddr, rec._revPort);
+				rec._fwdMacAddr, rec._fwdIpAddr, rec._fwdPort,
+				rec._revMacAddr, rec._revIpAddr, rec._revPort);
 		}
 		rec._fwdPkts++;
 		rec._fwdBytes += packet.getRawPacket()->getRawDataLen() - ETHER_HEADER_LEN;
@@ -90,8 +90,8 @@ void TrafficMeter::RecordPacket(uint64_t flowId, int64_t time, Direction dir, co
 	} else if (dir == Direction::Reverse) {
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
 			ExtractPacketParams(packet, rec._l3Proto, rec._l4Proto,
-				                rec._revMacAddr, rec._revIpAddr, rec._revPort,
-				                rec._fwdMacAddr, rec._fwdIpAddr, rec._fwdPort);
+				rec._revMacAddr, rec._revIpAddr, rec._revPort,
+				rec._fwdMacAddr, rec._fwdIpAddr, rec._fwdPort);
 		}
 		rec._revPkts++;
 		rec._revBytes += packet.getRawPacket()->getRawDataLen() - ETHER_HEADER_LEN;

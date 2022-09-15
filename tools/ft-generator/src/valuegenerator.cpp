@@ -23,7 +23,7 @@ static constexpr double MIN_DIFF = 50;
 ValueGenerator::ValueGenerator(uint64_t count, uint64_t desiredSum, const std::vector<IntervalInfo>& intervals)
 	: _count(count), _desiredSum(desiredSum), _intervals(intervals)
 {
-    Generate();
+	Generate();
 }
 
 void ValueGenerator::Generate()
