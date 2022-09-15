@@ -10,7 +10,7 @@ charset = utf-8
 indent_style = space
 indent_size = 4
 
-[*.{c,h}]
+[*.{c,h,cpp,hpp}]
 indent_style = tab
 
 [Makefile]
