@@ -98,3 +98,30 @@ def test_tcpreplay_remote_timeout_asynchronous(require_root):
     with pytest.raises(invoke.exceptions.CommandTimedOut):
         res = tcpreplay.start(f"-i eth0 -t --loop=9199999 -K {PCAP_FILE}", timeout=2.5, asynchronous=True)
         res.join()
+
+
+@pytest.mark.dev
+def test_tcpreplay_edit_local(require_root):
+    """Test tcpreplay-edit on local machine."""
+
+    tcpreplay = TcpReplay(Host(), tcp_edit=True)
+    res = tcpreplay.start(
+        f"-i lo -t -K --enet-vlan=add --enet-vlan-tag=1 --enet-vlan-cfi=0 --enet-vlan-pri=0 {PCAP_FILE}"
+    )
+    stats = tcpreplay.stats(res)
+    assert stats[0] == 32
+    assert stats[1] == 3315 + stats[0] * 4  # include 4B VLAN header for every packet
+
+
+@pytest.mark.dev
+@pytest.mark.skipif(HOST is None, reason="remote host not defined")
+def test_tcpreplay_edit_remote(require_root):
+    """Test tcpreplay-edit on remote machine."""
+
+    tcpreplay = TcpReplay(Host(HOST, STORAGE), tcp_edit=True)
+    res = tcpreplay.start(
+        f"-i eth0 -t -K --enet-vlan=add --enet-vlan-tag=1 --enet-vlan-cfi=0 --enet-vlan-pri=0 {PCAP_FILE}"
+    )
+    stats = tcpreplay.stats(res)
+    assert stats[0] == 32
+    assert stats[1] == 3315 + stats[0] * 4  # include 4B VLAN header for every packet
