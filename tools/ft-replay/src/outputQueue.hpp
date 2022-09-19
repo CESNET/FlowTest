@@ -35,8 +35,8 @@ struct PacketBuffer {
  * It is not possible to call multiple GetBurst without calling SendBurst,
  * an unexpected behaviour may occur
  */
-struct OutputQueue {
-
+class OutputQueue {
+public:
 	/**
 	 * @brief Get the Maximal Burst Size
 	 *
