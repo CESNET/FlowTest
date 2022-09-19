@@ -25,6 +25,8 @@ class RemoteStorage:
         Working directory on remote host. If provided, then directory
         must already exist on remote machine. If not provided, then
         temp directory is created.
+    user : str, optional
+        Login user for the remote connection.
 
     Raises
     ------
@@ -36,13 +38,13 @@ class RemoteStorage:
     # For storage accessible between sessions, fixed work_dir must be used
     _TEMP_STORAGES = {}
 
-    def __init__(self, host, work_dir=None):
+    def __init__(self, host, work_dir=None, user=get_real_user()):
 
         if not ssh_agent_enabled():
             logging.getLogger().error("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
             raise EnvironmentError("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
 
-        self._connection = fabric.Connection(host, user=get_real_user())
+        self._connection = fabric.Connection(host, user)
         self._connection.open()
 
         if work_dir is not None:
