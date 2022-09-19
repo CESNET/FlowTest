@@ -52,7 +52,7 @@ class RemoteStorage:
         elif host in self._TEMP_STORAGES:
             self._remote_dir = self._TEMP_STORAGES[host]
         else:
-            self._TEMP_STORAGES[host] = self._connection.run("mktemp -d").stdout.strip("\n")
+            self._TEMP_STORAGES[host] = self._connection.run("mktemp -d", hide=True).stdout.strip("\n")
             self._remote_dir = self._TEMP_STORAGES[host]
 
     def get_remote_directory(self):
