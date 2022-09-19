@@ -18,18 +18,25 @@ class TcpReplay:
     ----------
     host : Host
         Host class with established connection.
+    tcp_edit : bool, optional
+        If True, use ``tcpreplay-edit`` instead of ``tcpreplay``.
 
     Raises
     ------
     RuntimeError
-        If tcpreplay is missing.
+        If tcpreplay or tcpreplay-edit is missing.
     """
 
-    def __init__(self, host):
+    def __init__(self, host, tcp_edit=False):
 
-        if host.run("command -v tcpreplay", check_rc=False).exited != 0:
-            logging.getLogger().error("tcpreplay is missing on host %s", host.get_host())
-            raise RuntimeError("tcpreplay is missing")
+        if tcp_edit:
+            self._bin = "tcpreplay-edit"
+        else:
+            self._bin = "tcpreplay"
+
+        if host.run(f"command -v {self._bin}", check_rc=False).exited != 0:
+            logging.getLogger().error("%s is missing on host %s", self._bin, host.get_host())
+            raise RuntimeError(f"{self._bin} is missing")
 
         self._host = host
 
@@ -60,7 +67,7 @@ class TcpReplay:
             Execution result. If ``asynchronous``, Promise is returned.
         """
 
-        return self._host.run(f"sudo tcpreplay {cmd_options}", asynchronous, check_rc, timeout=timeout)
+        return self._host.run(f"sudo {self._bin} {cmd_options}", asynchronous, check_rc, timeout=timeout)
 
     def stats(self, result):
         """Get stats based on result from ``start`` method.
