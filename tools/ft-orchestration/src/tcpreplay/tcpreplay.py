@@ -10,36 +10,35 @@ Module implements TcpReplay class representing tcpreplay tool.
 import logging
 import re
 
-from src.host.host import Host
-from src.host.storage import RemoteStorage
-
 
 class TcpReplay:
     """Class provides means to use tcpreplay tool.
 
     Parameters
     ----------
-    host : str, optional
-        Host where tcpreplay will be used. Can be hostname or
-        IP address. If remote execution on different machine is
-        not needed, use ``localhost``.
+    host : Host
+        Host class with established connection.
+    tcp_edit : bool, optional
+        If True, use ``tcpreplay-edit`` instead of ``tcpreplay``.
 
     Raises
     ------
     RuntimeError
-        If tcpreplay is missing.
+        If tcpreplay or tcpreplay-edit is missing.
     """
 
-    def __init__(self, host="localhost"):
+    def __init__(self, host, tcp_edit=False):
 
-        if host == "localhost":
-            self.host = Host(host)
+        if tcp_edit:
+            self._bin = "tcpreplay-edit"
         else:
-            self.host = Host(host, RemoteStorage(host))
+            self._bin = "tcpreplay"
 
-        if self.host.run("command -v tcpreplay", check_rc=False).exited != 0:
-            logging.getLogger().error("tcpreplay is missing on host %s", host)
-            raise RuntimeError("tcpreplay is missing")
+        if host.run(f"command -v {self._bin}", check_rc=False).exited != 0:
+            logging.getLogger().error("%s is missing on host %s", self._bin, host.get_host())
+            raise RuntimeError(f"{self._bin} is missing")
+
+        self._host = host
 
     def start(self, cmd_options, asynchronous=False, check_rc=True, timeout=None):
         """Start tcpreplay with given command line options.
@@ -68,7 +67,7 @@ class TcpReplay:
             Execution result. If ``asynchronous``, Promise is returned.
         """
 
-        return self.host.run(f"sudo tcpreplay {cmd_options}", asynchronous, check_rc, timeout=timeout)
+        return self._host.run(f"sudo {self._bin} {cmd_options}", asynchronous, check_rc, timeout=timeout)
 
     def stats(self, result):
         """Get stats based on result from ``start`` method.
@@ -88,7 +87,7 @@ class TcpReplay:
         """
 
         if not hasattr(result, "stdout"):
-            result = self.host.wait_until_finished(result)
+            result = self._host.wait_until_finished(result)
 
         pkts = int(re.findall(r"(\d+) packets", result.stdout)[0])
         bts = int(re.findall(r"(\d+) bytes", result.stdout)[0])
@@ -106,4 +105,4 @@ class TcpReplay:
             Result from ``start`` method.
         """
 
-        self.host.stop(result)
+        self._host.stop(result)

@@ -31,6 +31,8 @@ class Host:
     storage : storage.RemoteStorage, optional
         Storage object for file synchronization on remote machine.
         If ``host`` is ``localhost``, storage can be empty.
+    user : str, optional
+        Login user for the remote connection.
 
     Raises
     ------
@@ -40,9 +42,9 @@ class Host:
         When storage is not set or is incorrect type.
     """
 
-    def __init__(self, host="localhost", storage=None):
+    def __init__(self, host="localhost", storage=None, user=get_real_user()):
 
-        self._connection = fabric.Connection(host, user=get_real_user())
+        self._connection = fabric.Connection(host, user)
         self._storage = storage
         self._host = host
 

@@ -170,6 +170,11 @@ class Fdsdump(CollectorOutputReaderInterface):
         runner = self._process.runner
 
         if self._buf is None:
+            # In case fdsfile is empty
+            if len(runner.stdout) == 0 and runner.process_is_finished:
+                self._stop()
+                raise StopIteration
+
             # Convert string into stream, then we can use readline()
             self._buf = io.StringIO(runner.stdout[self._idx])
             # Keep current position in list
@@ -192,8 +197,13 @@ class Fdsdump(CollectorOutputReaderInterface):
             if len(output) == 0 or (len(output) > 0 and output[-1] != "\n"):
                 next_output = self._buf.readline()
                 if len(next_output) == 0:
-                    self._buf = io.StringIO(runner.stdout[self._idx])
-                    self._idx += 1
+                    # If we read output too fast, we can exceed runner.stdout[] index range
+                    # In that case just wait until more flows are available
+                    try:
+                        self._buf = io.StringIO(runner.stdout[self._idx])
+                        self._idx += 1
+                    except IndexError:
+                        pass
                 output += next_output
                 continue
 
