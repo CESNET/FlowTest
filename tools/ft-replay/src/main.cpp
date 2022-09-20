@@ -29,6 +29,34 @@ void ReplicationThread(
 	(void) packetQueue;
 	(void) outputQueue;
 	//Replicator replicator(packetQueue, outputQueue);
+
+	size_t maxBurstSize = outputQueue->GetMaxBurstSize();
+	size_t burstSize = maxBurstSize;
+	size_t packetsCount = packetQueue->size();
+	size_t sendCount = 0;
+
+	std::unique_ptr<PacketBuffer[]> burst = std::make_unique<PacketBuffer[]>(maxBurstSize);
+	for (unsigned i = 0; i < maxBurstSize; i++) {
+		burst[i]._len = 0;
+	}
+
+	for (unsigned r = 0; r < packetsCount; r += maxBurstSize) {
+		if (r + maxBurstSize > packetsCount) {
+			burstSize = packetsCount - r;
+		}
+		for (unsigned p = 0; p < burstSize; p++) {
+			burst[p]._len = (*packetQueue)[p+r]->dataLen;
+		}
+		burstSize = outputQueue->GetBurst(burst.get(), burstSize);
+		for (unsigned p = 0; p < burstSize; p++) {
+			std::byte* data = (*packetQueue)[p+r]->data.get();
+			std::copy(data, data + burst[p]._len, burst[p]._data);
+		}
+		outputQueue->SendBurst(burst.get(), burstSize);
+		sendCount += burstSize;
+		burstSize = maxBurstSize;
+	}
+	std::cout<<sendCount<<" packets sent."<<std::endl;
 }
 
 int main(int argc, char **argv)
@@ -52,7 +80,7 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
-	size_t queueCount = 16; // placeholder
+	size_t queueCount = 1; // placeholder
 	std::unique_ptr<OutputPlugin> outputPlugin;
 
 	try {
