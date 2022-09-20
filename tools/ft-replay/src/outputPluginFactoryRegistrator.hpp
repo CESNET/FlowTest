@@ -28,12 +28,14 @@ struct OutputPluginFactoryRegistrator {
 	 *
 	 * @param pluginName  Unique plugin name
 	 */
-	OutputPluginFactoryRegistrator(const std::string& pluginName)
+	explicit OutputPluginFactoryRegistrator(const std::string& pluginName)
 	{
 		bool inserted;
 		inserted = OutputPluginFactory::instance().RegisterPlugin(
 			pluginName,
-			[](const std::string& params) { return std::make_unique<T>(params); }
+			[](const std::string& params) -> std::unique_ptr<OutputPlugin> {
+				return std::make_unique<T>(params);
+			}
 		);
 		if (!inserted) {
 			throw std::runtime_error("Multiple registration of Output plugin: " + pluginName);
