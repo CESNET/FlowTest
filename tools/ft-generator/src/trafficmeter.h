@@ -22,6 +22,7 @@
 #include <pcapplusplus/TcpLayer.h>
 #include <pcapplusplus/UdpLayer.h>
 
+#include <ctime>
 #include <variant>
 #include <vector>
 
@@ -40,8 +41,8 @@ struct FlowRecord {
 	L3Protocol _l3Proto;
 	L4Protocol _l4Proto;
 
-	uint64_t _firstTs = 0;
-	uint64_t _lastTs = 0;
+	timeval _firstTs = {0, 0};
+	timeval _lastTs = {0, 0};
 
 	MacAddress _fwdMacAddr;
 	IPAddress _fwdIpAddr;
@@ -93,7 +94,7 @@ public:
 	 * @param dir     The direction of the packet
 	 * @param packet  The generated packet
 	 */
-	void RecordPacket(uint64_t flowId, int64_t time, Direction dir, const pcpp::Packet& packet);
+	void RecordPacket(uint64_t flowId, timeval time, Direction dir, const pcpp::Packet& packet);
 
 	/**
 	 * @brief Write out summary of the recorded flows and packets

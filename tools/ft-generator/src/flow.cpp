@@ -185,7 +185,7 @@ std::pair<pcpp::Packet, PacketExtraInfo> Flow::GenerateNextPacket()
 	return {packet, extra};
 }
 
-int64_t Flow::GetNextPacketTime() const
+timeval Flow::GetNextPacketTime() const
 {
 	return _packets.front()._timestamp;
 }
@@ -220,17 +220,30 @@ void Flow::PlanPacketsTimestamps()
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int64_t> dis(_tsFirst, _tsLast);
+	std::uniform_int_distribution<int64_t> secDis(_tsFirst.tv_sec, _tsLast.tv_sec);
+	std::uniform_int_distribution<int64_t> usecDis(0, 999999);
+	std::uniform_int_distribution<int64_t> firstUsecDis(_tsFirst.tv_usec, 999999);
+	std::uniform_int_distribution<int64_t> lastUsecDis(0, _tsLast.tv_usec);
 
-	std::vector<int64_t> timestamps({_tsFirst, _tsLast});
+	std::vector<timeval> timestamps({_tsFirst, _tsLast});
 
 	size_t timestampsToGen = _packets.size() > 2 ? _packets.size() - 2 : 0;
 
 	for (size_t i = 0; i < timestampsToGen; i++) {
-		timestamps.emplace_back(dis(gen));
+		timeval time;
+		time.tv_sec = secDis(gen);
+		if (time.tv_sec == _tsFirst.tv_sec) {
+			time.tv_usec = firstUsecDis(gen);
+		} else if (time.tv_sec == _tsLast.tv_sec) {
+			time.tv_usec = lastUsecDis(gen);
+		} else {
+			time.tv_usec = usecDis(gen);
+		}
+		timestamps.emplace_back(time);
 	}
 
-	std::sort(timestamps.begin(), timestamps.end());
+	std::sort(timestamps.begin(), timestamps.end(),
+		[](const timeval& a, const timeval& b) { return a < b; });
 
 	size_t id = 0;
 	for (auto& packet : packetsSpan) {

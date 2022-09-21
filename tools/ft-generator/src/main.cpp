@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
 		while (auto packet = generator.GenerateNextPacket()) {
 			logger->debug("Generating packet");
-			pcapWriter.WritePacket(packet->_data, packet->_size, {packet->_time, 0});
+			pcapWriter.WritePacket(packet->_data, packet->_size, packet->_time);
 		}
 
 		logger->info("Finished!");

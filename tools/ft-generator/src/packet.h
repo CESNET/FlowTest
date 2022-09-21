@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <ctime>
 #include <map>
 #include <variant>
 #include <vector>
@@ -18,6 +19,16 @@
 namespace generator {
 
 class Layer;
+
+static inline bool operator<(const timeval& a, const timeval& b)
+{
+	return a.tv_sec == b.tv_sec ? a.tv_usec < b.tv_usec : a.tv_sec < b.tv_sec;
+}
+
+static inline bool operator>(const timeval& a, const timeval& b)
+{
+	return a.tv_sec == b.tv_sec ? a.tv_usec > b.tv_usec : a.tv_sec > b.tv_sec;
+}
 
 /**
  * @brief Packet direction
@@ -41,7 +52,7 @@ public:
 	using layer       = std::pair<Layer *, layerParams>;
 
 	Direction _direction = Direction::Unknown;    //< Packet direction
-	uint64_t _timestamp = 0;                      //< Timestamp 32b (seconds) | 32b (microseconds)
+	timeval _timestamp = {0, 0};                  //< Timestamp
 	size_t _size = 0;                             //< Planned packet size (IP header and above)
 	bool _isFinished = false;                     //< Do not add more layers to packet
 	std::vector<layer> _layers;                   //< Packet protocol layers in order

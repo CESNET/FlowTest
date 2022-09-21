@@ -36,8 +36,8 @@ enum class L4Protocol : uint8_t {
  * @brief Struct representing a flow profile entry in the input file
  */
 struct FlowProfile {
-	int64_t _startTime;
-	int64_t _endTime;
+	timeval _startTime;
+	timeval _endTime;
 	L3Protocol _l3Proto;
 	L4Protocol _l4Proto;
 	uint16_t _srcPort;

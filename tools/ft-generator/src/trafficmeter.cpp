@@ -66,7 +66,7 @@ void TrafficMeter::ExtractPacketParams(
 	}
 }
 
-void TrafficMeter::RecordPacket(uint64_t flowId, int64_t time, Direction dir, const pcpp::Packet& packet)
+void TrafficMeter::RecordPacket(uint64_t flowId, timeval time, Direction dir, const pcpp::Packet& packet)
 {
 	assert(flowId < _records.size());
 	FlowRecord& rec = _records[flowId];
@@ -104,8 +104,8 @@ void TrafficMeter::WriteReport()
 	int i = 0;
 	for (const FlowRecord& rec : _records) {
 		std::cout << "Flow " << i << ": ";
-		std::cout << "firstTs=" << rec._firstTs << " ";
-		std::cout << "lastTs=" << rec._lastTs << " ";
+		std::cout << "firstTs=" << rec._firstTs.tv_sec << "." << rec._firstTs.tv_usec << " ";
+		std::cout << "lastTs=" << rec._lastTs.tv_sec << "." << rec._lastTs.tv_usec << " ";
 		std::cout << "fwdBytes=" << rec._fwdBytes << " ";
 		std::cout << "fwdPkts=" << rec._fwdPkts << " ";
 		if (rec._l3Proto == L3Protocol::Ipv4) {

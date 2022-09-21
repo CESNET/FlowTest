@@ -54,8 +54,8 @@ std::unique_ptr<Flow> Generator::GetNextFlow() {
 		return _calendar.Pop();
 	}
 
-	int64_t nextCalendarTime = _calendar.Top().GetNextPacketTime();
-	int64_t nextProfileStartTime = _profiles[_nextProfileIdx]._startTime;
+	timeval nextCalendarTime = _calendar.Top().GetNextPacketTime();
+	timeval nextProfileStartTime = _profiles[_nextProfileIdx]._startTime;
 	return (nextCalendarTime > nextProfileStartTime) ? MakeNextFlow() : _calendar.Pop();
 }
 

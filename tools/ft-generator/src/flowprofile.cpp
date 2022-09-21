@@ -18,6 +18,19 @@
 
 namespace generator {
 
+static timeval MillisecsToTimeval(int64_t millisecs)
+{
+	timeval time;
+	time.tv_sec = millisecs / 1000;
+	time.tv_usec = (millisecs % 1000) * 1000;
+	return time;
+}
+
+static int64_t TimevalToMilliseconds(const timeval& time)
+{
+	return (int64_t(time.tv_sec) * 1000) + (time.tv_usec / 1000);
+}
+
 /**
  * Split a string by a delimiter and return the pieces
  */
@@ -139,8 +152,8 @@ std::string FlowProfile::ToString() const
 {
 	std::stringstream ss;
 	ss << "FlowProfile("
-		<< "startTime=" << _startTime << ", "
-		<< "endTime=" << _endTime << ", "
+		<< "startTime=" << TimevalToMilliseconds(_startTime) << ", "
+		<< "endTime=" << TimevalToMilliseconds(_endTime) << ", "
 		<< "l3Proto=" << l3ProtocolToString(_l3Proto) << ", "
 		<< "l4Proto=" << l4ProtocolToString(_l4Proto) << ", "
 		<< "srcPort=" << _srcPort << ", "
@@ -198,14 +211,14 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 		ReportParseError(line, "bad START_TIME");
 		return ReadProfile();
 	}
-	profile._startTime = *startTime;
+	profile._startTime = MillisecsToTimeval(*startTime);
 
 	std::optional<int64_t> endTime = parseValue<int64_t>(pieces[_order[EndTime]]);;
 	if (!endTime) {
 		ReportParseError(line, "bad END_TIME");
 		return ReadProfile();
 	}
-	profile._endTime = *endTime;
+	profile._endTime = MillisecsToTimeval(*endTime);
 
 	std::optional<uint8_t> l3ProtoNum = parseValue<uint8_t>(pieces[_order[L3Proto]]);
 	if (!l3ProtoNum) {
