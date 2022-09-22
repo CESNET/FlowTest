@@ -11,10 +11,15 @@ add_executable(ft-replay
 	packetQueueProvider.hpp
 	packetQueueProvider.cpp
 	outputPlugin.hpp
+	outputPlugin.cpp
 	outputPluginFactory.hpp
 	outputPluginFactory.cpp
 	outputPluginFactoryRegistrator.hpp
 	outputQueue.hpp
+	raw.cpp
+	raw.hpp
+	socketDescriptor.cpp
+	socketDescriptor.hpp
 )
 
 target_link_libraries(ft-replay
