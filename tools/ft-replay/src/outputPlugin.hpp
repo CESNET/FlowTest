@@ -8,8 +8,12 @@
 
 #pragma once
 
+#include "logger.h"
+
 #include <cstddef>
 #include <cstdint>
+#include <map>
+#include <string>
 
 namespace replay {
 
@@ -19,8 +23,8 @@ class OutputQueue;
  * @brief Output plugin interface
  *
  */
-struct OutputPlugin {
-
+class OutputPlugin {
+public:
 	/**
 	 * @brief Get queue count
 	 *
@@ -41,6 +45,16 @@ struct OutputPlugin {
 	 * @brief Default virtual destructor
 	 */
 	virtual ~OutputPlugin() = default;
+
+protected:
+	/**
+	 * @brief Split arguments into map
+	 *
+	 * @param[in] string with arguments, separated by comma
+	 *
+	 * @return map<argName, argValue>
+	 */
+	std::map<std::string, std::string> SplitArguments(const std::string &args) const;
 };
 
 } // namespace replay
