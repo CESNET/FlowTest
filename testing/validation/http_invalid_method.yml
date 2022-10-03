@@ -2,6 +2,7 @@
 test:
   name: HTTP invalid method
   pcaps: ["http_invalid_method.pcap"]
+  required_protocols: ["http"]
 
 flows:
   - src_ip:      "192.168.1.36"

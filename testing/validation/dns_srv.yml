@@ -2,6 +2,7 @@
 test:
   name: DNS SRV Request
   pcaps: ["dns_srv.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.122.190"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   131
     packets:     1
     packets@rev: 1
-    tos:         0x00
-    ttl:         64
-    ttl@rev:     64
     src_port:    55245
     dst_port:    53
     dns_id:      58778

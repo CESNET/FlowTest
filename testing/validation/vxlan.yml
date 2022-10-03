@@ -2,6 +2,7 @@
 test:
   name: Traffic in VXLAN tunnel
   pcaps: ["vxlan.pcap"]
+  required_protocols: ["eth", "vxlan"]
 
 flows:
   - src_ip:           "10.0.0.1"

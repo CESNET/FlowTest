@@ -2,6 +2,7 @@
 test:
   name: IPv6 Option Mobile IPv6
   pcaps: ["ipv6-mobile.pcap"]
+  required_protocols: ["ipv6"]
 
 flows:
   - src_ip:        "f6ea1:86f8:169:115f:76a0:c016:3074:6f95"

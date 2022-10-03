@@ -2,6 +2,7 @@
 test:
   name: DNS Server Failure
   pcaps: ["dns_server_failure.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.236.146"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   67
     packets:     1
     packets@rev: 1
-    tos:         0x00
-    ttl:         128
-    ttl@rev:     59
     src_port:    60643
     dst_port:    53
     dns_id:      313

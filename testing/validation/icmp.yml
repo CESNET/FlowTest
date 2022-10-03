@@ -2,6 +2,7 @@
 test:
   name: Simple ICMP traffic
   pcaps: ["icmp.pcap"]
+  required_protocols: ["icmp"]
 
 flows:
   - src_ip:             "192.168.158.139"

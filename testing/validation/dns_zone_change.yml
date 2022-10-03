@@ -2,6 +2,7 @@
 test:
   name: DNS Zone Change Notification Request
   pcaps: ["dns_zone_change.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.3.250"
@@ -10,8 +11,6 @@ flows:
     protocol:    17
     bytes:       105
     packets:     1
-    tos:         0x00
-    ttl:         56
     src_port:    31545
     dst_port:    53
     dns_id:      51350

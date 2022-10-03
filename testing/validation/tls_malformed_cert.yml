@@ -2,6 +2,7 @@
 test:
   name: TLS malformed certificate traffic
   pcaps: ["tls_malformed_cert.pcap"]
+  required_protocols: ["tls"]
 
 flows:
   - src_ip:      "192.168.1.25"

@@ -2,6 +2,7 @@
 test:
   name: HTTP Get Method
   pcaps: ["http_get.pcap"]
+  required_protocols: ["http"]
 
 flows:
   - src_ip:      "192.168.1.140"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   23041
     packets:     21
     packets@rev: 19
-    tos:         0x00
-    ttl:         64
-    ttl@rev:     251
     src_port:    57678
     dst_port:    80
     http_host:         "packetlife.net"

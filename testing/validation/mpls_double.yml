@@ -2,6 +2,7 @@
 test:
   name: Two MPLS headers
   pcaps: ["mpls-vpn-transport-vpn-labels.pcap"]
+  required_protocols: ["mpls"]
 
 flows:
   - src_ip:           "1.1.1.1"

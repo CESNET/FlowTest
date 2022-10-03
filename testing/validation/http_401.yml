@@ -2,6 +2,7 @@
 test:
   name: HTTP Error 401
   pcaps: ["http_401.pcap"]
+  required_protocols: ["http"]
 
 flows:
   - src_ip:      "202.254.1.2"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   457
     packets:     8
     packets@rev: 6
-    tos:         0x00
-    ttl:         64
-    ttl@rev:     64
     src_port:    43281
     dst_port:    80
     http_host:         "acs1.broadband-forum.org"

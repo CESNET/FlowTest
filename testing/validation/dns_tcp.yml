@@ -2,6 +2,7 @@
 test:
   name: DNS TCP (A)
   pcaps: ["dns_tcp.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "193.24.227.230"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   595
     packets:     1
     packets@rev: 1
-    tos:         0x00
-    ttl:         64
-    ttl@rev:     59
     src_port:    42058
     dst_port:    53
     dns_id:      40226

@@ -2,6 +2,7 @@
 test:
   name: HTTP Error 500
   pcaps: ["http_500.pcap"]
+  required_protocols: ["http"]
 
 flows:
   - src_ip:      "192.168.0.113"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   4298
     packets:     6
     packets@rev: 6
-    tos:         0x00
-    ttl:         128
-    ttl@rev:     49
     src_port:    3541
     dst_port:    80
     http_host:         "www.frys.com"

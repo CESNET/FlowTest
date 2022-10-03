@@ -2,6 +2,7 @@
 test:
   name: IPv6 Option Routing Header
   pcaps: ["ipv6-routing-header.pcap"]
+  required_protocols: ["ipv6"]
 
 flows:
   - src_ip:         "fc00:2:0:2::1"

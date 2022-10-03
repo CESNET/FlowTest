@@ -2,6 +2,7 @@
 test:
   name: Simple TCP traffic
   pcaps: ["tls12.pcap"]
+  required_protocols: ["tcp"]
 
 flows:
   - src_ip:          "192.168.56.101"

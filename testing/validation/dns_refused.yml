@@ -2,6 +2,7 @@
 test:
   name: DNS Refused
   pcaps: ["dns_refused.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.97.51"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   67
     packets:     1
     packets@rev: 1
-    tos:         0x00
-    ttl:         63
-    ttl@rev:     46
     src_port:    54710
     dst_port:    53
     dns_id:      35371

@@ -2,6 +2,7 @@
 test:
   name: Fragmented IPv6 traffic
   pcaps: ["ipv6-udp-fragmented.pcap"]
+  required_protocols: ["ipv6"]
 
 flows:
   - src_ip:      "2607:f010:3f9::11:0"

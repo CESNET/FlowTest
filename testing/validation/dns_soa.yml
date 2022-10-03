@@ -2,6 +2,7 @@
 test:
   name: DNS SOA Request
   pcaps: ["dns_soa.pcap"]
+  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.1.13"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   120
     packets:     1
     packets@rev: 1
-    tos:         0x00
-    ttl:         128
-    ttl@rev:     64
     src_port:    62626
     dst_port:    53
     dns_id:      57001

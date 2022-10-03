@@ -2,6 +2,7 @@
 test:
   name: Traffic for MAC validation
   pcaps: ["tls12.pcap"]
+  required_protocols: ["eth"]
 
 flows:
   - src_ip:      "192.168.56.101"

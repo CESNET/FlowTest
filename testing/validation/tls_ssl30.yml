@@ -2,6 +2,7 @@
 test:
   name: SSL v3.0 traffic
   pcaps: ["tls_ssl30.pcap"]
+  required_protocols: ["tls"]
 
 flows:
   - src_ip:      "195.113.172.20"

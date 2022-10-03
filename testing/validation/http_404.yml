@@ -2,6 +2,7 @@
 test:
   name: HTTP Error 404
   pcaps: ["http_404.pcap"]
+  required_protocols: ["http"]
 
 flows:
   - src_ip:      "192.168.1.11"
@@ -12,9 +13,6 @@ flows:
     bytes@rev:   867
     packets:     6
     packets@rev: 5
-    tos:         0x00
-    ttl:         128
-    ttl@rev:     254
     src_port:    50820
     dst_port:    80
     http_host:         "192.168.1.1"

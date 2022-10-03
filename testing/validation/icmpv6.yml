@@ -2,6 +2,7 @@
 test:
   name: ICMPv6 traffic
   pcaps: ["ipv6-neighbor-discovery.pcap"]
+  required_protocols: ["icmpv6"]
 
 flows:
   - src_ip:             "fe80::c001:2ff:fe40:0"
