@@ -126,12 +126,14 @@
   map: dns_req_query_name
 'flowmon:dnsQname':
   map: dns_req_query_name
+  converter: rstrip_zeroes
 'cesnet:DNSRCode':
   map: dns_resp_rcode
 
 # DNS Resource Record
 'flowmon:dnsCrrName':
   map: dns_resp_rr.name
+  converter: rstrip_zeroes
 'flowmon:dnsCrrType':
   map: dns_resp_rr.type
 'flowmon:dnsCrrClass':
@@ -148,20 +150,26 @@
 # HTTP
 'flowmon:httpHost':
   map: http_host
+  converter: rstrip_zeroes
 'flowmon:httpUrl':
   map: http_url
+  converter: rstrip_zeroes
 'cesnet:httpMethod':
   map: http_method
 'flowmon:httpMethodMask':
   map: http_method_id
+  converter: rstrip_zeroes
 'flowmon:httpStatusCode':
   map: http_status_code
 'flowmon:httpUserAgent':
   map: http_agent
+  converter: rstrip_zeroes
 'flowmon:httpContentType':
   map: http_content_type
+  converter: rstrip_zeroes
 'flowmon:httpReferer':
   map: http_refer
+  converter: rstrip_zeroes
 
 # TLS
 'flowmon:tlsServerVersion':
@@ -170,14 +178,18 @@
   map: tls_cipher_suite
 'flowmon:tlsAlpn':
   map: tls_alpn
+  converter: rstrip_zeroes
 'flowmon:tlsSni':
   map: tls_sni
+  converter: rstrip_zeroes
 'flowmon:tlsClientVersion':
   map: tls_client_version
 'flowmon:tlsIssuerCn':
   map: tls_issuer_cn
+  converter: rstrip_zeroes
 'flowmon:tlsSubjectCn':
   map: tls_subject_cn
+  converter: rstrip_zeroes
 'flowmon:tlsValidityNotBefore':
   map: tls_validity_not_before
 'flowmon:tlsValidityNotAfter':

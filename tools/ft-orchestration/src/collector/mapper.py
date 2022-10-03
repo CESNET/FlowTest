@@ -44,6 +44,11 @@ class Converters:
             return known_protocols.index(identifier)
         raise MappingException(f"Unknown protocol with identifier '{identifier}'.")
 
+    @staticmethod
+    def rstrip_zeroes(raw_str: str) -> str:
+        """Strip all zeroes from the right of byte string."""
+        return raw_str.rstrip("\x00")
+
 
 class CollectorOutputMapper:
     """Wrapper of CollectorOutputReaderInterface. Flows are mapped from JSON ipfix to YAML annotation format.
