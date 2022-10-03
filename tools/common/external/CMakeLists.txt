@@ -5,3 +5,4 @@ set(FETCHCONTENT_QUIET OFF)
 
 include(spdlog.cmake)
 include(pcapplusplus.cmake)
+include(yaml-cpp.cmake)
