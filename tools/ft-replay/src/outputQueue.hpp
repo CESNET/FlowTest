@@ -9,7 +9,6 @@
 #pragma once
 
 #include <cstddef>
-#include <vector>
 
 namespace replay {
 
@@ -72,6 +71,10 @@ public:
 	 */
 	virtual void SendBurst(const PacketBuffer* burst, size_t burstSize) = 0;
 
+	/**
+	 * @brief Default virtual destructor
+	 */
+	virtual ~OutputQueue() = default;
 };
 
 } // namespace replay
