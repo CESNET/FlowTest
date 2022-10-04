@@ -158,7 +158,6 @@
   map: http_method
 'flowmon:httpMethodMask':
   map: http_method_id
-  converter: rstrip_zeroes
 'flowmon:httpStatusCode':
   map: http_status_code
 'flowmon:httpUserAgent':
