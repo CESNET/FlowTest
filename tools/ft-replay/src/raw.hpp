@@ -25,32 +25,24 @@ namespace replay {
 class RawQueue : public OutputQueue {
 public:
 	/**
-	 * @brief Construct RawOutputQueue
+	 * @brief Construct RawQueue
 	 *
-	 * Constructs RawOutputQueue. RawOutputQueue is used to send packets via RawSocket.
+	 * Constructs RawQueue. RawQueue is used to send packets via RawSocket.
 	 *
 	 * @param[in] IFC name
+	 * @param[in] Maximal packet size
 	 * @param[in] Number of packets buffer should hold
-	 * @param[in] Maximal size of packet
 	 */
-	RawQueue(const std::string& ifcName, const size_t& pktSize, const size_t& bufferSize);
+	RawQueue(const std::string& ifcName, size_t pktSize, size_t burstSize);
 	/**
 	 * @brief Default destructor
 	 */
 	~RawQueue() = default;
 
-	RawQueue() = delete;
 	RawQueue(const RawQueue&) = delete;
 	RawQueue(RawQueue&&) = delete;
 	RawQueue& operator=(const RawQueue&) = delete;
 	RawQueue& operator=(RawQueue&&) = delete;
-	/**
-	 * @brief Send burst of packets
-	 *
-	 * @param[in] pointer to PacketBuffer array
-	 * @param[in] number of packets to send
-	 */
-	void SendBurst(const PacketBuffer* burst, size_t burstSize) override;
 
 	/**
 	 * @brief Get buffers of desired size for packets
@@ -65,6 +57,14 @@ public:
 	size_t GetBurst(PacketBuffer* burst, size_t burstSize) override;
 
 	/**
+	 * @brief Send burst of packets
+	 *
+	 * @param[in] pointer to PacketBuffer array
+	 * @param[in] number of packets to send
+	 */
+	void SendBurst(const PacketBuffer* burst, size_t burstSize) override;
+
+	/**
 	 * @brief Get the Maximal Burst Size
 	 *
 	 * @return size_t maximal possible burst size
@@ -75,7 +75,7 @@ private:
 	size_t _pktSize;
 	size_t _burstSize;
 	SocketDescriptor _socket;
-	struct sockaddr_ll _sockAddr = {};
+	sockaddr_ll _sockAddr = {};
 	std::unique_ptr<std::byte[]> _buffer;
 	bool _bufferFlag = false;
 
@@ -87,21 +87,22 @@ public:
 	/**
 	 * @brief Construct RawPlugin
 	 *
-	 * Constructs RawPlugin, RawOutputQueue and RawBuffer.
+	 * Constructs RawPlugin and RawQueue.
 	 *
 	 * @param[in] args string "arg1=value1,arg2=value2"
 	 */
 	explicit RawPlugin(const std::string& params);
+
 	/**
 	 * @brief Default destructor
 	 */
 	~RawPlugin() = default;
 
-	RawPlugin() = delete;
 	RawPlugin(const RawPlugin&) = delete;
 	RawPlugin(RawPlugin&&) = delete;
 	RawPlugin& operator=(const RawPlugin&) = delete;
 	RawPlugin& operator=(RawPlugin&&) = delete;
+
 	/**
 	 * @brief Get queue count
 	 *
@@ -125,6 +126,7 @@ private:
 	 * @param[in] map with arguments
 	 */
 	void ParseMap(const std::map<std::string, std::string>& argMap);
+
 	/**
 	 * @brief Parse arguments
 	 *
