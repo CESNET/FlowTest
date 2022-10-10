@@ -18,6 +18,7 @@ flows:
     http_host:         "google.com"
     http_url:          "/"
     http_method:       "DELETE"
+    http_method_id:    32800
     http_status_code:  405
     http_agent:        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/53.0.2785.143 Chrome/53.0.2785.143 Safari/537.36"
     http_content_type: "text/html"

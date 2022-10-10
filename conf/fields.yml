@@ -124,6 +124,9 @@ fields:
     http_method:
         type:      string
         direction: any
+    http_method_id:
+        type:      int
+        direction: any
     http_status_code:
         type:      int
         direction: any
