@@ -12,6 +12,7 @@
 #include "../flow.h"
 #include "../layer.h"
 #include "../packet.h"
+#include "../pcpppacket.h"
 
 #include <pcapplusplus/IpAddress.h>
 
@@ -33,7 +34,7 @@ public:
 
 	void PlanFlow(Flow& flow) override;
 
-	void Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan) override;
+	void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
 	IPv6Address _ipSrc;

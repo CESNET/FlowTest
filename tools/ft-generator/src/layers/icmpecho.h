@@ -13,6 +13,7 @@
 #include "../layer.h"
 #include "../packet.h"
 #include "../packetflowspan.h"
+#include "../pcpppacket.h"
 
 #include <pcapplusplus/IcmpLayer.h>
 
@@ -48,7 +49,7 @@ public:
 	 * @param params Layers parameters
 	 * @param plan   Packet plan.
 	 */
-	virtual void Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan) override;
+	virtual void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
 	uint16_t _id;

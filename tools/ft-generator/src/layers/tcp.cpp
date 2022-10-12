@@ -209,7 +209,7 @@ void Tcp::PlanFlow(Flow& flow)
 	PlanTerminationHandshake(planner);
 }
 
-void Tcp::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void Tcp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	pcpp::TcpLayer *tcpLayer;
 	if (plan._direction == Direction::Forward) {

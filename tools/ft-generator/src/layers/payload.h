@@ -12,6 +12,7 @@
 #include "../flow.h"
 #include "../layer.h"
 #include "../packet.h"
+#include "../pcpppacket.h"
 
 namespace generator {
 
@@ -35,7 +36,7 @@ public:
 	 * @param params Layers parameters
 	 * @param plan   Packet plan.
 	 */
-	void Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan) override;
+	void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
 

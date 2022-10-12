@@ -31,7 +31,7 @@ void Payload::PlanFlow(Flow& flow)
 	}
 }
 
-void Payload::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void Payload::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) params;
 

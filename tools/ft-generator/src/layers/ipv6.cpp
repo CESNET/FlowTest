@@ -45,7 +45,7 @@ void IPv6::PlanFlow(Flow& flow)
 	}
 }
 
-void IPv6::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void IPv6::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) params;
 

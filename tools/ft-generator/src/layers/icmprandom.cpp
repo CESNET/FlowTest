@@ -48,7 +48,7 @@ void IcmpRandom::PlanFlow(Flow& flow)
 	}
 }
 
-void IcmpRandom::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void IcmpRandom::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) params;
 	(void) plan;

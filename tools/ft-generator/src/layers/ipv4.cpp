@@ -38,7 +38,7 @@ void IPv4::PlanFlow(Flow& flow)
 	}
 }
 
-void IPv4::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void IPv4::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) params;
 

@@ -11,6 +11,7 @@
 #include "../flow.h"
 #include "../layer.h"
 #include "../packet.h"
+#include "../pcpppacket.h"
 
 namespace generator {
 
@@ -36,13 +37,13 @@ public:
 	virtual void PlanFlow(Flow& flow) override;
 
 	/**
-	 * @brief Build Ethernet layer in packet pcpp::Packet
+	 * @brief Build Ethernet layer in packet PcppPacket
 	 *
 	 * @param packet Packet to build.
 	 * @param params Layers parameters
 	 * @param plan   Packet plan.
 	 */
-	virtual void Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan) override;
+	virtual void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
 	uint16_t _portSrc;

@@ -86,7 +86,7 @@ void IcmpEcho::PlanFlow(Flow& flow)
 	}
 }
 
-void IcmpEcho::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void IcmpEcho::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) params;
 	pcpp::IcmpLayer* icmpLayer = new pcpp::IcmpLayer();

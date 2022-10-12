@@ -28,7 +28,7 @@ void Udp::PlanFlow(Flow& flow)
 	}
 }
 
-void Udp::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void Udp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	pcpp::UdpLayer *udpLayer;
 
