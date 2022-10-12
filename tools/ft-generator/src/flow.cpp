@@ -132,7 +132,9 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 		throw std::runtime_error("ICMPv6 not implemented");
 	}
 
-	AddLayer(std::make_unique<Payload>());
+	if (profile._l4Proto == L4Protocol::Tcp || profile._l4Proto == L4Protocol::Udp) {
+		AddLayer(std::make_unique<Payload>());
+	}
 
 	Plan();
 }
