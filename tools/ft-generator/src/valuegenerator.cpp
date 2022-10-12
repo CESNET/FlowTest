@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <cassert>
 
+namespace generator {
+
 // Maximum number of attempts when generating
 static constexpr int MAX_ATTEMPTS = 100;
 
@@ -139,3 +141,5 @@ uint64_t ValueGenerator::GenerateRandomValue()
 	}
 	return value;
 }
+
+} // namespace generator

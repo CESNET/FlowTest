@@ -16,6 +16,8 @@
 #include <vector>
 #include <memory>
 
+namespace generator {
+
 /**
  * @brief Definition of an interval
  *
@@ -73,3 +75,5 @@ private:
 	void PostIntervalUpdate();
 	uint64_t GenerateRandomValue();
 };
+
+} // namespace generator
