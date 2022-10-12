@@ -67,8 +67,16 @@ public:
 	 */
 	const std::vector<IPv4AddressRange>& GetIpRange() const { return _ipRange; }
 
+	/**
+	 * @brief Get the IPv4 fragmentation probability
+	 *
+	 * @return The probability in the range <0.0, 1.0>
+	 */
+	double GetFragmentationProbability() const { return _fragmentationProbability; }
+
 private:
 	std::vector<IPv4AddressRange> _ipRange;
+	double _fragmentationProbability = 0.0;
 };
 
 } // namespace config

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "config/config.h"
 #include "flowprofile.h"
 #include "generators/addressgenerators.h"
 #include "packet.h"
@@ -52,7 +53,7 @@ public:
 	 *
 	 * @throws std::runtime_error  When the provided flow profile has invalid values
 	 */
-	Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGenerators);
+	Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGenerators, const config::Config& config);
 
 	/**
 	 * @brief Destroy the Flow object

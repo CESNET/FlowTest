@@ -35,8 +35,10 @@ IPv4::IPv4(const YAML::Node& node)
 {
 	checkAllowedKeys(node, {
 		"ip_range",
+		"fragmentation_probability"
 	});
 	_ipRange = parseOneOrMany<IPv4AddressRange>(node["ip_range"]);
+	_fragmentationProbability = parseProbability(node["fragmentation_probability"]);
 }
 
 } // namespace config

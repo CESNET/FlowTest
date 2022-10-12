@@ -42,7 +42,7 @@ const static std::vector<IntervalInfo> PacketSizeProbabilities{
 	{1280, 1518, 0.6119}
 };
 
-Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGenerators) :
+Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGenerators, const config::Config& config) :
 	_fwdPackets(profile._packets),
 	_revPackets(profile._packetsRev),
 	_fwdBytes(profile._bytes),
@@ -62,7 +62,8 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 	case L3Protocol::Ipv4: {
 		IPv4Address ipSrc = addressGenerators.GenerateIPv4();
 		IPv4Address ipDst = addressGenerators.GenerateIPv4();
-		AddLayer(std::make_unique<IPv4>(ipSrc, ipDst));
+		auto fragProb = config.GetIPv4().GetFragmentationProbability();
+		AddLayer(std::make_unique<IPv4>(ipSrc, ipDst, fragProb));
 	} break;
 
 	case L3Protocol::Ipv6: {

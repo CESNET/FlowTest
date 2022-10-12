@@ -15,6 +15,7 @@
 #include "../pcpppacket.h"
 
 #include <pcapplusplus/IpAddress.h>
+#include <pcapplusplus/IPv4Layer.h>
 
 namespace generator {
 
@@ -31,20 +32,39 @@ public:
 	 *
 	 * @param ipSrc Source IP address
 	 * @param ipDst Destination IP address
+	 * @param fragmentChance Fragmentation chance
 	 */
-	IPv4(IPv4Address ipSrc, IPv4Address ipDst);
+	IPv4(IPv4Address ipSrc, IPv4Address ipDst, double fragmentChance);
 
 	void PlanFlow(Flow& flow) override;
 
+	void PostPlanFlow(Flow& flow) override;
+
+	void PlanExtra(Flow& flow) override;
+
 	void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
+
+	void PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
 	IPv4Address _ipSrc;
 	IPv4Address _ipDst;
+
 	uint8_t _ttl;
+
 	uint16_t _fwdId = 0;
 	uint16_t _revId = 0;
 
+	int _buildPacketSize = 0;
+	double _fragmentChance = 0.0;
+	int _fragmentCount = 0;
+	int _fragmentRemaining = 0;
+	std::vector<uint8_t> _fragmentBuffer;
+	int _fragmentOffset = 0;
+	uint16_t _fragmentId = 0;
+	uint8_t _fragmentProto = 0;
+
+	void BuildFragment(PcppPacket& packet, pcpp::iphdr* ipHdr);
 };
 
 } // namespace generator
