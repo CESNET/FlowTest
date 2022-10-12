@@ -9,6 +9,9 @@
 #pragma once
 
 #include "common.h"
+#include "ipv4.h"
+#include "ipv6.h"
+#include "mac.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -37,6 +40,27 @@ public:
 	Config(const YAML::Node& node);
 
 	/**
+	 * @brief Get the ipv4 configuration
+	 *
+	 * @return const IPv4&
+	 */
+	const IPv4& GetIPv4() const { return _ipv4; }
+
+	/**
+	 * @brief Get the ipv6 configuration
+	 *
+	 * @return const IPv6&
+	 */
+	const IPv6& GetIPv6() const { return _ipv6; }
+
+	/**
+	 * @brief Get the mac configuration
+	 *
+	 * @return const Mac&
+	 */
+	const Mac& GetMac() const { return _mac; }
+
+	/**
 	 * @brief Load a configuration from a yaml file
 	 *
 	 * @param configFilename  Path to the yaml file
@@ -45,6 +69,9 @@ public:
 	static Config LoadFromFile(const std::string& configFilename);
 
 private:
+	IPv4 _ipv4;
+	IPv6 _ipv6;
+	Mac _mac;
 };
 
 } // namespace config
