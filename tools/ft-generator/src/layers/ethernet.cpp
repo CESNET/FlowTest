@@ -29,6 +29,17 @@ void Ethernet::PlanFlow(Flow& flow)
 	}
 }
 
+void Ethernet::PlanExtra(Flow& flow)
+{
+	PacketFlowSpan packetsSpan(&flow, true);
+	for (auto& packet: packetsSpan) {
+		if (packet._isExtra) {
+			Packet::layerParams params;
+			packet._layers.emplace_back(std::make_pair(this, params));
+		}
+	}
+}
+
 void Ethernet::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	pcpp::EthLayer *ethLayer;

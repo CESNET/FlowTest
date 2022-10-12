@@ -42,6 +42,13 @@ public:
 	virtual void PlanFlow(Flow& flow) override;
 
 	/**
+	 * @brief Plan Ethernet layer extra packets
+	 *
+	 * @param flow Flow to plan.
+	 */
+	virtual void PlanExtra(Flow& flow) override;
+
+	/**
 	 * @brief Build Ethernet layer in packet pcpp::Packet
 	 *
 	 * @param packet Packet to build.
