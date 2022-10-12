@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "config.h"
+#include "config/commandlineargs.h"
 #include "flowprofile.h"
 #include "generator.h"
 #include "logger.h"
@@ -22,29 +22,29 @@ using namespace generator;
 
 int main(int argc, char *argv[])
 {
-	Config config;
+	config::CommandLineArgs args;
 
 	try {
-		config.Parse(argc, argv);
+		args.Parse(argc, argv);
 	} catch (const std::invalid_argument& ex) {
 		std::cerr << ex.what() << "\n";
-		config.PrintUsage();
+		args.PrintUsage();
 		return EXIT_FAILURE;
 	}
 
-	if (config.IsHelp()) {
-		config.PrintUsage();
+	if (args.IsHelp()) {
+		args.PrintUsage();
 		return EXIT_SUCCESS;
 	}
 
 	ft::LoggerInit();
-	if (config.GetVerbosityLevel() >= 3) {
+	if (args.GetVerbosityLevel() >= 3) {
 		spdlog::set_level(spdlog::level::trace);
-	} else if (config.GetVerbosityLevel() == 2) {
+	} else if (args.GetVerbosityLevel() == 2) {
 		spdlog::set_level(spdlog::level::debug);
-	} else if (config.GetVerbosityLevel() == 1) {
+	} else if (args.GetVerbosityLevel() == 1) {
 		spdlog::set_level(spdlog::level::info);
-	} else if (config.GetVerbosityLevel() == 0) {
+	} else if (args.GetVerbosityLevel() == 0) {
 		spdlog::set_level(spdlog::level::err);
 	}
 
@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
 
 	try {
 		TrafficMeter trafficMeter;
-		FlowProfileReader profileReader(config.GetProfilesFile());
-		PcapWriter pcapWriter(config.GetOutputFile());
+		FlowProfileReader profileReader(args.GetProfilesFile());
+		PcapWriter pcapWriter(args.GetOutputFile());
 		Generator generator(profileReader, trafficMeter);
 
 		while (auto packet = generator.GenerateNextPacket()) {

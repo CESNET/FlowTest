@@ -10,12 +10,13 @@
 #include <string>
 
 namespace generator {
+namespace config {
 
 /**
- * @brief Config parser
+ * @brief CommandLineArgs parser
  *
  */
-class Config {
+class CommandLineArgs {
 public:
 	/**
 	 * @brief Parse the config from the command line args
@@ -87,4 +88,5 @@ private:
 	void CheckValidity();
 };
 
+} // namespace config
 } // namespace generator

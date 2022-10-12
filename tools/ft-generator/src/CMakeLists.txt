@@ -1,7 +1,7 @@
 add_executable(ft-generator
 	addressgenerators.cpp addressgenerators.h
 	calendar.cpp calendar.h
-	config.h config.cpp
+	config/commandlineargs.h config/commandlineargs.cpp
 	config/common.h config/common.cpp
 	flow.cpp flow.h
 	flowplanhelper.cpp flowplanhelper.h

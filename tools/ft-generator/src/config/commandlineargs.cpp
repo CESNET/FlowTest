@@ -1,4 +1,12 @@
-#include "config.h"
+/**
+ * @file
+ * @author Michal Sedlak <sedlakm@cesnet.cz>
+ * @brief Config parsing from command line args
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "commandlineargs.h"
 
 #include <getopt.h>
 
@@ -6,8 +14,9 @@
 #include <stdexcept>
 
 namespace generator {
+namespace config {
 
-void Config::Parse(int argc, char** argv)
+void CommandLineArgs::Parse(int argc, char** argv)
 {
 	const option longOpts[] = {
 		{"output", optional_argument, nullptr, 'o'},
@@ -39,7 +48,7 @@ void Config::Parse(int argc, char** argv)
 	CheckValidity();
 }
 
-void Config::PrintUsage()
+void CommandLineArgs::PrintUsage()
 {
 	std::cerr << "Usage: ./ft-generator [-v] -p <flow profile file> -o <output pcap file>\n";
 	std::cerr << "  --profiles, -p  ... The flow profiles file in csv format\n";
@@ -48,7 +57,7 @@ void Config::PrintUsage()
 	std::cerr << "  --help, -h      ... Show this help message\n";
 }
 
-void Config::CheckValidity()
+void CommandLineArgs::CheckValidity()
 {
 	if (_help) {
 		return;
@@ -63,4 +72,5 @@ void Config::CheckValidity()
 	}
 }
 
+} // namespace config
 } // namespace generator
