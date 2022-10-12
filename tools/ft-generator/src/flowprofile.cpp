@@ -6,17 +6,20 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "config/common.h"
 #include "flowprofile.h"
 
-#include <algorithm>
 #include <cctype>
-#include <charconv>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <unordered_map>
 
 namespace generator {
+
+using config::parseValue;
+using config::stringSplit;
+using config::stringStrip;
 
 static timeval MillisecsToTimeval(int64_t millisecs)
 {
@@ -29,48 +32,6 @@ static timeval MillisecsToTimeval(int64_t millisecs)
 static int64_t TimevalToMilliseconds(const timeval& time)
 {
 	return (int64_t(time.tv_sec) * 1000) + (time.tv_usec / 1000);
-}
-
-/**
- * Split a string by a delimiter and return the pieces
- */
-static std::vector<std::string> stringSplit(const std::string& s, const std::string& delimiter)
-{
-	std::size_t pos = 0;
-	std::size_t nextPos;
-	std::vector<std::string> pieces;
-	while ((nextPos = s.find(delimiter, pos)) != std::string::npos) {
-		pieces.emplace_back(s.begin() + pos, s.begin() + nextPos);
-		pos = nextPos + delimiter.size();
-	}
-	pieces.emplace_back(s.begin() + pos, s.end());
-	return pieces;
-}
-
-/**
- * Remove whitespace from the beginning and end of a string
- */
-static std::string stringStrip(std::string s)
-{
-	auto isNotWhitespace = [](unsigned char c) { return !std::isspace(c); };
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(), isNotWhitespace));
-	s.erase(std::find_if(s.rbegin(), s.rend(), isNotWhitespace).base(), s.end());
-	return s;
-}
-
-/**
- * Attempt to parse a value of the provided type
- */
-template <typename T>
-static std::optional<T> parseValue(const std::string& s)
-{
-	T value;
-	auto [endPtr, errCode] = std::from_chars(s.data(), s.data() + s.size(), value);
-	if (errCode == std::errc() && endPtr == s.data() + s.size()) {
-		return value;
-	} else {
-		return std::nullopt;
-	}
 }
 
 /**
