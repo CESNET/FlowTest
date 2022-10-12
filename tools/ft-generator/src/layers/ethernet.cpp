@@ -8,9 +8,16 @@
  */
 
 #include "ethernet.h"
+#include "ipv4.h"
+#include "ipv6.h"
+#include "vlan.h"
+#include "mpls.h"
 #include "../packetflowspan.h"
+#include "../pcppethlayer.h"
 
-#include <pcapplusplus/EthLayer.h>
+#include <arpa/inet.h>
+
+#include <cassert>
 
 namespace generator {
 
@@ -21,8 +28,24 @@ Ethernet::Ethernet(MacAddress macSrc, MacAddress macDst) :
 
 void Ethernet::PlanFlow(Flow& flow)
 {
-	PacketFlowSpan packetsSpan(&flow, true);
+	Layer* nextLayer = GetNextLayer();
+	if (dynamic_cast<IPv4*>(nextLayer)) {
+		_etherType = PCPP_ETHERTYPE_IP;
+	} else if (dynamic_cast<IPv6*>(nextLayer)) {
+		_etherType = PCPP_ETHERTYPE_IPV6;
+	} else if (auto* vlanLayer = dynamic_cast<Vlan*>(nextLayer)) {
+		if (dynamic_cast<Vlan*>(vlanLayer->GetNextLayer())) {
+			_etherType = PCPP_ETHERTYPE_IEEE_802_1AD;
+		} else {
+			_etherType = PCPP_ETHERTYPE_VLAN;
+		}
+	} else if (dynamic_cast<Mpls*>(nextLayer)) {
+		_etherType = PCPP_ETHERTYPE_MPLS;
+	} else {
+		assert(false && "Unexpected next layer");
+	}
 
+	PacketFlowSpan packetsSpan(&flow, true);
 	for (auto& packet: packetsSpan) {
 		Packet::layerParams params;
 		packet._layers.emplace_back(std::make_pair(this, params));
@@ -42,15 +65,16 @@ void Ethernet::PlanExtra(Flow& flow)
 
 void Ethernet::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
-	pcpp::EthLayer *ethLayer;
+	PcppEthLayer *ethLayer;
 
 	(void) params;
 
 	if (plan._direction == Direction::Forward) {
-		ethLayer = new pcpp::EthLayer(_macSrc, _macDst);
+		ethLayer = new PcppEthLayer(_macSrc, _macDst);
 	} else {
-		ethLayer = new pcpp::EthLayer(_macDst, _macSrc);
+		ethLayer = new PcppEthLayer(_macDst, _macSrc);
 	}
+	ethLayer->getEthHeader()->etherType = htons(_etherType);
 
 	packet.addLayer(ethLayer, true);
 }

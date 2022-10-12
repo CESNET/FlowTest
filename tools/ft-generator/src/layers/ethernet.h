@@ -60,6 +60,7 @@ public:
 private:
 	MacAddress _macSrc;
 	MacAddress _macDst;
+	uint16_t _etherType = 0;
 };
 
 } // namespace generator
