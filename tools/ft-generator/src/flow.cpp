@@ -145,6 +145,7 @@ Flow::~Flow()
 
 void Flow::AddLayer(std::unique_ptr<Layer> layer)
 {
+	layer->AddedToFlow(this, _layerStack.size());
 	_layerStack.emplace_back(std::move(layer));
 }
 
@@ -157,8 +158,17 @@ void Flow::Plan()
 	}
 
 	PlanPacketsDirections();
-	PlanPacketsTimestamps();
 	PlanPacketsSizes();
+
+	for (auto& layer : _layerStack) {
+		layer->PostPlanFlow(*this);
+	}
+
+	for (auto& layer : _layerStack) {
+		layer->PlanExtra(*this);
+	}
+
+	PlanPacketsTimestamps();
 }
 
 std::pair<PcppPacket, PacketExtraInfo> Flow::GenerateNextPacket()
@@ -177,7 +187,18 @@ std::pair<PcppPacket, PacketExtraInfo> Flow::GenerateNextPacket()
 	for (auto& [layer, params] : packetPlan._layers) {
 		layer->Build(packet, params, packetPlan);
 	}
+	/**
+	 * The method computeCalculateFields needs to be called twice here.
+	 * The first time before calling the PostBuild callbacks, as they need the
+	 * finished packet including the computed fields.
+	 * The second time after calling the PostBuild callbacks, as they might
+	 * modify the packet and the fields may need to be recomputed.
+	 */
+	packet.computeCalculateFields();
 
+	for (auto& [layer, params] : packetPlan._layers) {
+		layer->PostBuild(packet, params, packetPlan);
+	}
 	packet.computeCalculateFields();
 
 	_packets.erase(_packets.begin());
