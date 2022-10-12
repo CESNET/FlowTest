@@ -28,6 +28,7 @@ add_executable(ft-generator
 	layers/payload.h layers/payload.cpp
 	layers/tcp.h layers/tcp.cpp
 	layers/udp.h layers/udp.cpp
+	layers/vlan.h layers/vlan.cpp
 	main.cpp
 	packet.h packet.cpp
 	packetflowspan.h packetflowspan.cpp
