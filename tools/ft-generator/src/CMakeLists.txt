@@ -24,6 +24,7 @@ add_executable(ft-generator
 	layers/icmprandom.h layers/icmprandom.cpp
 	layers/ipv4.h layers/ipv4.cpp
 	layers/ipv6.h layers/ipv6.cpp
+	layers/mpls.h layers/mpls.cpp
 	layers/payload.h layers/payload.cpp
 	layers/tcp.h layers/tcp.cpp
 	layers/udp.h layers/udp.cpp
