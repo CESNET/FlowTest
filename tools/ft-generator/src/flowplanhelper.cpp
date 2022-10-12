@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "flowplanhelper.h"
+#include "randomgenerator.h"
 
 #include <cassert>
 
@@ -95,7 +96,8 @@ Direction FlowPlanHelper::GetRandomDir()
 	}
 
 	if (hasFwd && hasRev) {
-		return _dist(_eng) <= _fwdPktChance ? Direction::Forward : Direction::Reverse;
+		return RandomGenerator::GetInstance().RandomDouble() <= _fwdPktChance
+			? Direction::Forward : Direction::Reverse;
 	}
 
 	return hasFwd ? Direction::Forward : Direction::Reverse;

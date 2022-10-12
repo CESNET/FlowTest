@@ -109,10 +109,6 @@ public:
 private:
 	bool _first = true;
 	std::list<Packet>::iterator _it;
-
-	std::random_device _rd;
-	std::mt19937 _eng{_rd()};
-	std::uniform_real_distribution<> _dist{0.0, 1.0};
 	double _fwdPktChance;
 };
 

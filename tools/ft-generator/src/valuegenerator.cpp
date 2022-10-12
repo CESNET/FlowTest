@@ -7,6 +7,7 @@
  */
 
 #include "valuegenerator.h"
+#include "randomgenerator.h"
 
 #include <algorithm>
 #include <cassert>
@@ -135,22 +136,19 @@ uint64_t ValueGenerator::GetValueExact(uint64_t value)
 
 void ValueGenerator::PostIntervalUpdate()
 {
-	double intervalProbSum = std::accumulate(_intervals.begin(), _intervals.end(), 0.0,
+	_intervalProbSum = std::accumulate(_intervals.begin(), _intervals.end(), 0.0,
 		[](double sum, const auto& inter) { return sum += inter._probability; });
-	_distr = std::uniform_real_distribution<>{0.0, intervalProbSum};
 }
 
 uint64_t ValueGenerator::GenerateRandomValue()
 {
-	//TODO: use uniform_int_distribution which should probably be more effective?
 	double probSum = 0.0f;
-	double genVal = _distr(_gen);
+	double genVal = RandomGenerator::GetInstance().RandomDouble(0.0, _intervalProbSum);
 	uint64_t value = 0;
 	for (const auto& inter : _intervals) {
 		probSum += inter._probability;
 		if (genVal <= probSum) {
-			std::uniform_int_distribution<uint64_t> interDistr{inter._from, inter._to};
-			value = interDistr(_gen);
+			value = RandomGenerator::GetInstance().RandomUInt(inter._from, inter._to);
 			break;
 		}
 	}

@@ -7,6 +7,7 @@
  */
 
 #include "icmprandom.h"
+#include "../randomgenerator.h"
 
 #include <pcapplusplus/IcmpLayer.h>
 #include <pcapplusplus/IPv4Layer.h>
@@ -15,7 +16,6 @@
 
 #include <cstdlib>
 #include <functional>
-#include <random>
 #include <utility>
 
 namespace generator {
@@ -65,15 +65,17 @@ void IcmpRandom::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet
 	ipv4Layer->setSrcIPv4Address(thisIpv4Layer->getDstIPv4Address());
 	ipv4Layer->setDstIPv4Address(thisIpv4Layer->getSrcIPv4Address());
 	pcpp::iphdr* ipv4Hdr = ipv4Layer->getIPv4Header();
-	ipv4Hdr->timeToLive = 1 + std::rand() % 255;
-	ipv4Hdr->totalLength = IPV4_HDR_SIZE + UDP_HDR_SIZE
-		+ std::rand() % (MAX_DUMMY_PKT_LEN - IPV4_HDR_SIZE - UDP_HDR_SIZE);
+	ipv4Hdr->timeToLive = RandomGenerator::GetInstance().RandomUInt(1, 255);
+	ipv4Hdr->totalLength =
+		RandomGenerator::GetInstance().RandomUInt(IPV4_HDR_SIZE + UDP_HDR_SIZE, MAX_DUMMY_PKT_LEN);
 	ipv4Hdr->protocol = static_cast<int>(L4Protocol::Udp);
 
-	pcpp::UdpLayer* udpLayer = new pcpp::UdpLayer(1 + std::rand() % 65535, 1 + std::rand() % 65535);
+	pcpp::UdpLayer* udpLayer = new pcpp::UdpLayer(
+		RandomGenerator::GetInstance().RandomUInt(1, 65535),
+		RandomGenerator::GetInstance().RandomUInt(1, 65535));
 
 	// We might want to add more possible ICMP messages in the future
-	int rnd = std::rand() % 4;
+	int rnd = RandomGenerator::GetInstance().RandomUInt(0, 3);
 	pcpp::IcmpDestUnreachableCodes code;
 	if (rnd == 0) {
 		code = pcpp::IcmpDestinationHostProhibited;
