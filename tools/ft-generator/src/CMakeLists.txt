@@ -3,6 +3,7 @@ add_executable(ft-generator
 	config/commandlineargs.h config/commandlineargs.cpp
 	config/common.h config/common.cpp
 	config/config.h config/config.cpp
+	config/encapsulation.h config/encapsulation.cpp
 	config/ipv4.h config/ipv4.cpp
 	config/ipv6.h config/ipv6.cpp
 	config/mac.h config/mac.cpp
