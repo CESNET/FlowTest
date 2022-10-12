@@ -19,6 +19,7 @@ add_executable(ft-generator
 	packet.h packet.cpp
 	packetflowspan.h packetflowspan.cpp
 	pcapwriter.cpp pcapwriter.h
+	randomgenerator.h randomgenerator.cpp
 	trafficmeter.h trafficmeter.cpp
 	valuegenerator.h valuegenerator.cpp
 )
