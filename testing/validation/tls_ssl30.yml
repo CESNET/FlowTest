@@ -22,4 +22,4 @@ flows:
     tls_validity_not_before: 1632654491
     tls_validity_not_after:  1640430490
     tls_public_key_alg:      "1.2.840.113549.1.1.1"
-    tls_ja3:                 "77bfeeb56cc1af3a4241cf31c4a49e1a"
+    tls_ja3:                 "0x77BFEEB56CC1AF3A4241CF31C4A49E1A"
