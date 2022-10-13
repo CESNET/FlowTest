@@ -195,5 +195,6 @@
   map: tls_validity_not_after
 'flowmon:tlsPublicKeyAlg':
   map: tls_public_key_alg
+  converter: tls_alg_nid_to_longname
 'flowmon:tlsJa3Fingerprint':
   map: tls_ja3
