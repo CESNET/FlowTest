@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Mapping JSON output of ipfixcol2 (ipfix attributes) to format expected by validation tests (YAML test description).
 """
+import string
 from typing import Tuple, Any
 import yaml
 
@@ -46,7 +47,11 @@ class Converters:
 
     @staticmethod
     def rstrip_zeroes(raw_str: str) -> str:
-        """Strip all zeroes from the right of byte string."""
+        """Strip all zeroes from the right of byte array or hexadecimal string."""
+        if raw_str.startswith("0x") and all(c in string.hexdigits for c in raw_str[2:]):
+            # string is hexa number
+            return raw_str.rstrip("0")
+        # string is byte array
         return raw_str.rstrip("\x00")
 
 
