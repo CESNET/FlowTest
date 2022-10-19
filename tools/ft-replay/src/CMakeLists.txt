@@ -1,4 +1,4 @@
-add_executable(ft-replay
+set(SOURCE_LIST
 	main.cpp
 	config.hpp
 	config.cpp
@@ -21,6 +21,15 @@ add_executable(ft-replay
 	socketDescriptor.cpp
 	socketDescriptor.hpp
 )
+
+if (ENABLE_NFB)
+	list(APPEND SOURCE_LIST
+		nfb.cpp
+		nfb.hpp
+	)
+endif()
+
+add_executable(ft-replay ${SOURCE_LIST})
 
 target_link_libraries(ft-replay
 	PRIVATE common

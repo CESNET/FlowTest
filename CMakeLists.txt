@@ -30,5 +30,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
 find_package(PCAP REQUIRED)
 find_package(Threads REQUIRED)
 
+option(ENABLE_NFB "Enable support for NFB output interface" OFF)
+
 add_subdirectory(tools)
 add_subdirectory(pkg)

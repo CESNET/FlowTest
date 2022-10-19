@@ -1,48 +1,49 @@
 /**
  * @file
+ * @author Pavel Siska <siska@cesnet.cz>
  * @author Matej Hulak <hulak@cesnet.cz>
- * @brief Output plugin interface
+ * @brief NFB plugin interface
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #pragma once
 
-#include "socketDescriptor.hpp"
 #include "outputQueue.hpp"
 #include "outputPlugin.hpp"
 #include "outputPluginFactoryRegistrator.hpp"
 #include "logger.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <string>
+#include <nfb/nfb.h>
+#include <nfb/ndp.h>
+
 #include <memory>
-#include <linux/if_packet.h>
+#include <cstddef>
 
 namespace replay {
 
-class RawQueue : public OutputQueue {
+class NfbQueue : public OutputQueue {
 public:
 	/**
-	 * @brief Construct RawQueue
+	 * @brief Construct NfbQueue
 	 *
-	 * Constructs RawQueue. RawQueue is used to send packets via RawSocket.
+	 * Constructs NfbQueue. NfbQueue is used to send packets via Nfb device.
 	 *
-	 * @param[in] IFC name
-	 * @param[in] Maximal packet size
-	 * @param[in] Number of packets buffer should hold
+	 * @param[in] pointer to nfb device
+	 * @param[in] queue id
+	 * @param[in] maximal size of burst
 	 */
-	RawQueue(const std::string& ifcName, size_t pktSize, size_t burstSize);
-	/**
-	 * @brief Default destructor
-	 */
-	~RawQueue() = default;
+	NfbQueue(nfb_device *dev, unsigned int queue_id, size_t burstSize);
 
-	RawQueue(const RawQueue&) = delete;
-	RawQueue(RawQueue&&) = delete;
-	RawQueue& operator=(const RawQueue&) = delete;
-	RawQueue& operator=(RawQueue&&) = delete;
+	/**
+	 * @brief Destructor
+	 */
+	~NfbQueue();
+
+	NfbQueue(const NfbQueue&) = delete;
+	NfbQueue(NfbQueue&&) = delete;
+	NfbQueue& operator=(const NfbQueue&) = delete;
+	NfbQueue& operator=(NfbQueue&&) = delete;
 
 	/**
 	 * @brief Get buffers of desired size for packets
@@ -59,50 +60,57 @@ public:
 	/**
 	 * @brief Send burst of packets
 	 *
+	 * Parameters are ignored, all provided buffers are sent.
+	 *
 	 * @param[in] pointer to PacketBuffer array
 	 * @param[in] number of packets to send
 	 */
 	void SendBurst(const PacketBuffer* burst, size_t burstSize) override;
 
 	/**
-	 * @brief Get the Maximal Burst Size
+	 * @brief Get the maximal Burst Size
 	 *
 	 * @return size_t maximal possible burst size
 	 */
 	size_t GetMaxBurstSize() const noexcept override;
 
 private:
-	size_t _pktSize;
-	size_t _burstSize;
-	SocketDescriptor _socket;
-	sockaddr_ll _sockAddr = {};
-	std::unique_ptr<std::byte[]> _buffer;
-	bool _bufferFlag = false;
+	/**
+	 * @brief Flush interface
+	 *
+	 * All provided buffers are sent.
+	 */
+	void Flush();
 
-	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("RawQueue");
+	std::unique_ptr<ndp_tx_queue_t, decltype(&ndp_close_tx_queue)> _txQueue
+		{nullptr, &ndp_close_tx_queue};
+	std::unique_ptr<ndp_packet[]> _txPacket;
+	unsigned _txBurstCount = 0;
+	size_t _burstSize;
+
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("NfbQueue");
 };
 
-class RawPlugin : public OutputPlugin {
+class NfbPlugin : public OutputPlugin {
 public:
 	/**
-	 * @brief Construct RawPlugin
+	 * @brief Construct NfbPlugin
 	 *
-	 * Constructs RawPlugin and RawQueue.
+	 * Constructs NfbPlugin and NfbQueue.
 	 *
 	 * @param[in] args string "arg1=value1,arg2=value2"
 	 */
-	explicit RawPlugin(const std::string& params);
+	explicit NfbPlugin(const std::string& params);
 
 	/**
 	 * @brief Default destructor
 	 */
-	~RawPlugin() = default;
+	~NfbPlugin() = default;
 
-	RawPlugin(const RawPlugin&) = delete;
-	RawPlugin(RawPlugin&&) = delete;
-	RawPlugin& operator=(const RawPlugin&) = delete;
-	RawPlugin& operator=(RawPlugin&&) = delete;
-
+	NfbPlugin(const NfbPlugin&) = delete;
+	NfbPlugin(NfbPlugin&&) = delete;
+	NfbPlugin& operator=(const NfbPlugin&) = delete;
+	NfbPlugin& operator=(NfbPlugin&&) = delete;
 	/**
 	 * @brief Get queue count
 	 *
@@ -138,14 +146,16 @@ private:
 	 */
 	int ParseArguments(const std::string& args);
 
-	std::unique_ptr<RawQueue> _queue;
-	std::string _ifcName;
-	size_t _burstSize = 1024;
-	size_t _packetSize = 2048;
+	std::unique_ptr<nfb_device, decltype(&nfb_close)> _nfbDevice
+		{nullptr, &nfb_close};
+	std::vector<std::unique_ptr<NfbQueue>> _queues;
+	std::string _deviceName;
+	size_t _queueCount = 0;
+	size_t _burstSize = 64;
 
-	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("RawPlugin");
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("NfbPlugin");
 };
 
-OutputPluginFactoryRegistrator<RawPlugin> rawPluginRegistration("raw");
+OutputPluginFactoryRegistrator<NfbPlugin> nfbPluginRegistration("nfb");
 
 } // namespace replay
