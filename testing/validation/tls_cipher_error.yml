@@ -17,4 +17,4 @@ flows:
     dst_port:    8443
     tls_server_version:      0x0303
     tls_client_version:      0x0303
-    tls_ja3:     "1d99b35397a2e20c43b933aa64e8356e"
+    tls_ja3:     "0x1D99B35397A2E20C43B933AA64E8356E"
