@@ -9,6 +9,7 @@ Mapping JSON output of ipfixcol2 (ipfix attributes) to format expected by valida
 import string
 from typing import Tuple, Any
 import yaml
+from OpenSSL._util import lib, ffi
 
 from src.collector.interface import CollectorOutputReaderInterface
 from src.collector.protocols import known_protocols
@@ -53,6 +54,12 @@ class Converters:
             return raw_str.rstrip("0")
         # string is byte array
         return raw_str.rstrip("\x00")
+
+    @staticmethod
+    def tls_alg_nid_to_longname(nid: int) -> str:
+        """Convert nid of tls public key algorithm to its full name."""
+        txt = lib.OBJ_nid2ln(nid)
+        return ffi.string(txt).decode("ascii") if txt else ""
 
 
 class CollectorOutputMapper:
