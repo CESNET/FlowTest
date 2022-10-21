@@ -8,6 +8,8 @@ cppcheck-junit = "*"
 fabric = "*"
 pyaml = "*"
 pyopenssl = "*"
+dataclasses = "*"
+dataclass_wizard = "*"
 
 [dev-packages]
 pylint = "*"
