@@ -1,0 +1,4 @@
+- alias: ipfixcol-1
+  name: cesnet-collector-1.liberouter.org
+  type: ipfixcol2
+  authentication: cesnet-general-invalid
