@@ -27,13 +27,17 @@ if (ENABLE_NFB)
 		nfb.cpp
 		nfb.hpp
 	)
+
+	target_link_libraries(ft-replay PRIVATE
+		nfb::nfb
+	)
 endif()
 
-target_link_libraries(ft-replay
-	PRIVATE common
-	-lpcap
-	-lxxhash
-	-lpthread
+target_link_libraries(ft-replay PRIVATE
+	common
+	pcap::pcap
+	xxhash::xxhash
+	Threads::Threads
 )
 
 install(TARGETS ft-replay DESTINATION ${INSTALL_DIR_BIN})

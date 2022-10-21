@@ -33,5 +33,9 @@ find_package(PCAP REQUIRED)
 find_package(xxHash REQUIRED)
 find_package(Threads REQUIRED)
 
+if (ENABLE_NFB)
+	find_package(NFB REQUIRED)
+endif()
+
 add_subdirectory(tools)
 add_subdirectory(pkg)
