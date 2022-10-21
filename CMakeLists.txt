@@ -12,6 +12,8 @@ include(cmake/installation.cmake)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
+option(ENABLE_NFB "Enable support for NFB output interface" OFF)
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -30,8 +32,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
 find_package(PCAP REQUIRED)
 find_package(xxHash REQUIRED)
 find_package(Threads REQUIRED)
-
-option(ENABLE_NFB "Enable support for NFB output interface" OFF)
 
 add_subdirectory(tools)
 add_subdirectory(pkg)
