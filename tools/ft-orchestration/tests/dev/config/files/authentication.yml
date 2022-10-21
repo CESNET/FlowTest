@@ -1,0 +1,6 @@
+- name: cesnet-general
+  key-path: tools/ft-orchestration/tests/dev/config/files/cesnet-general.pem
+
+- name: flowmon-probes
+  username: slowmon
+  password: manyStars

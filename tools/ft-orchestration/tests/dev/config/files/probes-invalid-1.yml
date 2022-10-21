@@ -1,0 +1,5 @@
+- alias: ipfix-probe-10G
+  name: cesnet-probe-1.liberouter.org
+  type: ipfix-probe
+  interfaces:
+    - name: eth2
