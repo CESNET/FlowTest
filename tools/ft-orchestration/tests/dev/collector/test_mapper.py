@@ -570,3 +570,48 @@ def test_builtin_converters():
 
     yaml_flow, _, _ = next(mapper_it)
     assert yaml_flow["tcp_flags"] == 18
+
+
+def test_converter_tls_alg_nid_to_longname():
+    """Test conversion of mapped values - in this case translation of tls algorithm nid to full algorithm name."""
+
+    # example nids are taken from https://github.com/openssl/openssl/blob/master/crypto/objects/obj_dat.h#L1158
+    reader = ReaderStub(
+        [
+            {"flowmon:tlsPublicKeyAlg": 0},
+            {"flowmon:tlsPublicKeyAlg": 1},
+            {"flowmon:tlsPublicKeyAlg": 2},
+            {"flowmon:tlsPublicKeyAlg": 1247},
+            {"flowmon:tlsPublicKeyAlg": 1119},
+            {"flowmon:tlsPublicKeyAlg": 713},
+            {"flowmon:tlsPublicKeyAlg": 165},
+            {"flowmon:tlsPublicKeyAlg": 50100},
+        ]
+    )
+    mapper = CollectorOutputMapper(reader, CONF_FILE)
+    mapper_it = iter(mapper)
+
+    yaml_flow, _, _ = next(mapper_it)
+    assert yaml_flow["tls_public_key_alg"] == "undefined"
+
+    yaml_flow, _, _ = next(mapper_it)
+    assert yaml_flow["tls_public_key_alg"] == "RSA Data Security, Inc."
+
+    yaml_flow, _, _ = next(mapper_it)
+    assert yaml_flow["tls_public_key_alg"] == "RSA Data Security, Inc. PKCS"
+
+    # last nid supported by pyopenssl in time writing the test
+    yaml_flow, _, _ = next(mapper_it)
+    assert yaml_flow["tls_public_key_alg"] == "id-ct-signedChecklist"
+
+    # some random nids
+    yaml_flow, _, _ = next(mapper_it)
+    assert yaml_flow["tls_public_key_alg"] == "RSA-SHA3-512"
+    yaml_flow, _, _ = next(mapper_it)
+    assert yaml_flow["tls_public_key_alg"] == "secp224r1"
+    yaml_flow, _, _ = next(mapper_it)
+    assert yaml_flow["tls_public_key_alg"] == "Policy Qualifier User Notice"
+
+    # undefined nid
+    yaml_flow, _, _ = next(mapper_it)
+    assert yaml_flow["tls_public_key_alg"] == ""
