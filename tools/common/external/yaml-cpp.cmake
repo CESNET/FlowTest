@@ -13,6 +13,9 @@ FetchContent_Declare(
 	GIT_TAG yaml-cpp-0.7.0
 )
 
+# Make sure that subproject accepts predefined build options without warnings.
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
 # Library does not compile with -Werror that we use in release builds
 string(REPLACE "-Werror" "" CMAKE_CXX_FLAGS_RELEASE_YAMLCPP "${CMAKE_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE_YAMLCPP}")
