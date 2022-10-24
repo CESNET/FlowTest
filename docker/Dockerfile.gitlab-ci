@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
 ARG OS_DISTRO=oraclelinux
-ARG OS_RELEASE=8.5
+ARG OS_RELEASE=8
 
 FROM $OS_DISTRO:$OS_RELEASE as default
 

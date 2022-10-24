@@ -8,7 +8,7 @@ docker [Oracle Linux 8]:
   extends: .docker
   variables:
     OS_DISTRO: "oraclelinux"
-    OS_RELEASE: "8.5"
+    OS_RELEASE: "8"
     DOCKER_TAG: "ol8"
 
 docker [CentOS Stream 8]:
