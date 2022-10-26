@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: repository_epel
+  - role: repository_powertools
