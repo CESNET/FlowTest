@@ -1,0 +1,14 @@
+---
+- name: Standard 3rd party libraries are installed
+  ansible.builtin.dnf:
+    name:
+      - libpcap
+      - libpcap-devel
+      - xxhash
+      - xxhash-devel
+    state: latest
+
+- name: nfb-framework is installed
+  ansible.builtin.dnf:
+    name: nfb-framework
+    state: latest
