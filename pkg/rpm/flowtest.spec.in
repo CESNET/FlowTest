@@ -31,7 +31,6 @@ make install DESTDIR=%{buildroot}
 
 %files
 %license LICENSE
-%{_bindir}/ft-extract
 %{_bindir}/ft-replay
 %{_bindir}/ft-generator
 
