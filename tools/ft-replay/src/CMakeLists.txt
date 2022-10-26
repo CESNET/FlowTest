@@ -1,4 +1,4 @@
-set(SOURCE_LIST
+add_executable(ft-replay
 	main.cpp
 	config.hpp
 	config.cpp
@@ -23,19 +23,21 @@ set(SOURCE_LIST
 )
 
 if (ENABLE_NFB)
-	list(APPEND SOURCE_LIST
+	target_sources(ft-replay PRIVATE
 		nfb.cpp
 		nfb.hpp
 	)
+
+	target_link_libraries(ft-replay PRIVATE
+		nfb::nfb
+	)
 endif()
 
-add_executable(ft-replay ${SOURCE_LIST})
-
-target_link_libraries(ft-replay
-	PRIVATE common
-	-lpcap
-	-lxxhash
-	-lpthread
+target_link_libraries(ft-replay PRIVATE
+	common
+	pcap::pcap
+	xxhash::xxhash
+	Threads::Threads
 )
 
 install(TARGETS ft-replay DESTINATION ${INSTALL_DIR_BIN})
