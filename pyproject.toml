@@ -9,8 +9,14 @@ disable = "E0401, R0801"
 max-attributes=10
 max-args=10
 
+[tool.pylint.imports]
+known-third-party = ["docker"]
+
 [tool.pytest.ini_options]
 pythonpath = [
   "tools/ft-profiler/src",
   "tools/ft-analyzer",
 ]
+
+[tool.isort]
+known_third_party = ["docker"]
