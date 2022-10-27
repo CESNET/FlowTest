@@ -141,7 +141,7 @@ class TestNffile:
             mocked_popen.stdout = MagicMock(spec=subprocess.Popen.stdout)
             mocked_popen.stdout.readline = lambda *_: NffileHelper.flow()
         nffile._process = mocked_popen
-        res = nffile.__next__()
+        res = next(nffile)
         flow = NffileHelper.TMP_FLOW
         assert isinstance(res, Flow)
         assert res.swap == flow.swap
@@ -160,7 +160,7 @@ class TestNffile:
                 mocked_popen.stdout = MagicMock(spec=subprocess.Popen.stdout)
                 mocked_popen.stdout.readline = lambda *_: []
                 nffile._process = mocked_popen
-                nffile.__next__()
+                next(nffile)
 
     @staticmethod
     def test_next_exception_when_not_initialized():
@@ -168,7 +168,7 @@ class TestNffile:
         initialized (calling iter() first to set _process attribute)"""
         nffile = NffileHelper.mock_nffile()
         with pytest.raises(InputException):
-            nffile.__next__()
+            next(nffile)
 
     @staticmethod
     @pytest.mark.parametrize("poll_retcode", [0, 1])
@@ -191,7 +191,7 @@ class TestNffile:
                 mocked_popen.stdout.readline = lambda *_: ""
                 mocked_popen.poll = lambda *_: poll()
                 nffile._process = mocked_popen
-                nffile.__next__()
+                next(nffile)
 
     @staticmethod
     def test_next_continue_when_no_stderr():
@@ -216,7 +216,7 @@ class TestNffile:
                 mocked_popen.stdout.readline = lambda *_: read_stdout()
                 mocked_popen.stderr.readline = lambda *_: ""
                 nffile._process = mocked_popen
-                nffile.__next__()
+                next(nffile)
 
     @staticmethod
     def test_next_exception_when_stderr():
@@ -230,7 +230,7 @@ class TestNffile:
                 mocked_popen.stderr = MagicMock(spec=subprocess.Popen.stderr)
                 mocked_popen.stderr.readline = lambda *_: bytes(1)
                 nffile._process = mocked_popen
-                nffile.__next__()
+                next(nffile)
 
     @staticmethod
     def test_start():

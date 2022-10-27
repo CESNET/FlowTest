@@ -98,11 +98,10 @@ class TestWriter:
     def test_exit(compress):
         """Test __exit__ method"""
         profile_writer = WriterHelper.create_pw(compress=compress)
-        profile_writer.__enter__()
-        assert profile_writer._fd is not None
-        assert profile_writer._fd.closed is False
+        with profile_writer as writer:
+            assert writer._fd is not None
+            assert writer._fd.closed is False
 
-        profile_writer.__exit__(None, None, None)
         assert profile_writer._fd.closed is True
 
     @staticmethod
