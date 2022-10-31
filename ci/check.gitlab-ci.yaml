@@ -32,6 +32,11 @@ cincludes-order:
   script:
     - "! grep -r -A 10 '#include <' tools | grep -B 10 '#include \"'"
 
+clang-format:
+  stage: check
+  script:
+    - "find tools/ -type f -regex '.*\\.\\(hpp\\|cpp\\|c\\|h\\)$' -print0 | xargs -0 clang-format --dry-run --Werror --style=file"
+
 doxy-filename:
   stage: check
   script:
