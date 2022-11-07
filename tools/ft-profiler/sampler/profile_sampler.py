@@ -522,7 +522,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    if args.min_sampling > args.max_sampling:
+    if args.min_sampling >= args.max_sampling:
         logging.getLogger().error(
             "minimum sampling value (%f) must be < maximum sampling value (%f)", args.min_sampling, args.max_sampling
         )
