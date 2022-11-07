@@ -10,6 +10,9 @@ pyaml = "*"
 pyopenssl = "*"
 dataclasses = "*"
 dataclass_wizard = "*"
+pandas = "*"
+numpy = "*"
+pygad = "*"
 
 [dev-packages]
 pylint = "*"
