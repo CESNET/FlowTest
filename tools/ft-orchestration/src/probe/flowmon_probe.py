@@ -128,7 +128,7 @@ class FlowmonProbe(ProbeInterface):
         host,
         target,
         protocols,
-        interface,
+        interfaces,
         input_plugin="rawnetcap",
         active_timeout=300,
         inactive_timeout=30,
@@ -146,8 +146,8 @@ class FlowmonProbe(ProbeInterface):
         protocols : list
             List of networking protocols which the probe should parse and export.
 
-        interface : str
-            Network interface where the exporting process should be initiated.
+        interfaces : list(InterfaceCfg)
+            Network interfaces where the exporting process should be initiated.
 
         input_plugin : str, optional
             Input plugin - could be either dpdk or rawnetcap.
@@ -158,6 +158,10 @@ class FlowmonProbe(ProbeInterface):
         inactive_timeout : int
             Maximum duration for which a flow is kept in the probe if no new data updates it (in seconds).
         """
+
+        if len(interfaces) != 1:
+            raise ProbeException("Exporting process should be initiated on exactly one input interface.")
+        interface = interfaces[0].name
 
         self._host = host
 
