@@ -179,8 +179,9 @@ def test_converter_rstrip_values():
                 + "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
                 "flowmon:dnsQname": "newportconceptsla.com\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
                 + "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-                + "\x00\x00\x00"
-                "",
+                + "\x00\x00\x00",
+                "flowmon:dnsCrrRdata": "0x676C6173746F6E2E6E65740000000000000000000000000000000000000000000000000000000"
+                + "000000000000000000000000000000000000000000000000000",
             },
             {
                 "flowmon:tlsAlpn": "http/1.1\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
@@ -220,6 +221,8 @@ def test_converter_rstrip_values():
 
     assert dns_flow["dns_resp_rr"]["name"] == ""
     assert dns_flow["dns_req_query_name"] == "newportconceptsla.com"
+    # stripping hexadecimal numbers
+    assert dns_flow["dns_resp_rr"]["flowmon_data"] == "0x676C6173746F6E2E6E6574"
 
     tls_flow, _, _ = next(mapper_it)
 
@@ -288,7 +291,7 @@ def test_all_keys_mapped():
 
     assert "flowmon:dnsCrrRdata" in mapped_keys
     assert "dns_resp_rr" in flow
-    assert "data" in flow["dns_resp_rr"]
+    assert "flowmon_data" in flow["dns_resp_rr"]
 
 
 def test_unknown_keys():
