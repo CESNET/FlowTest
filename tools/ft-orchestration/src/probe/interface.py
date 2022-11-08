@@ -19,7 +19,7 @@ class ProbeInterface(ABC):
     """Abstract class defining common interface for all probes"""
 
     @abstractmethod
-    def __init__(self, host, target, protocols, **kwargs):
+    def __init__(self, host, target, protocols, interfaces, **kwargs):
         """Initialize the local or remote probe interface as object
 
         Parameters
@@ -33,6 +33,9 @@ class ProbeInterface(ABC):
 
         protocols : list
             List of the networking protocols which the probe should parse and export.
+
+        interfaces : list(InterfaceCfg)
+            Network interfaces where the exporting process should be initiated.
 
         kwargs : dict
             Additional startup arguments for specific probe variants.
