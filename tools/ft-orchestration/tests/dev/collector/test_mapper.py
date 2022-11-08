@@ -288,7 +288,7 @@ def test_all_keys_mapped():
 
     assert "flowmon:dnsCrrRdata" in mapped_keys
     assert "dns_resp_rr" in flow
-    assert "data" in flow["dns_resp_rr"]
+    assert "flowmon_data" in flow["dns_resp_rr"]
 
 
 def test_unknown_keys():
