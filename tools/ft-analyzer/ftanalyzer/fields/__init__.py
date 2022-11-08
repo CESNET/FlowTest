@@ -5,4 +5,4 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from .normalizer import Normalizer
+from .field_database import FieldDatabase, FieldDirection

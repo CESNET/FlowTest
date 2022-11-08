@@ -4,6 +4,8 @@ test:
   pcaps: ["ipv6-smtp.pcap"]
   required_protocols: ["ipv6"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:      "2001:470:e5bf:dead:4957:2174:e82c:4887"
     dst_ip:      "2607:f8b0:400c:c03::1a"

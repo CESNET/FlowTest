@@ -18,5 +18,6 @@ flows:
     http_host:         "nghttp2.org"
     http_url:          "/robots.txt"
     http_method:       "GET"
+    http_method_id:    32769
     http_status_code:  200
     http_agent:        "curl/7.61.0"

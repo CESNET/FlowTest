@@ -145,7 +145,8 @@
 'cesnet:DNSRData':
   map: dns_resp_rr.data
 'flowmon:dnsCrrRdata':
-  map: dns_resp_rr.data
+  map: dns_resp_rr.flowmon_data
+  converter: rstrip_zeroes
 
 # HTTP
 'flowmon:httpHost':

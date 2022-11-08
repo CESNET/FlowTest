@@ -17,10 +17,10 @@ flows:
     dst_port:    53
     dns_id:      313
     _forward:
-      dns_req_flags:       0x0100
+      dns_flags:           0x0100
       dns_req_query_type:  1
       dns_req_query_class: 1
       dns_req_query_name:  "ia-dns.net"
     _reverse:
-      dns_resp_flags:      0x8182
+      dns_flags@rev:       0x8182
       dns_resp_rcode:      2

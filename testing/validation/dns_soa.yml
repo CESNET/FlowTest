@@ -17,12 +17,12 @@ flows:
     dst_port:    53
     dns_id:      57001
     _forward:
-      dns_req_flags:       0x0000
+      dns_flags:           0x0000
       dns_req_query_type:  6
       dns_req_query_class: 1
       dns_req_query_name:  "wickedgogrid.net"
     _response:
-      dns_resp_flags:      0x8400
+      dns_flags@rev:      0x8400
       dns_resp_rcode:      0
       dns_resp_rr:
         - name:            "wickedgogrid.net"
@@ -30,3 +30,4 @@ flows:
           class:           1
           ttl:             86400
           data:            "ns1.gogrid.net hostmaster.gogrid.net 2012042305 28800 7200 604800 86400"
+          flowmon_data:    "0x6E73312E676F677269642E6E657420686F73746D61737465722E676F677269642E6E65742077ED54410000708000001C2000093A800001518"

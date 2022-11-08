@@ -18,6 +18,7 @@ flows:
     http_host:         "packetlife.net"
     http_url:          "/images/layout/logo.png"
     http_method:       "GET"
+    http_method_id:    32769
     http_status_code:  200
     http_agent:        "Wget/1.12 (linux-gnu)"
     http_content_type: "image/png"

@@ -18,6 +18,7 @@ flows:
     http_host:         "192.168.1.1"
     http_url:          "/check.lp?dsl=1&old_dsl=Up"
     http_method:       "GET"
+    http_method_id:    32769
     http_status_code:  404
     http_agent:        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063"
     http_referer:      "http://192.168.1.1/"

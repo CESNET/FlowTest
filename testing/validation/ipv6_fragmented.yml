@@ -4,6 +4,8 @@ test:
   pcaps: ["ipv6-udp-fragmented.pcap"]
   required_protocols: ["ipv6"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:      "2607:f010:3f9::11:0"
     dst_ip:      "2607:f010:3f9::1001"

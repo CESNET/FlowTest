@@ -4,6 +4,8 @@ test:
   pcaps: ["ipv6-hop-by-hop.pcap"]
   required_protocols: ["ipv6", "icmpv6"]
 
+key: [src_ip, dst_ip, protocol]
+
 flows:
   - src_ip:            "fe80::a6cf:65f:272a:9453"
     dst_ip:            "ff02::a129:5423:7adf:769b"

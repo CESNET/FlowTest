@@ -13,6 +13,8 @@ flows:
     bytes@rev:               1922
     packets:                 6
     packets@rev:             4
+    src_port:                45426
+    dst_port:                443
     tls_server_version:      0x0302
     tls_cipher_suite:        0xc014
     tls_client_version:      0x0302

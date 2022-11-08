@@ -17,12 +17,12 @@ flows:
     dst_port:    53
     dns_id:      58778
     _forward:
-      dns_req_flags:       0x0100
+      dns_flags:           0x0100
       dns_req_query_type:  33
       dns_req_query_class: 1
       dns_req_query_name:  "_kerberos._udp.SAMBA.WINDOWS8.PRIVATE"
     _reverse:
-      dns_resp_flags:      0x8580
+      dns_flags@rev:       0x8580
       dns_resp_rcode:      0
       dns_resp_rr:
         - name:            "_kerberos._udp.SAMBA.WINDOWS8.PRIVATE"
@@ -30,3 +30,4 @@ flows:
           class:           1
           ttl:             900
           data:            "0 100 88 s4dc1.samba.windows8.private"
+          flowmon_data:    "0x00000064005873346463312E73616D62612E77696E646F7773382E70726976617465"

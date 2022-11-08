@@ -17,12 +17,12 @@ flows:
     dst_port:    53
     dns_id:      40226
     _forward:
-      dns_req_flags:       0x0100
+      dns_flags:           0x0100
       dns_req_query_type:  1
       dns_req_query_class: 1
       dns_req_query_name:  "32dual-long.weberdns.de"
     _reverse:
-      dns_resp_flags:      0x8180
+      dns_flags@rev:       0x8180
       dns_resp_rcode:      0
       dns_resp_rr:
         - name:            "32dual-long.weberdns.de"
@@ -30,158 +30,190 @@ flows:
           class:           1
           ttl:             3600
           data:            "25.139.43.240"
+          flowmon_data:    "0x198B2BF0"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "227.111.74.145"
+          flowmon_data:    "0xE36F4A91"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "217.132.110.227"
+          flowmon_data:    "0xD9846EE3"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "78.32.176.45"
+          flowmon_data:    "0x4E20B02D"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "51.249.172.82"
+          flowmon_data:    "0x33F9AC52"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "240.135.246.27"
+          flowmon_data:    "0xF087F61B"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "91.126.49.133"
+          flowmon_data:    "0x5B7E3185"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "173.97.206.73"
+          flowmon_data:    "0xAD61CE49"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "247.238.28.248"
+          flowmon_data:    "0xF7EE1CF8"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "87.238.25.72"
+          flowmon_data:    "0x57EE1948"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "71.208.213.107"
+          flowmon_data:    "0x47D0D56B"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "146.113.163.192"
+          flowmon_data:    "0x9271A3C0"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "108.121.171.182"
+          flowmon_data:    "0x6C79ABB6"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "240.113.78.143"
+          flowmon_data:    "0xF0714E8F"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "205.180.219.199"
+          flowmon_data:    "0xCDB4DBC7"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "250.34.146.41"
+          flowmon_data:    "0xFA229229"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "221.87.65.135"
+          flowmon_data:    "0xDD574187"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "164.252.66.38"
+          flowmon_data:    "0xA4FC4226"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "11.21.14.165"
+          flowmon_data:    "0x0B150EA5"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "199.213.98.85"
+          flowmon_data:    "0xC7D56255"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "189.72.205.31"
+          flowmon_data:    "0xBD48CD1F"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "15.23.87.37"
+          flowmon_data:    "0x0F175725"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "107.238.102.42"
+          flowmon_data:    "0x6BEE662A"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "72.70.214.193"
+          flowmon_data:    "0x4846D6C1"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "102.85.151.119"
+          flowmon_data:    "0x66559777"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "254.2.0.78"
+          flowmon_data:    "0xFE02004E"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "249.122.228.166"
+          flowmon_data:    "0xF97AE4A6"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "231.120.56.19"
+          flowmon_data:    "0xE7783813"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "164.92.11.239"
+          flowmon_data:    "0xA45C0BEF"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "8.8.183.140"
+          flowmon_data:    "0x0808B78C"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "220.252.94.11"
+          flowmon_data:    "0xDCFC5E0B"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1
           ttl:             3600
           data:            "34.31.140.14"
+          flowmon_data:    "0x221F8C0E"

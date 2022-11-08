@@ -15,7 +15,7 @@ flows:
     dst_port:    53
     dns_id:      51350
     _forward:
-      dns_req_flags:       0x2400
+      dns_flags:           0x2400
       dns_req_query_type:  6
       dns_req_query_class: 1
       dns_req_query_name:  "kkkresort.com"
@@ -25,3 +25,4 @@ flows:
           class:           1
           ttl:             0
           data:            "du.ac vk.me 2020865903 28880 7200 604800 86400"
+          flowmon_data:    "0x64752E616320766B2E6D65207873F76F000070D000001C2000093A800001518"
