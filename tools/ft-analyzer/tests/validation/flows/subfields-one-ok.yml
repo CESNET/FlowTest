@@ -1,0 +1,26 @@
+flows:
+  - src_ip:      "192.168.21.89"
+    dst_ip:      "192.168.197.92"
+    ip_version:  4
+    protocol:    17
+    bytes:       67
+    bytes@rev:   99
+    packets:     1
+    packets@rev: 1
+    src_port:    40980
+    dst_port:    53
+    dns_id:      14402
+    _forward:
+      dns_flags:           0x0100
+      dns_req_query_type:  1
+      dns_req_query_class: 1
+      dns_req_query_name:  "newportconceptsla.com"
+    _reverse:
+      dns_flags:       0x8180
+      dns_resp_rcode:      0
+      dns_resp_rr:
+        - name:            "newportconceptsla.com"
+          type:            1
+          class:           1
+          ttl:             136
+          data:            "192.168.73.162"

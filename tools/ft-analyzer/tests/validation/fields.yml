@@ -1,0 +1,195 @@
+# Defines all supported flow fields.
+# Format:   key (mandatory):    list of field names which form the flow key (identifier of logically similar communication,
+#                               e.g., typically IP addresses of client and server + network protocol + L4 port numbers)
+#           fields (mandatory):
+#                   <name> (mandatory):
+#                       type:      int/string/list/dict (mandatory)
+#                       direction: "always" - present in both directions, "any" - present in at least one direction, "forward" - present in forward flow only, "reverse" - present in reverse flow only (mandatory)
+#                       reverse:   name of a field which is paired to this field, only in the opposite direction (e.g., packets: packets@rev, src_ip: dst_ip, ...) (optional)
+#                       subfields: subfields to this field (consider this field as a meta-field without any value) (optional)
+#                           <name>:
+#                               type:
+#                               direction:
+#                               reverse:
+#                               subfields:
+#                           ...
+#
+# It is not necessary to name fields in the reverse direction. Those are created automatically.
+
+key: [src_ip, dst_ip, src_port, dst_port, protocol]
+fields:
+    src_ip:
+        type:      string
+        direction: always
+        reverse:   dst_ip
+    ip_version:
+        type:      int
+        direction: always
+    protocol:
+        type:      int
+        direction: always
+    bytes:
+        type:      int
+        direction: forward
+        reverse:   bytes@rev
+    bytes_outer:
+        type:      int
+        direction: forward
+        reverse:   bytes_outer@rev
+    packets:
+        type:      int
+        direction: forward
+        reverse:   packets@rev
+    tos:
+        type:      int
+        direction: always
+    ttl:
+        type:      int
+        direction: forward
+        reverse:   ttl@rev
+    src_port:
+        type:      int
+        direction: always
+        reverse:   dst_port
+    icmp_type:
+        type:      int
+        direction: forward
+        reverse:   icmp_type@rev
+    icmp_code:
+        type:      int
+        direction: forward
+        reverse:   icmp_code@rev
+    icmp_type_code:
+        type:      int
+        direction: forward
+        reverse:   icmp_type_code@rev
+    tcp_flags:
+        type:      int
+        direction: forward
+        reverse:   tcp_flags@rev
+    tcp_options:
+        type:      int
+        direction: forward
+        reverse:   tcp_options@rev
+    tcp_syn_size:
+        type:      int
+        direction: always
+    dns_id:
+        type:      int
+        direction: always
+    dns_flags:
+        type:      int
+        direction: forward
+        reverse:   dns_flags@rev
+    dns_req_query_type:
+        type:      int
+        direction: always
+    dns_req_query_class:
+        type:      int
+        direction: always
+    dns_req_query_name:
+        type:      string
+        direction: always
+    dns_resp_rcode:
+        type:      int
+        direction: always
+    dns_resp_rr:
+        type: list
+        direction: always
+        subfields:
+            name:
+                type:      string
+                direction: always
+            type:
+                type:      int
+                direction: always
+            class:
+                type:      int
+                direction: always
+            ttl:
+                type:      int
+                direction: always
+            data:
+                type:      string
+                direction: always
+            flowmon_data:
+                type:      string
+                direction: always
+    http_host:
+        type:      string
+        direction: any
+    http_url:
+        type:      string
+        direction: any
+    http_method:
+        type:      string
+        direction: any
+    http_method_id:
+        type:      int
+        direction: any
+    http_status_code:
+        type:      int
+        direction: any
+    http_agent:
+        type:      string
+        direction: any
+    http_content_type:
+        type:      string
+        direction: any
+    http_referer:
+        type:      string
+        direction: any
+    src_mac:
+        type:      string
+        direction: always
+        reverse:   dst_mac
+    mpls_label_1:
+        type:      int
+        direction: forward
+        reverse:   mpls_label_1@rev
+    mpls_label_2:
+        type:      int
+        direction: forward
+        reverse:   mpls_label_2@rev
+    tls_server_version:
+        type:      int
+        direction: any
+    tls_cipher_suite:
+        type:      int
+        direction: any
+    tls_alpn:
+        type:      string
+        direction: any
+    tls_sni:
+        type:      string
+        direction: any
+    tls_client_version:
+        type:      int
+        direction: any
+    tls_issuer_cn:
+        type:      string
+        direction: any
+    tls_subject_cn:
+        type:      string
+        direction: any
+    tls_validity_not_before:
+        type:      int
+        direction: any
+    tls_validity_not_after:
+        type:      int
+        direction: any
+    tls_public_key_alg:
+        type:      string
+        direction: any
+    tls_ja3:
+        type:      string
+        direction: any
+    vlan_id:
+        type:      int
+        direction: always
+    vlan_id_inner:
+        type:      int
+        direction: always
+    vxlan_id:
+        type:      int
+        direction: always
