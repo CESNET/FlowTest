@@ -3,5 +3,7 @@
   connection: local
   become: yes
   roles:
+    - role: python_upgrade
+      when: ansible_distribution_major_version | int == 8
     - dev_tools
     - dev_dependencies
