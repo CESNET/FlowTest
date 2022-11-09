@@ -1,0 +1,21 @@
+---
+- name: Python {{ version }} is installed
+  ansible.builtin.dnf:
+    name:
+      - "{{ python }}"
+      - "{{ python }}-pip"
+      - "{{ python }}-setuptools"
+    state: latest
+  vars:
+    python: "python{{ version_major }}{{ version_minor }}"
+  when:
+    - ansible_os_family == 'RedHat'
+
+- name: Set Python {{ version }} as default interpreter
+  ansible.builtin.command: "alternatives --set {{ python }} {{ bin }}"
+  vars:
+    python: "python{{ version_major }}"
+    bin: "/usr/bin/python{{ version_major }}.{{ version_minor }}"
+  when:
+    - ansible_os_family == 'RedHat'
+    - set_as_default
