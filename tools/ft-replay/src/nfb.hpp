@@ -75,11 +75,6 @@ public:
 	size_t GetMaxBurstSize() const noexcept override;
 
 private:
-	/**
-	 * @brief Flush interface
-	 *
-	 * All provided buffers are sent.
-	 */
 	void Flush();
 
 	std::unique_ptr<ndp_tx_queue_t, decltype(&ndp_close_tx_queue)> _txQueue
@@ -128,22 +123,8 @@ public:
 	OutputQueue* GetQueue(uint16_t queueId) override;
 
 private:
-	/**
-	 * @brief Parse arguments in map
-	 *
-	 * @param[in] map with arguments
-	 */
 	void ParseMap(const std::map<std::string, std::string>& argMap);
 
-	/**
-	 * @brief Parse arguments
-	 *
-	 * Example format : arg1=value1,arg2=value2,...
-	 *
-	 * @param[in] string with arguments, separated by comma
-	 *
-	 * @return pointer to OutputQueue
-	 */
 	int ParseArguments(const std::string& args);
 
 	std::unique_ptr<nfb_device, decltype(&nfb_close)> _nfbDevice
