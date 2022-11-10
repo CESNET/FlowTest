@@ -20,6 +20,6 @@ RUN <<EOF
 EOF
 
 COPY ../Pipfile* /tmp/
-RUN python3 -m pip install pipenv && cd /tmp && pipenv install --system --dev --deploy
+RUN cd /tmp && pipenv install --system --dev --deploy
 
 CMD ["/bin/bash"]
