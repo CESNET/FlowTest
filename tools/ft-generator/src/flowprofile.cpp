@@ -294,6 +294,11 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	}
 	profile._bytesRev = *bytesRev;
 
+	if (profile._startTime > profile._endTime) {
+		ReportParseError(line, "bad START_TIME > END_TIME");
+		return ReadProfile();
+	}
+
 	return profile;
 }
 
