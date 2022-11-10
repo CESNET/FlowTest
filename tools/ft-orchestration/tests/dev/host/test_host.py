@@ -15,7 +15,7 @@ from src.host.storage import RemoteStorage
 
 HOST = os.environ.get("PYTEST_TEST_HOST")
 STORAGE = RemoteStorage(HOST) if HOST else None
-FILES_DIR = f"{os.getcwd()}/tests/dev/host/files"
+FILES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "files")
 
 # pylint: disable=unused-argument
 @pytest.mark.dev
@@ -34,7 +34,8 @@ def test_host_local_ls_single_file_wildcard(require_root):
     """Test 'ls' command on single file on localhost."""
 
     host = Host()
-    res = host.run(f"ls {os.getcwd()}/t?sts/*/h*s?/*****/a.txt | xargs echo")
+    wc_path = FILES_DIR.replace("tests/dev/host/files", "t?sts/*/h*s?/*****")
+    res = host.run(f"ls {wc_path}/a.txt | xargs echo")
     assert res.stdout.strip() == f"{FILES_DIR}/a.txt"
 
 
@@ -84,7 +85,8 @@ def test_host_remote_ls_single_file_wildcard(require_root):
     """Test 'ls' command on single file on remote host."""
 
     host = Host(HOST, STORAGE)
-    res = host.run(f"ls {os.getcwd()}/t?sts/*/h*s?/*****/a.txt | xargs echo")
+    wc_path = FILES_DIR.replace("tests/dev/host/files", "t?sts/*/h*s?/*****")
+    res = host.run(f"ls {wc_path}/a.txt | xargs echo")
     assert res.stdout.strip() == STORAGE.get_remote_directory() + "/a.txt"
 
 
