@@ -67,7 +67,7 @@ size_t NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize) {
 	for (unsigned i = 0; i < _txBurstCount; i++) {
 		burst[i]._data = reinterpret_cast<std::byte *>(_txPacket[i].data);
 		if (_txPacket[i].data_length != burst[i]._len) {
-			std::fill_n(_txPacket[i].data, _txPacket[i].data_length, 0);
+			std::fill_n(_txPacket[i].data + burst[i]._len, _txPacket[i].data_length - burst[i]._len, 0);
 		}
 	}
 
