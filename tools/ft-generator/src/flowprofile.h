@@ -10,6 +10,8 @@
 
 #include "logger.h"
 
+#include <sys/time.h>
+
 #include <array>
 #include <fstream>
 #include <optional>
@@ -31,6 +33,43 @@ enum class L4Protocol : uint8_t {
 	Icmpv6 = 58
 };
 
+static inline bool operator==(const timeval& a, const timeval& b)
+{
+	return a.tv_sec == b.tv_sec && a.tv_usec == b.tv_usec;
+}
+
+static inline bool operator<(const timeval& a, const timeval& b)
+{
+	return a.tv_sec == b.tv_sec ? a.tv_usec < b.tv_usec : a.tv_sec < b.tv_sec;
+}
+
+static inline bool operator>(const timeval& a, const timeval& b)
+{
+	return a.tv_sec == b.tv_sec ? a.tv_usec > b.tv_usec : a.tv_sec > b.tv_sec;
+}
+
+static inline bool operator<=(const timeval& a, const timeval& b)
+{
+	return !(a > b);
+}
+
+static inline bool operator>=(const timeval& a, const timeval& b)
+{
+	return !(a < b);
+}
+
+static inline timeval operator-(timeval a, timeval b)
+{
+	timeval res;
+	timersub(&a, &b, &res);
+	return res;
+}
+
+static inline timeval& operator-=(timeval& a, const timeval& b)
+{
+	a = timeval(a) - timeval(b);
+	return a;
+}
 
 /**
  * @brief Struct representing a flow profile entry in the input file
