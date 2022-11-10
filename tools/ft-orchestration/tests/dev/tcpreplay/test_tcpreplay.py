@@ -17,7 +17,7 @@ from src.tcpreplay.tcpreplay import TcpReplay
 
 HOST = os.environ.get("PYTEST_TEST_HOST")
 STORAGE = RemoteStorage(HOST) if HOST else None
-PCAP_FILE = f"{os.getcwd()}/tests/dev/tcpreplay/NTP_sync.pcap"
+PCAP_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "NTP_sync.pcap")
 
 # pylint: disable=unused-argument
 @pytest.mark.dev
