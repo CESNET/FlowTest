@@ -14,6 +14,14 @@ build [CentOS Stream 8]:
   extends: .build
   variables: { DOCKER_TAG: centos8 }
 
+build [Oracle Linux 9]:
+  extends: .build
+  variables: { DOCKER_TAG: ol9 }
+
+build [Rocky Linux 9]:
+  extends: .build
+  variables: { DOCKER_TAG: rl9 }
+
 .rpmbuild:
   stage: build
   image: $DOCKER_IMAGE:$DOCKER_TAG
@@ -31,6 +39,14 @@ rpmbuild [Oracle Linux 8]:
 rpmbuild [CentOS Stream 8]:
   extends: .rpmbuild
   variables: { DOCKER_TAG: centos8 }
+
+rpmbuild [Oracle Linux 9]:
+    extends: .rpmbuild
+    variables: { DOCKER_TAG: ol9 }
+
+rpmbuild [Rocky Linux 9]:
+    extends: .rpmbuild
+    variables: { DOCKER_TAG: rl9 }
 
 python package build:
   stage: build
