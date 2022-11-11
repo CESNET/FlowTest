@@ -15,6 +15,7 @@
 
 #include <pcapplusplus/Packet.h>
 
+#include <ctime>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -28,7 +29,7 @@ class Layer;
  * @brief Extra information about the flow packet
  */
 struct PacketExtraInfo {
-	int64_t _time;         //< The timestamp of the packet
+	timeval _time;         //< The timestamp of the packet
 	Direction _direction;  //< The direction of the packet
 };
 
@@ -41,8 +42,8 @@ public:
 	uint64_t _revPackets = 0;   //< Number of packets in reverse direction
 	uint64_t _fwdBytes = 0;     //< Number of bytes in forward direction
 	uint64_t _revBytes = 0;     //< Number of bytes in reverse direction
-	uint64_t _tsFirst = 0;      //< Timestamp of the first packet
-	uint64_t _tsLast = 0;       //< Timestamp of the last packet
+	timeval _tsFirst = {0, 0};  //< Timestamp of the first packet
+	timeval _tsLast = {0, 0};   //< Timestamp of the last packet
 	std::list<Packet> _packets; //< The planned packets
 
 	/**
@@ -79,9 +80,9 @@ public:
 	/**
 	 * @brief Get the time of next packet
 	 *
-	 * @return int64_t  The time in seconds
+	 * @return The time
 	 */
-	int64_t GetNextPacketTime() const;
+	timeval GetNextPacketTime() const;
 
 	/**
 	 * @brief Check whether the flow is finished and wont be generating any additional packets
@@ -127,6 +128,13 @@ private:
 	 * @brief Plan packets sizes.
 	 */
 	void PlanPacketsSizes();
+
+	/**
+	 * @brief Create icmp layer
+	 *
+	 * @return std::unique_ptr<Layer>
+	 */
+	std::unique_ptr<Layer> MakeIcmpLayer();
 };
 
 } // namespace generator

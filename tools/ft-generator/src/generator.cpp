@@ -18,6 +18,18 @@ Generator::Generator(FlowProfileProvider& profilesProvider, TrafficMeter& traffi
 		return lhs._startTime < rhs._startTime;
 	};
 	std::sort(_profiles.begin(), _profiles.end(), compare);
+
+	if (!_profiles.empty()) {
+		timeval minTime = _profiles[0]._startTime;
+		for (auto& profile : _profiles) {
+			profile._startTime -= minTime;
+			profile._endTime -= minTime;
+
+			assert(profile._startTime <= profile._endTime);
+			assert(profile._startTime >= (timeval{0, 0}));
+			assert(profile._endTime >= (timeval{0, 0}));
+		}
+	}
 }
 
 std::optional<GeneratorPacket> Generator::GenerateNextPacket() {
@@ -54,8 +66,8 @@ std::unique_ptr<Flow> Generator::GetNextFlow() {
 		return _calendar.Pop();
 	}
 
-	int64_t nextCalendarTime = _calendar.Top().GetNextPacketTime();
-	int64_t nextProfileStartTime = _profiles[_nextProfileIdx]._startTime;
+	timeval nextCalendarTime = _calendar.Top().GetNextPacketTime();
+	timeval nextProfileStartTime = _profiles[_nextProfileIdx]._startTime;
 	return (nextCalendarTime > nextProfileStartTime) ? MakeNextFlow() : _calendar.Pop();
 }
 

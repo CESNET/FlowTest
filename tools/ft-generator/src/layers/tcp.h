@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../flow.h"
+#include "../flowplanhelper.h"
 #include "../layer.h"
 #include "../packet.h"
 

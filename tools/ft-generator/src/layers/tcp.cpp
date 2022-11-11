@@ -44,69 +44,6 @@ enum class TcpMap : int {
 	Kind = 1,
 };
 
-class FlowPlanHelper {
-public:
-	explicit FlowPlanHelper(Flow& flow);
-
-	Packet* NextPacket();
-	uint64_t PktsRemaining();
-	uint64_t FwdPktsRemaining();
-	uint64_t RevPktsRemaining();
-
-	Flow* _flow;
-	Packet* _packet = nullptr;
-	uint64_t _assignedFwdPkts;
-	uint64_t _assignedRevPkts;
-	bool _first = true;
-	std::list<Packet>::iterator _it;
-};
-
-FlowPlanHelper::FlowPlanHelper(Flow& flow)
-	: _flow(&flow)
-{
-	PacketFlowSpan span(_flow, false);
-	auto [fwdAvail, revAvail] = span.getAvailableDirections();
-	_assignedFwdPkts = _flow->_fwdPackets - fwdAvail;
-	_assignedRevPkts = _flow->_revPackets - revAvail;
-}
-
-Packet* FlowPlanHelper::NextPacket()
-{
-	if (_first) {
-		_it = _flow->_packets.begin();
-		_first = false;
-	} else if (_it != _flow->_packets.end()) {
-		++_it;
-	}
-
-	while (_it != _flow->_packets.end() && _it->_isFinished) {
-		++_it;
-	}
-
-	if (_it != _flow->_packets.end()) {
-		_packet = &(*_it);
-	} else {
-		_packet = nullptr;
-	}
-
-	return _packet;
-}
-
-uint64_t FlowPlanHelper::PktsRemaining()
-{
-	return FwdPktsRemaining() + RevPktsRemaining();
-}
-
-uint64_t FlowPlanHelper::FwdPktsRemaining()
-{
-	return _flow->_fwdPackets - _assignedFwdPkts;
-}
-
-uint64_t FlowPlanHelper::RevPktsRemaining()
-{
-	return _flow->_revPackets - _assignedRevPkts;
-}
-
 Tcp::Tcp(uint16_t portSrc, uint16_t portDst) :
 	_portSrc(portSrc), _portDst(portDst)
 {

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <ctime>
 #include <map>
 #include <variant>
 #include <vector>
@@ -41,7 +42,7 @@ public:
 	using layer       = std::pair<Layer *, layerParams>;
 
 	Direction _direction = Direction::Unknown;    //< Packet direction
-	uint64_t _timestamp = 0;                      //< Timestamp 32b (seconds) | 32b (microseconds)
+	timeval _timestamp = {0, 0};                  //< Timestamp
 	size_t _size = 0;                             //< Planned packet size (IP header and above)
 	bool _isFinished = false;                     //< Do not add more layers to packet
 	std::vector<layer> _layers;                   //< Packet protocol layers in order

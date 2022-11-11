@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <ctime>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -27,7 +28,7 @@ namespace generator {
  * @brief A generated packet
  */
 struct GeneratorPacket {
-	int64_t _time;           //< The flow time of the packet
+	timeval _time;           //< The flow time of the packet
 	uint64_t _size;          //< The number of bytes of the packet
 	const std::byte* _data;  //< The bytes of the packet
 };
