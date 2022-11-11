@@ -79,7 +79,7 @@ fields:
         direction: always
     dns_flags:
         type:      int
-        direction: always
+        direction: forward
         reverse:   dns_flags@rev
     dns_req_query_type:
         type:      int

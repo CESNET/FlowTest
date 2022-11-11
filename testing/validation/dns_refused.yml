@@ -22,5 +22,5 @@ flows:
       dns_req_query_class: 1
       dns_req_query_name:  "egebil.com"
     _reverse:
-      dns_flags@rev:       0x8005
+      dns_flags:           0x8005
       dns_resp_rcode:      5

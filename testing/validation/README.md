@@ -182,7 +182,7 @@ flows:
       dns_req_query_class: 1
       dns_req_query_name:  "newportconceptsla.com"
     _reverse:
-      dns_flags@rev:       0x8180
+      dns_flags:           0x8180
       dns_resp_rcode:      0
       dns_resp_rr:
         - name:            "newportconceptsla.com"
