@@ -1,17 +1,17 @@
 upload python packages:
-    stage: upload
-    needs: ["python package build"]
-    script:
-        - |
-            REPO_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
-            export TWINE_USERNAME=gitlab-ci-token
-            export TWINE_PASSWORD=${CI_JOB_TOKEN}
+  stage: upload
+  needs: ["python package build"]
+  script:
+    - |
+      REPO_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
+      export TWINE_USERNAME=gitlab-ci-token
+      export TWINE_PASSWORD=${CI_JOB_TOKEN}
 
-            set +e  # allow errors (job ends if return code isn't 0 by default)
-            python3 -m twine upload --verbose --repository-url $REPO_URL tools/**/dist/* > out.txt
-            if [ $? != 0 ]; then
-                # ignore error if file already exists, otherwise raise an error
-                set -e
-                cat out.txt | grep "File name has already been taken"
-            fi
-    only: ['main']
+      set +e  # allow errors (job ends if return code isn't 0 by default)
+      python3 -m twine upload --verbose --repository-url $REPO_URL tools/**/dist/* > out.txt
+      if [ $? != 0 ]; then
+          # ignore error if file already exists, otherwise raise an error
+          set -e
+          cat out.txt | grep "File name has already been taken"
+      fi
+  only: ['main']

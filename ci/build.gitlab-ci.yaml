@@ -11,8 +11,8 @@ build [Oracle Linux 8]:
   variables: { DOCKER_TAG: ol8 }
 
 build [CentOS Stream 8]:
-    extends: .build
-    variables: { DOCKER_TAG: centos8 }
+  extends: .build
+  variables: { DOCKER_TAG: centos8 }
 
 .rpmbuild:
   stage: build
@@ -25,12 +25,12 @@ build [CentOS Stream 8]:
     paths: [$DOCKER_TAG/RPMS/*/*.rpm]
 
 rpmbuild [Oracle Linux 8]:
-    extends: .rpmbuild
-    variables: { DOCKER_TAG: ol8 }
+  extends: .rpmbuild
+  variables: { DOCKER_TAG: ol8 }
 
 rpmbuild [CentOS Stream 8]:
-    extends: .rpmbuild
-    variables: { DOCKER_TAG: centos8 }
+  extends: .rpmbuild
+  variables: { DOCKER_TAG: centos8 }
 
 python package build:
   stage: build
