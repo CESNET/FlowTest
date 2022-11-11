@@ -8,7 +8,7 @@ upload python packages:
       export TWINE_PASSWORD=${CI_JOB_TOKEN}
 
       set +e  # allow errors (job ends if return code isn't 0 by default)
-      python3 -m twine upload --verbose --repository-url $REPO_URL tools/**/dist/* > out.txt
+      pipenv run python3 -m twine upload --verbose --repository-url $REPO_URL tools/**/dist/* > out.txt
       if [ $? != 0 ]; then
           # ignore error if file already exists, otherwise raise an error
           set -e

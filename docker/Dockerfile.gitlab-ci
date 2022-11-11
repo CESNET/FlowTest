@@ -20,6 +20,8 @@ RUN <<EOF
 EOF
 
 COPY ../Pipfile* /tmp/
-RUN cd /tmp && pipenv install --system --dev --deploy
+ENV PIPENV_CUSTOM_VENV_NAME=flowtest
+ENV WORKON_HOME=/venv/
+RUN cd /tmp && pipenv install --dev --deploy
 
 CMD ["/bin/bash"]

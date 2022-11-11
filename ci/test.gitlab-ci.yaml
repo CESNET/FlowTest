@@ -18,7 +18,7 @@ install [CentOS Stream 8]:
 pytest:
   stage: test
   script:
-    - pytest -v -s -m "not dev" | tee pytest.log
+    - pipenv run pytest -v -s -m "not dev" | tee pytest.log
   artifacts:
     paths: [ pytest.log ]
     when: always
