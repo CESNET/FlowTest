@@ -364,9 +364,19 @@ def initialize_population(size: int, gene_len: int, min_genes: int, max_genes: i
     np.array
         Initialized population.
     """
+    non_null_found = False
     population = np.zeros(shape=(size, gene_len), dtype=np.uint8)
     for individual in population:
         indexes = glob.rng.choice(gene_len, glob.rng.integers(min_genes, max_genes, 1), replace=False)
+        while not non_null_found:
+            # At least one individual must have fitness > 0, so the GA does not crash.
+            attempt = glob.profile.iloc[indexes]
+            if MetricsDiff(Metrics(attempt), glob.profile_stats).fitness() > 0:
+                non_null_found = True
+                break
+
+            indexes = glob.rng.choice(gene_len, glob.rng.integers(min_genes, max_genes, 1), replace=False)
+
         np.put(individual, indexes, 1)
 
     return population
