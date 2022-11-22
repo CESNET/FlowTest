@@ -40,7 +40,7 @@ doxy-filename:
 pylint:
   stage: check
   script:
-    - pylint tools | tee pylint.log
+    - pipenv run pylint tools | tee pylint.log
   artifacts:
     paths: [pylint.log]
     when: always
@@ -48,7 +48,7 @@ pylint:
 black:
   stage: check
   script:
-    - black --check --diff . | tee black.log
+    - pipenv run black --check --diff . | tee black.log
   artifacts:
     paths: [black.log]
     when: always

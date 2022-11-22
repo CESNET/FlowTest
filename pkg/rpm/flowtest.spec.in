@@ -15,6 +15,9 @@ BuildRequires: libpcap-devel
 
 Requires: libpcap
 
+# Make sure that build is always performed out-of-source
+%undefine __cmake_in_source_build
+
 %description
 The package contains tools, configuration files and traffic samples
 that make up the main components of the test environment.
@@ -23,11 +26,11 @@ that make up the main components of the test environment.
 %autosetup
 
 %build
-%cmake . -DCMAKE_BUILD_TYPE=Release
-make %{?_smp_mflags}
+%cmake -DCMAKE_BUILD_TYPE=Release
+%cmake_build
 
 %install
-make install DESTDIR=%{buildroot}
+%cmake_install
 
 %files
 %license LICENSE

@@ -1,0 +1,28 @@
+---
+- name: PowerTools repository is enabled (CentOS/Rocky/etc. 8)
+  ansible.builtin.command: dnf config-manager --set-enabled powertools
+  args:
+    warn: false
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'OracleLinux'
+    - ansible_distribution_major_version | int == 8
+
+- name: CodeReady Builder repository is enabled (CentOS/Rocky/etc. 9+)
+  ansible.builtin.command: dnf config-manager --set-enabled crb
+  args:
+    warn: false
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'OracleLinux'
+    - ansible_distribution_major_version | int > 8
+
+- name: CodeReady Builder repository is enabled (Oracle Linux)
+  ansible.builtin.command: dnf config-manager --set-enabled {{ repo }}
+  args:
+    warn: false
+  vars:
+    repo: "ol{{ ansible_distribution_major_version }}_codeready_builder"
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution == 'OracleLinux'
