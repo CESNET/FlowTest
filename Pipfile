@@ -8,7 +8,6 @@ cppcheck-junit = "*"
 fabric = "*"
 pyaml = "*"
 pyopenssl = "*"
-dataclasses = "*"
 dataclass_wizard = "*"
 pandas = "*"
 numpy = "*"
@@ -23,4 +22,4 @@ twine = "*"
 hypothesis = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.9"

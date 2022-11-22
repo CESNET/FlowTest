@@ -29,7 +29,13 @@
     name:
       - python3
       - python3-virtualenv
+      - python3-pip
     state: latest
+
+- name: Python pipenv is installed (over pip)
+  ansible.builtin.pip:
+    name: pipenv
+    executable: /usr/bin/pip3
 
 - name: Static analysis tools are installed
   ansible.builtin.dnf:

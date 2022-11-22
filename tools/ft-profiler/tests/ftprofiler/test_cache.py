@@ -46,7 +46,7 @@ class GenerateCache:
         new_flow = GenerateFlows.gen_random_flow()
         if not flow:
             return new_flow
-        while new_flow.__hash__() == flow.__hash__():
+        while hash(new_flow) == hash(flow):
             new_flow = GenerateFlows.gen_random_flow()
         return new_flow
 
@@ -69,8 +69,8 @@ class GenerateCache:
         flow2.start_time = flow2.start_time + random.randint(1000, 30000)
         flow2.packets = random.randint(1, 9999)
         flow2.bytes = random.randint(64, 99999)
-        f2_hash = flow2.__hash__()
-        assert flow1.__hash__() == f2_hash
+        f2_hash = hash(flow2)
+        assert hash(flow1) == f2_hash
         return flow2, f2_hash
 
 

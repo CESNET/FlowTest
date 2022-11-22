@@ -1,0 +1,5 @@
+---
+version: "{{ version_major }}.{{ version_minor }}"
+version_major: 3
+version_minor: 9
+set_as_default: true

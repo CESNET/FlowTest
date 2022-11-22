@@ -4,7 +4,7 @@
     name:
       - libpcap
       - libpcap-devel
-      - xxhash
+      - xxhash-libs
       - xxhash-devel
     state: latest
 

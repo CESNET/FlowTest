@@ -8,7 +8,7 @@ FROM $OS_DISTRO:$OS_RELEASE as default
 COPY ansible /ansible
 
 RUN <<EOF
-	dnf install -y python3
+	dnf install -y python3 python3-pip
 
 	python3 -m pip install --upgrade pip
 	python3 -m pip install --upgrade ansible
@@ -20,6 +20,6 @@ RUN <<EOF
 EOF
 
 COPY ../Pipfile* /tmp/
-RUN python3 -m pip install 'pipenv<=2022.4.8' && cd /tmp && pipenv install --system --dev --deploy
+RUN cd /tmp && pipenv install --system --dev --deploy
 
 CMD ["/bin/bash"]
