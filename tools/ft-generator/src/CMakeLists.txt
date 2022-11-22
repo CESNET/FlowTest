@@ -1,44 +1,44 @@
 add_executable(ft-generator
-	calendar.cpp calendar.h
-	config/commandlineargs.h config/commandlineargs.cpp
-	config/common.h config/common.cpp
-	config/config.h config/config.cpp
-	config/encapsulation.h config/encapsulation.cpp
-	config/ipv4.h config/ipv4.cpp
-	config/ipv6.h config/ipv6.cpp
-	config/mac.h config/mac.cpp
-	flow.cpp flow.h
-	flowplanhelper.cpp flowplanhelper.h
-	flowprofile.cpp flowprofile.h
-	generator.cpp generator.h
-	generators/addressgenerators.h generators/addressgenerators.cpp
-	generators/common.h generators/common.cpp
-	generators/ipv4addressgenerator.h generators/ipv4addressgenerator.cpp
-	generators/ipv6addressgenerator.h generators/ipv6addressgenerator.cpp
-	generators/lfsr.h generators/lfsr.cpp
-	generators/macaddressgenerator.h generators/macaddressgenerator.cpp
-	generators/multirangegenerator.h generators/multirangegenerator.cpp
-	generators/prefixedgenerator.h generators/prefixedgenerator.cpp
-	layer.h layer.cpp
-	layers/ethernet.h layers/ethernet.cpp
-	layers/icmpecho.h layers/icmpecho.cpp
-	layers/icmprandom.h layers/icmprandom.cpp
-	layers/ipv4.h layers/ipv4.cpp
-	layers/ipv6.h layers/ipv6.cpp
-	layers/mpls.h layers/mpls.cpp
-	layers/payload.h layers/payload.cpp
-	layers/tcp.h layers/tcp.cpp
-	layers/udp.h layers/udp.cpp
-	layers/vlan.h layers/vlan.cpp
+	calendar.cpp
+	config/commandlineargs.cpp
+	config/common.cpp
+	config/config.cpp
+	config/encapsulation.cpp
+	config/ipv4.cpp
+	config/ipv6.cpp
+	config/mac.cpp
+	flow.cpp
+	flowplanhelper.cpp
+	flowprofile.cpp
+	generator.cpp
+	generators/addressgenerators.cpp
+	generators/common.cpp
+	generators/ipv4addressgenerator.cpp
+	generators/ipv6addressgenerator.cpp
+	generators/lfsr.cpp
+	generators/macaddressgenerator.cpp
+	generators/multirangegenerator.cpp
+	generators/prefixedgenerator.cpp
+	layer.cpp
+	layers/ethernet.cpp
+	layers/icmpecho.cpp
+	layers/icmprandom.cpp
+	layers/ipv4.cpp
+	layers/ipv6.cpp
+	layers/mpls.cpp
+	layers/payload.cpp
+	layers/tcp.cpp
+	layers/udp.cpp
+	layers/vlan.cpp
 	main.cpp
-	packet.h packet.cpp
-	packetflowspan.h packetflowspan.cpp
-	pcapwriter.cpp pcapwriter.h
-	pcppethlayer.h pcppethlayer.cpp
-	pcpppacket.h pcpppacket.cpp
-	randomgenerator.h randomgenerator.cpp
-	trafficmeter.h trafficmeter.cpp
-	valuegenerator.h valuegenerator.cpp
+	packet.cpp
+	packetflowspan.cpp
+	pcapwriter.cpp
+	pcppethlayer.cpp
+	pcpppacket.cpp
+	randomgenerator.cpp
+	trafficmeter.cpp
+	valuegenerator.cpp
 )
 
 target_link_libraries(ft-generator
