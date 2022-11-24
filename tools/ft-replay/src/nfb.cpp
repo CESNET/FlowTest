@@ -36,16 +36,17 @@ NfbQueue::~NfbQueue() {
 	Flush();
 }
 
-unsigned NfbQueue::GetBuffers(size_t burstSize) {
-	unsigned ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
-	if (ret == 0) {
-		Flush();
-		while (ret == 0) {
-			ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
-		}
+size_t NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize) {
+	if (_txBurstCount != 0) {
+		_logger->error("GetBurst() called before the previous request was processed by SendBurst()");
+		throw std::runtime_error("NfbQueue::GetBurst() has failed");
+	}
+	if (_burstSize < burstSize) {
+		_logger->warn("Requested burstSize {} is bigger than predefined {}", burstSize, _burstSize);
+		burstSize = _burstSize;
 	}
 
-	return ret;
+	return GetRegularBurst(burst, burstSize);
 }
 
 size_t NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize) {
@@ -71,17 +72,16 @@ size_t NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize) {
 	return _txBurstCount;
 }
 
-size_t NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize) {
-	if (_txBurstCount != 0) {
-		_logger->error("GetBurst() called before the previous request was processed by SendBurst()");
-		throw std::runtime_error("NfbQueue::GetBurst() has failed");
-	}
-	if (_burstSize < burstSize) {
-		_logger->warn("Requested burstSize {} is bigger than predefined {}", burstSize, _burstSize);
-		burstSize = _burstSize;
+unsigned NfbQueue::GetBuffers(size_t burstSize) {
+	unsigned ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
+	if (ret == 0) {
+		Flush();
+		while (ret == 0) {
+			ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
+		}
 	}
 
-	return GetRegularBurst(burst, burstSize);
+	return ret;
 }
 
 void NfbQueue::SendBurst(const PacketBuffer* burst, size_t burstSize) {
@@ -127,12 +127,22 @@ NfbPlugin::NfbPlugin(const std::string& params) {
 	}
 }
 
-size_t NfbPlugin::GetQueueCount() const noexcept {
-	return _queueCount;
-}
+int NfbPlugin::ParseArguments(const std::string& args) {
+	std::map<std::string, std::string> argMap = SplitArguments(args);
 
-OutputQueue* NfbPlugin::GetQueue(uint16_t queueId) {
-	return _queues.at(queueId).get();
+	try {
+		ParseMap(argMap);
+	} catch (const std::invalid_argument& ia) {
+		_logger->error("Parameter \"queueCount\" or \"burstSize\" wrong format");
+		throw std::invalid_argument("NfbPlugin::ParseArguments() has failed");
+	}
+
+	if (_deviceName.empty()) {
+		_logger->error("Required parameter \"device\" missing/empty");
+		throw std::invalid_argument("NfbPlugin::ParseArguments() has failed");
+	}
+
+	return argMap.size();
 }
 
 void NfbPlugin::ParseMap(const std::map<std::string, std::string>& argMap) {
@@ -150,22 +160,12 @@ void NfbPlugin::ParseMap(const std::map<std::string, std::string>& argMap) {
 	}
 }
 
-int NfbPlugin::ParseArguments(const std::string& args) {
-	std::map<std::string, std::string> argMap = SplitArguments(args);
+size_t NfbPlugin::GetQueueCount() const noexcept {
+	return _queueCount;
+}
 
-	try {
-		ParseMap(argMap);
-	} catch (const std::invalid_argument& ia) {
-		_logger->error("Parameter \"queueCount\" or \"burstSize\" wrong format");
-		throw std::invalid_argument("NfbPlugin::ParseArguments() has failed");
-	}
-
-	if (_deviceName.empty()) {
-		_logger->error("Required parameter \"device\" missing/empty");
-		throw std::invalid_argument("NfbPlugin::ParseArguments() has failed");
-	}
-
-	return argMap.size();
+OutputQueue* NfbPlugin::GetQueue(uint16_t queueId) {
+	return _queues.at(queueId).get();
 }
 
 } // namespace replay

@@ -75,9 +75,9 @@ public:
 	size_t GetMaxBurstSize() const noexcept override;
 
 private:
-	unsigned GetBuffers(size_t burstSize);
-
 	size_t GetRegularBurst(PacketBuffer* burst, size_t burstSize);
+
+	unsigned GetBuffers(size_t burstSize);
 
 	void Flush();
 
@@ -127,9 +127,9 @@ public:
 	OutputQueue* GetQueue(uint16_t queueId) override;
 
 private:
-	void ParseMap(const std::map<std::string, std::string>& argMap);
-
 	int ParseArguments(const std::string& args);
+
+	void ParseMap(const std::map<std::string, std::string>& argMap);
 
 	std::unique_ptr<nfb_device, decltype(&nfb_close)> _nfbDevice
 		{nullptr, &nfb_close};
