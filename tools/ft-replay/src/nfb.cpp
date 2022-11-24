@@ -36,6 +36,41 @@ NfbQueue::~NfbQueue() {
 	Flush();
 }
 
+unsigned NfbQueue::GetBuffers(size_t burstSize) {
+	unsigned ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
+	if (ret == 0) {
+		Flush();
+		while (ret == 0) {
+			ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
+		}
+	}
+
+	return ret;
+}
+
+size_t NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize) {
+	static constexpr size_t minPacketSize = 64;
+
+	for (unsigned i = 0; i < burstSize; i++) {
+		if (burst[i]._len < minPacketSize) {
+			_txPacket[i].data_length = minPacketSize;
+		} else {
+			_txPacket[i].data_length = burst[i]._len;
+		}
+	}
+
+	_txBurstCount = GetBuffers(burstSize);
+
+	for (unsigned i = 0; i < _txBurstCount; i++) {
+		burst[i]._data = reinterpret_cast<std::byte *>(_txPacket[i].data);
+		if (_txPacket[i].data_length != burst[i]._len) {
+			std::fill_n(_txPacket[i].data + burst[i]._len, _txPacket[i].data_length - burst[i]._len, 0);
+		}
+	}
+
+	return _txBurstCount;
+}
+
 size_t NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize) {
 	if (_txBurstCount != 0) {
 		_logger->error("GetBurst() called before the previous request was processed by SendBurst()");
@@ -46,32 +81,7 @@ size_t NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize) {
 		burstSize = _burstSize;
 	}
 
-	static constexpr size_t minPacketSize = 64;
-	for (unsigned i = 0; i < burstSize; i++) {
-		if (burst[i]._len < minPacketSize) {
-			_txPacket[i].data_length = minPacketSize;
-		} else {
-			_txPacket[i].data_length = burst[i]._len;
-		}
-	}
-
-	_txBurstCount = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
-
-	if (_txBurstCount == 0) {
-		Flush();
-		while (_txBurstCount == 0) {
-			_txBurstCount = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
-		}
-	}
-
-	for (unsigned i = 0; i < _txBurstCount; i++) {
-		burst[i]._data = reinterpret_cast<std::byte *>(_txPacket[i].data);
-		if (_txPacket[i].data_length != burst[i]._len) {
-			std::fill_n(_txPacket[i].data + burst[i]._len, _txPacket[i].data_length - burst[i]._len, 0);
-		}
-	}
-
-	return _txBurstCount;
+	return GetRegularBurst(burst, burstSize);
 }
 
 void NfbQueue::SendBurst(const PacketBuffer* burst, size_t burstSize) {

@@ -75,6 +75,10 @@ public:
 	size_t GetMaxBurstSize() const noexcept override;
 
 private:
+	unsigned GetBuffers(size_t burstSize);
+
+	size_t GetRegularBurst(PacketBuffer* burst, size_t burstSize);
+
 	void Flush();
 
 	std::unique_ptr<ndp_tx_queue_t, decltype(&ndp_close_tx_queue)> _txQueue
