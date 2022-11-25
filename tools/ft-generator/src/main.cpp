@@ -7,6 +7,7 @@
  */
 
 #include "config/commandlineargs.h"
+#include "config/config.h"
 #include "flowprofile.h"
 #include "generator.h"
 #include "logger.h"
@@ -23,6 +24,7 @@ using namespace generator;
 int main(int argc, char *argv[])
 {
 	config::CommandLineArgs args;
+	config::Config config;
 
 	try {
 		args.Parse(argc, argv);
@@ -49,6 +51,15 @@ int main(int argc, char *argv[])
 	}
 
 	auto logger = ft::LoggerGet("main");
+
+	if (!args.GetConfigFile().empty()) {
+		try {
+			config = config::Config::LoadFromFile(args.GetConfigFile());
+		} catch (const config::ConfigError& error) {
+			error.PrintPrettyError(args.GetConfigFile(), std::cerr);
+			return EXIT_FAILURE;
+		}
+	}
 
 	try {
 		TrafficMeter trafficMeter;
