@@ -224,10 +224,20 @@ class MetricsDiff:
         self.fbr = np.abs(ref.fbr - sol.fbr) * 100 / ref.fbr
         self.ipvr = 0.0 if ref.ipvr == 0 else np.abs(ref.ipvr - sol.ipvr) * 100 / ref.ipvr
 
+        # Fill missing rows with the default.
+        for missing in [
+            proto[0] for proto in ref.l4_proto.head(TOP_L4_PROTO_CNT).index.values if proto not in sol.l4_proto.index
+        ]:
+            sol.l4_proto.loc[missing] = 0.0
+
         l4_subset = sol.l4_proto.loc[ref.l4_proto.head(TOP_L4_PROTO_CNT).index.values]
         self.l4_proto = (
             (ref.l4_proto.head(TOP_L4_PROTO_CNT) - l4_subset).abs() * 100 / ref.l4_proto.head(TOP_L4_PROTO_CNT)
         )
+
+        # Fill missing rows with the default.
+        for missing in [port for port in ref.ports.head(TOP_L7_PROTO_CNT).index.values if port not in sol.ports.index]:
+            sol.ports.loc[missing] = 0.0
 
         ports_subset = sol.ports.loc[ref.ports.head(TOP_L7_PROTO_CNT).index.values]
         self.ports = (ref.ports.head(TOP_L7_PROTO_CNT) - ports_subset).abs() * 100 / ref.ports.head(TOP_L7_PROTO_CNT)
@@ -546,7 +556,8 @@ if __name__ == "__main__":
     logging.getLogger().info("loading profile file=%s ...", args.profile)
     try:
         df = pd.read_csv(args.profile, engine="pyarrow", dtype=CSV_COLUMN_TYPES)
-    except OSError as err:
+    # pylint: disable=W0703
+    except Exception as err:
         logging.getLogger().error("unable to load profile file=%s, error=%s", args.profile, str(err))
         sys.exit(1)
 
