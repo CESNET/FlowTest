@@ -3,6 +3,7 @@ add_executable(ft-generator
 	calendar.cpp calendar.h
 	config/commandlineargs.h config/commandlineargs.cpp
 	config/common.h config/common.cpp
+	config/config.h config/config.cpp
 	flow.cpp flow.h
 	flowplanhelper.cpp flowplanhelper.h
 	flowprofile.cpp flowprofile.h
