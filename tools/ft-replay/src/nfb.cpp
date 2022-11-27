@@ -17,9 +17,22 @@
 
 namespace replay {
 
-NfbQueue::NfbQueue(nfb_device *dev, unsigned int queue_id, size_t burstSize):
+void SuperPacketHeader::clear() noexcept {
+	std::memset(this, 0, sizeof(*this));
+}
+
+void SuperPacketHeader::setLength(uint16_t length) noexcept {
+	_length = htole16(length);
+}
+
+void SuperPacketHeader::setHasNextHeader(bool value) noexcept {
+	_hasNextHeader = !!value;
+}
+
+NfbQueue::NfbQueue(nfb_device *dev, unsigned int queue_id, size_t burstSize, size_t superPacketSize):
 	_txPacket(std::make_unique<ndp_packet[]>(burstSize)),
-	_burstSize(burstSize)
+	_burstSize(burstSize),
+	_superPacketSize(superPacketSize)
 {
 	_txQueue.reset(ndp_open_tx_queue(dev, queue_id));
 	if (!_txQueue) {
@@ -46,7 +59,11 @@ size_t NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize) {
 		burstSize = _burstSize;
 	}
 
-	return GetRegularBurst(burst, burstSize);
+	if (_superPacketSize) {
+		return GetSuperBurst(burst, burstSize);
+	} else {
+		return GetRegularBurst(burst, burstSize);
+	}
 }
 
 size_t NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize) {
@@ -72,6 +89,67 @@ size_t NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize) {
 	return _txBurstCount;
 }
 
+size_t NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize) {
+	static constexpr size_t headerLen = sizeof(SuperPacketHeader);
+	static constexpr size_t minPacketSize = 64;
+
+	// fill _txPacket data_len
+	unsigned txIndex = 0;
+	_txPacket[0].data_length = 0;
+	for (unsigned i = 0; i < burstSize; i++) {
+		size_t nextSize = headerLen + std::max(burst[i]._len, minPacketSize);
+		nextSize = AlignBlockSize(nextSize);
+
+		if (_txPacket[txIndex].data_length + nextSize <= _superPacketSize) {
+			_txPacket[txIndex].data_length += nextSize;
+		} else {
+			_txPacket[++txIndex].data_length = nextSize;
+		}
+	}
+	txIndex++;
+
+	// get buffers
+	_txBurstCount = GetBuffers(txIndex);
+
+	// assign buffers
+	txIndex = 0;
+	unsigned i, pos = 0;
+	for (i = 0; i < burstSize; i++) {
+		size_t pktLen = std::max(burst[i]._len, minPacketSize);
+		size_t nextSize = headerLen + pktLen;
+		nextSize = AlignBlockSize(nextSize);
+		// next packet/break condition
+		if (pos + nextSize > _txPacket[txIndex].data_length) {
+			if (++txIndex >= _txBurstCount) {
+				break;
+			}
+			pos = 0;
+		}
+		// fill header
+		SuperPacketHeader* hdrPtr = reinterpret_cast<SuperPacketHeader *>(_txPacket[txIndex].data + pos);
+		hdrPtr->clear();
+		hdrPtr->setLength(pktLen);
+		if (pos + nextSize  >= _txPacket[txIndex].data_length) {
+			hdrPtr->setHasNextHeader(false);
+		} else {
+			hdrPtr->setHasNextHeader(true);
+		}
+
+		pos += headerLen;
+
+		// assign buffer
+		burst[i]._data = reinterpret_cast<std::byte *>(_txPacket[txIndex].data + pos);
+		// fill padding with zeros
+		if (pktLen != burst[i]._len) {
+			std::fill_n(_txPacket[txIndex].data + pos + burst[i]._len, pktLen - burst[i]._len, 0);
+		}
+		pos += nextSize - headerLen;
+	}
+
+	_txBurstCount = i;
+	return _txBurstCount;
+}
+
 unsigned NfbQueue::GetBuffers(size_t burstSize) {
 	unsigned ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
 	if (ret == 0) {
@@ -82,6 +160,17 @@ unsigned NfbQueue::GetBuffers(size_t burstSize) {
 	}
 
 	return ret;
+}
+
+size_t NfbQueue::AlignBlockSize(size_t size) {
+	static constexpr size_t blockAlignment = 8;
+
+	if (size % blockAlignment == 0) {
+		return size;
+	}
+
+	const size_t offset = blockAlignment - (size % blockAlignment);
+	return size + offset;
 }
 
 void NfbQueue::SendBurst(const PacketBuffer* burst, size_t burstSize) {
@@ -122,8 +211,10 @@ NfbPlugin::NfbPlugin(const std::string& params) {
 		_queueCount = static_cast<size_t>(ret);
 	}
 
+	DetermineSuperPacketSize();
+
 	for (size_t id = 0; id < _queueCount; id++) {
-		_queues.emplace_back(std::make_unique<NfbQueue>(_nfbDevice.get(), id, _burstSize));
+		_queues.emplace_back(std::make_unique<NfbQueue>(_nfbDevice.get(), id, _burstSize, _superPacketSize));
 	}
 }
 
@@ -133,7 +224,7 @@ int NfbPlugin::ParseArguments(const std::string& args) {
 	try {
 		ParseMap(argMap);
 	} catch (const std::invalid_argument& ia) {
-		_logger->error("Parameter \"queueCount\" or \"burstSize\" wrong format");
+		_logger->error("Parameter \"queueCount\", \"burstSize\" or \"superPacketSize\" wrong format");
 		throw std::invalid_argument("NfbPlugin::ParseArguments() has failed");
 	}
 
@@ -153,10 +244,47 @@ void NfbPlugin::ParseMap(const std::map<std::string, std::string>& argMap) {
 			_queueCount = std::stoul(value);
 		} else if (key == "burstSize") {
 			_burstSize = std::stoul(value);
+		} else if (key == "superPacket") {
+			if (value == "no") {
+				_superPackets = SuperPackets::Disable;
+			} else if (value == "auto") {
+				_superPackets = SuperPackets::Auto;
+			} else if (value == "yes") {
+				_superPackets = SuperPackets::Enable;
+			} else {
+				_logger->error("Unknown parameter value {}", value);
+				throw std::runtime_error("NfbPlugin::ParseMap() has failed");
+			}
+		} else if (key == "superPacketSize") {
+			_superPacketSize = std::stoul(value);
 		} else {
 			_logger->error("Unknown parameter {}", key);
 			throw std::runtime_error("NfbPlugin::ParseMap() has failed");
 		}
+	}
+}
+
+void NfbPlugin::DetermineSuperPacketSize() {
+	static const char* superCompName = "cesnet,ofm,frameunpacker";
+
+	int ret = nfb_comp_count(_nfbDevice.get(), superCompName);
+	if (ret > 0) {
+		if (_superPackets == SuperPackets::Auto) {
+			_logger->info("SuperPackets enabled");
+		} else if (_superPackets == SuperPackets::Disable) {
+			_logger->warn("SuperPackets are supported, but disabled");
+			_superPacketSize = 0;
+		}
+	} else if (ret == 0) {
+		if (_superPackets == SuperPackets::Auto) {
+			_logger->info("SuperPackets disabled/unsupported");
+			_superPacketSize = 0;
+		} else if (_superPackets == SuperPackets::Enable) {
+			_logger->warn("SuperPackets are not supported, but enabled");
+		}
+	} else {
+		_logger->critical("nfb::nfb_comp_count() has failed, SuperPackets disabled");
+		_superPacketSize = 0;
 	}
 }
 

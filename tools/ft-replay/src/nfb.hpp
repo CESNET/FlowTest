@@ -22,6 +22,45 @@
 
 namespace replay {
 
+enum class SuperPackets {
+	Auto,
+	Enable,
+	Disable,
+};
+
+class __attribute__((packed)) SuperPacketHeader final {
+public:
+	/**
+	 * @brief Clear header
+	 */
+	void clear() noexcept;
+
+	/**
+	 * @brief Set packet length
+	 *
+	 * @param[in] length of packet
+	 */
+	void setLength(uint16_t length) noexcept;
+
+	/**
+	 * @brief Set next header flag
+	 *
+	 * @param[in] next header flag
+	 */
+	void setHasNextHeader(bool value) noexcept;
+
+private:
+	uint16_t _length : 15;
+	uint16_t _hasNextHeader : 1;
+	uint16_t _l2Len : 7;
+	uint16_t _l3Len : 9;
+	uint8_t _flags;
+	uint8_t _timestamp[6];
+	uint8_t _reserved[5];
+};
+
+static_assert(sizeof(SuperPacketHeader) == 16, "Invalid header definition");
+
 class NfbQueue : public OutputQueue {
 public:
 	/**
@@ -33,7 +72,7 @@ public:
 	 * @param[in] queue id
 	 * @param[in] maximal size of burst
 	 */
-	NfbQueue(nfb_device *dev, unsigned int queue_id, size_t burstSize);
+	NfbQueue(nfb_device *dev, unsigned int queue_id, size_t burstSize, size_t superPacketSize);
 
 	/**
 	 * @brief Destructor
@@ -77,7 +116,11 @@ public:
 private:
 	size_t GetRegularBurst(PacketBuffer* burst, size_t burstSize);
 
+	size_t GetSuperBurst(PacketBuffer* burst, size_t burstSize);
+
 	unsigned GetBuffers(size_t burstSize);
+
+	size_t AlignBlockSize(size_t size);
 
 	void Flush();
 
@@ -86,6 +129,7 @@ private:
 	std::unique_ptr<ndp_packet[]> _txPacket;
 	unsigned _txBurstCount = 0;
 	size_t _burstSize;
+	size_t _superPacketSize;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("NfbQueue");
 };
@@ -127,6 +171,8 @@ public:
 	OutputQueue* GetQueue(uint16_t queueId) override;
 
 private:
+	void DetermineSuperPacketSize();
+
 	int ParseArguments(const std::string& args);
 
 	void ParseMap(const std::map<std::string, std::string>& argMap);
@@ -137,6 +183,8 @@ private:
 	std::string _deviceName;
 	size_t _queueCount = 0;
 	size_t _burstSize = 64;
+	size_t _superPacketSize = 2048;
+	enum SuperPackets _superPackets = SuperPackets::Auto;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("NfbPlugin");
 };
