@@ -10,6 +10,7 @@
 
 #include <getopt.h>
 
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
 
@@ -19,14 +20,18 @@ namespace config {
 void CommandLineArgs::Parse(int argc, char** argv)
 {
 	const option longOpts[] = {
-		{"output", optional_argument, nullptr, 'o'},
-		{"profiles", optional_argument, nullptr, 'p'},
-		{"config", optional_argument, nullptr, 'c'},
+		{"output", required_argument, nullptr, 'o'},
+		{"profiles", required_argument, nullptr, 'p'},
+		{"config", required_argument, nullptr, 'c'},
 		{"verbose", no_argument, nullptr, 'v'},
 		{"help", no_argument, nullptr, 'h'},
 		{nullptr, 0, nullptr, 0}
 	};
-	const char* shortOpts = "o:p:c:vh";
+	const char* shortOpts = ":o:p:c:vh";
+
+	int currentIdx = 0;
+	optind = 0;
+	opterr = 0; // Handle printing error messages ourselves
 
 	char c;
 	while ((c = getopt_long(argc, argv, shortOpts, longOpts, nullptr)) != -1) {
@@ -46,7 +51,16 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		case 'h':
 			_help = true;
 			break;
+		case '?':
+			throw std::invalid_argument("Unknown option "
+				+ std::string(argv[currentIdx]));
+		case ':':
+			throw std::invalid_argument("Missing argument for option "
+				+ std::string(argv[currentIdx]));
+		default:
+			assert(0 && "Unhandled option");
 		}
+		currentIdx = optind;
 	}
 
 	CheckValidity();
@@ -69,11 +83,11 @@ void CommandLineArgs::CheckValidity()
 	}
 
 	if (_profilesFile.empty()) {
-		throw std::invalid_argument("Missing flow profiles file argument (-p)");
+		throw std::invalid_argument("Missing required argument --profiles");
 	}
 
 	if (_outputFile.empty()) {
-		throw std::invalid_argument("Missing pcap output file argument (-o)");
+		throw std::invalid_argument("Missing required argument --output");
 	}
 }
 
