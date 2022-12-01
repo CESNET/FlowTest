@@ -12,8 +12,7 @@
 #include "addressgenerators.h"
 #include "flowprofile.h"
 #include "packet.h"
-
-#include <pcapplusplus/Packet.h>
+#include "pcpppacket.h"
 
 #include <ctime>
 #include <iostream>
@@ -75,7 +74,7 @@ public:
 	 *
 	 * @throws std::runtime_error  If the flow is already finished
 	 */
-	std::pair<pcpp::Packet, PacketExtraInfo> GenerateNextPacket();
+	std::pair<PcppPacket, PacketExtraInfo> GenerateNextPacket();
 
 	/**
 	 * @brief Get the time of next packet

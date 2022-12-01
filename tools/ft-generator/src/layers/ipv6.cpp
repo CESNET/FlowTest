@@ -9,27 +9,26 @@
 
 #include "ipv6.h"
 #include "../packetflowspan.h"
+#include "../randomgenerator.h"
 
 #include <arpa/inet.h>
 #include <pcapplusplus/IPv6Layer.h>
 
 #include <cstdlib>
-#include <ctime>
 
 namespace generator {
 
 IPv6::IPv6(IPv6Address ipSrc, IPv6Address ipDst) :
 	_ipSrc(ipSrc), _ipDst(ipDst)
 {
-	std::srand(std::time(nullptr));
-	_ttl = std::rand() % (256 - 16) + 16;
+	_ttl = RandomGenerator::GetInstance().RandomUInt(16, 255);
 
-	int fwdFlowLabel = std::rand();
+	uint64_t fwdFlowLabel = RandomGenerator::GetInstance().RandomUInt();
 	_fwdFlowLabel[0] = fwdFlowLabel & 0xFF;
 	_fwdFlowLabel[1] = (fwdFlowLabel >> 8) & 0xFF;
 	_fwdFlowLabel[2] = (fwdFlowLabel >> 16) & 0xFF;
 
-	int revFlowLabel = std::rand();
+	uint64_t revFlowLabel = RandomGenerator::GetInstance().RandomUInt();
 	_revFlowLabel[0] = revFlowLabel & 0xFF;
 	_revFlowLabel[1] = (revFlowLabel >> 8) & 0xFF;
 	_revFlowLabel[2] = (revFlowLabel >> 16) & 0xFF;
@@ -46,7 +45,7 @@ void IPv6::PlanFlow(Flow& flow)
 	}
 }
 
-void IPv6::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void IPv6::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) params;
 

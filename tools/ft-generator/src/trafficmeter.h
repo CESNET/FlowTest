@@ -11,13 +11,13 @@
 #include "flowprofile.h"
 #include "logger.h"
 #include "packet.h"
+#include "pcpppacket.h"
 
 #include <pcapplusplus/EthLayer.h>
 #include <pcapplusplus/IpAddress.h>
 #include <pcapplusplus/IPv4Layer.h>
 #include <pcapplusplus/IPv6Layer.h>
 #include <pcapplusplus/Layer.h>
-#include <pcapplusplus/Packet.h>
 #include <pcapplusplus/ProtocolType.h>
 #include <pcapplusplus/TcpLayer.h>
 #include <pcapplusplus/UdpLayer.h>
@@ -94,7 +94,7 @@ public:
 	 * @param dir     The direction of the packet
 	 * @param packet  The generated packet
 	 */
-	void RecordPacket(uint64_t flowId, timeval time, Direction dir, const pcpp::Packet& packet);
+	void RecordPacket(uint64_t flowId, timeval time, Direction dir, const PcppPacket& packet);
 
 	/**
 	 * @brief Write out summary of the recorded flows and packets
@@ -108,7 +108,7 @@ private:
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("TrafficMeter");
 
 	void ExtractPacketParams(
-		const pcpp::Packet& packet, L3Protocol l3Proto, L4Protocol l4Proto,
+		const PcppPacket& packet, L3Protocol l3Proto, L4Protocol l4Proto,
 		MacAddress& srcMac, IPAddress& srcIp, uint16_t& srcPort,
 		MacAddress& dstMac, IPAddress& dstIp, uint16_t& dstPort);
 };

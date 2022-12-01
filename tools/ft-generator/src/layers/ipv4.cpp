@@ -9,6 +9,7 @@
 
 #include "ipv4.h"
 #include "../packetflowspan.h"
+#include "../randomgenerator.h"
 
 #include <arpa/inet.h>
 #include <pcapplusplus/IPv4Layer.h>
@@ -22,10 +23,9 @@ namespace generator {
 IPv4::IPv4(IPv4Address ipSrc, IPv4Address ipDst) :
 	_ipSrc(ipSrc), _ipDst(ipDst)
 {
-	std::srand(std::time(nullptr));
-	_ttl = std::rand() % (256 - 16) + 16;
-	_fwdId = std::rand();
-	_revId = std::rand();
+	_ttl = RandomGenerator::GetInstance().RandomUInt(16, 255);
+	_fwdId = RandomGenerator::GetInstance().RandomUInt();
+	_revId = RandomGenerator::GetInstance().RandomUInt();
 }
 
 void IPv4::PlanFlow(Flow& flow)
@@ -38,7 +38,7 @@ void IPv4::PlanFlow(Flow& flow)
 	}
 }
 
-void IPv4::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void IPv4::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) params;
 

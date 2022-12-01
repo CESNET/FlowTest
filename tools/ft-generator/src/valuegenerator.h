@@ -16,6 +16,8 @@
 #include <vector>
 #include <memory>
 
+namespace generator {
+
 /**
  * @brief Definition of an interval
  *
@@ -57,15 +59,12 @@ public:
 	uint64_t GetValueExact(uint64_t value);
 
 private:
-	std::random_device _rd;
-	std::mt19937 _gen{_rd()};
-	std::uniform_real_distribution<> _distr;
-
 	std::vector<uint64_t> _values;
 
 	uint64_t _count;
 	uint64_t _desiredSum;
 	std::vector<IntervalInfo> _intervals;
+	double _intervalProbSum;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("ValueGenerator");
 
@@ -73,3 +72,5 @@ private:
 	void PostIntervalUpdate();
 	uint64_t GenerateRandomValue();
 };
+
+} // namespace generator

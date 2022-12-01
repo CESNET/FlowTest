@@ -10,8 +10,7 @@
 #pragma once
 
 #include "packet.h"
-
-#include <pcapplusplus/Packet.h>
+#include "pcpppacket.h"
 
 #include <iostream>
 
@@ -33,13 +32,13 @@ public:
 	virtual void PlanFlow(Flow& flow) = 0;
 
 	/**
-	 * @brief Build pcpp::Packet layer.
+	 * @brief Build PcppPacket layer.
 	 *
 	 * @param packet Packet to build
 	 * @param params Parameters of current layer plan.
 	 * @param plan   Packet plan.
 	 */
-	virtual void Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan) = 0;
+	virtual void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) = 0;
 };
 
 } // namespace generator

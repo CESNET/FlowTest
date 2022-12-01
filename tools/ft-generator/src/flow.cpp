@@ -161,13 +161,13 @@ void Flow::Plan()
 	PlanPacketsSizes();
 }
 
-std::pair<pcpp::Packet, PacketExtraInfo> Flow::GenerateNextPacket()
+std::pair<PcppPacket, PacketExtraInfo> Flow::GenerateNextPacket()
 {
 	if (_packets.empty()) {
 		throw std::runtime_error("no more packets to generate in flow");
 	}
 
-	pcpp::Packet packet;
+	PcppPacket packet;
 	PacketExtraInfo extra;
 
 	Packet packetPlan = _packets.front();

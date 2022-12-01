@@ -32,7 +32,7 @@ void TrafficMeter::CloseFlow(uint64_t flowId)
 }
 
 void TrafficMeter::ExtractPacketParams(
-	const pcpp::Packet& packet, L3Protocol l3Proto, L4Protocol l4Proto,
+	const PcppPacket& packet, L3Protocol l3Proto, L4Protocol l4Proto,
 	MacAddress& srcMac, IPAddress& srcIp, uint16_t& srcPort,
 	MacAddress& dstMac, IPAddress& dstIp, uint16_t& dstPort)
 {
@@ -66,7 +66,7 @@ void TrafficMeter::ExtractPacketParams(
 	}
 }
 
-void TrafficMeter::RecordPacket(uint64_t flowId, timeval time, Direction dir, const pcpp::Packet& packet)
+void TrafficMeter::RecordPacket(uint64_t flowId, timeval time, Direction dir, const PcppPacket& packet)
 {
 	assert(flowId < _records.size());
 	FlowRecord& rec = _records[flowId];

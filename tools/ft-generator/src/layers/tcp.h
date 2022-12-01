@@ -13,6 +13,7 @@
 #include "../flowplanhelper.h"
 #include "../layer.h"
 #include "../packet.h"
+#include "../pcpppacket.h"
 
 namespace generator {
 
@@ -35,7 +36,7 @@ public:
 
 	void PlanFlow(Flow& flow) override;
 
-	void Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan) override;
+	void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
 	uint32_t _ackNumber = 0;

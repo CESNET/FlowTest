@@ -29,7 +29,7 @@ void Ethernet::PlanFlow(Flow& flow)
 	}
 }
 
-void Ethernet::Build(pcpp::Packet& packet, Packet::layerParams& params, Packet& plan)
+void Ethernet::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	pcpp::EthLayer *ethLayer;
 
