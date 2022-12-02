@@ -1,4 +1,9 @@
 ---
+- name: DNF config-manager is available
+  ansible.builtin.dnf:
+    name: dnf-command(config-manager)
+    state: latest
+
 - name: PowerTools repository is enabled (CentOS/Rocky/etc. 8)
   ansible.builtin.command: dnf config-manager --set-enabled powertools
   when:
