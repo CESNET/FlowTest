@@ -2,7 +2,6 @@
 test:
   name: DNS Server Failure
   pcaps: ["dns_server_failure.pcap"]
-  required_protocols: ["dns"]
 
 flows:
   - src_ip:      "192.168.236.146"
@@ -24,3 +23,4 @@ flows:
     _reverse:
       dns_flags:           0x8182
       dns_resp_rcode:      2
+

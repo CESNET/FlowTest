@@ -22,7 +22,7 @@ flows:
       dns_req_query_class: 1
       dns_req_query_name:  "_kerberos._udp.SAMBA.WINDOWS8.PRIVATE"
     _reverse:
-      dns_flags@rev:       0x8580
+      dns_flags:           0x8580
       dns_resp_rcode:      0
       dns_resp_rr:
         - name:            "_kerberos._udp.SAMBA.WINDOWS8.PRIVATE"

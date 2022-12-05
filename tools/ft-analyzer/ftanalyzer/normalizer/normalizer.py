@@ -232,9 +232,10 @@ class Normalizer:
         excluded = self._rev_fields if direction == FieldDirection.FORWARD else self._fwd_fields
         filtered = {}
 
-        # Unpack fields fixed for this direction and merge them with the original fields.
+        # Remove fields fixed for this direction to be later merged with the original fields.
         fixed_fields = fields.pop(f"_{direction.value}", {})
-        for f_name, f_value in {**fields, **fixed_fields}.items():
+
+        for f_name, f_value in fields.items():
             # Skip meta fields and fields in the opposite direction.
             if f_name.startswith("_") or f_name in excluded:
                 continue
@@ -248,7 +249,7 @@ class Normalizer:
 
             filtered[f_name] = f_value
 
-        return filtered
+        return {**filtered, **fixed_fields}
 
     def _is_biflow(self, fields: Dict[str, Union[str, int, Dict, List]]) -> bool:
         """Check if the flow fields contain any non-empty reverse fields.

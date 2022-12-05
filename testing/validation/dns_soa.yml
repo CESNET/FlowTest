@@ -21,8 +21,8 @@ flows:
       dns_req_query_type:  6
       dns_req_query_class: 1
       dns_req_query_name:  "wickedgogrid.net"
-    _response:
-      dns_flags@rev:      0x8400
+    _reverse:
+      dns_flags:           0x8400
       dns_resp_rcode:      0
       dns_resp_rr:
         - name:            "wickedgogrid.net"

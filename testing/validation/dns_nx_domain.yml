@@ -22,5 +22,5 @@ flows:
       dns_req_query_class: 1
       dns_req_query_name:  "GRIMM.utelsystems.local"
     _reverse:
-      dns_flags@rev:       0x8583
+      dns_flags:           0x8583
       dns_resp_rcode:      3
