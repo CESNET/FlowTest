@@ -10,12 +10,13 @@
 #include <string>
 
 namespace generator {
+namespace config {
 
 /**
- * @brief Config parser
+ * @brief CommandLineArgs parser
  *
  */
-class Config {
+class CommandLineArgs {
 public:
 	/**
 	 * @brief Parse the config from the command line args
@@ -58,6 +59,16 @@ public:
 	}
 
 	/**
+	 * @brief Get the Config File
+	 *
+	 * @return File path
+	 */
+	const std::string& GetConfigFile() const
+	{
+		return _configFile;
+	}
+
+	/**
 	 * @brief Whether help should be printer
 	 *
 	 * @return true or false
@@ -76,6 +87,7 @@ public:
 private:
 	std::string _profilesFile;
 	std::string _outputFile;
+	std::string _configFile;
 	int _verbosity = 0;
 	bool _help = false;
 
@@ -87,4 +99,5 @@ private:
 	void CheckValidity();
 };
 
+} // namespace config
 } // namespace generator
