@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 Common classes used by the orchestration configuration"""
 
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -15,3 +16,4 @@ class InterfaceCfg:
 
     name: str
     speed: int
+    mac: Optional[str] = None
