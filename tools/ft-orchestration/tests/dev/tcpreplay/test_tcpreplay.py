@@ -14,7 +14,7 @@ import pytest
 from src.host.common import ssh_agent_enabled
 from src.host.host import Host
 from src.host.storage import RemoteStorage
-from src.tcpreplay.tcpreplay import TcpReplay
+from src.generator.tcpreplay import TcpReplay
 
 HOST = os.environ.get("PYTEST_TEST_HOST")
 USERNAME = os.environ.get("PYTEST_TEST_HOST_USERNAME")
