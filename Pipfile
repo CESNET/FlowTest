@@ -20,6 +20,7 @@ build = "*"
 pytest = "*"
 twine = "*"
 hypothesis = "*"
+docker = "*"
 
 [requires]
 python_version = "3.9"

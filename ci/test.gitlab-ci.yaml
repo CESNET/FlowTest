@@ -28,7 +28,7 @@ install [Rocky Linux 8]:
 pytest:
   stage: test
   script:
-    - pipenv run pytest -v -s -m "not dev" | tee pytest.log
+    - pipenv run pytest -v -s -m "not dev and not dev_docker" | tee pytest.log
   artifacts:
     paths: [ pytest.log ]
     when: always
