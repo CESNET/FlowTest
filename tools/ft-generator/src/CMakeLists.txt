@@ -13,6 +13,7 @@ add_executable(ft-generator
 	generator.cpp generator.h
 	generators/common.h generators/common.cpp
 	generators/ipv4addressgenerator.h generators/ipv4addressgenerator.cpp
+	generators/ipv6addressgenerator.h generators/ipv6addressgenerator.cpp
 	generators/lfsr.h generators/lfsr.cpp
 	generators/prefixedgenerator.h generators/prefixedgenerator.cpp
 	layer.h layer.cpp
