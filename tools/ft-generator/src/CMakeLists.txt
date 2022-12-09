@@ -15,6 +15,7 @@ add_executable(ft-generator
 	generators/ipv4addressgenerator.h generators/ipv4addressgenerator.cpp
 	generators/ipv6addressgenerator.h generators/ipv6addressgenerator.cpp
 	generators/lfsr.h generators/lfsr.cpp
+	generators/macaddressgenerator.h generators/macaddressgenerator.cpp
 	generators/prefixedgenerator.h generators/prefixedgenerator.cpp
 	layer.h layer.cpp
 	layers/ethernet.h layers/ethernet.cpp
