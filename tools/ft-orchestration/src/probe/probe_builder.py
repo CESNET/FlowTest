@@ -10,6 +10,7 @@ Builder for creating a probe instance based on a static configuration.
 from os import path
 from typing import Any, Dict, List
 
+from lbr_testsuite.topology import Device
 from src.common.builder_base import BuilderBase, BuilderError
 from src.config.common import InterfaceCfg
 from src.config.config import Config
@@ -20,7 +21,7 @@ from src.probe.probe_target import ProbeTarget
 PROBE_IMPORT_PATH = path.dirname(path.realpath(__file__))
 
 
-class ProbeBuilder(BuilderBase):
+class ProbeBuilder(BuilderBase, Device):
     """Builder for creating a probe instance based on a static configuration.
     Probe class is dynamically imported from module in 'probe' directory."""
 
@@ -54,7 +55,7 @@ class ProbeBuilder(BuilderBase):
             Or alias does not exist in configuration.
         """
 
-        super().__init__(config)
+        super().__init__(config)  # pylint: disable=too-many-function-args
 
         if alias not in self._config.probes:
             raise BuilderError(f"Probe '{alias}' not found in probes configuration.")

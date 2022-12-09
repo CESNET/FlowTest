@@ -11,6 +11,7 @@ import logging
 from os import path
 from typing import Any, Dict, List, Optional
 
+from lbr_testsuite.topology.generator import Generator
 from src.common.builder_base import BuilderBase, BuilderError
 from src.config.common import InterfaceCfg
 from src.config.config import Config
@@ -19,7 +20,7 @@ from src.generator.interface import PcapPlayer
 GENERATOR_IMPORT_PATH = path.dirname(path.realpath(__file__))
 
 
-class GeneratorBuilder(BuilderBase):
+class GeneratorBuilder(BuilderBase, Generator):
     """Builder for creating a generator instance based on a static configuration.
     Generator class is dynamically imported from module in 'generator' directory."""
 
