@@ -12,6 +12,7 @@ add_executable(ft-generator
 	flowprofile.cpp flowprofile.h
 	generator.cpp generator.h
 	generators/common.h generators/common.cpp
+	generators/ipv4addressgenerator.h generators/ipv4addressgenerator.cpp
 	generators/lfsr.h generators/lfsr.cpp
 	generators/prefixedgenerator.h generators/prefixedgenerator.cpp
 	layer.h layer.cpp
