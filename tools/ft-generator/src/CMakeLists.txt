@@ -11,6 +11,7 @@ add_executable(ft-generator
 	flowplanhelper.cpp flowplanhelper.h
 	flowprofile.cpp flowprofile.h
 	generator.cpp generator.h
+	generators/addressgenerators.h generators/addressgenerators.cpp
 	generators/common.h generators/common.cpp
 	generators/ipv4addressgenerator.h generators/ipv4addressgenerator.cpp
 	generators/ipv6addressgenerator.h generators/ipv6addressgenerator.cpp
