@@ -11,6 +11,7 @@ add_executable(ft-generator
 	flowplanhelper.cpp flowplanhelper.h
 	flowprofile.cpp flowprofile.h
 	generator.cpp generator.h
+	generators/common.h generators/common.cpp
 	generators/lfsr.h generators/lfsr.cpp
 	layer.h layer.cpp
 	layers/ethernet.h layers/ethernet.cpp
