@@ -13,6 +13,7 @@ add_executable(ft-generator
 	generator.cpp generator.h
 	generators/common.h generators/common.cpp
 	generators/lfsr.h generators/lfsr.cpp
+	generators/prefixedgenerator.h generators/prefixedgenerator.cpp
 	layer.h layer.cpp
 	layers/ethernet.h layers/ethernet.cpp
 	layers/icmpecho.h layers/icmpecho.cpp
