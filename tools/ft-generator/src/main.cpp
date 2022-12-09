@@ -10,6 +10,7 @@
 #include "config/config.h"
 #include "flowprofile.h"
 #include "generator.h"
+#include "generators/addressgenerators.h"
 #include "logger.h"
 #include "pcapwriter.h"
 #include "trafficmeter.h"
@@ -65,7 +66,7 @@ int main(int argc, char *argv[])
 		TrafficMeter trafficMeter;
 		FlowProfileReader profileReader(args.GetProfilesFile());
 		PcapWriter pcapWriter(args.GetOutputFile());
-		Generator generator(profileReader, trafficMeter);
+		Generator generator(profileReader, trafficMeter, config);
 
 		while (auto packet = generator.GenerateNextPacket()) {
 			logger->debug("Generating packet");

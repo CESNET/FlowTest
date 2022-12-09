@@ -1,5 +1,4 @@
 add_executable(ft-generator
-	addressgenerators.cpp addressgenerators.h
 	calendar.cpp calendar.h
 	config/commandlineargs.h config/commandlineargs.cpp
 	config/common.h config/common.cpp
