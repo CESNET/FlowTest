@@ -20,6 +20,44 @@ class Flow;
 
 /**
  * @brief Class representing the layer interface.
+ *
+ * Creation:
+ *
+ *   Layers are created by a Flow and added to its layer stack.
+ *
+ *   - Layer is created through construction of one of the derived concrete
+ *     layers.
+ *   - Layer is added to a layer stack of a flow upon which the AddedToFlow
+ *     callback is called.
+ *
+ * Planning:
+ *
+ *   The planning phase happens after all the layers of the flow are created and
+ *   present in the flow.
+ *
+ *   - PlanFlow callback is called to plan all the packets of this layer
+ *   - PostPlanFlow callback is called in case the layer needs to perform
+ *     further operations after all the packets are planned. This happens after
+ *     all the layers have planned all the packets.
+ *   - PlanExtra callback is called in case there any extra packets were added
+ *     by other layers that require further planning, because they were not
+ *     present in the PlanFlow phase. This happens after all the layers have
+ *     gone through their PostPlanFlow phase.
+ *
+ * Building:
+ *
+ *   The building phase happens after the planning phase has finished in all the
+ *   layers of the flow, meaning all the packets have all their layers planned.
+ *   The building phase is then performed for each packet that needs to be
+ *   generated. This is done for each packet individually.
+ *
+ *   - Build callback is called to build a packet according to its plan and
+ *     parameters provided in planning phase
+ *
+ *   - PostBuild callback is called after all the layers of the packet are
+ *     built. This allows layers to observe or even further modify the built
+ *     packet.
+ *
  */
 class Layer {
 public:
@@ -72,6 +110,11 @@ public:
 
 protected:
 	/**
+	 * @brief Base layer is never constructed directly
+	 */
+	Layer() {}
+
+	/**
 	 * @brief Get the Flow this layer belongs to
 	 */
 	Flow* GetFlow() const { return _flow; }
@@ -113,7 +156,6 @@ private:
 	 *       the public methods are called
 	 */
 	size_t _layerNumber = ~size_t(0);
-
 };
 
 } // namespace generator
