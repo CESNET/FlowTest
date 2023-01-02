@@ -1,0 +1,11 @@
+- alias: ipfix-probe-10G
+  name: cesnet-probe-1.liberouter.org
+  type: ipfix-probe
+  interfaces:
+    - name: eth2
+      speed: 10
+      mac: 00:00:00:00:00:00
+    - name: eth3
+      speed: 10
+  authentication: cesnet-general
+  tags: [ http, tls, dns, trill ]

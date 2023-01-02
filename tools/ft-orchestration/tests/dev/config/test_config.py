@@ -239,8 +239,10 @@ def test_probes(create_config) -> None:
             interfaces:
                 - name: eth2
                     speed: 10
+                    mac: 00:00:00:00:00:00
                 - name: eth3
                     speed: 10
+                    mac: 01:01:01:01:01:01
             authentication: cesnet-general
             tags: [ http, tls, dns, trill ]
             ansible-playbook-role: probe-ipfixprobe
@@ -251,8 +253,10 @@ def test_probes(create_config) -> None:
             interfaces:
                 - name: eth2
                     speed: 10
+                    mac: 00:00:00:00:00:00
                 - name: eth3
                     speed: 10
+                    mac: 01:01:01:01:01:01
             authentication: flowmon-probes
             tags: [ http, tls, dns, vxlan, gre ]
             connector:
@@ -269,7 +273,10 @@ def test_probes(create_config) -> None:
     assert probe_1.alias == "ipfix-probe-10G"
     assert probe_1.name == "cesnet-probe-1.liberouter.org"
     assert probe_1.type == "ipfix-probe"
-    assert probe_1.interfaces == [InterfaceCfg(name="eth2", speed=10), InterfaceCfg(name="eth3", speed=10)]
+    assert probe_1.interfaces == [
+        InterfaceCfg(name="eth2", speed=10, mac="00:00:00:00:00:00"),
+        InterfaceCfg(name="eth3", speed=10, mac="01:01:01:01:01:01"),
+    ]
     assert probe_1.authentication == "cesnet-general"
     assert probe_1.tags == ["http", "tls", "dns", "trill"]
     assert probe_1.connector is None
@@ -278,7 +285,10 @@ def test_probes(create_config) -> None:
     assert probe_2.alias == "flowmonexp-10G"
     assert probe_2.name == "cesnet-probe-2.liberouter.org"
     assert probe_2.type == "flowmonexp"
-    assert probe_2.interfaces == [InterfaceCfg(name="eth2", speed=10), InterfaceCfg(name="eth3", speed=10)]
+    assert probe_2.interfaces == [
+        InterfaceCfg(name="eth2", speed=10, mac="00:00:00:00:00:00"),
+        InterfaceCfg(name="eth3", speed=10, mac="01:01:01:01:01:01"),
+    ]
     assert probe_2.authentication == "flowmon-probes"
     assert probe_2.tags == ["http", "tls", "dns", "vxlan", "gre"]
     assert probe_2.connector == {"input-plugin-type": ["dpdk", "rawnetcap"]}
@@ -314,6 +324,28 @@ def test_probes_invalid() -> None:
             "exception Failure calling constructor method of class `ProbeCfg`. Missing values for required "
             "dataclass fields."
         ) in str(err)
+
+    try:
+        Config(
+            f"{FILES_DIR}/authentication.yml",
+            f"{FILES_DIR}/generators.yml",
+            f"{FILES_DIR}/collectors.yml",
+            f"{FILES_DIR}/probes-invalid-3.yml",
+        )
+        assert False
+    except ConfigException as err:
+        assert "Validation error: Mac address cannot be empty in probe interface" in str(err)
+
+    try:
+        Config(
+            f"{FILES_DIR}/authentication.yml",
+            f"{FILES_DIR}/generators.yml",
+            f"{FILES_DIR}/collectors.yml",
+            f"{FILES_DIR}/probes-invalid-4.yml",
+        )
+        assert False
+    except ConfigException as err:
+        assert "Validation error: Mac address cannot be empty in probe interface" in str(err)
 
 
 def test_file_not_found() -> None:

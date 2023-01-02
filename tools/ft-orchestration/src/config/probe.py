@@ -43,6 +43,9 @@ class ProbeCfg(YAMLWizard):
         if not self.alias or not self.name or not self.type or not self.interfaces or not self.authentication:
             raise ProbeCfgException("Mandatory field is empty")
 
+        if not all(x.mac for x in self.interfaces):
+            raise ProbeCfgException("Mac address cannot be empty in probe interface")
+
         if self.authentication not in authentications:
             raise ProbeCfgException(
                 f"ProbeCfg config error: AuthenticationCfg name {self.authentication} was not found in the "

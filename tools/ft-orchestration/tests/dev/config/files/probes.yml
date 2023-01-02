@@ -4,8 +4,10 @@
   interfaces:
     - name: eth2
       speed: 10
+      mac: 00:00:00:00:00:00
     - name: eth3
       speed: 10
+      mac: 01:01:01:01:01:01
   authentication: cesnet-general
   tags: [ http, tls, dns, trill ]
   ansible-playbook-role: probe-ipfixprobe
@@ -16,8 +18,10 @@
   interfaces:
     - name: eth2
       speed: 10
+      mac: 00:00:00:00:00:00
     - name: eth3
       speed: 10
+      mac: 01:01:01:01:01:01
   authentication: flowmon-probes
   tags: [ http, tls, dns, vxlan, gre ]
   connector:
