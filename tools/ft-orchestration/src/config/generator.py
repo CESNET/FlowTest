@@ -6,7 +6,6 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Orchestration configuration entity - GeneratorCfg"""
 
-from enum import Enum
 from typing import List, Optional, Dict
 
 from dataclasses import dataclass
@@ -14,14 +13,6 @@ from dataclass_wizard import YAMLWizard
 
 from src.config.authentication import AuthenticationCfg
 from src.config.common import InterfaceCfg
-
-
-class GeneratorType(Enum):
-    """GeneratorCfg type enum"""
-
-    TCP_REPLAY = "tcpreplay"
-    XDP_REPLAY = "xdpreplay"
-    HARDWARE = "hardware"
 
 
 class GeneratorCfgException(Exception):
@@ -34,7 +25,7 @@ class GeneratorCfg(YAMLWizard):
 
     alias: str
     name: str
-    type: List[GeneratorType]
+    type: str
     interfaces: List[InterfaceCfg]
     authentication: str
     ansible_playbook_role: Optional[str] = None

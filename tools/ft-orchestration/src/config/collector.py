@@ -6,20 +6,12 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Orchestration configuration entity - CollectorCfg"""
 
-from enum import Enum
 from typing import Optional, Dict
 
 from dataclasses import dataclass
 from dataclass_wizard import YAMLWizard
 
 from src.config.authentication import AuthenticationCfg
-
-
-class CollectorType(Enum):
-    """CollectorCfg type enum"""
-
-    IPFIXCOL2 = "ipfixcol2"
-    FLOWSEN = "flowsen"
 
 
 class CollectorCfgException(Exception):
@@ -32,7 +24,7 @@ class CollectorCfg(YAMLWizard):
 
     alias: str
     name: str
-    type: CollectorType
+    type: str
     authentication: str
     ansible_playbook_role: Optional[str] = None
 
@@ -44,7 +36,7 @@ class CollectorCfg(YAMLWizard):
         authentication
             Dictionary of the AuthenticationCfg objects
         """
-        if not self.alias or not self.name or not self.authentication:
+        if not self.alias or not self.name or not self.authentication or not self.type:
             raise CollectorCfgException("Mandatory field is empty")
 
         if self.authentication not in authentication:
