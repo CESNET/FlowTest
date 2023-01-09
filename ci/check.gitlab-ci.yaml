@@ -10,7 +10,7 @@ cppcheck-style:
   script:
     - "cppcheck --error-exitcode=2 --std=c++17 --xml-version=2 --enable=style,unusedFunction tools/ 2> cppcheck-style.xml | tee cppcheck-style.log"
   after_script:
-    - cppcheck_junit cppcheck-style.xml cppcheck-style-junit.xml
+    - pipenv run cppcheck_junit cppcheck-style.xml cppcheck-style-junit.xml
   artifacts:
     paths: [cppcheck-style*.*]
     reports: { junit: cppcheck-style-junit.xml }
@@ -21,7 +21,7 @@ cppcheck-errors:
   script:
     - "cppcheck --error-exitcode=2 --std=c++17 --xml-version=2 --enable=warning,performance,portability,information,missingInclude tools/ 2> cppcheck-errors.xml | tee cppcheck-errors.log"
   after_script:
-    - cppcheck_junit cppcheck-errors.xml cppcheck-errors-junit.xml
+    - pipenv run cppcheck_junit cppcheck-errors.xml cppcheck-errors-junit.xml
   artifacts:
     paths: [cppcheck-errors*.*]
     reports: { junit: cppcheck-errors-junit.xml }
