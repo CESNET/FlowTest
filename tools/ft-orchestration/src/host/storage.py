@@ -61,11 +61,13 @@ class RemoteStorage:
 
         if work_dir is not None:
             self._remote_dir = work_dir
-        elif host in self._TEMP_STORAGES:
-            self._remote_dir = self._TEMP_STORAGES[host]
         else:
-            self._TEMP_STORAGES[host] = self._connection.run("mktemp -d", hide=True).stdout.strip("\n")
-            self._remote_dir = self._TEMP_STORAGES[host]
+            if host not in self._TEMP_STORAGES:
+                self._TEMP_STORAGES[host] = {}
+                if user not in self._TEMP_STORAGES[host]:
+                    self._TEMP_STORAGES[host][user] = self._connection.run("mktemp -d", hide=True).stdout.strip("\n")
+
+            self._remote_dir = self._TEMP_STORAGES[host][user]
 
     def get_remote_directory(self):
         """Return path to storage directory on remote host.
