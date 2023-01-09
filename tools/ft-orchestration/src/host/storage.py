@@ -93,13 +93,29 @@ class RemoteStorage:
             based on time modification and file size. If set to True, then
             difference is based on checksum (which is slower and more
             resource intensive).
+
+        Raises
+        ------
+        RuntimeError
+            sshpass is not installed (only if password verification is used).
         """
 
         checksum = "--checksum" if checksum_diff else ""
+        sshpass = ""
+        connect_kwargs = self._connection.connect_kwargs
+
+        # rsync doesn't support SSH login via password, thus
+        # sshpass is used to provide password automatically
+        if "password" in connect_kwargs:
+            if self._connection.local("command -v sshpass", warn=True, hide=True).exited != 0:
+                logging.getLogger().error("sshpass binary is missing")
+                raise RuntimeError("sshpass binary is missing")
+
+            sshpass = f"sshpass -p {connect_kwargs['password']}"
 
         # Use os.environ to preserve SSH agent
         self._connection.local(
-            f"rsync {checksum} --recursive"
+            f"{sshpass} rsync {checksum} --recursive"
             f" {file_or_directory} {self._connection.user}@{self._connection.host}:{self._remote_dir}",
             env=os.environ,
         )
