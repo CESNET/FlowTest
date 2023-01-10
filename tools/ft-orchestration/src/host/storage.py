@@ -102,6 +102,7 @@ class RemoteStorage:
 
         checksum = "--checksum" if checksum_diff else ""
         sshpass = ""
+        rsh = ""
         connect_kwargs = self._connection.connect_kwargs
 
         # rsync doesn't support SSH login via password, thus
@@ -113,9 +114,14 @@ class RemoteStorage:
 
             sshpass = f"sshpass -p {connect_kwargs['password']}"
 
+        # Provide SSH key to rsync via --rsh (remote-shell) parameter
+        if "key_filename" in connect_kwargs and "password" not in connect_kwargs:
+            key = connect_kwargs["key_filename"][0]
+            rsh = f"--rsh='ssh -i {key}'"
+
         # Use os.environ to preserve SSH agent
         self._connection.local(
-            f"{sshpass} rsync {checksum} --recursive"
+            f"{sshpass} rsync {checksum} --recursive {rsh}"
             f" {file_or_directory} {self._connection.user}@{self._connection.host}:{self._remote_dir}",
             env=os.environ,
         )
