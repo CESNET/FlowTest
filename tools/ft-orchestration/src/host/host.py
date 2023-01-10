@@ -33,9 +33,12 @@ class Host:
         If ``host`` is ``localhost``, storage can be empty.
     user : str, optional
         Login user for the remote connection. If ``password``
-        is not set, use SSH agent for authentication.
+        or ``key_filename`` is not set, use SSH agent for authentication.
     password : str, optional
-        Password for ``user``.
+        Password for ``user``. Has higher priority than ``key_filename``.
+    key_filename : str, optional
+        Path to private key(s) and/or certs. Key must *not* be
+        encrypted (must be without password).
 
     Raises
     ------
@@ -45,9 +48,11 @@ class Host:
         When storage is not set or is incorrect type.
     """
 
-    def __init__(self, host="localhost", storage=None, user=get_real_user(), password=None):
+    def __init__(self, host="localhost", storage=None, user=get_real_user(), password=None, key_filename=None):
 
         connect_kwargs = {}
+        if key_filename is not None:
+            connect_kwargs = {"key_filename": key_filename}
         if password is not None:
             connect_kwargs = {"password": password, "allow_agent": False, "look_for_keys": False}
 
@@ -64,7 +69,7 @@ class Host:
 
             self._local = False
 
-        if not ssh_agent_enabled() and password is None:
+        if not ssh_agent_enabled() and password is None and key_filename is None:
             logging.getLogger().error("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
             raise EnvironmentError("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
 
