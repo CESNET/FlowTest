@@ -32,19 +32,26 @@ class Host:
         Storage object for file synchronization on remote machine.
         If ``host`` is ``localhost``, storage can be empty.
     user : str, optional
-        Login user for the remote connection.
+        Login user for the remote connection. If ``password``
+        is not set, use SSH agent for authentication.
+    password : str, optional
+        Password for ``user``.
 
     Raises
     ------
     EnvironmentError
-        If SSH agent is not enabled.
+        SSH agent is not enabled (only if SSH key verification is used).
     TypeError
         When storage is not set or is incorrect type.
     """
 
-    def __init__(self, host="localhost", storage=None, user=get_real_user()):
+    def __init__(self, host="localhost", storage=None, user=get_real_user(), password=None):
 
-        self._connection = fabric.Connection(host, user)
+        connect_kwargs = {}
+        if password is not None:
+            connect_kwargs = {"password": password, "allow_agent": False, "look_for_keys": False}
+
+        self._connection = fabric.Connection(host, user, connect_kwargs=connect_kwargs)
         self._storage = storage
         self._host = host
 
@@ -57,7 +64,7 @@ class Host:
 
             self._local = False
 
-        if not ssh_agent_enabled():
+        if not ssh_agent_enabled() and password is None:
             logging.getLogger().error("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
             raise EnvironmentError("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
 
