@@ -31,7 +31,7 @@ PLUGIN_PARAMS = {
 }
 
 PROTOCOLS_TO_PLUGINS = {
-    "mac": "l2",
+    "eth": "l2",
     "vlan": "l2",
     "mpls": "l2",
     "tcp": "extended_tcp",
