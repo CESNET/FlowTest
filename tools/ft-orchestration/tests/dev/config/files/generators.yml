@@ -1,6 +1,6 @@
 - alias: sw-gen-10G
   name: cesnet-generator-1.liberouter.org
-  type: [ tcpreplay, xdpreplay ]
+  type: TcpReplay
   interfaces:
     - name: eth2
       speed: 10
@@ -12,7 +12,7 @@
 
 - alias: hw-gen-100G
   name: cesnet-generator-1.liberouter.org
-  type: [ hardware ]
+  type: Replicator
   interfaces:
     - name: eth4
       speed: 100

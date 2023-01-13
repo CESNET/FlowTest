@@ -1,6 +1,6 @@
 - alias: sw-gen-10G
   name: cesnet-generator-1.liberouter.org
-  type: [ tcpreplay, xdpreplay ]
+  type: TcpReplay
   interfaces:
   authentication: cesnet-general
   ansible-playbook-role: generator-software
