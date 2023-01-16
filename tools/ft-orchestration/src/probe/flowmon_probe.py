@@ -86,7 +86,6 @@ FIELDS = {
         "dns_req_query_type",
         "dns_req_query_class",
         "dns_req_query_name",
-        "dns_resp_rcode",
         "dns_resp_rr",
         "dns_resp_rr.name",
         "dns_resp_rr.type",
