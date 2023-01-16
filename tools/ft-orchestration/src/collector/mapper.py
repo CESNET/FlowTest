@@ -61,6 +61,11 @@ class Converters:
         txt = lib.OBJ_nid2ln(nid)
         return ffi.string(txt).decode("ascii") if txt else ""
 
+    @staticmethod
+    def hex_to_int(value: str) -> int:
+        """Convert hex string with leading 0x into integer."""
+        return int(value, 0)
+
 
 class CollectorOutputMapper:
     """Wrapper of CollectorOutputReaderInterface. Flows are mapped from JSON ipfix to YAML annotation format.
