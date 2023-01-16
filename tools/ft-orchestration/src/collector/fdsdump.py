@@ -65,7 +65,7 @@ class Fdsdump(CollectorOutputReaderInterface):
 
         self._host = host
         self._file = file
-        self._cmd = f"fdsdump -r {file} -o json-raw"
+        self._cmd = f"fdsdump -r {file} -o json-raw:no-biflow-split"
         self._process = None
         self._buf = None
         self._idx = 0
