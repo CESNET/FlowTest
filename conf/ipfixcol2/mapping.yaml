@@ -172,7 +172,7 @@
   map: http_content_type
   converter: rstrip_zeroes
 'flowmon:httpReferer':
-  map: http_refer
+  map: http_referer
   converter: rstrip_zeroes
 
 # TLS

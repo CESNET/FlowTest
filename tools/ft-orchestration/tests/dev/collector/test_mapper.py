@@ -238,7 +238,7 @@ def test_converter_rstrip_values():
     assert http_flow["http_url"] == "/status/418"
     assert http_flow["http_agent"] == "curl/7.43.0"
     assert http_flow["http_content_type"] == "text/html; charset=utf-8"
-    assert http_flow["http_refer"] == ""
+    assert http_flow["http_referer"] == ""
 
 
 def test_empty_flow():
