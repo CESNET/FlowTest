@@ -16,7 +16,7 @@ flows:
     src_port:    43281
     dst_port:    80
     http_host:         "acs1.broadband-forum.org"
-    http_method_id:    32770
+    http_method_id:    2
     http_url:          "/"
     http_method:       "POST"
     http_status_code:  401
