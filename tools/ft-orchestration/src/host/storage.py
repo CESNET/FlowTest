@@ -141,3 +141,11 @@ class RemoteStorage:
         """Remove everything from remote storage."""
 
         self._connection.run(f"rm -rf {self._remote_dir}/*")
+
+    def close(self):
+        """Close connection.
+
+        Connection is automatically reopened if needed.
+        """
+
+        self._connection.close()
