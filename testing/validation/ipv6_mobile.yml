@@ -11,7 +11,7 @@ flows:
     dst_ip:        "2d8e:be9b:c3f:83bd:32a1:b5dd:aac6:353e"
     ip_version:    6
     protocol:      59
-    bytes:         148
+    bytes:         72
     packets:       1
     tos:           0x88
     ttl:           150
