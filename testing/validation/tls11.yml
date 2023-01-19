@@ -22,5 +22,5 @@ flows:
     tls_subject_cn:          "server.blah.com"
     tls_validity_not_before: 1502118257
     tls_validity_not_after:  1533654257
-    tls_public_key_alg:      "1.2.840.113549.1.1.1"
+    tls_public_key_alg:      "rsaEncryption"
     tls_ja3:                 "0x3329F003CAD4F302A7529C7D3C1BAE6B"

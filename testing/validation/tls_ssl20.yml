@@ -21,5 +21,5 @@ flows:
     tls_subject_cn:          "stan.musecurity.com"
     tls_validity_not_before: 1118100538
     tls_validity_not_after:  1382916538
-    tls_public_key_alg:      "1.2.840.113549.1.1.1"
+    tls_public_key_alg:      "rsaEncryption"
     tls_ja3:                 "0xE76A0619F4CF744AB2B9EA0AC9B8D5A4"
