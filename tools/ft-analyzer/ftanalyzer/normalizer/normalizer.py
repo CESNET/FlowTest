@@ -201,11 +201,9 @@ class Normalizer:
         uni_fields = self._filter_fields_by_direction(direction, fields)
 
         if validation_flag:
-            return ValidationFlow(
-                self._fwd_key_fmt, self._rev_key_fmt, uni_fields, self._field_db, direction == FieldDirection.REVERSE
-            )
+            return ValidationFlow(self._fwd_key_fmt, self._rev_key_fmt, uni_fields, self._field_db)
 
-        return Flow(self._fwd_key_fmt, self._rev_key_fmt, uni_fields, direction == FieldDirection.REVERSE)
+        return Flow(self._fwd_key_fmt, self._rev_key_fmt, uni_fields)
 
     def _filter_fields_by_direction(
         self,
@@ -241,10 +239,7 @@ class Normalizer:
                 continue
 
             # Transform the field name if the field has its reverse counterpart, but use original values.
-            if (
-                direction == FieldDirection.REVERSE
-                and self._field_db.get_field_direction(f_name) != FieldDirection.ALWAYS
-            ):
+            if direction == FieldDirection.REVERSE:
                 f_name = self._field_db.get_rev_field_name(f_name)
 
             filtered[f_name] = f_value
