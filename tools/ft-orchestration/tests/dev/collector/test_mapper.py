@@ -15,6 +15,7 @@ from typing import List, Union
 import pytest
 
 from src.collector.mapper import (
+    Converters,
     CollectorOutputMapper,
     MappingException,
     MappingFileReadException,
@@ -237,7 +238,7 @@ def test_converter_rstrip_values():
     assert http_flow["http_url"] == "/status/418"
     assert http_flow["http_agent"] == "curl/7.43.0"
     assert http_flow["http_content_type"] == "text/html; charset=utf-8"
-    assert http_flow["http_refer"] == ""
+    assert http_flow["http_referer"] == ""
 
 
 def test_empty_flow():
@@ -618,3 +619,8 @@ def test_converter_tls_alg_nid_to_longname():
     # undefined nid
     yaml_flow, _, _ = next(mapper_it)
     assert yaml_flow["tls_public_key_alg"] == ""
+
+
+def test_converter_hex_to_int():
+    """Test hex_to_int converter."""
+    assert Converters.hex_to_int("0x000131") == 305

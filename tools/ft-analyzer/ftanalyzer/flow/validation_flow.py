@@ -34,7 +34,6 @@ class ValidationFlow(Flow):
         rev_key_fmt: Tuple[str, ...],
         fields: Dict[str, Union[str, int, Dict, List]],
         fields_db: "FieldDatabase",
-        reverse=False,
     ) -> None:
         """Initialize Flow object by creating its keys from the provided normalized flow fields.
 
@@ -48,8 +47,6 @@ class ValidationFlow(Flow):
             Flow fields in format "name: value".
         fields_db : FieldDatabase
             Fields database object.
-        reverse : bool
-            Flag indicating whether the key should be created from reverse key format.
 
         Raises
         ------
@@ -57,7 +54,7 @@ class ValidationFlow(Flow):
             Key field not present among flow fields.
         """
 
-        super().__init__(key_fmt, rev_key_fmt, fields, reverse)
+        super().__init__(key_fmt, rev_key_fmt, fields)
         self._any_dir_fields = [
             field for field in fields_db.get_fields_in_direction(FieldDirection.ANY) if field in self.fields
         ]

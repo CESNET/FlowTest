@@ -28,6 +28,8 @@ SUPPORTED_FIELDS = [
     "dst_ip",
     "src_port",
     "dst_port",
+    "src_mac",
+    "dst_mac",
     "protocol",
     "ip_version",
     "bytes",
@@ -441,3 +443,13 @@ def test_empty_flows(setup) -> None:
     assert len(flow_missing) == 1
 
     assert not sum_stats(result.get_stats())
+
+
+def test_swapped_fields_single_flow(setup) -> None:
+    """Test situation with fields that are reversed, but both always present (e.g., mac)."""
+
+    key, references, flows = read_test_files("mac-single.yml", "mac.yml")
+    result = run_validation(key, flows, references, setup.fields_db, setup.normalizer, setup.supported, {})
+    assert result.is_passing() is True
+
+    assert sum_stats(result.get_stats()) == (10, 0, 0, 0)

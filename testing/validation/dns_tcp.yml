@@ -30,7 +30,7 @@ flows:
           class:           1
           ttl:             3600
           data:            "25.139.43.240"
-          flowmon_data:    "0x198B2BF0"
+          flowmon_data:    "0x198B2BF"
         - name:            "32dual-long.weberdns.de"
           type:            1
           class:           1

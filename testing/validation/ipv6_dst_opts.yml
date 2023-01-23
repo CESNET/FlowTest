@@ -7,7 +7,7 @@ test:
 key: [src_ip, dst_ip, protocol]
 
 flows:
-  - src_ip:            "f6ea1:86f8:169:115f:76a0:c016:3074:6f95"
+  - src_ip:            "6ea1:86f8:169:115f:76a0:c016:3074:6f95"
     dst_ip:            "2d8e:be9b:c3f:83bd:32a1:b5dd:aac6:353e"
     ip_version:        6
     protocol:          58

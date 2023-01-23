@@ -86,7 +86,6 @@ FIELDS = {
         "dns_req_query_type",
         "dns_req_query_class",
         "dns_req_query_name",
-        "dns_resp_rcode",
         "dns_resp_rr",
         "dns_resp_rr.name",
         "dns_resp_rr.type",
@@ -310,7 +309,7 @@ class FlowmonProbe(ProbeInterface):
             Fields which may present in the flows.
         """
 
-        fields_2d = [FIELDS[p] for p in self._plugins + ["common"]]
+        fields_2d = [FIELDS.get(p, []) for p in self._plugins + ["common"]]
         return [p for sub in fields_2d for p in sub]
 
     def get_special_fields(self):

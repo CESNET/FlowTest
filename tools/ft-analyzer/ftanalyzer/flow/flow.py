@@ -32,7 +32,6 @@ class Flow:
         key_fmt: Tuple[str, ...],
         rev_key_fmt: Tuple[str, ...],
         fields: Dict[str, Union[str, int, Dict, List]],
-        reverse=False,
     ) -> None:
         """Initialize Flow object by creating its keys from the provided normalized flow fields.
 
@@ -44,8 +43,6 @@ class Flow:
             Names of flow fields which create the reverse flow key.
         fields : Dict[str, Union[str, int, Dict, List]]
             Flow fields in format "name: value".
-        reverse : bool
-            Flag indicating whether the key should be created from reverse key format.
 
         Raises
         ------
@@ -55,12 +52,8 @@ class Flow:
         self.key_fmt = key_fmt
         self.fields = fields
 
-        if reverse:
-            self.key = self._parse_key(rev_key_fmt)
-            self.rev_key = self._parse_key(key_fmt)
-        else:
-            self.key = self._parse_key(key_fmt)
-            self.rev_key = self._parse_key(rev_key_fmt)
+        self.key = self._parse_key(key_fmt)
+        self.rev_key = self._parse_key(rev_key_fmt)
 
     def __eq__(self, flow: "Flow") -> bool:
         """Compare 2 flows. Two flows are equal if their keys are equal.

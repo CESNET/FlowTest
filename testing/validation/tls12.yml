@@ -24,5 +24,5 @@ flows:
     tls_subject_cn:          "geo.seznam.cz"
     tls_validity_not_before: 1480291200
     tls_validity_not_after:  1511913599
-    tls_public_key_alg:      "1.2.840.113549.1.1.1"
+    tls_public_key_alg:      "rsaEncryption"
     tls_ja3:                 "0x0FFEE3BA8E615AD22535E7F771690A28"

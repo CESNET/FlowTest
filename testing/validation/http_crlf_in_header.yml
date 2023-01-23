@@ -17,6 +17,6 @@ flows:
     dst_port:    8080
     http_url:          "/"
     http_method:       "GET"
-    http_method_id:    32769
+    http_method_id:    1
     http_status_code:  200
     http_content_type: "text/html"

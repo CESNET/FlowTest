@@ -68,12 +68,16 @@
   map: ip_version
 'iana:mplsTopLabelStackSection':
   map: mpls_label_1
+  converter: hex_to_int
 'iana:mplsLabelStackSection2':
   map: mpls_label_2
+  converter: hex_to_int
 'iana@reverse:mplsTopLabelStackSection@reverse':
   map: mpls_label_1@rev
+  converter: hex_to_int
 'iana@reverse:mplsLabelStackSection2@reverse':
   map: mpls_label_2@rev
+  converter: hex_to_int
 'iana:tcpOptions':
   map: tcp_options
 'iana@reverse:tcpOptions@reverse':
@@ -168,7 +172,7 @@
   map: http_content_type
   converter: rstrip_zeroes
 'flowmon:httpReferer':
-  map: http_refer
+  map: http_referer
   converter: rstrip_zeroes
 
 # TLS
