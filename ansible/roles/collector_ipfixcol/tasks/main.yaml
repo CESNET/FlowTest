@@ -1,0 +1,5 @@
+---
+- name: ipfixcol2 is installed
+  ansible.builtin.dnf:
+    name: ipfixcol2
+    state: latest
