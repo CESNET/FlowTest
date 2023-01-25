@@ -12,6 +12,7 @@ dataclass_wizard = "*"
 pandas = "*"
 numpy = "*"
 pygad = "*"
+scapy = "*"
 
 [dev-packages]
 pylint = "*"

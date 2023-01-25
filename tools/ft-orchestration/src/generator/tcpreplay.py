@@ -9,6 +9,8 @@ Module implements TcpReplay class representing tcpreplay tool.
 
 import logging
 import re
+import tempfile
+from os import path
 from typing import Optional
 
 from src.generator.interface import (
@@ -20,6 +22,7 @@ from src.generator.interface import (
     ReplaySpeed,
     TopSpeed,
 )
+from src.generator.scapy_rewriter import RewriteRules, rewrite_pcap
 
 
 class TcpReplay(PcapPlayer):
@@ -44,13 +47,10 @@ class TcpReplay(PcapPlayer):
         self._mtu = mtu
         self._result = None
 
-        self._binaries_map = {}
-        for binary in ["tcpreplay", "tcpreplay-edit"]:
-            if host.run(f"command -v {binary}", check_rc=False).exited != 0:
-                logging.getLogger().warning("%s is missing on host %s", binary, host.get_host())
-                self._binaries_map[binary] = False
-            else:
-                self._binaries_map[binary] = True
+        self._bin = "tcpreplay"
+        if host.run(f"command -v {self._bin}", check_rc=False).exited != 0:
+            logging.getLogger().error("%s is missing on host %s", self._bin, host.get_host())
+            raise RuntimeError(f"{self._bin} is missing")
 
     def add_interface(self, ifc_name: str, dst_mac: Optional[str] = None):
         """Add interface on which traffic will be replayed.
@@ -128,35 +128,31 @@ class TcpReplay(PcapPlayer):
             logging.getLogger().error("tcpreplay can not be started synchronous in infinite loop")
             raise RuntimeError("tcpreplay can not be started synchronous in infinite loop")
 
+        rewrite_rules = None
+        if self._dst_mac or self._vlan is not None:
+            rewrite_rules = RewriteRules()
+            if self._dst_mac:
+                rewrite_rules.edit_dst_mac = self._dst_mac
+            if self._vlan is not None:
+                rewrite_rules.add_vlan = self._vlan
+
         cmd_options = []
-        if self._dst_mac:
-            cmd_options += [f"--enet-dmac={self._dst_mac}"]
-        if self._vlan is not None:
-            cmd_options += [
-                "--enet-vlan=add",
-                f"--enet-vlan-tag={self._vlan}",
-                "--enet-vlan-pri=0",
-                "--enet-vlan-cfi=0",
-            ]
-
-        if len(cmd_options) > 0:
-            binary = "tcpreplay-edit"
-        else:
-            binary = "tcpreplay"
-
-        if not self._binaries_map[binary]:
-            logging.getLogger().error("use of missing %s binary on host %s", binary, self._host.get_host())
-            raise RuntimeError(f"use of missing {binary} binary on host {self._host.get_host()}")
-
         cmd_options += [self._get_speed_arg(speed)]
         cmd_options += [f"--loop={loop_count}"]
         cmd_options += ["--preload-pcap"]  # always preload pcap file
         cmd_options += [f"--intf1={self._interface}"]
-        cmd_options += [pcap_path]
 
         self._host.run(f"sudo ip link set dev {self._interface} up")
         self._host.run(f"sudo ip link set dev {self._interface} mtu {self._mtu}")
-        self._result = self._host.run(f"sudo {binary} {' '.join(cmd_options)}", asynchronous, check_rc, timeout=timeout)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            if rewrite_rules:
+                pcap_path = rewrite_pcap(pcap_path, rewrite_rules, path.join(temp_dir, path.basename(pcap_path)))
+
+            self._result = self._host.run(
+                f"sudo {self._bin} {' '.join(cmd_options)} {pcap_path}", asynchronous, check_rc, timeout=timeout
+            )
+
         return self._result
 
     def stats(self) -> PcapPlayerStats:
