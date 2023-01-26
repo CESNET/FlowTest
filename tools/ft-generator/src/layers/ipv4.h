@@ -33,8 +33,14 @@ public:
 	 * @param ipSrc Source IP address
 	 * @param ipDst Destination IP address
 	 * @param fragmentChance Fragmentation chance
+	 * @param minPacketSizeToFragment Minimal size of a packet to be chosen for fragmentation
 	 */
-	IPv4(IPv4Address ipSrc, IPv4Address ipDst, double fragmentChance);
+	IPv4(
+		IPv4Address ipSrc,
+		IPv4Address ipDst,
+		double fragmentChance,
+		uint16_t minPacketSizeToFragment
+	);
 
 	void PlanFlow(Flow& flow) override;
 
@@ -57,6 +63,7 @@ private:
 
 	int _buildPacketSize = 0;
 	double _fragmentChance = 0.0;
+	double _minPacketSizeToFragment = 0;
 	int _fragmentCount = 0;
 	int _fragmentRemaining = 0;
 	std::vector<uint8_t> _fragmentBuffer;

@@ -63,7 +63,8 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 		IPv4Address ipSrc = addressGenerators.GenerateIPv4();
 		IPv4Address ipDst = addressGenerators.GenerateIPv4();
 		auto fragProb = config.GetIPv4().GetFragmentationProbability();
-		AddLayer(std::make_unique<IPv4>(ipSrc, ipDst, fragProb));
+		auto minPktSizeToFragment = config.GetIPv4().GetMinPacketSizeToFragment();
+		AddLayer(std::make_unique<IPv4>(ipSrc, ipDst, fragProb, minPktSizeToFragment));
 	} break;
 
 	case L3Protocol::Ipv6: {

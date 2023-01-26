@@ -20,16 +20,20 @@
 
 namespace generator {
 
-const int MIN_PACKET_SIZE_TO_FRAGMENT = 16;
-
 enum class IPv4Map : int {
 	FragmentCount
 };
 
-IPv4::IPv4(IPv4Address ipSrc, IPv4Address ipDst, double fragmentChance) :
+IPv4::IPv4(
+	IPv4Address ipSrc,
+	IPv4Address ipDst,
+	double fragmentChance,
+	uint16_t minPacketSizeToFragment
+) :
 	_ipSrc(ipSrc),
 	_ipDst(ipDst),
-	_fragmentChance(fragmentChance)
+	_fragmentChance(fragmentChance),
+	_minPacketSizeToFragment(minPacketSizeToFragment)
 {
 	_ttl = RandomGenerator::GetInstance().RandomUInt(16, 255);
 	_fwdId = RandomGenerator::GetInstance().RandomUInt();
@@ -49,7 +53,7 @@ void IPv4::PlanFlow(Flow& flow)
 void IPv4::PostPlanFlow(Flow& flow)
 {
 	for (auto it = flow._packets.begin(); it != flow._packets.end(); it++) {
-		if (it->_size < MIN_PACKET_SIZE_TO_FRAGMENT) {
+		if (it->_size < _minPacketSizeToFragment) {
 			continue;
 		}
 		if (RandomGenerator::GetInstance().RandomDouble() <= _fragmentChance) {
