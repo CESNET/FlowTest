@@ -74,9 +74,17 @@ public:
 	 */
 	double GetFragmentationProbability() const { return _fragmentationProbability; }
 
+	/**
+	 * @brief Get the minimal size of a packet to be considered for fragmentation
+	 *
+	 * @return The size as a value in range <0, 65535>
+	 */
+	uint16_t GetMinPacketSizeToFragment() const { return _minPacketSizeToFragment; }
+
 private:
 	std::vector<IPv4AddressRange> _ipRange;
 	double _fragmentationProbability = 0.0;
+	uint16_t _minPacketSizeToFragment = 512;
 };
 
 } // namespace config
