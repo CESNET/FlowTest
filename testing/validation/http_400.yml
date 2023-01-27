@@ -18,4 +18,4 @@ flows:
     http_host:         "192.168.1.25:8000"
     http_status_code:  400
     http_agent:        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"
-    http_content_type: "text/html;charset=utf-8"
+    http_content_type: ["text/html", "text/html;charset=utf-8"]
