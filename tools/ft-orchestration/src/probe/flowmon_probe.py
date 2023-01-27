@@ -266,13 +266,13 @@ class FlowmonProbe(ProbeInterface):
         """Setup input part of flowmon probe configuration."""
 
         if input_plugin == "rawnetcap":
-            input_parameters = f"device={self._interface},sampling=0,cache-size=32768,mtu=1518"
+            input_parameters = f"device={self._interface},sampling=0,cache-size=32768,mtu=9018"
             self._settings["INPUT"] = {"NAME": input_plugin, "PARAMS": input_parameters}
         elif input_plugin == "dpdk":
             input_parameters = (
                 f'name={attributes["driver_name"]},device={attributes["device"]},'
                 + f'cores={attributes["cores"]},pmd={attributes["pmd"]},'
-                + f"stats=/data/components/dpdk-tools/stats/{self._interface},sampling=0,mtu=1500"
+                + f"stats=/data/components/dpdk-tools/stats/{self._interface},sampling=0,mtu=9000"
             )
             self._settings["INPUT"] = {"NAME": input_plugin, "PARAMS": input_parameters}
 
