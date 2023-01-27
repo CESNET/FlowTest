@@ -385,10 +385,10 @@ class Ipfixprobe(ProbeInterface, ABC):
         self._last_run_stats = None
 
         # check and stop running ipfixprobe instance
-        check_running_cmd = "ps aux | grep -i '[i]pfixprobe'"
+        check_running_cmd = "pidof 'ipfixprobe' 'ipfixprobed'"
         running_processes = self._host.run(check_running_cmd, check_rc=False).stdout
         if len(running_processes) > 0:
-            running_pid = int(running_processes.split()[1])
+            running_pid = int(running_processes.split()[0])
             self._stop_process(running_pid)
             time.sleep(2)
 
