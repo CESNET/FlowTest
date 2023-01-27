@@ -226,3 +226,11 @@ class Host:
             return promise.join()
 
         return None
+
+    def close(self):
+        """Close connection.
+
+        Connection is automatically reopened if needed.
+        """
+
+        self._connection.close()
