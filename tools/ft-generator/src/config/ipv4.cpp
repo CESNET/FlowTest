@@ -35,8 +35,21 @@ IPv4::IPv4(const YAML::Node& node)
 {
 	checkAllowedKeys(node, {
 		"ip_range",
+		"fragmentation_probability",
+		"min_packet_size_to_fragment"
 	});
+
 	_ipRange = parseOneOrMany<IPv4AddressRange>(node["ip_range"]);
+	_fragmentationProbability = parseProbability(node["fragmentation_probability"]);
+
+	auto minPktSizeToFragmentNode = node["min_packet_size_to_fragment"];
+	if (minPktSizeToFragmentNode.IsDefined()) {
+		auto result = parseValue<uint16_t>(asScalar(minPktSizeToFragmentNode));
+		if (!result) {
+			throw ConfigError(minPktSizeToFragmentNode, "expected integer in range <0, 65535>");
+		}
+		_minPacketSizeToFragment = *result;
+	}
 }
 
 } // namespace config

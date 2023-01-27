@@ -46,6 +46,7 @@ public:
 	size_t _size = 0;                             //< Planned packet size (IP header and above)
 	bool _isFinished = false;                     //< Do not add more layers to packet
 	std::vector<layer> _layers;                   //< Packet protocol layers in order
+	bool _isExtra = false;                        //< Mark the packet as extra
 };
 
 } // namespace generator

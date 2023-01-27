@@ -76,13 +76,12 @@ std::unique_ptr<Flow> Generator::GetNextFlow() {
 	return (nextCalendarTime > nextProfileStartTime) ? MakeNextFlow() : _calendar.Pop();
 }
 
-std::unique_ptr<Flow> Generator::MakeNextFlow() {
+std::unique_ptr<Flow> Generator::MakeNextFlow()
+{
 	const FlowProfile& profile = _profiles[_nextProfileIdx];
 	_nextProfileIdx++;
-
-	std::unique_ptr<Flow> flow = std::make_unique<Flow>(_nextFlowId++, profile, _addressGenerators);
+	std::unique_ptr<Flow> flow = std::make_unique<Flow>(_nextFlowId++, profile, _addressGenerators, _config);
 	_trafficMeter.OpenFlow(flow->GetId(), profile);
-
 	return flow;
 }
 
