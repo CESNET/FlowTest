@@ -10,7 +10,7 @@ flows:
     ip_version:     6
     protocol:       6
     bytes:          533
-    bytes@rev:      927
+    bytes@rev:      767
     packets:        6
     packets@rev:    4
     tos:            0x00
