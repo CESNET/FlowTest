@@ -453,3 +453,29 @@ def test_swapped_fields_single_flow(setup) -> None:
     assert result.is_passing() is True
 
     assert sum_stats(result.get_stats()) == (10, 0, 0, 0)
+
+
+def test_alternative_field_values_correct(setup) -> None:
+    """Test situation where a flow field can have multiple valid values."""
+
+    key, references, flows = read_test_files("alternative-ok.yml", "alternative.yml")
+    result = run_validation(key, flows, references, setup.fields_db, setup.normalizer, setup.supported, {})
+    assert result.is_passing() is True
+
+    assert sum_stats(result.get_stats()) == (4, 0, 0, 0)
+
+
+def test_alternative_field_values_wrong(setup) -> None:
+    """Test situation where a flow field can have multiple valid values, but the tested is not present."""
+
+    key, references, flows = read_test_files("alternative-wrong.yml", "alternative.yml")
+    result = run_validation(key, flows, references, setup.fields_db, setup.normalizer, setup.supported, {})
+    assert result.is_passing() is False
+
+    report = result.get_report()
+    flow_errors = report["flows"][("192.168.0.113", "209.31.22.39", 3541, 80, 6)]["errors"]
+    for flow, res in flow_errors:
+        if flow["packets"] == 6:
+            assert res["wrong"] == [("http_content_type", "image/png", ["text/html", "text/html;charset=UTF-8"])]
+
+    assert sum_stats(result.get_stats()) == (3, 0, 1, 0)
