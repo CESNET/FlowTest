@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "addressgenerators.h"
 #include "flowprofile.h"
+#include "generators/addressgenerators.h"
 #include "packet.h"
 #include "pcpppacket.h"
 

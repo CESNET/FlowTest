@@ -1,13 +1,23 @@
 add_executable(ft-generator
-	addressgenerators.cpp addressgenerators.h
 	calendar.cpp calendar.h
 	config/commandlineargs.h config/commandlineargs.cpp
 	config/common.h config/common.cpp
 	config/config.h config/config.cpp
+	config/ipv4.h config/ipv4.cpp
+	config/ipv6.h config/ipv6.cpp
+	config/mac.h config/mac.cpp
 	flow.cpp flow.h
 	flowplanhelper.cpp flowplanhelper.h
 	flowprofile.cpp flowprofile.h
 	generator.cpp generator.h
+	generators/addressgenerators.h generators/addressgenerators.cpp
+	generators/common.h generators/common.cpp
+	generators/ipv4addressgenerator.h generators/ipv4addressgenerator.cpp
+	generators/ipv6addressgenerator.h generators/ipv6addressgenerator.cpp
+	generators/lfsr.h generators/lfsr.cpp
+	generators/macaddressgenerator.h generators/macaddressgenerator.cpp
+	generators/multirangegenerator.h generators/multirangegenerator.cpp
+	generators/prefixedgenerator.h generators/prefixedgenerator.cpp
 	layer.h layer.cpp
 	layers/ethernet.h layers/ethernet.cpp
 	layers/icmpecho.h layers/icmpecho.cpp

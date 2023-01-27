@@ -8,20 +8,18 @@
 
 #pragma once
 
-#include <pcapplusplus/IpAddress.h>
-#include <pcapplusplus/MacAddress.h>
-
-#include <array>
+#include "../config/ipv4.h"
+#include "../config/ipv6.h"
+#include "../config/mac.h"
+#include "ipv4addressgenerator.h"
+#include "ipv6addressgenerator.h"
+#include "macaddressgenerator.h"
+#include "multirangegenerator.h"
 
 namespace generator {
 
-using MacAddress = pcpp::MacAddress;
-using IPv4Address = pcpp::IPv4Address;
-using IPv6Address = pcpp::IPv6Address;
-
 /**
  * @brief Generator of unique MAC/IP addresses based on a pseudorandom generator
- *
  */
 class AddressGenerators {
 public:
@@ -30,7 +28,10 @@ public:
 	 *
 	 * @param seed  The seed value of the pseudorandom seed generator
 	 */
-	AddressGenerators(uint32_t seed = 1);
+	AddressGenerators(
+		const std::vector<config::IPv4AddressRange>& ipv4Config,
+		const std::vector<config::IPv6AddressRange>& ipv6Config,
+		const std::vector<config::MacAddressRange>& macConfig);
 
 	/**
 	 * @brief Generate a MAC address
@@ -54,12 +55,9 @@ public:
 	IPv6Address GenerateIPv6();
 
 private:
-	uint32_t _capacity = 0;
-	uint32_t _state;
-	uint32_t _seedState;
-
-	uint32_t NextValue();
-	void NextSeed();
+	MultiRangeGenerator<IPv4AddressGenerator, IPv4Address> _ipv4;
+	MultiRangeGenerator<IPv6AddressGenerator, IPv6Address> _ipv6;
+	MultiRangeGenerator<MacAddressGenerator, MacAddress> _mac;
 };
 
 } // namespace generator

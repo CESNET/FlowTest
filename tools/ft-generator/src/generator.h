@@ -8,10 +8,11 @@
 
 #pragma once
 
-#include "addressgenerators.h"
 #include "calendar.h"
+#include "config/config.h"
 #include "flow.h"
 #include "flowprofile.h"
+#include "generators/addressgenerators.h"
 #include "trafficmeter.h"
 
 #include <algorithm>
@@ -43,8 +44,9 @@ public:
 	 *
 	 * @param profilesProvider  The flow profiles provider
 	 * @param trafficMeter      The traffic meter
+	 * @param config            The configuration
 	 */
-	Generator(FlowProfileProvider& profilesProvider, TrafficMeter& trafficMeter);
+	Generator(FlowProfileProvider& profilesProvider, TrafficMeter& trafficMeter, const config::Config& config);
 
 	/**
 	 * @brief Generate the next packet
@@ -63,6 +65,7 @@ private:
 	uint64_t _nextFlowId = 0;              //< ID of the next constructed flow
 	pcpp::Packet _packet;                  //< The current packet instance
 	TrafficMeter& _trafficMeter;           //< Traffic statistics
+	const config::Config& _config;         //< The configuration
 	AddressGenerators _addressGenerators;  //< The address generators
 
 	std::unique_ptr<Flow> GetNextFlow();

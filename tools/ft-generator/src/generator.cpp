@@ -9,8 +9,13 @@
 
 namespace generator {
 
-Generator::Generator(FlowProfileProvider& profilesProvider, TrafficMeter& trafficMeter)
-	: _trafficMeter(trafficMeter)
+Generator::Generator(FlowProfileProvider& profilesProvider, TrafficMeter& trafficMeter, const config::Config& config) :
+	_trafficMeter(trafficMeter),
+	_config(config),
+	_addressGenerators(
+		config.GetIPv4().GetIpRange(),
+		config.GetIPv6().GetIpRange(),
+		config.GetMac().GetMacRange())
 {
 	profilesProvider.Provide(_profiles);
 
