@@ -7,13 +7,10 @@ SPDX-License-Identifier: BSD-3-Clause
 Pytest conftest file.
 """
 
+import logging
 import os
 
 import pytest
-
-
-def pytest_addoption(parser):  # pylint: disable=unused-argument
-    """Add pytest options. Currently empty."""
 
 
 @pytest.fixture(scope="session")
@@ -22,3 +19,25 @@ def require_root():
 
     if os.geteuid() != 0:
         pytest.skip("requires root permissions")
+
+
+def pytest_addhooks(pluginmanager: pytest.PytestPluginManager):
+    """Include fixtures from components.
+
+    Register only when plugins were not registered at top-level conftest,
+    e.g.: when pytest was started from tools/ft-orchestration.
+    """
+
+    plugins = ["src.topology.common", "src.topology.pcap_player"]
+
+    for plugin in plugins:
+        if not pluginmanager.hasplugin(plugin):
+            pluginmanager.import_plugin(plugin)
+
+
+def pytest_configure():
+    """Restrict certain loggers so they don't pollute
+    output with useless messages.
+    """
+
+    logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
