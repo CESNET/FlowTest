@@ -50,8 +50,9 @@ Especially, if the probe is capable of exporting biflows.  For this reason, it i
 necessary to categorize which flow fields are supposed to be in which direction.
 Therefore, special sections *_forward* and *_reverse* should be utilized for this purpose.
 
-The annotation format allows to define group of fields (*subfields*) which can be useful
-if there are multiple possible values for the fields in the group. See examples below.
+The annotation format allows to define field alternatives (multiple possible values in a single field)
+and also group of fields (*subfields*) which can be useful if there are multiple possible values
+for the fields in the group. See examples below.
 
 ### General Annotation Structure
 
@@ -155,7 +156,39 @@ flows:
     vxlan_id:          123
 ```
 
-### Example no. 4 - DNS Communication with Special Fields and Subfields
+### Example no. 4 - HTTP Parsing with Alternative Field Values
+
+In this example, the `http_content_type` field can contain any of the specified values.
+
+```yaml
+# Check that HTTP 500 error response code is parsed properly
+test:
+  name: HTTP Error 500
+  pcaps: ["http_500.pcap"]
+  required_protocols: ["http"]
+
+flows:
+  - src_ip:      "192.168.0.113"
+    dst_ip:      "209.31.22.39"
+    ip_version:  4
+    protocol:    6
+    bytes:       931
+    bytes@rev:   4298
+    packets:     6
+    packets@rev: 6
+    src_port:    3541
+    dst_port:    80
+    http_host:         "www.frys.com"
+    http_url:          "/category/Outpost/Notebooks+&+Tablets/View+All+Notebooks?site=sa:Notebook%20Pod:Pod2"
+    http_method:       "GET"
+    http_method_id:    1
+    http_status_code:  500
+    http_agent:        "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 (.NET CLR 3.5.30729)"
+    http_content_type: ["text/html", "text/html;charset=UTF-8"]
+    http_referer:      "http://www.frys.com/template/notebook/"
+```
+
+### Example no. 5 - DNS Communication with Special Fields and Subfields
 
 ```yaml
 # Check that at least one of the IPv4 addresses present in DNS response to type A request is present in the flow

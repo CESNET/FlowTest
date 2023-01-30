@@ -141,10 +141,10 @@ class ValidationFlow(Flow):
         elif isinstance(value, dict):
             result = self._validate_dict(value, ref, supported, special)
             ret.merge(result)
-        elif ref != value:
-            ret.report_wrong_value_field(name, value, ref)
-        else:
+        elif (isinstance(ref, list) and value in ref) or ref == value:
             ret.report_correct_field(name)
+        else:
+            ret.report_wrong_value_field(name, value, ref)
 
         return ret
 
