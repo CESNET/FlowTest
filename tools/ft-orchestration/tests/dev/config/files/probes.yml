@@ -1,6 +1,6 @@
 - alias: ipfix-probe-10G
   name: cesnet-probe-1.liberouter.org
-  type: ipfix-probe
+  type: IpfixprobeRaw
   interfaces:
     - name: eth2
       speed: 10
@@ -14,7 +14,7 @@
 
 - alias: flowmonexp-10G
   name: cesnet-probe-2.liberouter.org
-  type: flowmonexp
+  type: FlowmonProbe
   interfaces:
     - name: eth2
       speed: 10

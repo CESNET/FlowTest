@@ -1,9 +1,7 @@
 - alias: hw-gen-100G
   name: cesnet-generator-1.liberouter.org
-  type: hardware
+  type: Replicator
   interfaces:
-    - name: eth4
-      speed: 100
-    - name: eth5
-      speed: 100
+    name: eth4
+    speed: 100
   authentication: cesnet-general

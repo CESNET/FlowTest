@@ -10,12 +10,11 @@ import os
 from typing import Dict
 
 import pytest
-
 from src.config.authentication import AuthenticationCfg
-from src.config.collector import CollectorCfg, CollectorType
+from src.config.collector import CollectorCfg
 from src.config.common import InterfaceCfg
 from src.config.config import Config, ConfigException
-from src.config.generator import GeneratorCfg, GeneratorType
+from src.config.generator import GeneratorCfg
 from src.config.probe import ProbeCfg
 
 FILES_DIR = f"{os.getcwd()}/tools/ft-orchestration/tests/dev/config/files"
@@ -38,7 +37,7 @@ def test_generators(create_config) -> None:
     Example data:
         - alias: sw-gen-10G
             name: cesnet-generator-1.liberouter.org
-            type: [tcpreplay, xdpreplay]
+            type: TcpReplay
             Interfaces:
         - name: eth2
             speed: 10
@@ -49,7 +48,7 @@ def test_generators(create_config) -> None:
 
         - alias: hw-gen-100G
             name: cesnet-generator-1.liberouter.org
-            type: [hardware]
+            type: Replicator
         interfaces:
             - name: eth4
         speed: 100
@@ -68,7 +67,7 @@ def test_generators(create_config) -> None:
     # check gen_1
     assert gen_1.alias == "sw-gen-10G"
     assert gen_1.name == "cesnet-generator-1.liberouter.org"
-    assert gen_1.type == [GeneratorType.TCP_REPLAY, GeneratorType.XDP_REPLAY]
+    assert gen_1.type == "TcpReplay"
     assert gen_1.interfaces == [InterfaceCfg(name="eth2", speed=10), InterfaceCfg(name="eth3", speed=10)]
     assert gen_1.authentication == "cesnet-general"
     assert gen_1.ansible_playbook_role == "generator-software"
@@ -101,7 +100,7 @@ def test_generators_invalid() -> None:
         )
         assert False
     except ConfigException as err:
-        assert "exception Failure parsing field `type` in class `GeneratorCfg`. Expected a type" in str(err)
+        assert "exception Failure parsing field `interfaces` in class `GeneratorCfg`. Expected a type" in str(err)
 
 
 def test_authentications(create_config) -> None:
@@ -167,12 +166,12 @@ def test_collectors(create_config) -> None:
     Example data:
         - alias: ipfixcol-1
             name: cesnet-collector-1.liberouter.org
-            type: ipfixcol2
+            type: Ipfixcol2
             authentication: cesnet-general
 
         - alias: flowsen-1
             name: cesnet-collector-1.liberouter.org
-            type: flowsen
+            type: Flowsen
             authentication: flowmon-probes
             ansible-playbook-role: collector-flowsen
     """
@@ -186,13 +185,13 @@ def test_collectors(create_config) -> None:
 
     assert coll_1.alias == "ipfixcol-1"
     assert coll_1.name == "cesnet-collector-1.liberouter.org"
-    assert coll_1.type == CollectorType.IPFIXCOL2
+    assert coll_1.type == "Ipfixcol2"
     assert coll_1.authentication == "cesnet-general"
     assert coll_1.ansible_playbook_role is None
 
     assert coll_2.alias == "flowsen-1"
     assert coll_2.name == "cesnet-collector-1.liberouter.org"
-    assert coll_2.type == CollectorType.FLOWSEN
+    assert coll_2.type == "Flowsen"
     assert coll_2.authentication == "flowmon-probes"
     assert coll_2.ansible_playbook_role == "collector-flowsen"
 
@@ -235,7 +234,7 @@ def test_probes(create_config) -> None:
     Example data:
         - alias: ipfix-probe-10G
             name: cesnet-probe-1.liberouter.org
-            type: ipfix-probe
+            type: IpfixprobeRaw
             interfaces:
                 - name: eth2
                     speed: 10
@@ -249,7 +248,7 @@ def test_probes(create_config) -> None:
 
         - alias: flowmonexp-10G
             name: cesnet-probe-2.liberouter.org
-            type: flowmonexp
+            type: FlowmonProbe
             interfaces:
                 - name: eth2
                     speed: 10
@@ -272,7 +271,7 @@ def test_probes(create_config) -> None:
 
     assert probe_1.alias == "ipfix-probe-10G"
     assert probe_1.name == "cesnet-probe-1.liberouter.org"
-    assert probe_1.type == "ipfix-probe"
+    assert probe_1.type == "IpfixprobeRaw"
     assert probe_1.interfaces == [
         InterfaceCfg(name="eth2", speed=10, mac="00:00:00:00:00:00"),
         InterfaceCfg(name="eth3", speed=10, mac="01:01:01:01:01:01"),
@@ -284,7 +283,7 @@ def test_probes(create_config) -> None:
 
     assert probe_2.alias == "flowmonexp-10G"
     assert probe_2.name == "cesnet-probe-2.liberouter.org"
-    assert probe_2.type == "flowmonexp"
+    assert probe_2.type == "FlowmonProbe"
     assert probe_2.interfaces == [
         InterfaceCfg(name="eth2", speed=10, mac="00:00:00:00:00:00"),
         InterfaceCfg(name="eth3", speed=10, mac="01:01:01:01:01:01"),
