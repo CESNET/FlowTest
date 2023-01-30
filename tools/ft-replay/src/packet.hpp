@@ -37,7 +37,6 @@ struct PacketInfo {
  */
 class Packet {
 public:
-
 	/**
 	 * @brief Get the Packet hash value
 	 */

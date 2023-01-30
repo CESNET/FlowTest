@@ -25,8 +25,8 @@ std::unique_ptr<OutputPlugin> OutputPluginFactory::Create(const std::string& Out
 	return it->second(pluginParams);
 }
 
-std::pair<std::string, std::string> OutputPluginFactory::SplitOutputPluginParams(
-	const std::string& OutputPluginParams)
+std::pair<std::string, std::string>
+OutputPluginFactory::SplitOutputPluginParams(const std::string& OutputPluginParams)
 {
 	std::size_t position = OutputPluginParams.find_first_of(":");
 	if (position == std::string::npos) {

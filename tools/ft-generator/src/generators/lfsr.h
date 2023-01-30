@@ -30,7 +30,7 @@ public:
 	 *
 	 * @throw std::invalid_argument in case nBits is an invalid number of bits
 	 */
-	Lfsr(unsigned int nBits, const std::bitset<128> &seed);
+	Lfsr(unsigned int nBits, const std::bitset<128>& seed);
 
 	/**
 	 * @brief Generate the next 128 bit value
@@ -43,9 +43,9 @@ public:
 	std::bitset<128> Next();
 
 private:
-	unsigned int _nBits;         //< The number of bits
+	unsigned int _nBits; //< The number of bits
 	std::vector<uint64_t> _taps; //< The taps used for calculation of the next bit
-	std::bitset<128> _state;     //< The shift register state
+	std::bitset<128> _state; //< The shift register state
 
 	void Shift();
 };

@@ -8,12 +8,13 @@
 
 #include "pcapwriter.h"
 
-#include <stdexcept>
 #include <limits>
+#include <stdexcept>
 
 namespace generator {
 
-PcapWriter::PcapWriter(const std::string& filename) {
+PcapWriter::PcapWriter(const std::string& filename)
+{
 	_pcap.reset(pcap_open_dead(DLT_EN10MB, std::numeric_limits<uint16_t>::max()));
 	if (!_pcap) {
 		throw std::runtime_error("pcap open failed: " + std::string(pcap_geterr(_pcap.get())));
@@ -25,13 +26,17 @@ PcapWriter::PcapWriter(const std::string& filename) {
 	}
 }
 
-void PcapWriter::WritePacket(const std::byte* data, uint32_t length, timeval timestamp) {
+void PcapWriter::WritePacket(const std::byte* data, uint32_t length, timeval timestamp)
+{
 	pcap_pkthdr header;
 	header.caplen = length;
 	header.len = length;
 	header.ts = timestamp;
 
-	pcap_dump(reinterpret_cast<u_char *>(_dumper.get()), &header, reinterpret_cast<const u_char *>(data));
+	pcap_dump(
+		reinterpret_cast<u_char*>(_dumper.get()),
+		&header,
+		reinterpret_cast<const u_char*>(data));
 }
 
 } // namespace generator

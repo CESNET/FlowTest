@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../randomgenerator.h"
 #include "addressgenerators.h"
+#include "../randomgenerator.h"
 #include "common.h"
 
 #include <cassert>
@@ -29,12 +29,12 @@ static MultiRangeGenerator<GeneratorT, AddressT> Make(const std::vector<RangeT>&
 }
 
 AddressGenerators::AddressGenerators(
-		const std::vector<config::IPv4AddressRange>& ipv4Config,
-		const std::vector<config::IPv6AddressRange>& ipv6Config,
-		const std::vector<config::MacAddressRange>& macConfig) :
-	_ipv4(Make<config::IPv4AddressRange, IPv4AddressGenerator, IPv4Address>(ipv4Config)),
-	_ipv6(Make<config::IPv6AddressRange, IPv6AddressGenerator, IPv6Address>(ipv6Config)),
-	_mac(Make<config::MacAddressRange, MacAddressGenerator, MacAddress>(macConfig))
+	const std::vector<config::IPv4AddressRange>& ipv4Config,
+	const std::vector<config::IPv6AddressRange>& ipv6Config,
+	const std::vector<config::MacAddressRange>& macConfig)
+	: _ipv4(Make<config::IPv4AddressRange, IPv4AddressGenerator, IPv4Address>(ipv4Config))
+	, _ipv6(Make<config::IPv6AddressRange, IPv6AddressGenerator, IPv6Address>(ipv6Config))
+	, _mac(Make<config::MacAddressRange, MacAddressGenerator, MacAddress>(macConfig))
 {
 }
 

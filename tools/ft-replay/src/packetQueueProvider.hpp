@@ -23,7 +23,6 @@ using PacketQueue = std::vector<std::unique_ptr<Packet>>;
  */
 class PacketQueueProvider {
 public:
-
 	/**
 	 * @brief Create packet queues
 	 *

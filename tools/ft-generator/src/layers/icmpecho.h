@@ -18,8 +18,8 @@
 #include <pcapplusplus/IcmpLayer.h>
 
 #include <cstdint>
-#include <vector>
 #include <queue>
+#include <vector>
 
 namespace generator {
 
@@ -28,7 +28,6 @@ namespace generator {
  */
 class IcmpEcho : public Layer {
 public:
-
 	/**
 	 * @brief Construct a new IcmpEcho object
 	 *

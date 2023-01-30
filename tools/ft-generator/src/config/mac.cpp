@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "common.h"
 #include "mac.h"
+#include "common.h"
 
 namespace generator {
 namespace config {
@@ -33,9 +33,11 @@ MacAddressRange::MacAddressRange(const YAML::Node& node)
 
 Mac::Mac(const YAML::Node& node)
 {
-	checkAllowedKeys(node, {
-		"mac_range",
-	});
+	checkAllowedKeys(
+		node,
+		{
+			"mac_range",
+		});
 	_macRange = parseOneOrMany<MacAddressRange>(node["mac_range"]);
 }
 

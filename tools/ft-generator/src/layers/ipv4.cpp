@@ -20,20 +20,17 @@
 
 namespace generator {
 
-enum class IPv4Map : int {
-	FragmentCount
-};
+enum class IPv4Map : int { FragmentCount };
 
 IPv4::IPv4(
 	IPv4Address ipSrc,
 	IPv4Address ipDst,
 	double fragmentChance,
-	uint16_t minPacketSizeToFragment
-) :
-	_ipSrc(ipSrc),
-	_ipDst(ipDst),
-	_fragmentChance(fragmentChance),
-	_minPacketSizeToFragment(minPacketSizeToFragment)
+	uint16_t minPacketSizeToFragment)
+	: _ipSrc(ipSrc)
+	, _ipDst(ipDst)
+	, _fragmentChance(fragmentChance)
+	, _minPacketSizeToFragment(minPacketSizeToFragment)
 {
 	_ttl = RandomGenerator::GetInstance().RandomUInt(16, 255);
 	_fwdId = RandomGenerator::GetInstance().RandomUInt();
@@ -43,7 +40,7 @@ IPv4::IPv4(
 void IPv4::PlanFlow(Flow& flow)
 {
 	PacketFlowSpan packetsSpan(&flow, true);
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		Packet::layerParams params;
 		packet._size += pcpp::IPv4Layer().getHeaderLen();
 		packet._layers.emplace_back(std::make_pair(this, params));
@@ -112,8 +109,9 @@ void IPv4::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 	if (_fragmentRemaining > 0) {
 		// We have to find the layer again since addLayer apparently invalidates the pointer???
 		//
-		//NOTE: We assume there is only one Ipv4 layer!
-		// If there are multiple and we want to fragment one of the lower ones this has to be done a different way.
+		// NOTE: We assume there is only one Ipv4 layer!
+		// If there are multiple and we want to fragment one of the lower ones this has to be done a
+		// different way.
 		layer = static_cast<pcpp::IPv4Layer*>(packet.getLayerOfType(pcpp::IPv4));
 		BuildFragment(packet, layer->getIPv4Header());
 	}
@@ -137,8 +135,8 @@ void IPv4::BuildFragment(PcppPacket& packet, pcpp::iphdr* ipHdr)
 	}
 	ipHdr->ipId = htons(_fragmentId);
 	ipHdr->protocol = _fragmentProto;
-	pcpp::PayloadLayer* payloadLayer = new pcpp::PayloadLayer(&_fragmentBuffer[_fragmentOffset],
-																fragmentSize, false);
+	pcpp::PayloadLayer* payloadLayer
+		= new pcpp::PayloadLayer(&_fragmentBuffer[_fragmentOffset], fragmentSize, false);
 	packet.addLayer(payloadLayer, true);
 
 	_fragmentOffset += fragmentSize;
@@ -148,7 +146,8 @@ void IPv4::BuildFragment(PcppPacket& packet, pcpp::iphdr* ipHdr)
 void IPv4::PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) plan;
-	// Check if the packet is start of fragmentation, and if so how many fragments it should be split to
+	// Check if the packet is start of fragmentation, and if so how many fragments it should be
+	// split to
 	auto it = params.find(int(IPv4Map::FragmentCount));
 	if (it != params.end()) {
 		uint64_t fragmentCount = std::get<uint64_t>(it->second);
@@ -171,6 +170,5 @@ void IPv4::PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& pl
 		BuildFragment(packet, layer->getIPv4Header());
 	}
 }
-
 
 } // namespace generator

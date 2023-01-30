@@ -13,9 +13,9 @@
 
 namespace generator {
 
-Mpls::Mpls(uint32_t mplsLabel) :
-	_mplsLabel(mplsLabel),
-	_ttl(RandomGenerator::GetInstance().RandomUInt(16, 255))
+Mpls::Mpls(uint32_t mplsLabel)
+	: _mplsLabel(mplsLabel)
+	, _ttl(RandomGenerator::GetInstance().RandomUInt(16, 255))
 {
 }
 
@@ -24,7 +24,7 @@ void Mpls::PlanFlow(Flow& flow)
 	_isNextLayerMpls = (dynamic_cast<Mpls*>(GetNextLayer()) != nullptr);
 
 	PacketFlowSpan packetsSpan(&flow, true);
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		Packet::layerParams params;
 		packet._layers.emplace_back(std::make_pair(this, params));
 	}
@@ -33,7 +33,7 @@ void Mpls::PlanFlow(Flow& flow)
 void Mpls::PlanExtra(Flow& flow)
 {
 	PacketFlowSpan packetsSpan(&flow, true);
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		if (packet._isExtra) {
 			Packet::layerParams params;
 			packet._layers.emplace_back(std::make_pair(this, params));

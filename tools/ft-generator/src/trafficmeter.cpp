@@ -32,9 +32,15 @@ void TrafficMeter::CloseFlow(uint64_t flowId)
 }
 
 void TrafficMeter::ExtractPacketParams(
-	const PcppPacket& packet, L3Protocol l3Proto, L4Protocol l4Proto,
-	MacAddress& srcMac, IPAddress& srcIp, uint16_t& srcPort,
-	MacAddress& dstMac, IPAddress& dstIp, uint16_t& dstPort)
+	const PcppPacket& packet,
+	L3Protocol l3Proto,
+	L4Protocol l4Proto,
+	MacAddress& srcMac,
+	IPAddress& srcIp,
+	uint16_t& srcPort,
+	MacAddress& dstMac,
+	IPAddress& dstIp,
+	uint16_t& dstPort)
 {
 	pcpp::EthLayer* ethLayer = static_cast<pcpp::EthLayer*>(packet.getLayerOfType(pcpp::Ethernet));
 	assert(ethLayer != nullptr);
@@ -42,12 +48,14 @@ void TrafficMeter::ExtractPacketParams(
 	dstMac = ethLayer->getDestMac();
 
 	if (l3Proto == L3Protocol::Ipv4) {
-		pcpp::IPv4Layer* ipv4Layer = static_cast<pcpp::IPv4Layer*>(packet.getLayerOfType(pcpp::IPv4));
+		pcpp::IPv4Layer* ipv4Layer
+			= static_cast<pcpp::IPv4Layer*>(packet.getLayerOfType(pcpp::IPv4));
 		assert(ipv4Layer != nullptr);
 		srcIp = ipv4Layer->getSrcIPv4Address();
 		dstIp = ipv4Layer->getDstIPv4Address();
 	} else if (l3Proto == L3Protocol::Ipv6) {
-		pcpp::IPv6Layer* ipv6Layer = static_cast<pcpp::IPv6Layer*>(packet.getLayerOfType(pcpp::IPv6));
+		pcpp::IPv6Layer* ipv6Layer
+			= static_cast<pcpp::IPv6Layer*>(packet.getLayerOfType(pcpp::IPv6));
 		assert(ipv6Layer != nullptr);
 		srcIp = ipv6Layer->getSrcIPv6Address();
 		dstIp = ipv6Layer->getDstIPv6Address();
@@ -66,7 +74,11 @@ void TrafficMeter::ExtractPacketParams(
 	}
 }
 
-void TrafficMeter::RecordPacket(uint64_t flowId, timeval time, Direction dir, const PcppPacket& packet)
+void TrafficMeter::RecordPacket(
+	uint64_t flowId,
+	timeval time,
+	Direction dir,
+	const PcppPacket& packet)
 {
 	assert(flowId < _records.size());
 	FlowRecord& rec = _records[flowId];
@@ -80,18 +92,32 @@ void TrafficMeter::RecordPacket(uint64_t flowId, timeval time, Direction dir, co
 	assert(dir != Direction::Unknown);
 	if (dir == Direction::Forward) {
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
-			ExtractPacketParams(packet, rec._l3Proto, rec._l4Proto,
-				rec._fwdMacAddr, rec._fwdIpAddr, rec._fwdPort,
-				rec._revMacAddr, rec._revIpAddr, rec._revPort);
+			ExtractPacketParams(
+				packet,
+				rec._l3Proto,
+				rec._l4Proto,
+				rec._fwdMacAddr,
+				rec._fwdIpAddr,
+				rec._fwdPort,
+				rec._revMacAddr,
+				rec._revIpAddr,
+				rec._revPort);
 		}
 		rec._fwdPkts++;
 		rec._fwdBytes += packet.getRawPacket()->getRawDataLen() - ETHER_HEADER_LEN;
 
 	} else if (dir == Direction::Reverse) {
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
-			ExtractPacketParams(packet, rec._l3Proto, rec._l4Proto,
-				rec._revMacAddr, rec._revIpAddr, rec._revPort,
-				rec._fwdMacAddr, rec._fwdIpAddr, rec._fwdPort);
+			ExtractPacketParams(
+				packet,
+				rec._l3Proto,
+				rec._l4Proto,
+				rec._revMacAddr,
+				rec._revIpAddr,
+				rec._revPort,
+				rec._fwdMacAddr,
+				rec._fwdIpAddr,
+				rec._fwdPort);
 		}
 		rec._revPkts++;
 		rec._revBytes += packet.getRawPacket()->getRawDataLen() - ETHER_HEADER_LEN;

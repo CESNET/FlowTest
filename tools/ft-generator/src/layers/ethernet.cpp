@@ -8,12 +8,12 @@
  */
 
 #include "ethernet.h"
-#include "ipv4.h"
-#include "ipv6.h"
-#include "vlan.h"
-#include "mpls.h"
 #include "../packetflowspan.h"
 #include "../pcppethlayer.h"
+#include "ipv4.h"
+#include "ipv6.h"
+#include "mpls.h"
+#include "vlan.h"
 
 #include <arpa/inet.h>
 
@@ -21,8 +21,9 @@
 
 namespace generator {
 
-Ethernet::Ethernet(MacAddress macSrc, MacAddress macDst) :
-	_macSrc(macSrc), _macDst(macDst)
+Ethernet::Ethernet(MacAddress macSrc, MacAddress macDst)
+	: _macSrc(macSrc)
+	, _macDst(macDst)
 {
 }
 
@@ -46,7 +47,7 @@ void Ethernet::PlanFlow(Flow& flow)
 	}
 
 	PacketFlowSpan packetsSpan(&flow, true);
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		Packet::layerParams params;
 		packet._layers.emplace_back(std::make_pair(this, params));
 	}
@@ -55,7 +56,7 @@ void Ethernet::PlanFlow(Flow& flow)
 void Ethernet::PlanExtra(Flow& flow)
 {
 	PacketFlowSpan packetsSpan(&flow, true);
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		if (packet._isExtra) {
 			Packet::layerParams params;
 			packet._layers.emplace_back(std::make_pair(this, params));
@@ -65,7 +66,7 @@ void Ethernet::PlanExtra(Flow& flow)
 
 void Ethernet::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
-	PcppEthLayer *ethLayer;
+	PcppEthLayer* ethLayer;
 
 	(void) params;
 

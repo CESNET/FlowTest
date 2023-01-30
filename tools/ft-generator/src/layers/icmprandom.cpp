@@ -9,10 +9,10 @@
 #include "icmprandom.h"
 #include "../randomgenerator.h"
 
-#include <pcapplusplus/IcmpLayer.h>
 #include <pcapplusplus/IPv4Layer.h>
-#include <pcapplusplus/UdpLayer.h>
+#include <pcapplusplus/IcmpLayer.h>
 #include <pcapplusplus/PayloadLayer.h>
+#include <pcapplusplus/UdpLayer.h>
 
 #include <cstdlib>
 #include <functional>
@@ -26,9 +26,7 @@ static constexpr int UDP_HDR_SIZE = sizeof(pcpp::udphdr);
 
 static_assert(MAX_DUMMY_PKT_LEN >= IPV4_HDR_SIZE + UDP_HDR_SIZE);
 
-IcmpRandom::IcmpRandom()
-{
-}
+IcmpRandom::IcmpRandom() {}
 
 void IcmpRandom::PlanFlow(Flow& flow)
 {
@@ -55,7 +53,8 @@ void IcmpRandom::Build(PcppPacket& packet, Packet::layerParams& params, Packet& 
 	pcpp::IcmpLayer* icmpLayer = new pcpp::IcmpLayer();
 	packet.addLayer(icmpLayer, true);
 
-	pcpp::IPv4Layer* thisIpv4Layer = static_cast<pcpp::IPv4Layer*>(packet.getLayerOfType(pcpp::IPv4));
+	pcpp::IPv4Layer* thisIpv4Layer
+		= static_cast<pcpp::IPv4Layer*>(packet.getLayerOfType(pcpp::IPv4));
 	if (!thisIpv4Layer) {
 		throw std::runtime_error("ICMP layer cannot find IPv4 header");
 	}
@@ -66,8 +65,9 @@ void IcmpRandom::Build(PcppPacket& packet, Packet::layerParams& params, Packet& 
 	ipv4Layer->setDstIPv4Address(thisIpv4Layer->getSrcIPv4Address());
 	pcpp::iphdr* ipv4Hdr = ipv4Layer->getIPv4Header();
 	ipv4Hdr->timeToLive = RandomGenerator::GetInstance().RandomUInt(1, 255);
-	ipv4Hdr->totalLength =
-		RandomGenerator::GetInstance().RandomUInt(IPV4_HDR_SIZE + UDP_HDR_SIZE, MAX_DUMMY_PKT_LEN);
+	ipv4Hdr->totalLength = RandomGenerator::GetInstance().RandomUInt(
+		IPV4_HDR_SIZE + UDP_HDR_SIZE,
+		MAX_DUMMY_PKT_LEN);
 	ipv4Hdr->protocol = static_cast<int>(L4Protocol::Udp);
 
 	pcpp::UdpLayer* udpLayer = new pcpp::UdpLayer(

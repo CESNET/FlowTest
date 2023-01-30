@@ -29,9 +29,9 @@ namespace generator {
  * @brief A generated packet
  */
 struct GeneratorPacket {
-	timeval _time;           //< The flow time of the packet
-	uint64_t _size;          //< The number of bytes of the packet
-	const std::byte* _data;  //< The bytes of the packet
+	timeval _time; //< The flow time of the packet
+	uint64_t _size; //< The number of bytes of the packet
+	const std::byte* _data; //< The bytes of the packet
 };
 
 /**
@@ -46,7 +46,10 @@ public:
 	 * @param trafficMeter      The traffic meter
 	 * @param config            The configuration
 	 */
-	Generator(FlowProfileProvider& profilesProvider, TrafficMeter& trafficMeter, const config::Config& config);
+	Generator(
+		FlowProfileProvider& profilesProvider,
+		TrafficMeter& trafficMeter,
+		const config::Config& config);
 
 	/**
 	 * @brief Generate the next packet
@@ -59,14 +62,14 @@ public:
 	std::optional<GeneratorPacket> GenerateNextPacket();
 
 private:
-	std::vector<FlowProfile> _profiles;    //< The flow profiles
-	std::size_t _nextProfileIdx = 0;       //< The index of the next flow profile to use to create a flow
-	Calendar _calendar;                    //< The calendar of active flows
-	uint64_t _nextFlowId = 0;              //< ID of the next constructed flow
-	pcpp::Packet _packet;                  //< The current packet instance
-	TrafficMeter& _trafficMeter;           //< Traffic statistics
-	const config::Config& _config;         //< The configuration
-	AddressGenerators _addressGenerators;  //< The address generators
+	std::vector<FlowProfile> _profiles; //< The flow profiles
+	std::size_t _nextProfileIdx = 0; //< The index of the next flow profile to use to create a flow
+	Calendar _calendar; //< The calendar of active flows
+	uint64_t _nextFlowId = 0; //< ID of the next constructed flow
+	pcpp::Packet _packet; //< The current packet instance
+	TrafficMeter& _trafficMeter; //< Traffic statistics
+	const config::Config& _config; //< The configuration
+	AddressGenerators _addressGenerators; //< The address generators
 
 	std::unique_ptr<Flow> GetNextFlow();
 	std::unique_ptr<Flow> MakeNextFlow();

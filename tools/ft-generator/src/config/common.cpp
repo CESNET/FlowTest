@@ -29,7 +29,6 @@ std::vector<std::string> stringSplit(const std::string& s, const std::string& de
 	return pieces;
 }
 
-
 std::string stringStrip(std::string s)
 {
 	auto isNotWhitespace = [](unsigned char c) { return !std::isspace(c); };
@@ -79,11 +78,12 @@ void checkAllowedKeys(const YAML::Node& node, const std::vector<std::string>& al
 		if (std::find(allowedKeys.begin(), allowedKeys.end(), key) == allowedKeys.end()) {
 			std::string allowedKeysStr = "";
 			for (size_t i = 0; i < allowedKeys.size(); i++) {
-				allowedKeysStr += "\"" + allowedKeys[i] + "\""
-					+ (i < allowedKeys.size() - 1 ? ", " : "");
+				allowedKeysStr
+					+= "\"" + allowedKeys[i] + "\"" + (i < allowedKeys.size() - 1 ? ", " : "");
 			}
-			throw ConfigError(kv.first, "unexpected key \"" + key + "\", allowed keys are "
-				+ allowedKeysStr);
+			throw ConfigError(
+				kv.first,
+				"unexpected key \"" + key + "\", allowed keys are " + allowedKeysStr);
 		}
 	}
 }
@@ -119,7 +119,10 @@ double parseProbability(const YAML::Node& node)
 	return result;
 }
 
-void ConfigError::PrintPrettyError(const std::string& configFilename, std::ostream& output, int linesAround) const
+void ConfigError::PrintPrettyError(
+	const std::string& configFilename,
+	std::ostream& output,
+	int linesAround) const
 {
 	output << what() << std::endl;
 	std::ifstream file(configFilename);

@@ -59,4 +59,4 @@ void PcppPacket::detachLayer(pcpp::Layer* layer)
 	}
 }
 
-}
+} // namespace generator

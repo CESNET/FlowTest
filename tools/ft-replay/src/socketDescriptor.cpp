@@ -8,8 +8,8 @@
  */
 #include "socketDescriptor.hpp"
 
-#include <unistd.h>
 #include <net/if.h>
+#include <unistd.h>
 
 namespace replay {
 
@@ -21,7 +21,8 @@ SocketDescriptor::SocketDescriptor(SocketDescriptor&& other)
 	other._socketId = -1;
 }
 
-SocketDescriptor& SocketDescriptor::operator=(SocketDescriptor&& other) {
+SocketDescriptor& SocketDescriptor::operator=(SocketDescriptor&& other)
+{
 	if (this == &other) {
 		return *this;
 	}
@@ -30,13 +31,15 @@ SocketDescriptor& SocketDescriptor::operator=(SocketDescriptor&& other) {
 	return *this;
 }
 
-SocketDescriptor::~SocketDescriptor() {
-	if (_socketId != -1 && close(_socketId) != 0){
+SocketDescriptor::~SocketDescriptor()
+{
+	if (_socketId != -1 && close(_socketId) != 0) {
 		_logger->error("Error while closing socket!");
 	}
 }
 
-void SocketDescriptor::OpenSocket(const int family, const int type, const int procotol) {
+void SocketDescriptor::OpenSocket(const int family, const int type, const int procotol)
+{
 	_socketId = socket(family, type, procotol);
 	if (_socketId == -1) {
 		_logger->error("Cannot open socket (maybe insufficient privilege)");
@@ -44,7 +47,8 @@ void SocketDescriptor::OpenSocket(const int family, const int type, const int pr
 	}
 }
 
-int SocketDescriptor::GetSocketId() const noexcept {
+int SocketDescriptor::GetSocketId() const noexcept
+{
 	return _socketId;
 }
 

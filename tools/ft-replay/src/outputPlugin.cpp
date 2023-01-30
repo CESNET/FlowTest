@@ -8,13 +8,14 @@
 
 #include "outputPlugin.hpp"
 
+#include <algorithm>
 #include <map>
 #include <string>
-#include <algorithm>
 
 namespace replay {
 
-std::map<std::string, std::string> OutputPlugin::SplitArguments(const std::string &args) const {
+std::map<std::string, std::string> OutputPlugin::SplitArguments(const std::string& args) const
+{
 	std::map<std::string, std::string> argMap;
 	std::string argString = args;
 	size_t start = 0;

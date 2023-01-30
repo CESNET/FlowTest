@@ -19,13 +19,15 @@ namespace generator {
 
 constexpr uint64_t CONNECTION_HANDSHAKE_FWD_PKTS = 2;
 constexpr uint64_t CONNECTION_HANDSHAKE_REV_PKTS = 1;
-constexpr uint64_t CONNECTION_HANDSHAKE_PKTS = CONNECTION_HANDSHAKE_FWD_PKTS + CONNECTION_HANDSHAKE_REV_PKTS;
+constexpr uint64_t CONNECTION_HANDSHAKE_PKTS
+	= CONNECTION_HANDSHAKE_FWD_PKTS + CONNECTION_HANDSHAKE_REV_PKTS;
 
 constexpr uint64_t TERM_HANDSHAKE_FWD_PKTS = 2;
 constexpr uint64_t TERM_HANDSHAKE_REV_PKTS = 2;
 constexpr uint64_t TERM_HANDSHAKE_PKTS = TERM_HANDSHAKE_FWD_PKTS + TERM_HANDSHAKE_REV_PKTS;
 
-constexpr uint16_t TCP_WINDOW_SIZE = 64512; //NOTE: Make this configurable and actually check that we ACK soon enough
+constexpr uint16_t TCP_WINDOW_SIZE
+	= 64512; // NOTE: Make this configurable and actually check that we ACK soon enough
 
 enum class TcpPacketKind : uint64_t {
 	Unknown,
@@ -44,8 +46,9 @@ enum class TcpMap : int {
 	Kind = 1,
 };
 
-Tcp::Tcp(uint16_t portSrc, uint16_t portDst) :
-	_portSrc(portSrc), _portDst(portDst)
+Tcp::Tcp(uint16_t portSrc, uint16_t portDst)
+	: _portSrc(portSrc)
+	, _portDst(portDst)
 {
 	_ackNumber = 0;
 	_seqNumber = 0;
@@ -211,14 +214,14 @@ void Tcp::PlanFlow(Flow& flow)
 
 void Tcp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
-	pcpp::TcpLayer *tcpLayer;
+	pcpp::TcpLayer* tcpLayer;
 	if (plan._direction == Direction::Forward) {
 		tcpLayer = new pcpp::TcpLayer(_portSrc, _portDst);
 	} else {
 		tcpLayer = new pcpp::TcpLayer(_portDst, _portSrc);
 	}
 
-	pcpp::tcphdr *tcpHdr = tcpLayer->getTcpHeader();
+	pcpp::tcphdr* tcpHdr = tcpLayer->getTcpHeader();
 
 	TcpPacketKind kind = static_cast<TcpPacketKind>(std::get<uint64_t>(params[int(TcpMap::Kind)]));
 	if (kind == TcpPacketKind::Start1) {

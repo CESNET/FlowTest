@@ -26,34 +26,22 @@ class PacketFlowSpan {
 public:
 	class iterator {
 	public:
-		using packetIterator    = std::list<Packet>::iterator;
+		using packetIterator = std::list<Packet>::iterator;
 		using iterator_category = std::input_iterator_tag;
-		using difference_type   = std::ptrdiff_t;
-		using value_type        = Packet;
-		using pointer           = value_type*;
-		using reference         = value_type&;
+		using difference_type = std::ptrdiff_t;
+		using value_type = Packet;
+		using pointer = value_type*;
+		using reference = value_type&;
 
 		iterator(packetIterator wrapper, packetIterator wrapperEnd, bool getOnlyAvailable);
 
-		bool operator==(const iterator& other)
-		{
-			return _wrapper == other._wrapper;
-		}
+		bool operator==(const iterator& other) { return _wrapper == other._wrapper; }
 
-		bool operator!=(const iterator& other)
-		{
-			return !(*this == other);
-		}
+		bool operator!=(const iterator& other) { return !(*this == other); }
 
-		reference operator*() const
-		{
-			return *_wrapper;
-		}
+		reference operator*() const { return *_wrapper; }
 
-		pointer operator->()
-		{
-			return &(*_wrapper);
-		}
+		pointer operator->() { return &(*_wrapper); }
 
 		iterator& operator++()
 		{
@@ -62,7 +50,6 @@ public:
 		}
 
 	private:
-
 		void GetElement(bool incrementOperator = true);
 
 		packetIterator _wrapper;
@@ -76,8 +63,9 @@ public:
 	 * @param flow              The flow to be iterated over
 	 * @param getOnlyAvailable  Whether finished packets should be skipped over
 	 */
-	PacketFlowSpan(Flow *flow, bool getOnlyAvailable) :
-		_flow(flow), _getOnlyAvailable(getOnlyAvailable)
+	PacketFlowSpan(Flow* flow, bool getOnlyAvailable)
+		: _flow(flow)
+		, _getOnlyAvailable(getOnlyAvailable)
 	{
 	}
 
@@ -100,7 +88,7 @@ public:
 	}
 
 private:
-	Flow *_flow;
+	Flow* _flow;
 	bool _getOnlyAvailable;
 };
 

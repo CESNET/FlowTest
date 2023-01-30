@@ -22,7 +22,6 @@ namespace replay {
  */
 class Config {
 public:
-
 	/**
 	 * @brief Construct a Config object with the default values.
 	 *
@@ -36,7 +35,7 @@ public:
 	 *
 	 * @throws std::invalid_argument  When invalid command line arguments are provided
 	 */
-	void Parse(int argc, char **argv);
+	void Parse(int argc, char** argv);
 
 	/** @brief Get replicator config filename. */
 	const std::string& GetReplicatorConfig() const;
@@ -61,8 +60,8 @@ private:
 	void SetDefaultValues();
 	void Validate();
 
-	const option *GetLongOptions();
-	const char *GetShortOptions();
+	const option* GetLongOptions();
+	const char* GetShortOptions();
 
 	std::string _replicatorConfig;
 	std::string _outputPlugin;

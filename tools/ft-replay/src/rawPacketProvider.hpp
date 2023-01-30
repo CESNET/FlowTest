@@ -22,7 +22,7 @@ namespace replay {
  *
  */
 struct RawPacket {
-	const std::byte *data;
+	const std::byte* data;
 	uint16_t dataLen;
 	uint64_t timestamp;
 };
@@ -33,7 +33,6 @@ struct RawPacket {
  */
 class RawPacketProvider {
 public:
-
 	/**
 	 * @brief Open and validate pcap file
 	 *
@@ -46,14 +45,14 @@ public:
 	 *
 	 * @return const struct RawPacket* Pointer to RawPacket data.
 	 */
-	const struct RawPacket *Next();
+	const struct RawPacket* Next();
 
 private:
-	void OpenFile(const char *file);
+	void OpenFile(const char* file);
 	void CheckDatalink();
-	bool IsHeaderValid(const struct pcap_pkthdr *header);
-	void FillRawPacket(const struct pcap_pkthdr *header, const std::byte *pktData);
-	uint64_t CalculateTimestamp(const struct pcap_pkthdr *header);
+	bool IsHeaderValid(const struct pcap_pkthdr* header);
+	void FillRawPacket(const struct pcap_pkthdr* header, const std::byte* pktData);
+	uint64_t CalculateTimestamp(const struct pcap_pkthdr* header);
 
 	struct RawPacket _packet;
 	std::unique_ptr<pcap_t, decltype(&pcap_close)> _handler {nullptr, &pcap_close};

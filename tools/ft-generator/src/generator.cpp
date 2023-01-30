@@ -9,17 +9,20 @@
 
 namespace generator {
 
-Generator::Generator(FlowProfileProvider& profilesProvider, TrafficMeter& trafficMeter, const config::Config& config) :
-	_trafficMeter(trafficMeter),
-	_config(config),
-	_addressGenerators(
-		config.GetIPv4().GetIpRange(),
-		config.GetIPv6().GetIpRange(),
-		config.GetMac().GetMacRange())
+Generator::Generator(
+	FlowProfileProvider& profilesProvider,
+	TrafficMeter& trafficMeter,
+	const config::Config& config)
+	: _trafficMeter(trafficMeter)
+	, _config(config)
+	, _addressGenerators(
+		  config.GetIPv4().GetIpRange(),
+		  config.GetIPv6().GetIpRange(),
+		  config.GetMac().GetMacRange())
 {
 	profilesProvider.Provide(_profiles);
 
-	auto compare = [](const FlowProfile &lhs, const FlowProfile &rhs) -> bool {
+	auto compare = [](const FlowProfile& lhs, const FlowProfile& rhs) -> bool {
 		return lhs._startTime < rhs._startTime;
 	};
 	std::sort(_profiles.begin(), _profiles.end(), compare);
@@ -31,13 +34,14 @@ Generator::Generator(FlowProfileProvider& profilesProvider, TrafficMeter& traffi
 			profile._endTime -= minTime;
 
 			assert(profile._startTime <= profile._endTime);
-			assert(profile._startTime >= (timeval{0, 0}));
-			assert(profile._endTime >= (timeval{0, 0}));
+			assert(profile._startTime >= (timeval {0, 0}));
+			assert(profile._endTime >= (timeval {0, 0}));
 		}
 	}
 }
 
-std::optional<GeneratorPacket> Generator::GenerateNextPacket() {
+std::optional<GeneratorPacket> Generator::GenerateNextPacket()
+{
 	std::unique_ptr<Flow> flow = GetNextFlow();
 	if (!flow) {
 		return std::nullopt;
@@ -60,7 +64,8 @@ std::optional<GeneratorPacket> Generator::GenerateNextPacket() {
 	return result;
 }
 
-std::unique_ptr<Flow> Generator::GetNextFlow() {
+std::unique_ptr<Flow> Generator::GetNextFlow()
+{
 	bool hasProfilesRemaining = (_nextProfileIdx < _profiles.size());
 
 	if (_calendar.IsEmpty()) {
@@ -80,7 +85,8 @@ std::unique_ptr<Flow> Generator::MakeNextFlow()
 {
 	const FlowProfile& profile = _profiles[_nextProfileIdx];
 	_nextProfileIdx++;
-	std::unique_ptr<Flow> flow = std::make_unique<Flow>(_nextFlowId++, profile, _addressGenerators, _config);
+	std::unique_ptr<Flow> flow
+		= std::make_unique<Flow>(_nextFlowId++, profile, _addressGenerators, _config);
 	_trafficMeter.OpenFlow(flow->GetId(), profile);
 	return flow;
 }

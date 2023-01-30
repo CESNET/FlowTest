@@ -8,8 +8,8 @@
 
 #include "packetBuilder.hpp"
 
-#include <memory>
 #include <cstring>
+#include <memory>
 
 #include <arpa/inet.h>
 #include <netinet/if_ether.h>
@@ -33,7 +33,7 @@ void PacketBuilder::SetTimeMultiplier(float timeMultiplier)
 	_timeMultiplier = timeMultiplier;
 }
 
-std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket *rawPacket)
+std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 {
 	Packet packet;
 	packet.timestamp = GetMultipliedTimestamp(rawPacket->timestamp);
@@ -54,12 +54,12 @@ uint64_t PacketBuilder::GetMultipliedTimestamp(uint64_t rawPacketTimestamp) cons
 	return rawPacketTimestamp * _timeMultiplier;
 }
 
-PacketInfo PacketBuilder::GetPacketL3Info(const RawPacket *rawPacket) const
+PacketInfo PacketBuilder::GetPacketL3Info(const RawPacket* rawPacket) const
 {
 	CheckSufficientDataLength(rawPacket->dataLen, sizeof(ethhdr));
 
 	PacketInfo info;
-	const ethhdr *ethHeader = reinterpret_cast<const ethhdr *>(rawPacket->data);
+	const ethhdr* ethHeader = reinterpret_cast<const ethhdr*>(rawPacket->data);
 	switch (ntohs(ethHeader->h_proto)) {
 	case ETH_P_IP:
 		CheckSufficientDataLength(rawPacket->dataLen, sizeof(ethhdr) + sizeof(iphdr));
@@ -85,7 +85,7 @@ void PacketBuilder::CheckSufficientDataLength(size_t availableLength, size_t req
 	}
 }
 
-std::unique_ptr<std::byte[]> PacketBuilder::GetDataCopy(const std::byte *rawData, uint16_t dataLen)
+std::unique_ptr<std::byte[]> PacketBuilder::GetDataCopy(const std::byte* rawData, uint16_t dataLen)
 {
 	std::unique_ptr<std::byte[]> packetData;
 	packetData = std::unique_ptr<std::byte[]>(new std::byte[dataLen]);
@@ -93,21 +93,24 @@ std::unique_ptr<std::byte[]> PacketBuilder::GetDataCopy(const std::byte *rawData
 	return packetData;
 }
 
-std::unique_ptr<std::byte[]> PacketBuilder::GetDataCopyWithVlan(const std::byte *rawData, uint16_t dataLen)
+std::unique_ptr<std::byte[]>
+PacketBuilder::GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen)
 {
 	std::unique_ptr<std::byte[]> packetData;
 	packetData = std::unique_ptr<std::byte[]>(new std::byte[dataLen + sizeof(VlanHeader)]);
 	std::memcpy(packetData.get(), rawData, sizeof(ethhdr));
-	std::memcpy(packetData.get() + sizeof(ethhdr) + sizeof(VlanHeader),
-		rawData + sizeof(ethhdr), dataLen - sizeof(ethhdr));
+	std::memcpy(
+		packetData.get() + sizeof(ethhdr) + sizeof(VlanHeader),
+		rawData + sizeof(ethhdr),
+		dataLen - sizeof(ethhdr));
 
 	constexpr uint16_t vlanEtherType = 0x8100;
 
-	ethhdr *ethHeader = reinterpret_cast<ethhdr *>(packetData.get());
+	ethhdr* ethHeader = reinterpret_cast<ethhdr*>(packetData.get());
 	uint16_t originL2EtherType = ethHeader->h_proto;
 	ethHeader->h_proto = vlanEtherType;
 
-	VlanHeader *vlanHeader = reinterpret_cast<VlanHeader *>(packetData.get() + sizeof(ethhdr));
+	VlanHeader* vlanHeader = reinterpret_cast<VlanHeader*>(packetData.get() + sizeof(ethhdr));
 	vlanHeader->vlanTci = htons(_vlanID);
 	vlanHeader->etherType = originL2EtherType;
 

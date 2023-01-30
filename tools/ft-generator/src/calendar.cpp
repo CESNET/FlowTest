@@ -13,27 +13,32 @@
 
 namespace generator {
 
-static bool CompareFlows(const std::unique_ptr<Flow>& lhs, const std::unique_ptr<Flow>& rhs) {
+static bool CompareFlows(const std::unique_ptr<Flow>& lhs, const std::unique_ptr<Flow>& rhs)
+{
 	return lhs->GetNextPacketTime() > rhs->GetNextPacketTime();
 }
 
-void Calendar::Push(std::unique_ptr<Flow> flow) {
+void Calendar::Push(std::unique_ptr<Flow> flow)
+{
 	_flows.push_back(std::move(flow));
 	std::push_heap(_flows.begin(), _flows.end(), CompareFlows);
 }
 
-const Flow& Calendar::Top() const {
+const Flow& Calendar::Top() const
+{
 	return *_flows.front().get();
 }
 
-std::unique_ptr<Flow> Calendar::Pop() {
+std::unique_ptr<Flow> Calendar::Pop()
+{
 	std::pop_heap(_flows.begin(), _flows.end(), CompareFlows);
 	std::unique_ptr<Flow> flow = std::move(_flows.back());
 	_flows.pop_back();
 	return flow;
 }
 
-bool Calendar::IsEmpty() const {
+bool Calendar::IsEmpty() const
+{
 	return _flows.empty();
 }
 

@@ -14,8 +14,8 @@
 #include "../packet.h"
 #include "../pcpppacket.h"
 
-#include <pcapplusplus/IpAddress.h>
 #include <pcapplusplus/IPv4Layer.h>
+#include <pcapplusplus/IpAddress.h>
 
 namespace generator {
 
@@ -24,7 +24,6 @@ namespace generator {
  */
 class IPv4 : public Layer {
 public:
-
 	using IPv4Address = pcpp::IPv4Address;
 
 	/**
@@ -39,8 +38,7 @@ public:
 		IPv4Address ipSrc,
 		IPv4Address ipDst,
 		double fragmentChance,
-		uint16_t minPacketSizeToFragment
-	);
+		uint16_t minPacketSizeToFragment);
 
 	void PlanFlow(Flow& flow) override;
 

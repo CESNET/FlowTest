@@ -33,50 +33,35 @@ public:
 	 *
 	 * @return int
 	 */
-	int GetVerbosityLevel() const
-	{
-		return _verbosity;
-	}
+	int GetVerbosityLevel() const { return _verbosity; }
 
 	/**
 	 * @brief Get the Profiles File
 	 *
 	 * @return File path
 	 */
-	const std::string& GetProfilesFile() const
-	{
-		return _profilesFile;
-	}
+	const std::string& GetProfilesFile() const { return _profilesFile; }
 
 	/**
 	 * @brief Get the Output File
 	 *
 	 * @return File path
 	 */
-	const std::string& GetOutputFile() const
-	{
-		return _outputFile;
-	}
+	const std::string& GetOutputFile() const { return _outputFile; }
 
 	/**
 	 * @brief Get the Config File
 	 *
 	 * @return File path
 	 */
-	const std::string& GetConfigFile() const
-	{
-		return _configFile;
-	}
+	const std::string& GetConfigFile() const { return _configFile; }
 
 	/**
 	 * @brief Whether help should be printer
 	 *
 	 * @return true or false
 	 */
-	bool IsHelp() const
-	{
-		return _help;
-	}
+	bool IsHelp() const { return _help; }
 
 	/**
 	 * @brief Print the usage message

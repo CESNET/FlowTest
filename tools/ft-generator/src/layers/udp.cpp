@@ -13,8 +13,9 @@
 
 namespace generator {
 
-Udp::Udp(uint16_t portSrc, uint16_t portDst) :
-	_portSrc(portSrc), _portDst(portDst)
+Udp::Udp(uint16_t portSrc, uint16_t portDst)
+	: _portSrc(portSrc)
+	, _portDst(portDst)
 {
 }
 
@@ -22,7 +23,7 @@ void Udp::PlanFlow(Flow& flow)
 {
 	PacketFlowSpan packetsSpan(&flow, true);
 
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		Packet::layerParams params;
 		packet._layers.emplace_back(std::make_pair(this, params));
 	}
@@ -30,7 +31,7 @@ void Udp::PlanFlow(Flow& flow)
 
 void Udp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
-	pcpp::UdpLayer *udpLayer;
+	pcpp::UdpLayer* udpLayer;
 
 	(void) params;
 

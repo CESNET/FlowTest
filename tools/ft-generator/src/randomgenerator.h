@@ -44,7 +44,8 @@ private:
  *
  * Based on https://prng.di.unimi.it/xoshiro256plusplus.c
  *
- * The tradeoff _might_ be less cryptographically secure output, but for our purposes that is not an issue
+ * The tradeoff _might_ be less cryptographically secure output, but for our purposes that is not an
+ * issue
  */
 class Xoshiro256PlusPlusGenerator {
 public:
@@ -65,7 +66,6 @@ public:
 private:
 	uint64_t _state[4];
 };
-
 
 /**
  * @brief A random number generator

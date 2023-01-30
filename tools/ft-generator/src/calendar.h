@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <vector>
-#include <memory>
 #include <limits>
+#include <memory>
+#include <vector>
 
 namespace generator {
 
@@ -19,7 +19,8 @@ class Flow;
 /**
  * @brief A simulation calendar for flow event planning
  *
- * @note We cannot simply use std::queue as it does not support peforming std::move on the top as it's popped
+ * @note We cannot simply use std::queue as it does not support peforming std::move on the top as
+ * it's popped
  */
 class Calendar {
 public:

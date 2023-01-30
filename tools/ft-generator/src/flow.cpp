@@ -9,20 +9,20 @@
 
 #include "flow.h"
 #include "layer.h"
-#include "packet.h"
-#include "packetflowspan.h"
-#include "randomgenerator.h"
-#include "valuegenerator.h"
 #include "layers/ethernet.h"
 #include "layers/icmpecho.h"
 #include "layers/icmprandom.h"
 #include "layers/ipv4.h"
 #include "layers/ipv6.h"
+#include "layers/mpls.h"
 #include "layers/payload.h"
 #include "layers/tcp.h"
 #include "layers/udp.h"
 #include "layers/vlan.h"
-#include "layers/mpls.h"
+#include "packet.h"
+#include "packetflowspan.h"
+#include "randomgenerator.h"
+#include "valuegenerator.h"
 
 #include <pcapplusplus/Packet.h>
 
@@ -30,23 +30,23 @@
 #include <iostream>
 #include <numeric>
 #include <random>
-#include <vector>
 #include <variant>
+#include <vector>
 
 namespace generator {
 
 static constexpr int ICMP_HEADER_SIZE = sizeof(pcpp::icmphdr);
 
-const static std::vector<IntervalInfo> PacketSizeProbabilities{
+const static std::vector<IntervalInfo> PacketSizeProbabilities {
 	{64, 79, 0.2824},
 	{80, 159, 0.073},
 	{160, 319, 0.0115},
 	{320, 639, 0.012},
 	{640, 1279, 0.0092},
-	{1280, 1518, 0.6119}
-};
+	{1280, 1518, 0.6119}};
 
-static std::vector<config::EncapsulationLayer> chooseEncaps(const std::vector<config::EncapsulationVariant>& variants)
+static std::vector<config::EncapsulationLayer>
+chooseEncaps(const std::vector<config::EncapsulationVariant>& variants)
 {
 	if (variants.empty()) {
 		return {};
@@ -64,14 +64,18 @@ static std::vector<config::EncapsulationLayer> chooseEncaps(const std::vector<co
 	return {};
 }
 
-Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGenerators, const config::Config& config) :
-	_fwdPackets(profile._packets),
-	_revPackets(profile._packetsRev),
-	_fwdBytes(profile._bytes),
-	_revBytes(profile._bytesRev),
-	_tsFirst(profile._startTime),
-	_tsLast(profile._endTime),
-	_id(id)
+Flow::Flow(
+	uint64_t id,
+	const FlowProfile& profile,
+	AddressGenerators& addressGenerators,
+	const config::Config& config)
+	: _fwdPackets(profile._packets)
+	, _revPackets(profile._packetsRev)
+	, _fwdBytes(profile._bytes)
+	, _revBytes(profile._bytesRev)
+	, _tsFirst(profile._startTime)
+	, _tsLast(profile._endTime)
+	, _id(id)
 {
 	MacAddress macSrc = addressGenerators.GenerateMac();
 	MacAddress macDst = addressGenerators.GenerateMac();
@@ -156,7 +160,7 @@ std::unique_ptr<Layer> Flow::MakeIcmpLayer()
 	 *
 	 * NOTE: Might need further evaluation if this is a "good enough" way to do this
 	 * and/or some tweaking
-	*/
+	 */
 	std::unique_ptr<Layer> layer;
 	if ((_fwdPackets <= 3 || _revPackets <= 3) && (bytesPerPkt <= 1.10 * ICMP_HEADER_SIZE)) {
 		// Low amount of small enough packets
@@ -177,8 +181,8 @@ std::unique_ptr<Layer> Flow::MakeIcmpLayer()
 
 Flow::~Flow()
 {
-	//NOTE: Explicit destructor is required because the class contains
-	//      std::unique_ptr<Layer> where Layer is an incomplete type!
+	// NOTE: Explicit destructor is required because the class contains
+	//       std::unique_ptr<Layer> where Layer is an incomplete type!
 }
 
 void Flow::AddLayer(std::unique_ptr<Layer> layer)
@@ -301,8 +305,9 @@ void Flow::PlanPacketsTimestamps()
 		timestamps.emplace_back(time);
 	}
 
-	std::sort(timestamps.begin(), timestamps.end(),
-		[](const timeval& a, const timeval& b) { return a < b; });
+	std::sort(timestamps.begin(), timestamps.end(), [](const timeval& a, const timeval& b) {
+		return a < b;
+	});
 
 	size_t id = 0;
 	for (auto& packet : packetsSpan) {
@@ -325,7 +330,9 @@ void Flow::PlanPacketsSizes()
 	for (auto& packet : _packets) {
 		if (!packet._isFinished) {
 			auto& generator = packet._direction == Direction::Forward ? fwdGen : revGen;
-			packet._size = std::max(packet._size, generator.GetValue()); //NOTE: Add the option to GetValue to choose minimum size?
+			packet._size = std::max(
+				packet._size,
+				generator.GetValue()); // NOTE: Add the option to GetValue to choose minimum size?
 		}
 	}
 }

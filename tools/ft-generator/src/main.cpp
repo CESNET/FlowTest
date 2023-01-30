@@ -22,7 +22,7 @@
 
 using namespace generator;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	config::CommandLineArgs args;
 	config::Config config;

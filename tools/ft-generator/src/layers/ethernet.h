@@ -23,8 +23,7 @@ namespace generator {
  */
 class Ethernet : public Layer {
 public:
-
-	using MacAddress  = pcpp::MacAddress;
+	using MacAddress = pcpp::MacAddress;
 
 	/**
 	 * @brief Construct a new Ethernet object

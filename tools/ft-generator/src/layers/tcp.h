@@ -25,7 +25,6 @@ class FlowPlanHelper;
  */
 class Tcp : public Layer {
 public:
-
 	/**
 	 * @brief Construct a new Tcp object
 	 *
@@ -50,7 +49,6 @@ private:
 	void PlanConnectionHandshake(FlowPlanHelper& planner);
 	void PlanTerminationHandshake(FlowPlanHelper& planner);
 	void PlanData(FlowPlanHelper& planner);
-
 };
 
 } // namespace generator

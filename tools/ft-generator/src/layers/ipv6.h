@@ -23,7 +23,6 @@ namespace generator {
  */
 class IPv6 : public Layer {
 public:
-
 	/**
 	 * @brief Construct a new IPv6 object
 	 *

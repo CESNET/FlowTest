@@ -17,7 +17,8 @@ namespace generator {
 /**
  * @brief A helper class used in layers in the planning phase
  *
- * Mainly used for tracking remaining flow resources and providing useful utility functions for planning
+ * Mainly used for tracking remaining flow resources and providing useful utility functions for
+ * planning
  *
  * @note Still a work in progress. More functionality will be added as it becomes more apparent what
  *       functionality is needed for implementing various layers and their features.
@@ -94,7 +95,8 @@ public:
 	Direction GetRandomDir();
 
 	/**
-	 * @brief Reset the flow packet iterator to the beginning of the flow. Does not reset the counters!
+	 * @brief Reset the flow packet iterator to the beginning of the flow. Does not reset the
+	 * counters!
 	 * @return uint64_t
 	 */
 	void Reset();

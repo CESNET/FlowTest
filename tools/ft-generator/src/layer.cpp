@@ -7,8 +7,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "flow.h"
 #include "layer.h"
+#include "flow.h"
 
 namespace generator {
 

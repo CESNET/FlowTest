@@ -10,8 +10,8 @@
 
 #include "../randomgenerator.h"
 
-#include <cstdint>
 #include <bitset>
+#include <cstdint>
 
 namespace generator {
 
