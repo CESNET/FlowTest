@@ -1,44 +1,36 @@
 /**
  * @file
- * @author Pavel Siska <siska@cesnet.cz>
  * @author Michal Sedlak <sedlakm@cesnet.cz>
- * @brief Ethernet layer planner
+ * @brief Vlan layer planner
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "ethernet.h"
+#include "vlan.h"
 #include "ipv4.h"
 #include "ipv6.h"
 #include "vlan.h"
 #include "mpls.h"
 #include "../packetflowspan.h"
-#include "../pcppethlayer.h"
 
-#include <arpa/inet.h>
-
-#include <cassert>
+#include <pcapplusplus/VlanLayer.h>
 
 namespace generator {
 
-Ethernet::Ethernet(MacAddress macSrc, MacAddress macDst) :
-	_macSrc(macSrc), _macDst(macDst)
+Vlan::Vlan(uint16_t vlanId) :
+	_vlanId(vlanId)
 {
 }
 
-void Ethernet::PlanFlow(Flow& flow)
+void Vlan::PlanFlow(Flow& flow)
 {
 	Layer* nextLayer = GetNextLayer();
 	if (dynamic_cast<IPv4*>(nextLayer)) {
 		_etherType = PCPP_ETHERTYPE_IP;
 	} else if (dynamic_cast<IPv6*>(nextLayer)) {
 		_etherType = PCPP_ETHERTYPE_IPV6;
-	} else if (auto* vlanLayer = dynamic_cast<Vlan*>(nextLayer)) {
-		if (dynamic_cast<Vlan*>(vlanLayer->GetNextLayer())) {
-			_etherType = PCPP_ETHERTYPE_IEEE_802_1AD;
-		} else {
-			_etherType = PCPP_ETHERTYPE_VLAN;
-		}
+	} else if (dynamic_cast<Vlan*>(nextLayer)) {
+		_etherType = PCPP_ETHERTYPE_VLAN;
 	} else if (dynamic_cast<Mpls*>(nextLayer)) {
 		_etherType = PCPP_ETHERTYPE_MPLS;
 	} else {
@@ -52,7 +44,7 @@ void Ethernet::PlanFlow(Flow& flow)
 	}
 }
 
-void Ethernet::PlanExtra(Flow& flow)
+void Vlan::PlanExtra(Flow& flow)
 {
 	PacketFlowSpan packetsSpan(&flow, true);
 	for (auto& packet: packetsSpan) {
@@ -63,20 +55,13 @@ void Ethernet::PlanExtra(Flow& flow)
 	}
 }
 
-void Ethernet::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
+void Vlan::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
-	PcppEthLayer *ethLayer;
-
 	(void) params;
+	(void) plan;
 
-	if (plan._direction == Direction::Forward) {
-		ethLayer = new PcppEthLayer(_macSrc, _macDst);
-	} else {
-		ethLayer = new PcppEthLayer(_macDst, _macSrc);
-	}
-	ethLayer->getEthHeader()->etherType = htons(_etherType);
-
-	packet.addLayer(ethLayer, true);
+	pcpp::VlanLayer *vlanLayer = new pcpp::VlanLayer(_vlanId, false, 0, _etherType);
+	packet.addLayer(vlanLayer, true);
 }
 
 } // namespace generator

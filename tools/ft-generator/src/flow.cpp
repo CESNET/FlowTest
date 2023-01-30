@@ -11,6 +11,7 @@
 #include "layer.h"
 #include "packet.h"
 #include "packetflowspan.h"
+#include "randomgenerator.h"
 #include "valuegenerator.h"
 #include "layers/ethernet.h"
 #include "layers/icmpecho.h"
@@ -20,6 +21,8 @@
 #include "layers/payload.h"
 #include "layers/tcp.h"
 #include "layers/udp.h"
+#include "layers/vlan.h"
+#include "layers/mpls.h"
 
 #include <pcapplusplus/Packet.h>
 
@@ -28,6 +31,7 @@
 #include <numeric>
 #include <random>
 #include <vector>
+#include <variant>
 
 namespace generator {
 
@@ -42,6 +46,24 @@ const static std::vector<IntervalInfo> PacketSizeProbabilities{
 	{1280, 1518, 0.6119}
 };
 
+static std::vector<config::EncapsulationLayer> chooseEncaps(const std::vector<config::EncapsulationVariant>& variants)
+{
+	if (variants.empty()) {
+		return {};
+	}
+
+	double rand = RandomGenerator::GetInstance().RandomDouble();
+	double accum = 0.0;
+	for (const auto& variant : variants) {
+		accum += variant.GetProbability();
+		if (rand <= accum) {
+			return variant.GetLayers();
+		}
+	}
+
+	return {};
+}
+
 Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGenerators, const config::Config& config) :
 	_fwdPackets(profile._packets),
 	_revPackets(profile._packetsRev),
@@ -54,6 +76,18 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 	MacAddress macSrc = addressGenerators.GenerateMac();
 	MacAddress macDst = addressGenerators.GenerateMac();
 	AddLayer(std::make_unique<Ethernet>(macSrc, macDst));
+
+	const auto& encapsLayers = chooseEncaps(config.GetEncapsulation().GetVariants());
+	for (size_t i = 0; i < encapsLayers.size(); i++) {
+		const auto& layer = encapsLayers[i];
+		if (const auto* vlan = std::get_if<config::EncapsulationLayerVlan>(&layer)) {
+			AddLayer(std::make_unique<Vlan>(vlan->GetId()));
+		} else if (const auto* mpls = std::get_if<config::EncapsulationLayerMpls>(&layer)) {
+			AddLayer(std::make_unique<Mpls>(mpls->GetLabel()));
+		} else {
+			throw std::runtime_error("Invalid encapsulation layer");
+		}
+	}
 
 	switch (profile._l3Proto) {
 	case L3Protocol::Unknown:
@@ -98,7 +132,9 @@ Flow::Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGe
 		throw std::runtime_error("ICMPv6 not implemented");
 	}
 
-	AddLayer(std::make_unique<Payload>());
+	if (profile._l4Proto == L4Protocol::Tcp || profile._l4Proto == L4Protocol::Udp) {
+		AddLayer(std::make_unique<Payload>());
+	}
 
 	Plan();
 }

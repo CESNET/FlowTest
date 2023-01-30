@@ -108,6 +108,14 @@ public:
 	 */
 	virtual void PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& plan);
 
+	/**
+	 * @brief Get the Next Layer in the flow layer stack
+	 *
+	 * @return The layer or nullptr if this is the last layer,
+	 *         or the layer is not associated with a flow
+	 */
+	Layer* GetNextLayer() const;
+
 protected:
 	/**
 	 * @brief Base layer is never constructed directly
@@ -123,14 +131,6 @@ protected:
 	 * @brief Get the layer number (index of the layer) in the Flow's layer stack
 	 */
 	size_t GetLayerNumber() const { return _layerNumber; };
-
-	/**
-	 * @brief Get the Next Layer in the flow layer stack
-	 *
-	 * @return The layer or nullptr if this is the last layer,
-	 *         or the layer is not associated with a flow
-	 */
-	Layer* GetNextLayer() const;
 
 	/**
 	 * @brief Get the packet parameters

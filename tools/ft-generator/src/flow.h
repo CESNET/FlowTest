@@ -56,6 +56,14 @@ public:
 	Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGenerators, const config::Config& config);
 
 	/**
+	 * Disable copy and move constructors
+	 */
+	Flow(Flow&&) = delete;
+	Flow(const Flow&) = delete;
+	Flow& operator=(Flow&&) = delete;
+	Flow& operator=(const Flow&) = delete;
+
+	/**
 	 * @brief Destroy the Flow object
 	 *
 	 */

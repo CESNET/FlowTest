@@ -9,6 +9,7 @@
 #pragma once
 
 #include "common.h"
+#include "encapsulation.h"
 #include "ipv4.h"
 #include "ipv6.h"
 #include "mac.h"
@@ -61,6 +62,13 @@ public:
 	const Mac& GetMac() const { return _mac; }
 
 	/**
+	 * @brief Get the encapsulation configuration
+	 *
+	 * @return const Encapsulation&
+	 */
+	const Encapsulation& GetEncapsulation() const { return _encapsulation; }
+
+	/**
 	 * @brief Load a configuration from a yaml file
 	 *
 	 * @param configFilename  Path to the yaml file
@@ -72,6 +80,7 @@ private:
 	IPv4 _ipv4;
 	IPv6 _ipv6;
 	Mac _mac;
+	Encapsulation _encapsulation;
 };
 
 } // namespace config

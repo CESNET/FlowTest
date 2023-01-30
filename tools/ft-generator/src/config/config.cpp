@@ -17,10 +17,12 @@ Config::Config(const YAML::Node& node)
 		"ipv4",
 		"ipv6",
 		"mac",
+		"encapsulation",
 	});
 	_ipv4 = IPv4(node["ipv4"]);
 	_ipv6 = IPv6(node["ipv6"]);
 	_mac = Mac(node["mac"]);
+	_encapsulation = Encapsulation(node["encapsulation"]);
 }
 
 Config Config::LoadFromFile(const std::string& configFilename)

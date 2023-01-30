@@ -1,8 +1,7 @@
 /**
  * @file
- * @author Pavel Siska <siska@cesnet.cz>
  * @author Michal Sedlak <sedlakm@cesnet.cz>
- * @brief Ethernet layer planner
+ * @brief Vlan layer planner
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -14,42 +13,36 @@
 #include "../packet.h"
 #include "../pcpppacket.h"
 
-#include <pcapplusplus/MacAddress.h>
-
 namespace generator {
 
 /**
- * @brief A representation of an Ethernet layer.
+ * @brief A representation of an Vlan layer.
  */
-class Ethernet : public Layer {
+class Vlan : public Layer {
 public:
-
-	using MacAddress  = pcpp::MacAddress;
-
 	/**
-	 * @brief Construct a new Ethernet object
+	 * @brief Construct a new Vlan object
 	 *
-	 * @param macSrc Source MAC address
-	 * @param macDst Destination MAC address
+	 * @param vlanId  The VLAN ID
 	 */
-	Ethernet(MacAddress macSrc, MacAddress macDst);
+	Vlan(uint16_t vlanId);
 
 	/**
-	 * @brief Plan Ethernet layer
+	 * @brief Plan Vlan layer
 	 *
 	 * @param flow Flow to plan.
 	 */
 	virtual void PlanFlow(Flow& flow) override;
 
 	/**
-	 * @brief Plan Ethernet layer extra packets
+	 * @brief Plan Vlan layer extra packets
 	 *
 	 * @param flow Flow to plan.
 	 */
 	virtual void PlanExtra(Flow& flow) override;
 
 	/**
-	 * @brief Build Ethernet layer in packet pcpp::Packet
+	 * @brief Build Vlan layer in packet PcppPacket
 	 *
 	 * @param packet Packet to build.
 	 * @param params Layers parameters
@@ -58,8 +51,7 @@ public:
 	virtual void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
-	MacAddress _macSrc;
-	MacAddress _macDst;
+	uint16_t _vlanId;
 	uint16_t _etherType = 0;
 };
 
