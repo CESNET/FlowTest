@@ -122,6 +122,9 @@ class ProbeBuilder(BuilderBase, Device):
             When interface is not supported by probe.
         """
 
+        if len(enabled_interfaces) == 0:
+            return probe_cfg.interfaces
+
         interfaces = []
         for ifc in enabled_interfaces:
             found = False
