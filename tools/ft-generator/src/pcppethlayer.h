@@ -30,4 +30,4 @@ public:
 	void computeCalculateFields() override;
 };
 
-} // generator
+} // namespace generator

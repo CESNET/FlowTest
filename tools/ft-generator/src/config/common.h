@@ -9,10 +9,10 @@
 #pragma once
 
 #include <charconv>
+#include <fstream>
 #include <optional>
 #include <string>
 #include <vector>
-#include <fstream>
 
 #include <yaml-cpp/yaml.h>
 
@@ -150,13 +150,14 @@ public:
 	 * @param node  The yaml node where the error happened
 	 * @param error The error description
 	 */
-	ConfigError(const YAML::Node& node, const std::string& error) :
-		_node(node),
-		_error(error),
-		_message("Config error at "
-			+ std::to_string(GetLine() + 1) + ":" + std::to_string(GetColumn() + 1)
-			+ ": " + GetError())
-	{}
+	ConfigError(const YAML::Node& node, const std::string& error)
+		: _node(node)
+		, _error(error)
+		, _message(
+			  "Config error at " + std::to_string(GetLine() + 1) + ":"
+			  + std::to_string(GetColumn() + 1) + ": " + GetError())
+	{
+	}
 
 	/**
 	 * @brief Get the error message
@@ -191,9 +192,13 @@ public:
 	 *
 	 * @param configFilename  The config file
 	 * @param output          The output stream to print the message to
-	 * @param linesAround     How many of the lines of the configuration around the error to show, negative = none
+	 * @param linesAround     How many of the lines of the configuration around the error to show,
+	 * negative = none
 	 */
-	void PrintPrettyError(const std::string& configFilename, std::ostream& output, int linesAround = 5) const;
+	void PrintPrettyError(
+		const std::string& configFilename,
+		std::ostream& output,
+		int linesAround = 5) const;
 
 private:
 	YAML::Node _node;

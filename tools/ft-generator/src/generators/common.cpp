@@ -20,7 +20,7 @@ void bitsetToBytes(std::bitset<128> bitset, uint8_t* bytes, int length)
 
 std::bitset<128> bytesToBitset(const uint8_t* bytes, int length)
 {
-	std::bitset<128> bitset{0};
+	std::bitset<128> bitset {0};
 	for (int i = 0; i < length; i++) {
 		bitset = (bitset << 8) | std::bitset<128>(bytes[length - 1 - i]);
 	}

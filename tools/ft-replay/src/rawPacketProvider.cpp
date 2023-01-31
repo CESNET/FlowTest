@@ -20,13 +20,11 @@ RawPacketProvider::RawPacketProvider(const std::string& file)
 	CheckDatalink();
 }
 
-void RawPacketProvider::OpenFile(const char *file)
+void RawPacketProvider::OpenFile(const char* file)
 {
 	char errbuff[PCAP_ERRBUF_SIZE];
-	_handler.reset(pcap_open_offline_with_tstamp_precision(
-		file,
-		PCAP_TSTAMP_PRECISION_MICRO,
-		errbuff));
+	_handler.reset(
+		pcap_open_offline_with_tstamp_precision(file, PCAP_TSTAMP_PRECISION_MICRO, errbuff));
 
 	if (_handler == nullptr) {
 		throw std::runtime_error("Unable to open pcap file: " + std::string(errbuff));
@@ -40,10 +38,10 @@ void RawPacketProvider::CheckDatalink()
 	}
 }
 
-const struct RawPacket *RawPacketProvider::Next()
+const struct RawPacket* RawPacketProvider::Next()
 {
-	struct pcap_pkthdr *header;
-	const u_char *pktData;
+	struct pcap_pkthdr* header;
+	const u_char* pktData;
 
 	switch (pcap_next_ex(_handler.get(), &header, &pktData)) {
 	case 1:
@@ -62,7 +60,7 @@ const struct RawPacket *RawPacketProvider::Next()
 	}
 }
 
-bool RawPacketProvider::IsHeaderValid(const struct pcap_pkthdr *header)
+bool RawPacketProvider::IsHeaderValid(const struct pcap_pkthdr* header)
 {
 	if (header->caplen > header->len) {
 		_logger->info("Packet caplen differs from packet length!");
@@ -72,14 +70,14 @@ bool RawPacketProvider::IsHeaderValid(const struct pcap_pkthdr *header)
 	return true;
 }
 
-void RawPacketProvider::FillRawPacket(const struct pcap_pkthdr *header, const std::byte *pktData)
+void RawPacketProvider::FillRawPacket(const struct pcap_pkthdr* header, const std::byte* pktData)
 {
 	_packet.data = pktData;
 	_packet.dataLen = header->caplen;
 	_packet.timestamp = CalculateTimestamp(header);
 }
 
-uint64_t RawPacketProvider::CalculateTimestamp(const struct pcap_pkthdr *header)
+uint64_t RawPacketProvider::CalculateTimestamp(const struct pcap_pkthdr* header)
 {
 	return (header->ts.tv_sec * 1000000ULL + header->ts.tv_usec) * 1000;
 }

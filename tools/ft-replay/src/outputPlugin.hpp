@@ -54,7 +54,7 @@ protected:
 	 *
 	 * @return map<argName, argValue>
 	 */
-	std::map<std::string, std::string> SplitArguments(const std::string &args) const;
+	std::map<std::string, std::string> SplitArguments(const std::string& args) const;
 };
 
 } // namespace replay

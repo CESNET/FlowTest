@@ -8,13 +8,13 @@
 
 #include "raw.hpp"
 
-#include <cerrno>
-#include <memory>
-#include <map>
 #include <arpa/inet.h>
+#include <cerrno>
 #include <linux/if_packet.h>
-#include <sys/ioctl.h>
+#include <map>
+#include <memory>
 #include <net/if.h>
+#include <sys/ioctl.h>
 
 namespace replay {
 
@@ -36,13 +36,18 @@ RawQueue::RawQueue(const std::string& ifcName, size_t pktSize, size_t burstSize)
 	_sockAddr.sll_ifindex = ifReq.ifr_ifindex;
 }
 
-size_t RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize) {
+size_t RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
+{
 	if (_bufferFlag) {
-		_logger->error("GetBurst() called before the previous request was processed by SendBurst()");
+		_logger->error(
+			"GetBurst() called before the previous request was processed by SendBurst()");
 		throw std::runtime_error("RawQueue::GetBurst() has failed");
 	}
 	if (_burstSize < burstSize) {
-		_logger->warn("Requested burstSize {} is bigger than predefiened {}", burstSize, _burstSize);
+		_logger->warn(
+			"Requested burstSize {} is bigger than predefiened {}",
+			burstSize,
+			_burstSize);
 		burstSize = _burstSize;
 	}
 
@@ -57,16 +62,25 @@ size_t RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize) {
 	return burstSize;
 }
 
-void RawQueue::SendBurst(const PacketBuffer* burst, size_t burstSize) {
+void RawQueue::SendBurst(const PacketBuffer* burst, size_t burstSize)
+{
 	if (burstSize > _burstSize) {
-		_logger->error("Requested burstSize {} is bigger than predefined {}", burstSize, _burstSize);
+		_logger->error(
+			"Requested burstSize {} is bigger than predefined {}",
+			burstSize,
+			_burstSize);
 		throw std::runtime_error("RawQueue::SendBurst() has failed");
 	}
 
 	for (unsigned i = 0; i < burstSize; i++) {
 		while (true) {
-			int ret = sendto(_socket.GetSocketId(), burst[i]._data, burst[i]._len, 0,
-				(const sockaddr*)&_sockAddr, sizeof(sockaddr_ll));
+			int ret = sendto(
+				_socket.GetSocketId(),
+				burst[i]._data,
+				burst[i]._len,
+				0,
+				(const sockaddr*) &_sockAddr,
+				sizeof(sockaddr_ll));
 
 			if (ret == static_cast<int>(burst[i]._len)) {
 				break;
@@ -82,20 +96,24 @@ void RawQueue::SendBurst(const PacketBuffer* burst, size_t burstSize) {
 	_bufferFlag = false;
 }
 
-size_t RawQueue::GetMaxBurstSize() const noexcept {
+size_t RawQueue::GetMaxBurstSize() const noexcept
+{
 	return _burstSize;
 }
 
-RawPlugin::RawPlugin(const std::string& params) {
+RawPlugin::RawPlugin(const std::string& params)
+{
 	ParseArguments(params);
 	_queue = std::make_unique<RawQueue>(_ifcName, _packetSize, _burstSize);
 }
 
-size_t RawPlugin::GetQueueCount() const noexcept {
+size_t RawPlugin::GetQueueCount() const noexcept
+{
 	return 1;
 }
 
-OutputQueue* RawPlugin::GetQueue(uint16_t queueId) {
+OutputQueue* RawPlugin::GetQueue(uint16_t queueId)
+{
 	if (queueId != 0 || _queue == nullptr) {
 		_logger->error("Invalid request for OutputQueue");
 		throw std::runtime_error("RawPlugin::GetQueue() has failed");
@@ -103,8 +121,9 @@ OutputQueue* RawPlugin::GetQueue(uint16_t queueId) {
 	return _queue.get();
 }
 
-void RawPlugin::ParseMap(const std::map<std::string, std::string>& argMap) {
-	for (const auto& [key, value]: argMap) {
+void RawPlugin::ParseMap(const std::map<std::string, std::string>& argMap)
+{
+	for (const auto& [key, value] : argMap) {
 		if (key == "ifc") {
 			_ifcName = value;
 		} else if (key == "packetSize") {
@@ -118,7 +137,8 @@ void RawPlugin::ParseMap(const std::map<std::string, std::string>& argMap) {
 	}
 }
 
-int RawPlugin::ParseArguments(const std::string& args) {
+int RawPlugin::ParseArguments(const std::string& args)
+{
 	std::map<std::string, std::string> argMap = SplitArguments(args);
 
 	try {

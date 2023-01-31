@@ -27,8 +27,8 @@ static inline constexpr double doubleFromBits(uint64_t i) noexcept
 	return (i >> 11) * 0x1.0p-53;
 }
 
-SplitMix64Generator::SplitMix64Generator(uint64_t seed) :
-	_state(seed)
+SplitMix64Generator::SplitMix64Generator(uint64_t seed)
+	: _state(seed)
 {
 }
 
@@ -67,8 +67,8 @@ uint64_t Xoshiro256PlusPlusGenerator::Next()
 	return result;
 }
 
-RandomGenerator::RandomGenerator(uint64_t seed) :
-	_engine(seed)
+RandomGenerator::RandomGenerator(uint64_t seed)
+	: _engine(seed)
 {
 }
 

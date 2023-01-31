@@ -38,12 +38,13 @@ public:
 	pcpp::IPv4Address GetBaseAddr() const { return _baseAddr; }
 
 	/**
-	 * @brief Get the length of the prefix, respectively the number of significant bits in the base address
+	 * @brief Get the length of the prefix, respectively the number of significant bits in the base
+	 * address
 	 */
 	uint8_t GetPrefixLen() const { return _prefixLen; }
 
 private:
-	pcpp::IPv4Address _baseAddr{pcpp::IPv4Address::Zero};
+	pcpp::IPv4Address _baseAddr {pcpp::IPv4Address::Zero};
 	uint8_t _prefixLen = 0;
 };
 

@@ -14,9 +14,9 @@
 #include "pcpppacket.h"
 
 #include <pcapplusplus/EthLayer.h>
-#include <pcapplusplus/IpAddress.h>
 #include <pcapplusplus/IPv4Layer.h>
 #include <pcapplusplus/IPv6Layer.h>
+#include <pcapplusplus/IpAddress.h>
 #include <pcapplusplus/Layer.h>
 #include <pcapplusplus/ProtocolType.h>
 #include <pcapplusplus/TcpLayer.h>
@@ -103,14 +103,20 @@ public:
 	void WriteReport();
 
 private:
-	std::vector<FlowRecord> _records;  //< The flow records
+	std::vector<FlowRecord> _records; //< The flow records
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("TrafficMeter");
 
 	void ExtractPacketParams(
-		const PcppPacket& packet, L3Protocol l3Proto, L4Protocol l4Proto,
-		MacAddress& srcMac, IPAddress& srcIp, uint16_t& srcPort,
-		MacAddress& dstMac, IPAddress& dstIp, uint16_t& dstPort);
+		const PcppPacket& packet,
+		L3Protocol l3Proto,
+		L4Protocol l4Proto,
+		MacAddress& srcMac,
+		IPAddress& srcIp,
+		uint16_t& srcPort,
+		MacAddress& dstMac,
+		IPAddress& dstIp,
+		uint16_t& dstPort);
 };
 
 } // namespace generator

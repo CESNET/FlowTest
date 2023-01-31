@@ -96,8 +96,8 @@ Direction FlowPlanHelper::GetRandomDir()
 	}
 
 	if (hasFwd && hasRev) {
-		return RandomGenerator::GetInstance().RandomDouble() <= _fwdPktChance
-			? Direction::Forward : Direction::Reverse;
+		return RandomGenerator::GetInstance().RandomDouble() <= _fwdPktChance ? Direction::Forward
+																			  : Direction::Reverse;
 	}
 
 	return hasFwd ? Direction::Forward : Direction::Reverse;

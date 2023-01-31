@@ -19,19 +19,9 @@
 
 namespace generator {
 
-enum class L3Protocol : uint8_t {
-	Unknown,
-	Ipv4 = 4,
-	Ipv6 = 6
-};
+enum class L3Protocol : uint8_t { Unknown, Ipv4 = 4, Ipv6 = 6 };
 
-enum class L4Protocol : uint8_t {
-	Unknown,
-	Icmp = 1,
-	Tcp = 6,
-	Udp = 17,
-	Icmpv6 = 58
-};
+enum class L4Protocol : uint8_t { Unknown, Icmp = 1, Tcp = 6, Udp = 17, Icmpv6 = 58 };
 
 static inline bool operator==(const timeval& a, const timeval& b)
 {

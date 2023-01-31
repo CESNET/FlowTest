@@ -21,7 +21,6 @@ namespace generator {
  */
 class Payload : public Layer {
 public:
-
 	/**
 	 * @brief Plan Payload layer
 	 *
@@ -39,7 +38,6 @@ public:
 	void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
-
 };
 
 } // namespace generator

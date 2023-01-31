@@ -19,12 +19,12 @@ Config::Config()
 	SetDefaultValues();
 }
 
-void Config::Parse(int argc, char **argv)
+void Config::Parse(int argc, char** argv)
 {
 	SetDefaultValues();
 
-	const option *longOptions = GetLongOptions();
-	const char *shortOptions = GetShortOptions();
+	const option* longOptions = GetLongOptions();
+	const char* shortOptions = GetShortOptions();
 
 	char c;
 	while ((c = getopt_long(argc, argv, shortOptions, longOptions, nullptr)) != -1) {
@@ -70,22 +70,21 @@ void Config::SetDefaultValues()
 	_help = false;
 }
 
-const option *Config::GetLongOptions()
+const option* Config::GetLongOptions()
 {
-	static struct option long_options[] = {
-		{"replicator-config", required_argument, nullptr, 'c'},
-		{"replay-multiplier", required_argument, nullptr, 'r'},
-		{"output-plugin", required_argument, nullptr, 'o'},
-		{"vlan-id", required_argument, nullptr, 'v'},
-		{"loops", required_argument, nullptr, 'l'},
-		{"pcap", required_argument, nullptr, 'p'},
-		{"help", no_argument, nullptr, 'h'},
-		{nullptr, 0, nullptr, 0}
-	};
+	static struct option long_options[]
+		= {{"replicator-config", required_argument, nullptr, 'c'},
+		   {"replay-multiplier", required_argument, nullptr, 'r'},
+		   {"output-plugin", required_argument, nullptr, 'o'},
+		   {"vlan-id", required_argument, nullptr, 'v'},
+		   {"loops", required_argument, nullptr, 'l'},
+		   {"pcap", required_argument, nullptr, 'p'},
+		   {"help", no_argument, nullptr, 'h'},
+		   {nullptr, 0, nullptr, 0}};
 	return long_options;
 }
 
-const char *Config::GetShortOptions()
+const char* Config::GetShortOptions()
 {
 	return "c:r:o:v:l:p:h";
 }
@@ -143,9 +142,11 @@ bool Config::IsHelp() const
 
 void Config::PrintUsage() const
 {
-	std::cerr << "Usage: ./ft-replay [options] -c <replicator config file> -p <pcap file> -o <output plugin params>\n";
+	std::cerr << "Usage: ./ft-replay [options] -c <replicator config file> -p <pcap file> -o "
+				 "<output plugin params>\n";
 	std::cerr << "  --replicator-config, -c  ... The replicator config file\n";
-	std::cerr << "  --replay-multiplier, -r  ... Replay speed multiplier. [0 - As fast as possible]\n";
+	std::cerr
+		<< "  --replay-multiplier, -r  ... Replay speed multiplier. [0 - As fast as possible]\n";
 	std::cerr << "  --output-plugin, -o      ... The output plugin specification\n";
 	std::cerr << "  --vlan-id, -v            ... The vlan ID number\n";
 	std::cerr << "  --pcap, -p               ... Input PCAP file\n";

@@ -40,8 +40,8 @@ public:
 	void WritePacket(const std::byte* data, uint32_t length, timeval timestamp);
 
 private:
-	std::unique_ptr<pcap_t, decltype(&pcap_close)> _pcap{nullptr, pcap_close};
-	std::unique_ptr<pcap_dumper_t, decltype(&pcap_dump_close)> _dumper{nullptr, pcap_dump_close};
+	std::unique_ptr<pcap_t, decltype(&pcap_close)> _pcap {nullptr, pcap_close};
+	std::unique_ptr<pcap_dumper_t, decltype(&pcap_dump_close)> _dumper {nullptr, pcap_dump_close};
 };
 
 } // namespace generator

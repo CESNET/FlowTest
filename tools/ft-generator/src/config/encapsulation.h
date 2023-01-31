@@ -61,7 +61,8 @@ private:
  * @brief Encapsulation layer representation
  *
  */
-class EncapsulationLayer : public std::variant<std::monostate, EncapsulationLayerMpls, EncapsulationLayerVlan> {
+class EncapsulationLayer
+	: public std::variant<std::monostate, EncapsulationLayerMpls, EncapsulationLayerVlan> {
 public:
 	/**
 	 * @brief Construct a new Encapsulation Layer object from a yaml node

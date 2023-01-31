@@ -20,14 +20,13 @@ namespace replay {
  */
 class PacketBuilder {
 public:
-
 	/**
 	 * @brief Build Packet structure from RawPacket structure
 	 *
 	 * @param rawPacket RawPacket information
 	 * @return std::unique_ptr<Packet> Builded packet
 	 */
-	std::unique_ptr<Packet> Build(const RawPacket *rawPacket);
+	std::unique_ptr<Packet> Build(const RawPacket* rawPacket);
 
 	/**
 	 * @brief Set the Vlan ID value
@@ -51,10 +50,10 @@ public:
 
 private:
 	uint64_t GetMultipliedTimestamp(uint64_t rawPacketTimestamp) const;
-	PacketInfo GetPacketL3Info(const RawPacket *rawPacket) const;
+	PacketInfo GetPacketL3Info(const RawPacket* rawPacket) const;
 	void CheckSufficientDataLength(size_t availableLength, size_t requiredLength) const;
-	std::unique_ptr<std::byte[]> GetDataCopy(const std::byte *rawData, uint16_t dataLen);
-	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte *rawData, uint16_t dataLen);
+	std::unique_ptr<std::byte[]> GetDataCopy(const std::byte* rawData, uint16_t dataLen);
+	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen);
 
 	uint16_t _vlanID = 0;
 	float _timeMultiplier = 0;

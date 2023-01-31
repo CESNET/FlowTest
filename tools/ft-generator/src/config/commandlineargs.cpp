@@ -19,14 +19,13 @@ namespace config {
 
 void CommandLineArgs::Parse(int argc, char** argv)
 {
-	const option longOpts[] = {
-		{"output", required_argument, nullptr, 'o'},
-		{"profiles", required_argument, nullptr, 'p'},
-		{"config", required_argument, nullptr, 'c'},
-		{"verbose", no_argument, nullptr, 'v'},
-		{"help", no_argument, nullptr, 'h'},
-		{nullptr, 0, nullptr, 0}
-	};
+	const option longOpts[]
+		= {{"output", required_argument, nullptr, 'o'},
+		   {"profiles", required_argument, nullptr, 'p'},
+		   {"config", required_argument, nullptr, 'c'},
+		   {"verbose", no_argument, nullptr, 'v'},
+		   {"help", no_argument, nullptr, 'h'},
+		   {nullptr, 0, nullptr, 0}};
 	const char* shortOpts = ":o:p:c:vh";
 
 	int currentIdx = 0;
@@ -52,11 +51,10 @@ void CommandLineArgs::Parse(int argc, char** argv)
 			_help = true;
 			break;
 		case '?':
-			throw std::invalid_argument("Unknown option "
-				+ std::string(argv[currentIdx]));
+			throw std::invalid_argument("Unknown option " + std::string(argv[currentIdx]));
 		case ':':
-			throw std::invalid_argument("Missing argument for option "
-				+ std::string(argv[currentIdx]));
+			throw std::invalid_argument(
+				"Missing argument for option " + std::string(argv[currentIdx]));
 		default:
 			assert(0 && "Unhandled option");
 		}
@@ -72,7 +70,8 @@ void CommandLineArgs::PrintUsage()
 	std::cerr << "  --profiles, -p  ... The flow profiles file in csv format\n";
 	std::cerr << "  --output, -o    ... The output pcap file\n";
 	std::cerr << "  --config, -c    ... The yaml config file\n";
-	std::cerr << "  --verbose, -v   ... Verbosity level, specify multiple times for more verbose logging\n";
+	std::cerr << "  --verbose, -v   ... Verbosity level, specify multiple times for more verbose "
+				 "logging\n";
 	std::cerr << "  --help, -h      ... Show this help message\n";
 }
 

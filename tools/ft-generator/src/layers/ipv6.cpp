@@ -18,8 +18,9 @@
 
 namespace generator {
 
-IPv6::IPv6(IPv6Address ipSrc, IPv6Address ipDst) :
-	_ipSrc(ipSrc), _ipDst(ipDst)
+IPv6::IPv6(IPv6Address ipSrc, IPv6Address ipDst)
+	: _ipSrc(ipSrc)
+	, _ipDst(ipDst)
 {
 	_ttl = RandomGenerator::GetInstance().RandomUInt(16, 255);
 
@@ -38,7 +39,7 @@ void IPv6::PlanFlow(Flow& flow)
 {
 	PacketFlowSpan packetsSpan(&flow, true);
 
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		Packet::layerParams params;
 		packet._size += pcpp::IPv6Layer().getHeaderLen();
 		packet._layers.emplace_back(std::make_pair(this, params));
@@ -49,8 +50,8 @@ void IPv6::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 {
 	(void) params;
 
-	pcpp::IPv6Layer *ip6Layer;
-	pcpp::ip6_hdr *ip6Header;
+	pcpp::IPv6Layer* ip6Layer;
+	pcpp::ip6_hdr* ip6Header;
 
 	if (plan._direction == Direction::Forward) {
 		ip6Layer = new pcpp::IPv6Layer(_ipSrc, _ipDst);

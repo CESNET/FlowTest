@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "common.h"
 #include "ipv4.h"
+#include "common.h"
 
 namespace generator {
 namespace config {
@@ -33,11 +33,9 @@ IPv4AddressRange::IPv4AddressRange(const YAML::Node& node)
 
 IPv4::IPv4(const YAML::Node& node)
 {
-	checkAllowedKeys(node, {
-		"ip_range",
-		"fragmentation_probability",
-		"min_packet_size_to_fragment"
-	});
+	checkAllowedKeys(
+		node,
+		{"ip_range", "fragmentation_probability", "min_packet_size_to_fragment"});
 
 	_ipRange = parseOneOrMany<IPv4AddressRange>(node["ip_range"]);
 	_fragmentationProbability = parseProbability(node["fragmentation_probability"]);

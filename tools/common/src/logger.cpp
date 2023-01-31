@@ -9,19 +9,21 @@
 #include "logger.h"
 
 #include <spdlog/cfg/env.h>
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 using namespace std;
 
 namespace ft {
 
-void LoggerInit() {
+void LoggerInit()
+{
 	spdlog::cfg::load_env_levels();
 	spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %n: %v");
 }
 
-std::shared_ptr<spdlog::logger> LoggerGet(std::string_view name) {
+std::shared_ptr<spdlog::logger> LoggerGet(std::string_view name)
+{
 	const string tmp {name};
 	auto logger = spdlog::get(tmp);
 

@@ -17,9 +17,9 @@
 
 #include <ctime>
 #include <iostream>
+#include <list>
 #include <memory>
 #include <vector>
-#include <list>
 
 namespace generator {
 
@@ -29,8 +29,8 @@ class Layer;
  * @brief Extra information about the flow packet
  */
 struct PacketExtraInfo {
-	timeval _time;         //< The timestamp of the packet
-	Direction _direction;  //< The direction of the packet
+	timeval _time; //< The timestamp of the packet
+	Direction _direction; //< The direction of the packet
 };
 
 /**
@@ -38,12 +38,12 @@ struct PacketExtraInfo {
  */
 class Flow {
 public:
-	uint64_t _fwdPackets = 0;   //< Number of packets in forward direction
-	uint64_t _revPackets = 0;   //< Number of packets in reverse direction
-	uint64_t _fwdBytes = 0;     //< Number of bytes in forward direction
-	uint64_t _revBytes = 0;     //< Number of bytes in reverse direction
-	timeval _tsFirst = {0, 0};  //< Timestamp of the first packet
-	timeval _tsLast = {0, 0};   //< Timestamp of the last packet
+	uint64_t _fwdPackets = 0; //< Number of packets in forward direction
+	uint64_t _revPackets = 0; //< Number of packets in reverse direction
+	uint64_t _fwdBytes = 0; //< Number of bytes in forward direction
+	uint64_t _revBytes = 0; //< Number of bytes in reverse direction
+	timeval _tsFirst = {0, 0}; //< Timestamp of the first packet
+	timeval _tsLast = {0, 0}; //< Timestamp of the last packet
 	std::list<Packet> _packets; //< The planned packets
 
 	/**
@@ -53,7 +53,11 @@ public:
 	 *
 	 * @throws std::runtime_error  When the provided flow profile has invalid values
 	 */
-	Flow(uint64_t id, const FlowProfile& profile, AddressGenerators& addressGenerators, const config::Config& config);
+	Flow(
+		uint64_t id,
+		const FlowProfile& profile,
+		AddressGenerators& addressGenerators,
+		const config::Config& config);
 
 	/**
 	 * Disable copy and move constructors

@@ -8,17 +8,17 @@
 
 #pragma once
 
-#include "socketDescriptor.hpp"
-#include "outputQueue.hpp"
+#include "logger.h"
 #include "outputPlugin.hpp"
 #include "outputPluginFactoryRegistrator.hpp"
-#include "logger.h"
+#include "outputQueue.hpp"
+#include "socketDescriptor.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <string>
-#include <memory>
 #include <linux/if_packet.h>
+#include <memory>
+#include <string>
 
 namespace replay {
 

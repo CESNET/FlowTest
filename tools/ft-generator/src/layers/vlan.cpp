@@ -7,18 +7,18 @@
  */
 
 #include "vlan.h"
+#include "../packetflowspan.h"
 #include "ipv4.h"
 #include "ipv6.h"
-#include "vlan.h"
 #include "mpls.h"
-#include "../packetflowspan.h"
+#include "vlan.h"
 
 #include <pcapplusplus/VlanLayer.h>
 
 namespace generator {
 
-Vlan::Vlan(uint16_t vlanId) :
-	_vlanId(vlanId)
+Vlan::Vlan(uint16_t vlanId)
+	: _vlanId(vlanId)
 {
 }
 
@@ -38,7 +38,7 @@ void Vlan::PlanFlow(Flow& flow)
 	}
 
 	PacketFlowSpan packetsSpan(&flow, true);
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		Packet::layerParams params;
 		packet._layers.emplace_back(std::make_pair(this, params));
 	}
@@ -47,7 +47,7 @@ void Vlan::PlanFlow(Flow& flow)
 void Vlan::PlanExtra(Flow& flow)
 {
 	PacketFlowSpan packetsSpan(&flow, true);
-	for (auto& packet: packetsSpan) {
+	for (auto& packet : packetsSpan) {
 		if (packet._isExtra) {
 			Packet::layerParams params;
 			packet._layers.emplace_back(std::make_pair(this, params));
@@ -60,7 +60,7 @@ void Vlan::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 	(void) params;
 	(void) plan;
 
-	pcpp::VlanLayer *vlanLayer = new pcpp::VlanLayer(_vlanId, false, 0, _etherType);
+	pcpp::VlanLayer* vlanLayer = new pcpp::VlanLayer(_vlanId, false, 0, _etherType);
 	packet.addLayer(vlanLayer, true);
 }
 

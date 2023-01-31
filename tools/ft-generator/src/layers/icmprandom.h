@@ -18,8 +18,8 @@
 #include <pcapplusplus/IcmpLayer.h>
 
 #include <cstdint>
-#include <vector>
 #include <queue>
+#include <vector>
 
 namespace generator {
 
@@ -28,7 +28,6 @@ namespace generator {
  */
 class IcmpRandom : public Layer {
 public:
-
 	/**
 	 * @brief Construct a new IcmpRandom object
 	 *

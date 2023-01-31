@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "config/common.h"
 #include "flowprofile.h"
+#include "config/common.h"
 
 #include <cctype>
 #include <iostream>
@@ -113,21 +113,22 @@ std::string FlowProfile::ToString() const
 {
 	std::stringstream ss;
 	ss << "FlowProfile("
-		<< "startTime=" << TimevalToMilliseconds(_startTime) << ", "
-		<< "endTime=" << TimevalToMilliseconds(_endTime) << ", "
-		<< "l3Proto=" << l3ProtocolToString(_l3Proto) << ", "
-		<< "l4Proto=" << l4ProtocolToString(_l4Proto) << ", "
-		<< "srcPort=" << _srcPort << ", "
-		<< "dstPort=" << _dstPort << ", "
-		<< "packets=" << _packets << ", "
-		<< "bytes=" << _bytes << ", "
-		<< "packetsRev=" << _packetsRev << ", "
-		<< "bytesRev=" << _bytesRev << ")";
+	   << "startTime=" << TimevalToMilliseconds(_startTime) << ", "
+	   << "endTime=" << TimevalToMilliseconds(_endTime) << ", "
+	   << "l3Proto=" << l3ProtocolToString(_l3Proto) << ", "
+	   << "l4Proto=" << l4ProtocolToString(_l4Proto) << ", "
+	   << "srcPort=" << _srcPort << ", "
+	   << "dstPort=" << _dstPort << ", "
+	   << "packets=" << _packets << ", "
+	   << "bytes=" << _bytes << ", "
+	   << "packetsRev=" << _packetsRev << ", "
+	   << "bytesRev=" << _bytesRev << ")";
 	return ss.str();
 }
 
 FlowProfileReader::FlowProfileReader(const std::string& filename)
-	: _filename(filename), _ifs(filename)
+	: _filename(filename)
+	, _ifs(filename)
 {
 	if (!_ifs) {
 		throw std::runtime_error("failed to open file \"" + filename + "\"");
@@ -174,7 +175,8 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	}
 	profile._startTime = MillisecsToTimeval(*startTime);
 
-	std::optional<int64_t> endTime = parseValue<int64_t>(pieces[_order[EndTime]]);;
+	std::optional<int64_t> endTime = parseValue<int64_t>(pieces[_order[EndTime]]);
+	;
 	if (!endTime) {
 		ReportParseError(line, "bad END_TIME");
 		return ReadProfile();
@@ -302,7 +304,7 @@ void FlowProfileReader::ReadHeader()
 		throw std::runtime_error("invalid number of components in header");
 	}
 
-	const std::unordered_map<std::string, Component> componentMap{
+	const std::unordered_map<std::string, Component> componentMap {
 		{"START_TIME", StartTime},
 		{"END_TIME", EndTime},
 		{"L3_PROTO", L3Proto},
@@ -345,7 +347,8 @@ void FlowProfileReader::ReadHeader()
  */
 void FlowProfileReader::ReportParseError(const std::string& value, const std::string& errorMessage)
 {
-	_logger->error("Ignoring line with invalid value \"{}\": {} ({}:{})",
+	_logger->error(
+		"Ignoring line with invalid value \"{}\": {} ({}:{})",
 		value,
 		errorMessage,
 		_filename,

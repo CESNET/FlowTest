@@ -1,16 +1,29 @@
-AccessModifierOffset: '0'
-AllowShortBlocksOnASingleLine: 'false'
-AllowShortCaseLabelsOnASingleLine: 'false'
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: 'false'
-Cpp11BracedListStyle: 'true'
-IndentWidth: '4'
+---
 Language: Cpp
+BasedOnStyle: WebKit
+
+AlwaysBreakBeforeMultilineStrings: true
+AlignAfterOpenBracket: AlwaysBreak
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: Inline
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BreakInheritanceList: BeforeComma
+ColumnLimit: 100
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
+IndentGotoLabels: false
+KeepEmptyLinesAtTheStartOfBlocks: false
 NamespaceIndentation: None
+ShortNamespaceLines: 0
+SpaceAfterCStyleCast: true
+SpaceAfterTemplateKeyword: true
+SpaceInEmptyBlock: false
+SpacesInContainerLiterals: false
 PointerAlignment: Left
-SortIncludes: 'true'
-SpaceAfterTemplateKeyword: 'true'
-SpaceBeforeAssignmentOperators: 'true'
-SpaceBeforeCpp11BracedList: 'true'
 TabWidth: '4'
 UseTab: ForContinuationAndIndentation
+...

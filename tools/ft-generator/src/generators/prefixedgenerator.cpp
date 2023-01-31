@@ -16,10 +16,10 @@ PrefixedGenerator::PrefixedGenerator(
 	const std::bitset<128>& prefix,
 	uint8_t prefixLen,
 	uint8_t totalLen,
-	const std::bitset<128>& seed) :
-	_prefix((prefix << (128 - prefixLen)) >> (128 - prefixLen)),
-	_prefixLen(prefixLen),
-	_lfsr(Lfsr(totalLen - prefixLen, seed))
+	const std::bitset<128>& seed)
+	: _prefix((prefix << (128 - prefixLen)) >> (128 - prefixLen))
+	, _prefixLen(prefixLen)
+	, _lfsr(Lfsr(totalLen - prefixLen, seed))
 {
 	if (prefixLen >= totalLen) {
 		throw std::invalid_argument("invalid PrefixedGenerator prefix length");

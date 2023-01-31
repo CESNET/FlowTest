@@ -29,7 +29,6 @@ using OutputPluginGenerator = std::unique_ptr<OutputPlugin> (*)(const std::strin
  */
 class OutputPluginFactory {
 public:
-
 	/**
 	 * @brief Get factory instance - Singleton pattern
 	 *

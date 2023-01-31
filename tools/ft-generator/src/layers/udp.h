@@ -20,7 +20,6 @@ namespace generator {
  */
 class Udp : public Layer {
 public:
-
 	/**
 	 * @brief Construct a new Udp object
 	 *

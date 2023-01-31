@@ -11,8 +11,13 @@
 
 namespace generator {
 
-PacketFlowSpan::iterator::iterator(packetIterator wrapper, packetIterator wrapperEnd, bool getOnlyAvailable) :
-	_wrapper(wrapper), _wrapperEnd(wrapperEnd), _getOnlyAvailable(getOnlyAvailable)
+PacketFlowSpan::iterator::iterator(
+	packetIterator wrapper,
+	packetIterator wrapperEnd,
+	bool getOnlyAvailable)
+	: _wrapper(wrapper)
+	, _wrapperEnd(wrapperEnd)
+	, _getOnlyAvailable(getOnlyAvailable)
 {
 	GetElement(false);
 }

@@ -10,11 +10,11 @@
 #pragma once
 
 #include <ctime>
+#include <iostream>
 #include <map>
+#include <utility>
 #include <variant>
 #include <vector>
-#include <utility>
-#include <iostream>
 
 namespace generator {
 
@@ -31,22 +31,21 @@ enum class Direction {
 	Reverse,
 };
 
-
 /**
  * @brief Class representing the packet planner interface
  */
 class Packet {
 public:
-	using layerValue  = std::variant<std::monostate, uint64_t>;
+	using layerValue = std::variant<std::monostate, uint64_t>;
 	using layerParams = std::map<int, layerValue>;
-	using layer       = std::pair<Layer *, layerParams>;
+	using layer = std::pair<Layer*, layerParams>;
 
-	Direction _direction = Direction::Unknown;    //< Packet direction
-	timeval _timestamp = {0, 0};                  //< Timestamp
-	size_t _size = 0;                             //< Planned packet size (IP header and above)
-	bool _isFinished = false;                     //< Do not add more layers to packet
-	std::vector<layer> _layers;                   //< Packet protocol layers in order
-	bool _isExtra = false;                        //< Mark the packet as extra
+	Direction _direction = Direction::Unknown; //< Packet direction
+	timeval _timestamp = {0, 0}; //< Timestamp
+	size_t _size = 0; //< Planned packet size (IP header and above)
+	bool _isFinished = false; //< Do not add more layers to packet
+	std::vector<layer> _layers; //< Packet protocol layers in order
+	bool _isExtra = false; //< Mark the packet as extra
 };
 
 } // namespace generator

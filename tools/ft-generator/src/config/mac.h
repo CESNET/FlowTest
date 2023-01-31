@@ -43,14 +43,15 @@ public:
 	pcpp::MacAddress GetBaseAddr() const { return _baseAddr; };
 
 	/**
-	 * @brief Get the length of the prefix, respectively the number of significant bits in the base address
+	 * @brief Get the length of the prefix, respectively the number of significant bits in the base
+	 * address
 	 *
 	 * @return uint8_t
 	 */
 	uint8_t GetPrefixLen() const { return _prefixLen; };
 
 private:
-	pcpp::MacAddress _baseAddr{pcpp::MacAddress::Zero};
+	pcpp::MacAddress _baseAddr {pcpp::MacAddress::Zero};
 	uint8_t _prefixLen;
 };
 

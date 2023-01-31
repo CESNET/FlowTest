@@ -8,11 +8,11 @@
 
 #include "config.hpp"
 #include "logger.h"
-#include "outputPluginFactory.hpp"
 #include "outputPlugin.hpp"
+#include "outputPluginFactory.hpp"
 #include "outputQueue.hpp"
-#include "packetQueueProvider.hpp"
 #include "packetBuilder.hpp"
+#include "packetQueueProvider.hpp"
 #include "rawPacketProvider.hpp"
 
 #include <cstdlib>
@@ -22,13 +22,11 @@
 
 using namespace replay;
 
-void ReplicationThread(
-	const std::unique_ptr<PacketQueue> packetQueue,
-	OutputQueue *outputQueue)
+void ReplicationThread(const std::unique_ptr<PacketQueue> packetQueue, OutputQueue* outputQueue)
 {
 	(void) packetQueue;
 	(void) outputQueue;
-	//Replicator replicator(packetQueue, outputQueue);
+	// Replicator replicator(packetQueue, outputQueue);
 
 	size_t maxBurstSize = outputQueue->GetMaxBurstSize();
 	size_t burstSize = maxBurstSize;
@@ -45,21 +43,21 @@ void ReplicationThread(
 			burstSize = packetsCount - r;
 		}
 		for (unsigned p = 0; p < burstSize; p++) {
-			burst[p]._len = (*packetQueue)[p+r]->dataLen;
+			burst[p]._len = (*packetQueue)[p + r]->dataLen;
 		}
 		burstSize = outputQueue->GetBurst(burst.get(), burstSize);
 		for (unsigned p = 0; p < burstSize; p++) {
-			std::byte* data = (*packetQueue)[p+r]->data.get();
+			std::byte* data = (*packetQueue)[p + r]->data.get();
 			std::copy(data, data + burst[p]._len, burst[p]._data);
 		}
 		outputQueue->SendBurst(burst.get(), burstSize);
 		sendCount += burstSize;
 		burstSize = maxBurstSize;
 	}
-	std::cout<<sendCount<<" packets sent."<<std::endl;
+	std::cout << sendCount << " packets sent." << std::endl;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 	Config config;
 	std::vector<std::thread> threads;
@@ -84,11 +82,11 @@ int main(int argc, char **argv)
 	std::unique_ptr<OutputPlugin> outputPlugin;
 
 	try {
-		outputPlugin = OutputPluginFactory::instance()
-			.Create(config.GetOutputPluginSpecification());
+		outputPlugin
+			= OutputPluginFactory::instance().Create(config.GetOutputPluginSpecification());
 		RawPacketProvider packetProvider(config.GetInputPcapFile());
 		PacketQueueProvider packetQueueProvider(queueCount);
-		const RawPacket *rawPacket;
+		const RawPacket* rawPacket;
 
 		PacketBuilder builder;
 		builder.SetVlan(config.GetVlanID());
@@ -100,7 +98,7 @@ int main(int argc, char **argv)
 
 		for (size_t queueId = 0; queueId < queueCount; queueId++) {
 			auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
-			OutputQueue *outputQueue = outputPlugin->GetQueue(queueId);
+			OutputQueue* outputQueue = outputPlugin->GetQueue(queueId);
 			std::thread thread(ReplicationThread, std::move(packetQueue), outputQueue);
 			threads.emplace_back(std::move(thread));
 		}

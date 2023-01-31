@@ -9,16 +9,16 @@
 
 #pragma once
 
-#include "outputQueue.hpp"
+#include "logger.h"
 #include "outputPlugin.hpp"
 #include "outputPluginFactoryRegistrator.hpp"
-#include "logger.h"
+#include "outputQueue.hpp"
 
-#include <nfb/nfb.h>
 #include <nfb/ndp.h>
+#include <nfb/nfb.h>
 
-#include <memory>
 #include <cstddef>
+#include <memory>
 
 namespace replay {
 
@@ -72,7 +72,7 @@ public:
 	 * @param[in] queue id
 	 * @param[in] maximal size of burst
 	 */
-	NfbQueue(nfb_device *dev, unsigned int queue_id, size_t burstSize, size_t superPacketSize);
+	NfbQueue(nfb_device* dev, unsigned int queue_id, size_t burstSize, size_t superPacketSize);
 
 	/**
 	 * @brief Destructor
@@ -124,8 +124,9 @@ private:
 
 	void Flush();
 
-	std::unique_ptr<ndp_tx_queue_t, decltype(&ndp_close_tx_queue)> _txQueue
-		{nullptr, &ndp_close_tx_queue};
+	std::unique_ptr<ndp_tx_queue_t, decltype(&ndp_close_tx_queue)> _txQueue {
+		nullptr,
+		&ndp_close_tx_queue};
 	std::unique_ptr<ndp_packet[]> _txPacket;
 	unsigned _txBurstCount = 0;
 	size_t _burstSize;
@@ -177,8 +178,7 @@ private:
 
 	void ParseMap(const std::map<std::string, std::string>& argMap);
 
-	std::unique_ptr<nfb_device, decltype(&nfb_close)> _nfbDevice
-		{nullptr, &nfb_close};
+	std::unique_ptr<nfb_device, decltype(&nfb_close)> _nfbDevice {nullptr, &nfb_close};
 	std::vector<std::unique_ptr<NfbQueue>> _queues;
 	std::string _deviceName;
 	size_t _queueCount = 0;

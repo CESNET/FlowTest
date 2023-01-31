@@ -13,8 +13,10 @@
 namespace generator {
 
 IPv4AddressGenerator::IPv4AddressGenerator(
-	IPv4Address netIp, uint8_t prefixLen, const std::bitset<128>& seed) :
-	_gen(PrefixedGenerator(bytesToBitset(netIp.toBytes(), 4), prefixLen, 32, seed))
+	IPv4Address netIp,
+	uint8_t prefixLen,
+	const std::bitset<128>& seed)
+	: _gen(PrefixedGenerator(bytesToBitset(netIp.toBytes(), 4), prefixLen, 32, seed))
 {
 	if (prefixLen > 0 && !netIp.isValid()) {
 		throw std::invalid_argument("invalid net address");
