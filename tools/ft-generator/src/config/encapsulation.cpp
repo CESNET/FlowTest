@@ -18,8 +18,8 @@ constexpr uint16_t VLAN_ID_MAX = 4095;
 
 EncapsulationLayerVlan::EncapsulationLayerVlan(const YAML::Node& node)
 {
-	checkAllowedKeys(node, {"type", "id"});
-	auto id = parseValue<uint16_t>(asScalar(node["id"]));
+	CheckAllowedKeys(node, {"type", "id"});
+	auto id = ParseValue<uint16_t>(AsScalar(node["id"]));
 	if (!id || *id < VLAN_ID_MIN || *id > VLAN_ID_MAX) {
 		throw ConfigError(node, "invalid vlan id value, expected integer in range <1, 4095>");
 	}
@@ -28,8 +28,8 @@ EncapsulationLayerVlan::EncapsulationLayerVlan(const YAML::Node& node)
 
 EncapsulationLayerMpls::EncapsulationLayerMpls(const YAML::Node& node)
 {
-	checkAllowedKeys(node, {"type", "label"});
-	auto label = parseValue<uint32_t>(asScalar(node["label"]));
+	CheckAllowedKeys(node, {"type", "label"});
+	auto label = ParseValue<uint32_t>(AsScalar(node["label"]));
 	if (!label || *label > MPLS_LABEL_MAX) {
 		throw ConfigError(node, "invalid mpls label value, expected integer in range <0, 1048575>");
 	}
@@ -38,8 +38,8 @@ EncapsulationLayerMpls::EncapsulationLayerMpls(const YAML::Node& node)
 
 EncapsulationLayer::EncapsulationLayer(const YAML::Node& node)
 {
-	expectKey(node, "type");
-	const std::string& type = asScalar(node["type"]);
+	ExpectKey(node, "type");
+	const std::string& type = AsScalar(node["type"]);
 	if (type == "vlan") {
 		*this = EncapsulationLayerVlan(node);
 	} else if (type == "mpls") {
@@ -52,12 +52,12 @@ EncapsulationLayer::EncapsulationLayer(const YAML::Node& node)
 
 EncapsulationVariant::EncapsulationVariant(const YAML::Node& node)
 {
-	checkAllowedKeys(node, {"probability", "layers"});
-	expectKey(node, "probability");
-	expectKey(node, "layers");
+	CheckAllowedKeys(node, {"probability", "layers"});
+	ExpectKey(node, "probability");
+	ExpectKey(node, "layers");
 
-	_probability = parseProbability(node["probability"]);
-	_layers = parseMany<EncapsulationLayer>(node["layers"]);
+	_probability = ParseProbability(node["probability"]);
+	_layers = ParseMany<EncapsulationLayer>(node["layers"]);
 	for (size_t i = 1; i < _layers.size(); i++) {
 		if (std::holds_alternative<EncapsulationLayerMpls>(_layers[i - 1])
 			&& std::holds_alternative<EncapsulationLayerVlan>(_layers[i])) {
@@ -69,7 +69,7 @@ EncapsulationVariant::EncapsulationVariant(const YAML::Node& node)
 }
 
 Encapsulation::Encapsulation(const YAML::Node& node)
-	: _variants(parseOneOrMany<EncapsulationVariant>(node))
+	: _variants(ParseOneOrMany<EncapsulationVariant>(node))
 {
 	double sum = 0.0;
 	for (size_t i = 0; i < _variants.size(); i++) {

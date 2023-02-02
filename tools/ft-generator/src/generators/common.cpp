@@ -10,7 +10,7 @@
 
 namespace generator {
 
-void bitsetToBytes(std::bitset<128> bitset, uint8_t* bytes, int length)
+void BitsetToBytes(std::bitset<128> bitset, uint8_t* bytes, int length)
 {
 	for (int i = 0; i < length; i++) {
 		bytes[i] = (bitset & std::bitset<128>(0xFF)).to_ulong();
@@ -18,7 +18,7 @@ void bitsetToBytes(std::bitset<128> bitset, uint8_t* bytes, int length)
 	}
 }
 
-std::bitset<128> bytesToBitset(const uint8_t* bytes, int length)
+std::bitset<128> BytesToBitset(const uint8_t* bytes, int length)
 {
 	std::bitset<128> bitset {0};
 	for (int i = 0; i < length; i++) {
@@ -27,7 +27,7 @@ std::bitset<128> bytesToBitset(const uint8_t* bytes, int length)
 	return bitset;
 }
 
-std::bitset<128> generateSeed()
+std::bitset<128> GenerateSeed()
 {
 	auto& rng = RandomGenerator::GetInstance();
 	return (std::bitset<128>(rng.RandomUInt()) << 64) | std::bitset<128>(rng.RandomUInt());

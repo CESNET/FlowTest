@@ -37,7 +37,7 @@ namespace generator {
 
 static constexpr int ICMP_HEADER_SIZE = sizeof(pcpp::icmphdr);
 
-const static std::vector<IntervalInfo> PacketSizeProbabilities {
+const static std::vector<IntervalInfo> PACKET_SIZE_PROBABILITIES {
 	{64, 79, 0.2824},
 	{80, 159, 0.073},
 	{160, 319, 0.0115},
@@ -46,7 +46,7 @@ const static std::vector<IntervalInfo> PacketSizeProbabilities {
 	{1280, 1518, 0.6119}};
 
 static std::vector<config::EncapsulationLayer>
-chooseEncaps(const std::vector<config::EncapsulationVariant>& variants)
+ChooseEncaps(const std::vector<config::EncapsulationVariant>& variants)
 {
 	if (variants.empty()) {
 		return {};
@@ -81,7 +81,7 @@ Flow::Flow(
 	MacAddress macDst = addressGenerators.GenerateMac();
 	AddLayer(std::make_unique<Ethernet>(macSrc, macDst));
 
-	const auto& encapsLayers = chooseEncaps(config.GetEncapsulation().GetVariants());
+	const auto& encapsLayers = ChooseEncaps(config.GetEncapsulation().GetVariants());
 	for (size_t i = 0; i < encapsLayers.size(); i++) {
 		const auto& layer = encapsLayers[i];
 		if (const auto* vlan = std::get_if<config::EncapsulationLayerVlan>(&layer)) {
@@ -261,7 +261,7 @@ bool Flow::IsFinished() const
 void Flow::PlanPacketsDirections()
 {
 	PacketFlowSpan packetsSpan(this, true);
-	auto [fwd, rev] = packetsSpan.getAvailableDirections();
+	auto [fwd, rev] = packetsSpan.GetAvailableDirections();
 
 	std::vector<Direction> directions;
 	directions.insert(directions.end(), fwd, Direction::Forward);
@@ -317,8 +317,8 @@ void Flow::PlanPacketsTimestamps()
 
 void Flow::PlanPacketsSizes()
 {
-	ValueGenerator fwdGen(_fwdPackets, _fwdBytes, PacketSizeProbabilities);
-	ValueGenerator revGen(_revPackets, _revBytes, PacketSizeProbabilities);
+	ValueGenerator fwdGen(_fwdPackets, _fwdBytes, PACKET_SIZE_PROBABILITIES);
+	ValueGenerator revGen(_revPackets, _revBytes, PACKET_SIZE_PROBABILITIES);
 
 	for (auto& packet : _packets) {
 		if (packet._isFinished) {

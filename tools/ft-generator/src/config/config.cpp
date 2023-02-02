@@ -13,7 +13,7 @@ namespace config {
 
 Config::Config(const YAML::Node& node)
 {
-	checkAllowedKeys(
+	CheckAllowedKeys(
 		node,
 		{
 			"ipv4",

@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 
 	try {
 		outputPlugin
-			= OutputPluginFactory::instance().Create(config.GetOutputPluginSpecification());
+			= OutputPluginFactory::Instance().Create(config.GetOutputPluginSpecification());
 		RawPacketProvider packetProvider(config.GetInputPcapFile());
 		PacketQueueProvider packetQueueProvider(queueCount);
 		const RawPacket* rawPacket;

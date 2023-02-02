@@ -14,12 +14,12 @@ namespace config {
 
 IPv6AddressRange::IPv6AddressRange(const YAML::Node& node)
 {
-	auto pieces = stringSplit(asScalar(node), "/");
+	auto pieces = StringSplit(AsScalar(node), "/");
 	if (pieces.size() != 2) {
 		throw ConfigError(node, "invalid IPv6 range");
 	}
 
-	auto prefixLen = parseValue<uint8_t>(pieces[1]);
+	auto prefixLen = ParseValue<uint8_t>(pieces[1]);
 	if (!prefixLen || *prefixLen > 128) {
 		throw ConfigError(node, "invalid IPv6 range prefix");
 	}
@@ -33,12 +33,12 @@ IPv6AddressRange::IPv6AddressRange(const YAML::Node& node)
 
 IPv6::IPv6(const YAML::Node& node)
 {
-	checkAllowedKeys(
+	CheckAllowedKeys(
 		node,
 		{
 			"ip_range",
 		});
-	_ipRange = parseOneOrMany<IPv6AddressRange>(node["ip_range"]);
+	_ipRange = ParseOneOrMany<IPv6AddressRange>(node["ip_range"]);
 }
 
 } // namespace config

@@ -20,10 +20,10 @@ static MultiRangeGenerator<GeneratorT, AddressT> Make(const std::vector<RangeT>&
 {
 	std::vector<GeneratorT> generators;
 	for (const auto& range : configs) {
-		generators.emplace_back(range.GetBaseAddr(), range.GetPrefixLen(), generateSeed());
+		generators.emplace_back(range.GetBaseAddr(), range.GetPrefixLen(), GenerateSeed());
 	}
 	if (configs.empty()) {
-		generators.emplace_back(AddressT::Zero, 0, generateSeed());
+		generators.emplace_back(AddressT::Zero, 0, GenerateSeed());
 	}
 	return MultiRangeGenerator<GeneratorT, AddressT>(std::move(generators));
 }

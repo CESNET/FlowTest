@@ -34,7 +34,7 @@ public:
 	 *
 	 * @return OutputPluginFactory&  Reference to the factory singleton
 	 */
-	static OutputPluginFactory& instance();
+	static OutputPluginFactory& Instance();
 
 	/**
 	 * @brief Create new output plugin

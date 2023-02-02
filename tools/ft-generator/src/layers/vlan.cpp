@@ -11,7 +11,6 @@
 #include "ipv4.h"
 #include "ipv6.h"
 #include "mpls.h"
-#include "vlan.h"
 
 #include <pcapplusplus/VlanLayer.h>
 

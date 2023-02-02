@@ -26,7 +26,7 @@ namespace config {
  * @param delimiter                  The delimiter to split on
  * @return std::vector<std::string>  The pieces
  */
-std::vector<std::string> stringSplit(const std::string& s, const std::string& delimiter);
+std::vector<std::string> StringSplit(const std::string& s, const std::string& delimiter);
 
 /**
  * @brief Parse a value, wraps around std::from_chars
@@ -36,10 +36,10 @@ std::vector<std::string> stringSplit(const std::string& s, const std::string& de
  * @return std::optional<T>  The parse value or std::nullopt
  */
 template <typename T>
-std::optional<T> parseValue(const std::string& s);
+std::optional<T> ParseValue(const std::string& s);
 
 template <>
-std::optional<double> parseValue(const std::string& s);
+std::optional<double> ParseValue(const std::string& s);
 
 /**
  * @brief Remove whitespace from the beginning and end of a string
@@ -47,7 +47,7 @@ std::optional<double> parseValue(const std::string& s);
  * @param s
  * @return std::string
  */
-std::string stringStrip(std::string s);
+std::string StringStrip(std::string s);
 
 /**
  * @brief Expect the node to be a yaml sequence
@@ -56,7 +56,7 @@ std::string stringStrip(std::string s);
  *
  * @throw ConfigError in case it is not
  */
-void expectSequence(const YAML::Node& node);
+void ExpectSequence(const YAML::Node& node);
 
 /**
  * @brief Expect the node to be a yaml map or throw an error
@@ -65,7 +65,7 @@ void expectSequence(const YAML::Node& node);
  *
  * @throw ConfigError in case it is not
  */
-void expectMap(const YAML::Node& node);
+void ExpectMap(const YAML::Node& node);
 
 /**
  * @brief Expect the node to be a yaml scalar or throw an error
@@ -74,7 +74,7 @@ void expectMap(const YAML::Node& node);
  *
  * @throw ConfigError in case it is not
  */
-void expectScalar(const YAML::Node& node);
+void ExpectScalar(const YAML::Node& node);
 
 /**
  * @brief Expect the node to contain a key or throw an error
@@ -83,7 +83,7 @@ void expectScalar(const YAML::Node& node);
  *
  * @throw ConfigError in case it does not
  */
-void expectKey(const YAML::Node& node, const std::string& key);
+void ExpectKey(const YAML::Node& node, const std::string& key);
 
 /**
  * @brief Expect the node to be a yaml scalar and return its string representation
@@ -94,7 +94,7 @@ void expectKey(const YAML::Node& node, const std::string& key);
  *
  * @throw ConfigError in case it is not
  */
-std::string asScalar(const YAML::Node& node);
+std::string AsScalar(const YAML::Node& node);
 
 /**
  * @brief Check that the node only contains the keys in the allowed keys field
@@ -104,7 +104,7 @@ std::string asScalar(const YAML::Node& node);
  *
  * @throw ConfigError in case there are extra keys
  */
-void checkAllowedKeys(const YAML::Node& node, const std::vector<std::string>& allowedKeys);
+void CheckAllowedKeys(const YAML::Node& node, const std::vector<std::string>& allowedKeys);
 
 /**
  * @brief Parse a probability as either a double or a percentage
@@ -114,7 +114,7 @@ void checkAllowedKeys(const YAML::Node& node, const std::vector<std::string>& al
  *
  * @throw ConfigError on errornous value
  */
-double parseProbability(const YAML::Node& node);
+double ParseProbability(const YAML::Node& node);
 
 /**
  * @brief Parse a YAML sequence into a vector of configuration objects
@@ -125,7 +125,7 @@ double parseProbability(const YAML::Node& node);
  * @return std::vector<T>  Vector of parsed configuraiton objects
  */
 template <typename T>
-std::vector<T> parseMany(const YAML::Node& node);
+std::vector<T> ParseMany(const YAML::Node& node);
 
 /**
  * @brief Same as parseMany but can also be a scalar instead of a sequence,
@@ -136,7 +136,7 @@ std::vector<T> parseMany(const YAML::Node& node);
  * @return std::vector<T>  Vector of parsed configuraiton objects
  */
 template <typename T>
-std::vector<T> parseOneOrMany(const YAML::Node& node);
+std::vector<T> ParseOneOrMany(const YAML::Node& node);
 
 /**
  * @brief An exception representing an error in the yaml configuration
@@ -212,7 +212,7 @@ private:
  * @param node  The node
  * @return std::string
  */
-static inline std::string nodeTypeToStr(const YAML::Node& node)
+static inline std::string NodeTypeToStr(const YAML::Node& node)
 {
 	if (node.IsMap()) {
 		return "map";
@@ -228,7 +228,7 @@ static inline std::string nodeTypeToStr(const YAML::Node& node)
 }
 
 template <typename T>
-std::optional<T> parseValue(const std::string& s)
+std::optional<T> ParseValue(const std::string& s)
 {
 	T value;
 	auto [endPtr, errCode] = std::from_chars(s.data(), s.data() + s.size(), value);
@@ -240,9 +240,9 @@ std::optional<T> parseValue(const std::string& s)
 }
 
 template <typename T>
-std::vector<T> parseMany(const YAML::Node& node)
+std::vector<T> ParseMany(const YAML::Node& node)
 {
-	expectSequence(node);
+	ExpectSequence(node);
 	std::vector<T> values;
 	for (const auto& subnode : node) {
 		values.push_back(T(subnode));
@@ -251,18 +251,18 @@ std::vector<T> parseMany(const YAML::Node& node)
 }
 
 template <typename T>
-std::vector<T> parseOneOrMany(const YAML::Node& node)
+std::vector<T> ParseOneOrMany(const YAML::Node& node)
 {
 	if (node.IsScalar()) {
 		return {T(node)};
 	} else if (node.IsSequence()) {
-		return parseMany<T>(node);
+		return ParseMany<T>(node);
 	} else {
-		throw ConfigError(node, "expected sequence or scalar, but got " + nodeTypeToStr(node));
+		throw ConfigError(node, "expected sequence or scalar, but got " + NodeTypeToStr(node));
 	}
 }
 
-void printError(const ConfigError& error, const std::string& filename);
+void PrintError(const ConfigError& error, const std::string& filename);
 
 } // namespace config
 } // namespace generator
