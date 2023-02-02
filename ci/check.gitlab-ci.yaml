@@ -37,6 +37,12 @@ clang-format:
   script:
     - "find tools/ -type f -regex '.*\\.\\(hpp\\|cpp\\|c\\|h\\)$' -print0 | xargs -0 clang-format --dry-run --Werror --style=file"
 
+
+clang-tidy:
+  stage: check
+  script:
+    - "make tidy"
+
 doxy-filename:
   stage: check
   script:
