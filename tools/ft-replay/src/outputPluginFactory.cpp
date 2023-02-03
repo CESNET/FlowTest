@@ -46,7 +46,7 @@ bool OutputPluginFactory::RegisterPlugin(
 	return _registeredPlugins.insert(std::make_pair(pluginName, funcCreate)).second;
 }
 
-OutputPluginFactory& OutputPluginFactory::instance()
+OutputPluginFactory& OutputPluginFactory::Instance()
 {
 	static OutputPluginFactory instance;
 	return instance;

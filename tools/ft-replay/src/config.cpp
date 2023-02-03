@@ -72,7 +72,7 @@ void Config::SetDefaultValues()
 
 const option* Config::GetLongOptions()
 {
-	static struct option long_options[]
+	static struct option longOptions[]
 		= {{"replicator-config", required_argument, nullptr, 'c'},
 		   {"replay-multiplier", required_argument, nullptr, 'r'},
 		   {"output-plugin", required_argument, nullptr, 'o'},
@@ -81,7 +81,7 @@ const option* Config::GetLongOptions()
 		   {"pcap", required_argument, nullptr, 'p'},
 		   {"help", no_argument, nullptr, 'h'},
 		   {nullptr, 0, nullptr, 0}};
-	return long_options;
+	return longOptions;
 }
 
 const char* Config::GetShortOptions()

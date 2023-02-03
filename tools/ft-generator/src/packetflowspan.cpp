@@ -11,7 +11,7 @@
 
 namespace generator {
 
-PacketFlowSpan::iterator::iterator(
+PacketFlowSpan::Iterator::Iterator(
 	packetIterator wrapper,
 	packetIterator wrapperEnd,
 	bool getOnlyAvailable)
@@ -22,7 +22,7 @@ PacketFlowSpan::iterator::iterator(
 	GetElement(false);
 }
 
-void PacketFlowSpan::iterator::GetElement(bool incrementOperator)
+void PacketFlowSpan::Iterator::GetElement(bool incrementOperator)
 {
 	if (incrementOperator == true) {
 		++_wrapper;
@@ -33,7 +33,7 @@ void PacketFlowSpan::iterator::GetElement(bool incrementOperator)
 	}
 }
 
-std::pair<size_t, size_t> PacketFlowSpan::getAvailableDirections()
+std::pair<size_t, size_t> PacketFlowSpan::GetAvailableDirections()
 {
 	size_t fwd = _flow->_fwdPackets;
 	size_t rev = _flow->_revPackets;

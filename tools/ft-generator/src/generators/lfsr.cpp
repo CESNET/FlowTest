@@ -19,7 +19,7 @@ namespace generator {
  *
  * Note: The values are modified to be zero indexed as opposed to one indexed as in the linked pdf
  */
-static const std::vector<std::vector<uint64_t>> LfsrTaps = {
+static const std::vector<std::vector<uint64_t>> LFSR_TAPS = {
 	{},
 	{0},
 	{1},
@@ -157,7 +157,7 @@ Lfsr::Lfsr(unsigned int nBits, const std::bitset<128>& seed)
 		throw std::invalid_argument("number of bits must be between 1 and 128 inclusive");
 	}
 	_nBits = nBits;
-	_taps = LfsrTaps[nBits];
+	_taps = LFSR_TAPS[nBits];
 	_state = seed;
 }
 

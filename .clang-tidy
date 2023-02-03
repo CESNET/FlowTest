@@ -1,9 +1,9 @@
-Checks:          'clang-diagnostic-*,
-                  clang-analyzer-*,
-                  cppcoreguidelines-*,
-                  modernize-*,-modernize-use-trailing-return-type,
-                  readability-*'
-FormatStyle:     file
+Checks:
+  '-*,
+  readability-identifier-naming'
+FormatStyle: file
+WarningsAsErrors: '*'
+HeaderFilterRegex: 'tools/*'
 CheckOptions:
   - key: readability-identifier-naming.NamespaceCase
     value: lower_case
@@ -16,7 +16,7 @@ CheckOptions:
   - key: readability-identifier-naming.StructCase
     value: CamelCase
   - key: readability-identifier-naming.FunctionCase
-    value: camelBack
+    value: CamelCase
   - key: readability-identifier-naming.StaticConstantCase
     value: CamelCase
   - key: readability-identifier-naming.VariableCase

@@ -31,7 +31,7 @@ struct OutputPluginFactoryRegistrator {
 	explicit OutputPluginFactoryRegistrator(const std::string& pluginName)
 	{
 		bool inserted;
-		inserted = OutputPluginFactory::instance().RegisterPlugin(
+		inserted = OutputPluginFactory::Instance().RegisterPlugin(
 			pluginName,
 			[](const std::string& params) -> std::unique_ptr<OutputPlugin> {
 				return std::make_unique<T>(params);

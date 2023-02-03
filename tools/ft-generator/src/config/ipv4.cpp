@@ -14,12 +14,12 @@ namespace config {
 
 IPv4AddressRange::IPv4AddressRange(const YAML::Node& node)
 {
-	auto pieces = stringSplit(asScalar(node), "/");
+	auto pieces = StringSplit(AsScalar(node), "/");
 	if (pieces.size() != 2) {
 		throw ConfigError(node, "invalid IPv4 range");
 	}
 
-	auto prefixLen = parseValue<uint8_t>(pieces[1]);
+	auto prefixLen = ParseValue<uint8_t>(pieces[1]);
 	if (!prefixLen || *prefixLen > 32) {
 		throw ConfigError(node, "invalid IPv4 range prefix");
 	}
@@ -33,16 +33,16 @@ IPv4AddressRange::IPv4AddressRange(const YAML::Node& node)
 
 IPv4::IPv4(const YAML::Node& node)
 {
-	checkAllowedKeys(
+	CheckAllowedKeys(
 		node,
 		{"ip_range", "fragmentation_probability", "min_packet_size_to_fragment"});
 
-	_ipRange = parseOneOrMany<IPv4AddressRange>(node["ip_range"]);
-	_fragmentationProbability = parseProbability(node["fragmentation_probability"]);
+	_ipRange = ParseOneOrMany<IPv4AddressRange>(node["ip_range"]);
+	_fragmentationProbability = ParseProbability(node["fragmentation_probability"]);
 
 	auto minPktSizeToFragmentNode = node["min_packet_size_to_fragment"];
 	if (minPktSizeToFragmentNode.IsDefined()) {
-		auto result = parseValue<uint16_t>(asScalar(minPktSizeToFragmentNode));
+		auto result = ParseValue<uint16_t>(AsScalar(minPktSizeToFragmentNode));
 		if (!result) {
 			throw ConfigError(minPktSizeToFragmentNode, "expected integer in range <0, 65535>");
 		}

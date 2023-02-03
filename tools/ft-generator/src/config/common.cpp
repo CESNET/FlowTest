@@ -16,7 +16,7 @@
 namespace generator {
 namespace config {
 
-std::vector<std::string> stringSplit(const std::string& s, const std::string& delimiter)
+std::vector<std::string> StringSplit(const std::string& s, const std::string& delimiter)
 {
 	std::size_t pos = 0;
 	std::size_t nextPos;
@@ -29,7 +29,7 @@ std::vector<std::string> stringSplit(const std::string& s, const std::string& de
 	return pieces;
 }
 
-std::string stringStrip(std::string s)
+std::string StringStrip(std::string s)
 {
 	auto isNotWhitespace = [](unsigned char c) { return !std::isspace(c); };
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), isNotWhitespace));
@@ -37,41 +37,41 @@ std::string stringStrip(std::string s)
 	return s;
 }
 
-void expectSequence(const YAML::Node& node)
+void ExpectSequence(const YAML::Node& node)
 {
 	if (!node.IsSequence()) {
-		throw ConfigError(node, "expected a sequence, but got " + nodeTypeToStr(node));
+		throw ConfigError(node, "expected a sequence, but got " + NodeTypeToStr(node));
 	}
 }
 
-void expectMap(const YAML::Node& node)
+void ExpectMap(const YAML::Node& node)
 {
 	if (!node.IsMap()) {
-		throw ConfigError(node, "expected a map, but got " + nodeTypeToStr(node));
+		throw ConfigError(node, "expected a map, but got " + NodeTypeToStr(node));
 	}
 }
 
-void expectScalar(const YAML::Node& node)
+void ExpectScalar(const YAML::Node& node)
 {
 	if (!node.IsScalar()) {
-		throw ConfigError(node, "expected a scalar, but got " + nodeTypeToStr(node));
+		throw ConfigError(node, "expected a scalar, but got " + NodeTypeToStr(node));
 	}
 }
 
-void expectKey(const YAML::Node& node, const std::string& key)
+void ExpectKey(const YAML::Node& node, const std::string& key)
 {
 	if (!node[key].IsDefined()) {
 		throw ConfigError(node, "expected a missing key \"" + key + "\"");
 	}
 }
 
-std::string asScalar(const YAML::Node& node)
+std::string AsScalar(const YAML::Node& node)
 {
-	expectScalar(node);
+	ExpectScalar(node);
 	return node.as<std::string>();
 }
 
-void checkAllowedKeys(const YAML::Node& node, const std::vector<std::string>& allowedKeys)
+void CheckAllowedKeys(const YAML::Node& node, const std::vector<std::string>& allowedKeys)
 {
 	for (const auto& kv : node) {
 		const auto& key = kv.first.as<std::string>();
@@ -88,9 +88,9 @@ void checkAllowedKeys(const YAML::Node& node, const std::vector<std::string>& al
 	}
 }
 
-double parseProbability(const YAML::Node& node)
+double ParseProbability(const YAML::Node& node)
 {
-	const std::string& s = asScalar(node);
+	const std::string& s = AsScalar(node);
 	double result;
 
 	if (s.empty()) {
@@ -98,14 +98,14 @@ double parseProbability(const YAML::Node& node)
 	}
 
 	if (s[s.size() - 1] == '%') {
-		auto num = parseValue<double>(std::string(s.begin(), s.end() - 1));
+		auto num = ParseValue<double>(std::string(s.begin(), s.end() - 1));
 		if (!num) {
 			throw ConfigError(node, "expected probability as double or percentage");
 		}
 		result = *num / 100.0;
 
 	} else {
-		auto num = parseValue<double>(s);
+		auto num = ParseValue<double>(s);
 		if (!num) {
 			throw ConfigError(node, "expected probability as double or percentage");
 		}
@@ -160,7 +160,7 @@ void ConfigError::PrintPrettyError(
 }
 
 template <>
-std::optional<double> parseValue(const std::string& s)
+std::optional<double> ParseValue(const std::string& s)
 {
 	double value;
 	size_t endIndex;

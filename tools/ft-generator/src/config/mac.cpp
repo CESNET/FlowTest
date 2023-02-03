@@ -14,12 +14,12 @@ namespace config {
 
 MacAddressRange::MacAddressRange(const YAML::Node& node)
 {
-	auto pieces = stringSplit(asScalar(node), "/");
+	auto pieces = StringSplit(AsScalar(node), "/");
 	if (pieces.size() != 2) {
 		throw ConfigError(node, "invalid mac range");
 	}
 
-	auto prefixLen = parseValue<uint8_t>(pieces[1]);
+	auto prefixLen = ParseValue<uint8_t>(pieces[1]);
 	if (!prefixLen || *prefixLen > 48) {
 		throw ConfigError(node, "invalid mac range prefix");
 	}
@@ -33,12 +33,12 @@ MacAddressRange::MacAddressRange(const YAML::Node& node)
 
 Mac::Mac(const YAML::Node& node)
 {
-	checkAllowedKeys(
+	CheckAllowedKeys(
 		node,
 		{
 			"mac_range",
 		});
-	_macRange = parseOneOrMany<MacAddressRange>(node["mac_range"]);
+	_macRange = ParseOneOrMany<MacAddressRange>(node["mac_range"]);
 }
 
 } // namespace config

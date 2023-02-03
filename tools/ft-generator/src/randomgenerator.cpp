@@ -12,17 +12,17 @@
 
 namespace generator {
 
-static inline constexpr uint64_t rotl(const uint64_t x, int k) noexcept
+static inline constexpr uint64_t Rotl(const uint64_t x, int k) noexcept
 {
 	return (x << k) | (x >> (64 - k));
 }
 
-static inline constexpr float floatFromBits(uint32_t i) noexcept
+static inline constexpr float FloatFromBits(uint32_t i) noexcept
 {
 	return (i >> 8) * 0x1.0p-24f;
 }
 
-static inline constexpr double doubleFromBits(uint64_t i) noexcept
+static inline constexpr double DoubleFromBits(uint64_t i) noexcept
 {
 	return (i >> 11) * 0x1.0p-53;
 }
@@ -51,7 +51,7 @@ Xoshiro256PlusPlusGenerator::Xoshiro256PlusPlusGenerator(uint64_t seed)
 
 uint64_t Xoshiro256PlusPlusGenerator::Next()
 {
-	const uint64_t result = rotl(_state[0] + _state[3], 23) + _state[0];
+	const uint64_t result = Rotl(_state[0] + _state[3], 23) + _state[0];
 
 	const uint64_t t = _state[1] << 17;
 
@@ -62,7 +62,7 @@ uint64_t Xoshiro256PlusPlusGenerator::Next()
 
 	_state[2] ^= t;
 
-	_state[3] = rotl(_state[3], 45);
+	_state[3] = Rotl(_state[3], 45);
 
 	return result;
 }
@@ -90,12 +90,12 @@ uint64_t RandomGenerator::RandomUInt(uint64_t min, uint64_t max)
 
 float RandomGenerator::RandomFloat()
 {
-	return floatFromBits(RandomUInt());
+	return FloatFromBits(RandomUInt());
 }
 
 double RandomGenerator::RandomDouble()
 {
-	return doubleFromBits(RandomUInt());
+	return DoubleFromBits(RandomUInt());
 }
 
 double RandomGenerator::RandomDouble(double min, double max)

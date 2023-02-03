@@ -17,9 +17,9 @@
 
 namespace generator {
 
-using config::parseValue;
-using config::stringSplit;
-using config::stringStrip;
+using config::ParseValue;
+using config::StringSplit;
+using config::StringStrip;
 
 static timeval MillisecsToTimeval(int64_t millisecs)
 {
@@ -37,7 +37,7 @@ static int64_t TimevalToMilliseconds(const timeval& time)
 /**
  * Attempt to convert the provided value to a L3Protocol value
  */
-static std::optional<L3Protocol> getL3Protocol(uint8_t value)
+static std::optional<L3Protocol> GetL3Protocol(uint8_t value)
 {
 	switch (value) {
 	case static_cast<uint8_t>(L3Protocol::Ipv4):
@@ -52,7 +52,7 @@ static std::optional<L3Protocol> getL3Protocol(uint8_t value)
 /**
  * Convert a L3Protocol value to a string representation
  */
-static std::string l3ProtocolToString(L3Protocol protocol)
+static std::string L3ProtocolToString(L3Protocol protocol)
 {
 	switch (protocol) {
 	case L3Protocol::Unknown:
@@ -69,7 +69,7 @@ static std::string l3ProtocolToString(L3Protocol protocol)
 /**
  * Attempt to convert the provided value to a L4Protocol value
  */
-static std::optional<L4Protocol> getL4Protocol(uint8_t value)
+static std::optional<L4Protocol> GetL4Protocol(uint8_t value)
 {
 	switch (value) {
 	case static_cast<uint8_t>(L4Protocol::Icmp):
@@ -88,7 +88,7 @@ static std::optional<L4Protocol> getL4Protocol(uint8_t value)
 /**
  * Convert a L4Protocol value to a string representation
  */
-static std::string l4ProtocolToString(L4Protocol protocol)
+static std::string L4ProtocolToString(L4Protocol protocol)
 {
 	switch (protocol) {
 	case L4Protocol::Unknown:
@@ -115,8 +115,8 @@ std::string FlowProfile::ToString() const
 	ss << "FlowProfile("
 	   << "startTime=" << TimevalToMilliseconds(_startTime) << ", "
 	   << "endTime=" << TimevalToMilliseconds(_endTime) << ", "
-	   << "l3Proto=" << l3ProtocolToString(_l3Proto) << ", "
-	   << "l4Proto=" << l4ProtocolToString(_l4Proto) << ", "
+	   << "l3Proto=" << L3ProtocolToString(_l3Proto) << ", "
+	   << "l4Proto=" << L4ProtocolToString(_l4Proto) << ", "
 	   << "srcPort=" << _srcPort << ", "
 	   << "dstPort=" << _dstPort << ", "
 	   << "packets=" << _packets << ", "
@@ -162,20 +162,20 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 
 	const std::string& line = *maybeLine;
 
-	std::vector<std::string> pieces = stringSplit(line, ",");
+	std::vector<std::string> pieces = StringSplit(line, ",");
 	if (pieces.size() != ComponentsCount) {
 		ReportParseError(line, "bad line, invalid number of components");
 		return ReadProfile();
 	}
 
-	std::optional<int64_t> startTime = parseValue<int64_t>(pieces[_order[StartTime]]);
+	std::optional<int64_t> startTime = ParseValue<int64_t>(pieces[_order[StartTime]]);
 	if (!startTime) {
 		ReportParseError(line, "bad START_TIME");
 		return ReadProfile();
 	}
 	profile._startTime = MillisecsToTimeval(*startTime);
 
-	std::optional<int64_t> endTime = parseValue<int64_t>(pieces[_order[EndTime]]);
+	std::optional<int64_t> endTime = ParseValue<int64_t>(pieces[_order[EndTime]]);
 	;
 	if (!endTime) {
 		ReportParseError(line, "bad END_TIME");
@@ -183,24 +183,24 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	}
 	profile._endTime = MillisecsToTimeval(*endTime);
 
-	std::optional<uint8_t> l3ProtoNum = parseValue<uint8_t>(pieces[_order[L3Proto]]);
+	std::optional<uint8_t> l3ProtoNum = ParseValue<uint8_t>(pieces[_order[L3Proto]]);
 	if (!l3ProtoNum) {
 		ReportParseError(line, "bad L3_PROTO - invalid number");
 		return ReadProfile();
 	}
-	std::optional<L3Protocol> l3Proto = getL3Protocol(*l3ProtoNum);
+	std::optional<L3Protocol> l3Proto = GetL3Protocol(*l3ProtoNum);
 	if (!l3Proto) {
 		ReportParseError(line, "bad L3_PROTO - unknown protocol");
 		return ReadProfile();
 	}
 	profile._l3Proto = *l3Proto;
 
-	std::optional<uint8_t> l4ProtoNum = parseValue<uint8_t>(pieces[_order[L4Proto]]);
+	std::optional<uint8_t> l4ProtoNum = ParseValue<uint8_t>(pieces[_order[L4Proto]]);
 	if (!l4ProtoNum) {
 		ReportParseError(line, "bad L4_PROTO - invalid number");
 		return ReadProfile();
 	}
-	std::optional<L4Protocol> l4Proto = getL4Protocol(*l4ProtoNum);
+	std::optional<L4Protocol> l4Proto = GetL4Protocol(*l4ProtoNum);
 	if (!l4Proto) {
 		ReportParseError(line, "bad L4_PROTO - unknown protocol");
 		return ReadProfile();
@@ -210,7 +210,7 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	if (pieces[_order[SrcPort]].empty()) {
 		profile._srcPort = 0;
 	} else {
-		std::optional<uint16_t> srcPort = parseValue<uint16_t>(pieces[_order[SrcPort]]);
+		std::optional<uint16_t> srcPort = ParseValue<uint16_t>(pieces[_order[SrcPort]]);
 		if (!srcPort) {
 			ReportParseError(line, "bad SRC_PORT");
 			return ReadProfile();
@@ -221,7 +221,7 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	if (pieces[_order[DstPort]].empty()) {
 		profile._dstPort = 0;
 	} else {
-		std::optional<uint16_t> dstPort = parseValue<uint16_t>(pieces[_order[DstPort]]);
+		std::optional<uint16_t> dstPort = ParseValue<uint16_t>(pieces[_order[DstPort]]);
 		if (!dstPort) {
 			ReportParseError(line, "bad DST_PORT");
 			return ReadProfile();
@@ -229,28 +229,28 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 		profile._dstPort = *dstPort;
 	}
 
-	std::optional<uint64_t> packets = parseValue<uint64_t>(pieces[_order[Packets]]);
+	std::optional<uint64_t> packets = ParseValue<uint64_t>(pieces[_order[Packets]]);
 	if (!packets) {
 		ReportParseError(line, "bad PACKETS");
 		return ReadProfile();
 	}
 	profile._packets = *packets;
 
-	std::optional<uint64_t> bytes = parseValue<uint64_t>(pieces[_order[Bytes]]);
+	std::optional<uint64_t> bytes = ParseValue<uint64_t>(pieces[_order[Bytes]]);
 	if (!bytes) {
 		ReportParseError(line, "bad BYTES");
 		return ReadProfile();
 	}
 	profile._bytes = *bytes;
 
-	std::optional<uint64_t> packetsRev = parseValue<uint64_t>(pieces[_order[PacketsRev]]);
+	std::optional<uint64_t> packetsRev = ParseValue<uint64_t>(pieces[_order[PacketsRev]]);
 	if (!packetsRev) {
 		ReportParseError(line, "bad PACKETS_REV");
 		return ReadProfile();
 	}
 	profile._packetsRev = *packetsRev;
 
-	std::optional<uint64_t> bytesRev = parseValue<uint64_t>(pieces[_order[BytesRev]]);
+	std::optional<uint64_t> bytesRev = ParseValue<uint64_t>(pieces[_order[BytesRev]]);
 	if (!bytesRev) {
 		ReportParseError(line, "bad BYTES_REV");
 		return ReadProfile();
@@ -281,7 +281,7 @@ std::optional<std::string> FlowProfileReader::ReadLine()
 	}
 	_lineNum++;
 
-	line = stringStrip(line);
+	line = StringStrip(line);
 	if (line.empty() || line[0] == '#') {
 		return ReadLine();
 	}
@@ -299,7 +299,7 @@ void FlowProfileReader::ReadHeader()
 		throw std::runtime_error("failed to read header - reached end of file");
 	}
 
-	auto pieces = stringSplit(*line, ",");
+	auto pieces = StringSplit(*line, ",");
 	if (pieces.size() != ComponentsCount) {
 		throw std::runtime_error("invalid number of components in header");
 	}
