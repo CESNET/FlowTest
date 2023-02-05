@@ -8,6 +8,11 @@
 
 #include "trafficmeter.h"
 
+#include <cstring>
+#include <iomanip>
+#include <limits>
+#include <stdexcept>
+
 namespace generator {
 
 constexpr int ETHER_HEADER_LEN = 14;
@@ -159,6 +164,83 @@ void TrafficMeter::WriteReport()
 		std::cout << std::endl;
 		i++;
 	}
+}
+
+static int64_t TimevalToMicroseconds(const timeval& tv)
+{
+	int64_t microseconds = 0;
+
+	if (tv.tv_sec > std::numeric_limits<int64_t>::max() / 1000000
+		|| tv.tv_sec < std::numeric_limits<int64_t>::min() / 1000000) {
+		throw std::runtime_error("cannot convert timeval to microseconds due to overflow");
+	}
+	microseconds += tv.tv_sec * 1000000;
+
+	if ((microseconds > 0 && std::numeric_limits<int64_t>::max() - microseconds < tv.tv_usec)
+		|| (microseconds < 0 && tv.tv_usec < std::numeric_limits<int64_t>::min() - microseconds)) {
+		throw std::runtime_error("cannot convert timeval to microseconds due to overflow");
+	}
+	microseconds += tv.tv_usec;
+
+	return microseconds;
+}
+
+void TrafficMeter::WriteReportCsv(const std::string& fileName)
+{
+	errno = 0;
+	std::ofstream csvFile(fileName);
+	if (!csvFile.is_open()) {
+		const std::string& err = errno != 0 ? std::strerror(errno) : "Unknown error";
+		throw std::runtime_error("Error while opening output file \"" + fileName + "\": " + err);
+	}
+
+	csvFile << "SRC_IP,DST_IP,START_TIME,END_TIME,L3_PROTO,L4_PROTO,"
+			   "SRC_PORT,DST_PORT,PACKETS,BYTES,PACKETS_REV,BYTES_REV\n";
+
+	for (const FlowRecord& rec : _records) {
+		// SRC_IP,DST_IP
+		if (rec._l3Proto == L3Protocol::Ipv4) {
+			csvFile << std::get<IPv4Address>(rec._fwdIpAddr).toString() << ",";
+			csvFile << std::get<IPv4Address>(rec._revIpAddr).toString() << ",";
+		} else if (rec._l3Proto == L3Protocol::Ipv6) {
+			csvFile << std::get<IPv6Address>(rec._fwdIpAddr).toString() << ",";
+			csvFile << std::get<IPv6Address>(rec._revIpAddr).toString() << ",";
+		}
+
+		// START_TIME
+		uint64_t startUsec = TimevalToMicroseconds(rec._firstTs);
+		uint64_t startMsec = startUsec / 1000;
+		uint64_t startMsecDecimal = startUsec % 1000;
+		csvFile << startMsec << "." << std::setfill('0') << std::setw(3) << startMsecDecimal << ",";
+		// END_TIME
+		uint64_t endUsec = TimevalToMicroseconds(rec._lastTs);
+		uint64_t endMsec = endUsec / 1000;
+		uint64_t endMsecDecimal = endUsec % 1000;
+		csvFile << endMsec << "." << std::setfill('0') << std::setw(3) << endMsecDecimal << ",";
+		// L3_PROTO
+		csvFile << int(rec._l3Proto) << ",";
+		// L4_PROTO
+		csvFile << int(rec._l4Proto) << ",";
+		// SRC_PORT
+		csvFile << rec._fwdPort << ",";
+		// DST_PORT
+		csvFile << rec._revPort << ",";
+		// PACKETS
+		csvFile << rec._fwdPkts << ",";
+		// BYTES
+		csvFile << rec._fwdBytes << ",";
+		// PACKETS_REV
+		csvFile << rec._revPkts << ",";
+		// BYTES_REV
+		csvFile << rec._revBytes << "\n";
+	}
+
+	if (csvFile.fail()) {
+		const std::string& err = errno != 0 ? std::strerror(errno) : "Unknown error";
+		throw std::runtime_error("Error while writing to output file \"" + fileName + "\": " + err);
+	}
+
+	csvFile.close();
 }
 
 } // namespace generator

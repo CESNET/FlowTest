@@ -102,6 +102,15 @@ public:
 	 */
 	void WriteReport();
 
+	/**
+	 * @brief Write out summary of the recorded flows and packets to a csv file
+	 *
+	 * @param fileName Path to the resulting output file
+	 *
+	 * @throws std::runtime_error on failure when writing the output file
+	 */
+	void WriteReportCsv(const std::string& fileName);
+
 private:
 	std::vector<FlowRecord> _records; //< The flow records
 
