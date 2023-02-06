@@ -53,26 +53,32 @@ NfbQueue::~NfbQueue()
 	Flush();
 }
 
-size_t NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
+void NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 {
-	if (_txBurstCount != 0) {
+	if (_isBufferInUse) {
 		_logger->error(
-			"GetBurst() called before the previous request was processed by SendBurst()");
+			"GetBurst() called before the previous request was "
+			"processed by SendBurst()");
 		throw std::runtime_error("NfbQueue::GetBurst() has failed");
 	}
-	if (_burstSize < burstSize) {
-		_logger->warn("Requested burstSize {} is bigger than predefined {}", burstSize, _burstSize);
-		burstSize = _burstSize;
+	if (burstSize > _burstSize) {
+		_logger->error(
+			"Requested burstSize {} is bigger than predefined {}",
+			burstSize,
+			_burstSize);
+		throw std::runtime_error("NfbQueue::GetBurst() has failed");
 	}
 
 	if (_superPacketSize) {
-		return GetSuperBurst(burst, burstSize);
+		GetSuperBurst(burst, burstSize);
 	} else {
-		return GetRegularBurst(burst, burstSize);
+		GetRegularBurst(burst, burstSize);
 	}
+
+	_isBufferInUse = true;
 }
 
-size_t NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
+void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 {
 	static constexpr size_t minPacketSize = 64;
 
@@ -84,9 +90,9 @@ size_t NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 		}
 	}
 
-	_txBurstCount = GetBuffers(burstSize);
+	GetBuffers(burstSize);
 
-	for (unsigned i = 0; i < _txBurstCount; i++) {
+	for (unsigned i = 0; i < burstSize; i++) {
 		burst[i]._data = reinterpret_cast<std::byte*>(_txPacket[i].data);
 		if (_txPacket[i].data_length != burst[i]._len) {
 			std::fill_n(
@@ -95,53 +101,48 @@ size_t NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 				0);
 		}
 	}
-
-	return _txBurstCount;
 }
 
-size_t NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
+void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 {
 	static constexpr size_t headerLen = sizeof(SuperPacketHeader);
 	static constexpr size_t minPacketSize = 64;
 
 	// fill _txPacket data_len
-	unsigned txIndex = 0;
+	unsigned txSuperPacketIndex = 0;
 	_txPacket[0].data_length = 0;
 	for (unsigned i = 0; i < burstSize; i++) {
 		size_t nextSize = headerLen + std::max(burst[i]._len, minPacketSize);
 		nextSize = AlignBlockSize(nextSize);
 
-		if (_txPacket[txIndex].data_length + nextSize <= _superPacketSize) {
-			_txPacket[txIndex].data_length += nextSize;
+		if (_txPacket[txSuperPacketIndex].data_length + nextSize <= _superPacketSize) {
+			_txPacket[txSuperPacketIndex].data_length += nextSize;
 		} else {
-			_txPacket[++txIndex].data_length = nextSize;
+			_txPacket[++txSuperPacketIndex].data_length = nextSize;
 		}
 	}
-	txIndex++;
+	txSuperPacketIndex++;
 
-	// get buffers
-	_txBurstCount = GetBuffers(txIndex);
+	GetBuffers(txSuperPacketIndex);
 
 	// assign buffers
-	txIndex = 0;
+	txSuperPacketIndex = 0;
 	unsigned i, pos = 0;
 	for (i = 0; i < burstSize; i++) {
 		size_t pktLen = std::max(burst[i]._len, minPacketSize);
 		size_t nextSize = headerLen + pktLen;
 		nextSize = AlignBlockSize(nextSize);
 		// next packet/break condition
-		if (pos + nextSize > _txPacket[txIndex].data_length) {
-			if (++txIndex >= _txBurstCount) {
-				break;
-			}
+		if (pos + nextSize > _txPacket[txSuperPacketIndex].data_length) {
+			txSuperPacketIndex++;
 			pos = 0;
 		}
 		// fill header
 		SuperPacketHeader* hdrPtr
-			= reinterpret_cast<SuperPacketHeader*>(_txPacket[txIndex].data + pos);
+			= reinterpret_cast<SuperPacketHeader*>(_txPacket[txSuperPacketIndex].data + pos);
 		hdrPtr->clear();
 		hdrPtr->setLength(pktLen);
-		if (pos + nextSize >= _txPacket[txIndex].data_length) {
+		if (pos + nextSize >= _txPacket[txSuperPacketIndex].data_length) {
 			hdrPtr->setHasNextHeader(false);
 		} else {
 			hdrPtr->setHasNextHeader(true);
@@ -150,29 +151,22 @@ size_t NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 		pos += headerLen;
 
 		// assign buffer
-		burst[i]._data = reinterpret_cast<std::byte*>(_txPacket[txIndex].data + pos);
+		burst[i]._data = reinterpret_cast<std::byte*>(_txPacket[txSuperPacketIndex].data + pos);
 		// fill padding with zeros
 		if (pktLen != burst[i]._len) {
-			std::fill_n(_txPacket[txIndex].data + pos + burst[i]._len, pktLen - burst[i]._len, 0);
+			std::fill_n(
+				_txPacket[txSuperPacketIndex].data + pos + burst[i]._len,
+				pktLen - burst[i]._len,
+				0);
 		}
 		pos += nextSize - headerLen;
 	}
-
-	_txBurstCount = i;
-	return _txBurstCount;
 }
 
-unsigned NfbQueue::GetBuffers(size_t burstSize)
+void NfbQueue::GetBuffers(size_t burstSize)
 {
-	unsigned ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
-	if (ret == 0) {
-		Flush();
-		while (ret == 0) {
-			ret = ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize);
-		}
-	}
-
-	return ret;
+	while (ndp_tx_burst_get(_txQueue.get(), _txPacket.get(), burstSize) != burstSize)
+		;
 }
 
 size_t NfbQueue::AlignBlockSize(size_t size)
@@ -187,22 +181,18 @@ size_t NfbQueue::AlignBlockSize(size_t size)
 	return size + offset;
 }
 
-void NfbQueue::SendBurst(const PacketBuffer* burst, size_t burstSize)
+void NfbQueue::SendBurst(const PacketBuffer* burst)
 {
-	if (burstSize != _txBurstCount) {
-		_logger->error("Invalid burstSize. Provided {}, requested {}", _txBurstCount, burstSize);
-		throw std::runtime_error("NfbQueue::SendBurst() has failed");
-	}
 	(void) burst;
-	(void) burstSize;
+
 	ndp_tx_burst_put(_txQueue.get());
-	_txBurstCount = 0;
+	_isBufferInUse = false;
 }
 
 void NfbQueue::Flush()
 {
 	ndp_tx_burst_flush(_txQueue.get());
-	_txBurstCount = 0;
+	_isBufferInUse = false;
 }
 
 size_t NfbQueue::GetMaxBurstSize() const noexcept
@@ -245,7 +235,8 @@ int NfbPlugin::ParseArguments(const std::string& args)
 		ParseMap(argMap);
 	} catch (const std::invalid_argument& ia) {
 		_logger->error(
-			"Parameter \"queueCount\", \"burstSize\" or \"superPacketSize\" wrong format");
+			"Parameter \"queueCount\", \"burstSize\" or "
+			"\"superPacketSize\" wrong format");
 		throw std::invalid_argument("NfbPlugin::ParseArguments() has failed");
 	}
 

@@ -21,6 +21,7 @@ namespace replay {
 RawQueue::RawQueue(const std::string& ifcName, size_t pktSize, size_t burstSize)
 	: _pktSize(pktSize)
 	, _burstSize(burstSize)
+	, _pktsToSend(0)
 	, _buffer(std::make_unique<std::byte[]>(burstSize * pktSize))
 {
 	_socket.OpenSocket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
@@ -36,19 +37,20 @@ RawQueue::RawQueue(const std::string& ifcName, size_t pktSize, size_t burstSize)
 	_sockAddr.sll_ifindex = ifReq.ifr_ifindex;
 }
 
-size_t RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
+void RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 {
 	if (_bufferFlag) {
 		_logger->error(
-			"GetBurst() called before the previous request was processed by SendBurst()");
+			"GetBurst() called before the previous request was "
+			"processed by SendBurst()");
 		throw std::runtime_error("RawQueue::GetBurst() has failed");
 	}
-	if (_burstSize < burstSize) {
-		_logger->warn(
+	if (burstSize > _burstSize) {
+		_logger->error(
 			"Requested burstSize {} is bigger than predefiened {}",
 			burstSize,
 			_burstSize);
-		burstSize = _burstSize;
+		throw std::runtime_error("RawQueue::GetBurst() has failed");
 	}
 
 	for (unsigned i = 0; i < burstSize; i++) {
@@ -59,20 +61,12 @@ size_t RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 		burst[i]._data = &_buffer[i * _pktSize];
 	}
 	_bufferFlag = true;
-	return burstSize;
+	_pktsToSend = burstSize;
 }
 
-void RawQueue::SendBurst(const PacketBuffer* burst, size_t burstSize)
+void RawQueue::SendBurst(const PacketBuffer* burst)
 {
-	if (burstSize > _burstSize) {
-		_logger->error(
-			"Requested burstSize {} is bigger than predefined {}",
-			burstSize,
-			_burstSize);
-		throw std::runtime_error("RawQueue::SendBurst() has failed");
-	}
-
-	for (unsigned i = 0; i < burstSize; i++) {
+	for (unsigned i = 0; i < _pktsToSend; i++) {
 		while (true) {
 			int ret = sendto(
 				_socket.GetSocketId(),

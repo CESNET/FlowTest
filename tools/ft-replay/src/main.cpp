@@ -45,12 +45,12 @@ void ReplicationThread(const std::unique_ptr<PacketQueue> packetQueue, OutputQue
 		for (unsigned p = 0; p < burstSize; p++) {
 			burst[p]._len = (*packetQueue)[p + r]->dataLen;
 		}
-		burstSize = outputQueue->GetBurst(burst.get(), burstSize);
+		outputQueue->GetBurst(burst.get(), burstSize);
 		for (unsigned p = 0; p < burstSize; p++) {
 			std::byte* data = (*packetQueue)[p + r]->data.get();
 			std::copy(data, data + burst[p]._len, burst[p]._data);
 		}
-		outputQueue->SendBurst(burst.get(), burstSize);
+		outputQueue->SendBurst(burst.get());
 		sendCount += burstSize;
 		burstSize = maxBurstSize;
 	}

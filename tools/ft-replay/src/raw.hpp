@@ -49,20 +49,17 @@ public:
 	 *
 	 * Assigns buffers of size _len to _data
 	 *
-	 * @param[in,out] pointer to PacketBuffer array
-	 * @param[in] number of PacketBuffers
-	 *
-	 * @return number of assigned buffers
+	 * @param[in,out] burst pointer to PacketBuffer array
+	 * @param[in] burstSize number of PacketBuffers
 	 */
-	size_t GetBurst(PacketBuffer* burst, size_t burstSize) override;
+	void GetBurst(PacketBuffer* burst, size_t burstSize) override;
 
 	/**
 	 * @brief Send burst of packets
 	 *
 	 * @param[in] pointer to PacketBuffer array
-	 * @param[in] number of packets to send
 	 */
-	void SendBurst(const PacketBuffer* burst, size_t burstSize) override;
+	void SendBurst(const PacketBuffer* burst) override;
 
 	/**
 	 * @brief Get the Maximal Burst Size
@@ -74,6 +71,7 @@ public:
 private:
 	size_t _pktSize;
 	size_t _burstSize;
+	size_t _pktsToSend;
 	SocketDescriptor _socket;
 	sockaddr_ll _sockAddr = {};
 	std::unique_ptr<std::byte[]> _buffer;
