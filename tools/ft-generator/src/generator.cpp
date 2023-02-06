@@ -42,7 +42,7 @@ Generator::Generator(
 
 std::optional<GeneratorPacket> Generator::GenerateNextPacket()
 {
-	std::unique_ptr<Flow> flow = GetNextFlow();
+	std::unique_ptr<Flow> flow = GetNextFlow(); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
 	if (!flow) {
 		return std::nullopt;
 	}
