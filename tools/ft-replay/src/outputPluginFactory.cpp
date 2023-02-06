@@ -28,7 +28,7 @@ std::unique_ptr<OutputPlugin> OutputPluginFactory::Create(const std::string& Out
 std::pair<std::string, std::string>
 OutputPluginFactory::SplitOutputPluginParams(const std::string& OutputPluginParams)
 {
-	std::size_t position = OutputPluginParams.find_first_of(":");
+	std::size_t position = OutputPluginParams.find_first_of(':');
 	if (position == std::string::npos) {
 		_logger->info("Invalid format of Output plugin parameters");
 		throw std::runtime_error("OutputPluginFactory::SplitOutputPluginParams() has failed");
