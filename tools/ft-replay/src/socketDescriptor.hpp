@@ -26,7 +26,7 @@ public:
 	 *
 	 * @param[in] SocketDescriptor r-value
 	 */
-	SocketDescriptor(SocketDescriptor&& other);
+	SocketDescriptor(SocketDescriptor&& other) noexcept;
 	/**
 	 * @brief Move assignment
 	 *
@@ -34,7 +34,7 @@ public:
 	 *
 	 * @return reference to current object
 	 */
-	SocketDescriptor& operator=(SocketDescriptor&& other);
+	SocketDescriptor& operator=(SocketDescriptor&& other) noexcept;
 	/**
 	 * @brief Destructor, closes socket
 	 */
