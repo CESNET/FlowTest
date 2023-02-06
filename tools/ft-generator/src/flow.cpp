@@ -267,7 +267,7 @@ void Flow::PlanPacketsDirections()
 	directions.insert(directions.end(), fwd, Direction::Forward);
 	directions.insert(directions.end(), rev, Direction::Reverse);
 
-	std::random_shuffle(directions.begin(), directions.end());
+	std::shuffle(directions.begin(), directions.end(), std::default_random_engine());
 
 	size_t id = 0;
 	for (auto& packet : packetsSpan) {
