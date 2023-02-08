@@ -25,6 +25,7 @@ DPDK_INFO_FILE = "/data/components/dpdk-tools/stats/ifc_map.csv"
 
 PLUGIN_PARAMS = {
     "as-helper": "/etc/flowmon/flowmon-as.txt",
+    "http": "allow-invalid=1",
     "l2": "protocols=MPLS#VLAN#MAC,mac-crc=0,vlan-crc=0,mpls-crc=0",
     "tls": "fields=MAIN#CLIENT#CERT#JA3",
     "vxlan": "port=4789,export_vni=1,decapsulation=1",
@@ -34,10 +35,10 @@ PROTOCOLS_TO_PLUGINS = {
     "eth": "l2",
     "vlan": "l2",
     "mpls": "l2",
-    "tcp": "extended_tcp",
+    "tcp": "extended_l3_l4",
     "as": "as-helper",
-    "ipv4": "extended_tcp",
-    "ipv6": "extended_tcp",
+    "ipv4": "extended_l3_l4",
+    "ipv6": "extended_l3_l4",
     "dns": "dns",
     "http": "http",
     "tls": "tls",
