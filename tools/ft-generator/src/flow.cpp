@@ -146,13 +146,13 @@ Flow::Flow(
 std::unique_ptr<Layer> Flow::MakeIcmpLayer()
 {
 	double fwdRevRatioDiff = 1.0;
+	double bytesPerPkt = 0;
 	if (_fwdPackets + _revPackets > 0) {
 		double min = std::min(_fwdPackets, _revPackets);
 		double max = std::max(_fwdPackets, _revPackets);
 		fwdRevRatioDiff = 1.0 - (min / max);
+		bytesPerPkt = (_fwdBytes + _revBytes) / (_fwdPackets + _revPackets);
 	}
-
-	double bytesPerPkt = (_fwdBytes + _revBytes) / (_fwdPackets + _revPackets);
 
 	/*
 	 * A simple heuristic to choose the proper ICMP packet generation strategy based

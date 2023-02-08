@@ -1,5 +1,6 @@
 Checks:
   '-*,
+  clang-analyzer-*,
   readability-identifier-naming'
 FormatStyle: file
 WarningsAsErrors: '*'
