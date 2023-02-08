@@ -116,6 +116,11 @@ public:
 	 */
 	Layer* GetNextLayer() const;
 
+	/**
+	 * @brief The destructor
+	 */
+	virtual ~Layer() {}
+
 protected:
 	/**
 	 * @brief Base layer is never constructed directly

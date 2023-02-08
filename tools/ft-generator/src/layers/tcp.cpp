@@ -17,14 +17,8 @@
 
 namespace generator {
 
-constexpr uint64_t CONNECTION_HANDSHAKE_FWD_PKTS = 2;
-constexpr uint64_t CONNECTION_HANDSHAKE_REV_PKTS = 1;
-constexpr uint64_t CONNECTION_HANDSHAKE_PKTS
-	= CONNECTION_HANDSHAKE_FWD_PKTS + CONNECTION_HANDSHAKE_REV_PKTS;
-
 constexpr uint64_t TERM_HANDSHAKE_FWD_PKTS = 2;
 constexpr uint64_t TERM_HANDSHAKE_REV_PKTS = 2;
-constexpr uint64_t TERM_HANDSHAKE_PKTS = TERM_HANDSHAKE_FWD_PKTS + TERM_HANDSHAKE_REV_PKTS;
 
 constexpr uint16_t TCP_WINDOW_SIZE
 	= 64512; // NOTE: Make this configurable and actually check that we ACK soon enough

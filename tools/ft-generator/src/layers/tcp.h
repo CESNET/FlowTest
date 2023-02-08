@@ -40,8 +40,6 @@ public:
 private:
 	uint32_t _ackNumber = 0;
 	uint32_t _seqNumber = 0;
-	bool _fwdNeedsAck = false;
-	bool _revNeedsAck = false;
 
 	uint16_t _portSrc;
 	uint16_t _portDst;

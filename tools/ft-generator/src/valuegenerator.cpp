@@ -99,7 +99,7 @@ void ValueGenerator::Generate()
 		PostIntervalUpdate();
 	}
 
-	std::random_shuffle(_values.begin(), _values.end());
+	std::shuffle(_values.begin(), _values.end(), std::default_random_engine());
 }
 
 uint64_t ValueGenerator::GetValue()
