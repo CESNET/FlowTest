@@ -89,22 +89,17 @@ public:
 	 *
 	 * Assigns buffers of size _len to _data
 	 *
-	 * @param[in,out] pointer to PacketBuffer array
-	 * @param[in] number of PacketBuffers
-	 *
-	 * @return number of assigned buffers
+	 * @param[in,out] burst pointer to PacketBuffer array
+	 * @param[in] burstSize number of PacketBuffers
 	 */
-	size_t GetBurst(PacketBuffer* burst, size_t burstSize) override;
+	void GetBurst(PacketBuffer* burst, size_t burstSize) override;
 
 	/**
 	 * @brief Send burst of packets
 	 *
-	 * Parameters are ignored, all provided buffers are sent.
-	 *
-	 * @param[in] pointer to PacketBuffer array
-	 * @param[in] number of packets to send
+	 * @param[in] burst pointer to PacketBuffer array
 	 */
-	void SendBurst(const PacketBuffer* burst, size_t burstSize) override;
+	void SendBurst(const PacketBuffer* burst) override;
 
 	/**
 	 * @brief Get the maximal Burst Size
@@ -114,11 +109,11 @@ public:
 	size_t GetMaxBurstSize() const noexcept override;
 
 private:
-	size_t GetRegularBurst(PacketBuffer* burst, size_t burstSize);
+	void GetRegularBurst(PacketBuffer* burst, size_t burstSize);
 
-	size_t GetSuperBurst(PacketBuffer* burst, size_t burstSize);
+	void GetSuperBurst(PacketBuffer* burst, size_t burstSize);
 
-	unsigned GetBuffers(size_t burstSize);
+	void GetBuffers(size_t burstSize);
 
 	size_t AlignBlockSize(size_t size);
 
@@ -128,9 +123,9 @@ private:
 		nullptr,
 		&ndp_close_tx_queue};
 	std::unique_ptr<ndp_packet[]> _txPacket;
-	unsigned _txBurstCount = 0;
 	size_t _burstSize;
 	size_t _superPacketSize;
+	bool _isBufferInUse = false;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("NfbQueue");
 };
