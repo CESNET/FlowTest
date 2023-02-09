@@ -83,7 +83,8 @@ void CheckAllowedKeys(const YAML::Node& node, const std::vector<std::string>& al
 			}
 			throw ConfigError(
 				kv.first,
-				"unexpected key \"" + key + "\", allowed keys are " + allowedKeysStr);
+				"unexpected key \"" + key + "\", allowed keys are "
+					+ allowedKeysStr); // NOLINT(performance-inefficient-string-concatenation)
 		}
 	}
 }
