@@ -213,13 +213,13 @@ void Flow::Plan()
 	PlanPacketsTimestamps();
 }
 
-std::pair<PcppPacket, PacketExtraInfo> Flow::GenerateNextPacket()
+PacketExtraInfo Flow::GenerateNextPacket(PcppPacket& packet)
 {
 	if (_packets.empty()) {
 		throw std::runtime_error("no more packets to generate in flow");
 	}
 
-	PcppPacket packet;
+	packet = PcppPacket();
 	PacketExtraInfo extra;
 
 	Packet packetPlan = _packets.front();
@@ -245,7 +245,7 @@ std::pair<PcppPacket, PacketExtraInfo> Flow::GenerateNextPacket()
 
 	_packets.erase(_packets.begin());
 
-	return {packet, extra};
+	return extra;
 }
 
 timeval Flow::GetNextPacketTime() const

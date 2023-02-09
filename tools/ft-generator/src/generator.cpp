@@ -47,9 +47,8 @@ std::optional<GeneratorPacket> Generator::GenerateNextPacket()
 		return std::nullopt;
 	}
 
-	auto [packet, extra] = flow->GenerateNextPacket();
-	_trafficMeter.RecordPacket(flow->GetId(), extra._time, extra._direction, packet);
-	_packet = std::move(packet);
+	PacketExtraInfo extra = flow->GenerateNextPacket(_packet);
+	_trafficMeter.RecordPacket(flow->GetId(), extra._time, extra._direction, _packet);
 
 	if (!flow->IsFinished()) {
 		_calendar.Push(std::move(flow));
