@@ -140,7 +140,7 @@ FlowProfileReader::FlowProfileReader(const std::string& filename)
 void FlowProfileReader::Provide(std::vector<FlowProfile>& profiles)
 {
 	while (auto profile = ReadProfile()) {
-		profiles.emplace_back(std::move(*profile));
+		profiles.emplace_back(*profile);
 	}
 }
 
