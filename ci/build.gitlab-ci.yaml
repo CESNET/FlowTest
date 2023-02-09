@@ -28,6 +28,7 @@ build [Rocky Linux 9]:
     - mv build/pkg/rpm/rpmbuild/RPMS $DOCKER_TAG
   artifacts:
     paths: [$DOCKER_TAG/RPMS/*/*.rpm]
+    expire_in: 1 week
 
 rpmbuild [Oracle Linux 8]:
   extends: .rpmbuild
@@ -52,3 +53,4 @@ python package build:
     - pipenv run python3 -m build
   artifacts:
     paths: [tools/**/*.whl, tools/**/*.tar.gz]
+    expire_in: 1 week
