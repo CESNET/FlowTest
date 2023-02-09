@@ -15,8 +15,6 @@
 
 namespace generator {
 
-constexpr int ETHER_HEADER_LEN = 14;
-
 void TrafficMeter::OpenFlow(uint64_t flowId, const FlowProfile& profile)
 {
 	if (flowId != _records.size()) {
@@ -79,6 +77,21 @@ void TrafficMeter::ExtractPacketParams(
 	}
 }
 
+static uint64_t GetPacketSizeFromIPLayer(const PcppPacket& packet)
+{
+	const pcpp::Layer* layer = packet.getFirstLayer();
+
+	while (layer != nullptr) {
+		if (layer->getProtocol() == pcpp::IPv4 || layer->getProtocol() == pcpp::IPv6) {
+			return layer
+				->getDataLen(); // Length from the first byte of the header to the end of the packet
+		}
+		layer = layer->getNextLayer();
+	}
+
+	return 0;
+}
+
 void TrafficMeter::RecordPacket(
 	uint64_t flowId,
 	timeval time,
@@ -93,7 +106,6 @@ void TrafficMeter::RecordPacket(
 	}
 	rec._lastTs = time;
 
-	assert(packet.getRawPacket()->getRawDataLen() >= ETHER_HEADER_LEN);
 	assert(dir != Direction::Unknown);
 	if (dir == Direction::Forward) {
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
@@ -109,7 +121,7 @@ void TrafficMeter::RecordPacket(
 				rec._revPort);
 		}
 		rec._fwdPkts++;
-		rec._fwdBytes += packet.getRawPacket()->getRawDataLen() - ETHER_HEADER_LEN;
+		rec._fwdBytes += GetPacketSizeFromIPLayer(packet);
 
 	} else if (dir == Direction::Reverse) {
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
@@ -125,7 +137,7 @@ void TrafficMeter::RecordPacket(
 				rec._fwdPort);
 		}
 		rec._revPkts++;
-		rec._revBytes += packet.getRawPacket()->getRawDataLen() - ETHER_HEADER_LEN;
+		rec._revBytes += GetPacketSizeFromIPLayer(packet);
 	}
 }
 
