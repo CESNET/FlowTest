@@ -129,43 +129,6 @@ void TrafficMeter::RecordPacket(
 	}
 }
 
-void TrafficMeter::WriteReport()
-{
-	std::cout << "==== Generated flows ====" << std::endl;
-	int i = 0;
-	for (const FlowRecord& rec : _records) {
-		std::cout << "Flow " << i << ": ";
-		std::cout << "firstTs=" << rec._firstTs.tv_sec << "." << rec._firstTs.tv_usec << " ";
-		std::cout << "lastTs=" << rec._lastTs.tv_sec << "." << rec._lastTs.tv_usec << " ";
-		std::cout << "fwdBytes=" << rec._fwdBytes << " ";
-		std::cout << "fwdPkts=" << rec._fwdPkts << " ";
-		if (rec._l3Proto == L3Protocol::Ipv4) {
-			std::cout << "fwdIP=" << std::get<IPv4Address>(rec._fwdIpAddr).toString() << " ";
-		} else if (rec._l3Proto == L3Protocol::Ipv6) {
-			std::cout << "fwdIP=" << std::get<IPv6Address>(rec._fwdIpAddr).toString() << " ";
-		}
-		if (rec._l4Proto == L4Protocol::Tcp) {
-			std::cout << "fwdPort=TCP:" << rec._fwdPort << " ";
-		} else if (rec._l4Proto == L4Protocol::Udp) {
-			std::cout << "fwdPort=UDP:" << rec._fwdPort << " ";
-		}
-		std::cout << "revBytes=" << rec._revBytes << " ";
-		std::cout << "revPkts=" << rec._revPkts << " ";
-		if (rec._l3Proto == L3Protocol::Ipv4) {
-			std::cout << "revIP=" << std::get<IPv4Address>(rec._revIpAddr).toString() << " ";
-		} else if (rec._l3Proto == L3Protocol::Ipv6) {
-			std::cout << "revIP=" << std::get<IPv6Address>(rec._revIpAddr).toString() << " ";
-		}
-		if (rec._l4Proto == L4Protocol::Tcp) {
-			std::cout << "revPort=TCP:" << rec._revPort << " ";
-		} else if (rec._l4Proto == L4Protocol::Udp) {
-			std::cout << "revPort=UDP:" << rec._revPort << " ";
-		}
-		std::cout << std::endl;
-		i++;
-	}
-}
-
 static int64_t TimevalToMicroseconds(const timeval& tv)
 {
 	int64_t microseconds = 0;
