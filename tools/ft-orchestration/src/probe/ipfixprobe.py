@@ -419,10 +419,11 @@ class Ipfixprobe(ProbeInterface, ABC):
     def stop(self) -> None:
         """Stop ipfixprobe process."""
 
-        logging.getLogger().info("Stopping ipfixprobe exporter.")
-
+        # if process not running, method has no effect
         if self._process is None:
             return
+
+        logging.getLogger().info("Stopping ipfixprobe exporter.")
 
         self._host.stop(self._process)
         res = self._host.wait_until_finished(self._process)
