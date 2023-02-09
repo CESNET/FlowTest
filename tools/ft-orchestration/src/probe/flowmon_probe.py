@@ -356,7 +356,7 @@ class FlowmonProbe(ProbeInterface):
 
         self._host.run(f"kill -2 {pid}", check_rc=False)
         for _ in range(5):
-            if self._host.run(f"ps -p {pid}", check_rc=False):
+            if not self._host.run(f"ps -p {pid}", check_rc=False):
                 return
             time.sleep(1)
         logging.getLogger().warning("Unable to stop exporter process with SIGINT, using SIGKILL.")
