@@ -348,8 +348,13 @@ class FlowmonProbe(ProbeInterface):
     def stop(self):
         """Stop the flowmonexp5 process"""
 
+        # if process not running, method has no effect
+        if not self._pid:
+            return
+
         logging.getLogger().info("Stopping exporter on %s", self._interface)
         self._stop_process(self._pid)
+        self._pid = None
 
     def _stop_process(self, pid):
         """Stop exporter process"""
