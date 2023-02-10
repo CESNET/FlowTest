@@ -348,15 +348,20 @@ class FlowmonProbe(ProbeInterface):
     def stop(self):
         """Stop the flowmonexp5 process"""
 
+        # if process not running, method has no effect
+        if not self._pid:
+            return
+
         logging.getLogger().info("Stopping exporter on %s", self._interface)
         self._stop_process(self._pid)
+        self._pid = None
 
     def _stop_process(self, pid):
         """Stop exporter process"""
 
         self._host.run(f"kill -2 {pid}", check_rc=False)
         for _ in range(5):
-            if self._host.run(f"ps -p {pid}", check_rc=False):
+            if not self._host.run(f"ps -p {pid}", check_rc=False):
                 return
             time.sleep(1)
         logging.getLogger().warning("Unable to stop exporter process with SIGINT, using SIGKILL.")
