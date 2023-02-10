@@ -1,0 +1,6 @@
+---
+- hosts: all
+  become: yes
+  roles:
+    - probe_ipfixprobe_dpdk
+    - hugepages

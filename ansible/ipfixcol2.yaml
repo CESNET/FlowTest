@@ -1,0 +1,8 @@
+---
+- hosts: all
+  become: yes
+  roles:
+    - collector_ipfixcol
+    - firewall
+  vars:
+    - firewall_enabled_ports: [ 4739 ]

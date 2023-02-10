@@ -1,0 +1,16 @@
+---
+- name: Detect running nftables
+  ansible.builtin.systemd:
+    name: "nftables.service"
+  register: nftables_service
+
+- name: Reset nftables (reload ruleset)
+  ansible.builtin.systemd:
+    name: "nftables.service"
+    state: "reloaded"
+  when: nftables_service.status.ActiveState == 'active'
+
+- name: Allow ports in nftables
+  ansible.builtin.shell: nft add rule inet firewall INPUT tcp dport {{ item }} accept
+  with_items: "{{ firewall_enabled_ports }}"
+  when: nftables_service.status.ActiveState == 'active'

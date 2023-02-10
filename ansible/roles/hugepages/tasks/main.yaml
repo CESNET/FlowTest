@@ -1,0 +1,9 @@
+---
+- name: Clear and unmount hugepages
+  ansible.builtin.command: "{{ item }}"
+  with_items:
+    - 'dpdk-hugepages.py --clear'
+    - 'dpdk-hugepages.py --unmount'
+
+- name: Allocate hugepages ({{ hugepages_total_size }})
+  ansible.builtin.command: dpdk-hugepages.py -p {{ hugepages_type }} --setup {{ hugepages_total_size }}
