@@ -1,0 +1,8 @@
+# Example of authentication methods
+
+- name: cesnet-general
+  key-path: /home/user/cesnet-general.pem
+
+- name: flowmon-probes
+  username: flowmon
+  password: manyStars

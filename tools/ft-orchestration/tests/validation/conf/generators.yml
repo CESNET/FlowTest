@@ -1,0 +1,22 @@
+# Generators config example file
+
+- alias: sw-gen-10G
+  name: cesnet-generator-1.liberouter.org
+  type: TcpReplay
+  interfaces:
+    - name: eth2
+      speed: 10
+    - name: eth3
+      speed: 10
+  authentication: cesnet-general
+  ansible-playbook-role: generator-software
+
+- alias: hw-gen-100G
+  name: cesnet-generator-1.liberouter.org
+  type: Replicator
+  interfaces:
+    - name: eth4
+      speed: 100
+    - name: eth5
+      speed: 100
+  authentication: cesnet-general

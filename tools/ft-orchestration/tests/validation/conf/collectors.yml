@@ -1,0 +1,12 @@
+# Collector config example file
+
+- alias: ipfixcol-1
+  name: cesnet-collector-1.liberouter.org
+  type: Ipfixcol2
+  authentication: cesnet-general
+
+- alias: flowsen-1
+  name: cesnet-collector-1.liberouter.org
+  type: Flowsen
+  authentication: flowmon-probes
+  ansible-playbook-role: collector-flowsen
