@@ -66,7 +66,7 @@ private:
 	std::size_t _nextProfileIdx = 0; //< The index of the next flow profile to use to create a flow
 	Calendar _calendar; //< The calendar of active flows
 	uint64_t _nextFlowId = 0; //< ID of the next constructed flow
-	pcpp::Packet _packet; //< The current packet instance
+	PcppPacket _packet; //< The current packet instance
 	TrafficMeter& _trafficMeter; //< Traffic statistics
 	const config::Config& _config; //< The configuration
 	AddressGenerators _addressGenerators; //< The address generators

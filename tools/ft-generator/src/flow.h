@@ -85,9 +85,11 @@ public:
 	 *
 	 * @param packet  The packet object to generate to
 	 *
+	 * @return Extra information about the generated packet
+	 *
 	 * @throws std::runtime_error  If the flow is already finished
 	 */
-	std::pair<PcppPacket, PacketExtraInfo> GenerateNextPacket();
+	PacketExtraInfo GenerateNextPacket(PcppPacket& packet);
 
 	/**
 	 * @brief Get the time of next packet

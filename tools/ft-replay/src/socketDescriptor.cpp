@@ -15,13 +15,13 @@ namespace replay {
 
 SocketDescriptor::SocketDescriptor() {}
 
-SocketDescriptor::SocketDescriptor(SocketDescriptor&& other)
+SocketDescriptor::SocketDescriptor(SocketDescriptor&& other) noexcept
 	: _socketId(other._socketId)
 {
 	other._socketId = -1;
 }
 
-SocketDescriptor& SocketDescriptor::operator=(SocketDescriptor&& other)
+SocketDescriptor& SocketDescriptor::operator=(SocketDescriptor&& other) noexcept
 {
 	if (this == &other) {
 		return *this;

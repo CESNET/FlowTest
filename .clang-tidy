@@ -2,6 +2,7 @@ Checks:
   '-*,
   clang-analyzer-*,
   clang-diagnostic-*,
+  performance-*,
   readability-identifier-naming'
 FormatStyle: file
 WarningsAsErrors: '*'

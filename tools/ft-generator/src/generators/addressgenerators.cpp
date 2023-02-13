@@ -19,6 +19,7 @@ template <typename RangeT, typename GeneratorT, typename AddressT>
 static MultiRangeGenerator<GeneratorT, AddressT> Make(const std::vector<RangeT>& configs)
 {
 	std::vector<GeneratorT> generators;
+	generators.reserve(configs.size());
 	for (const auto& range : configs) {
 		generators.emplace_back(range.GetBaseAddr(), range.GetPrefixLen(), GenerateSeed());
 	}
