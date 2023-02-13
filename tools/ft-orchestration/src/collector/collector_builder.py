@@ -10,6 +10,7 @@ Builder for creating a collector instance based on a static configuration.
 from os import path
 from typing import Any, Dict
 
+from lbr_testsuite.topology.analyzer import Analyzer
 from src.collector.interface import CollectorInterface
 from src.common.builder_base import BuilderBase, BuilderError
 from src.config.config import Config
@@ -18,7 +19,7 @@ from src.probe.probe_target import ProbeTarget
 COLLECTOR_IMPORT_PATH = path.dirname(path.realpath(__file__))
 
 
-class CollectorBuilder(BuilderBase):
+class CollectorBuilder(BuilderBase, Analyzer):
     """Builder for creating a collector instance based on a static configuration.
     Collector class is dynamically imported from module in 'collector' directory."""
 
@@ -52,7 +53,7 @@ class CollectorBuilder(BuilderBase):
             Or alias does not exist in configuration.
         """
 
-        super().__init__(config)
+        super().__init__(config)  # pylint: disable=too-many-function-args
 
         if alias not in self._config.collectors:
             raise BuilderError(f"Collector '{alias}' not found in collectors configuration.")
