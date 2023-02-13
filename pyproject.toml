@@ -20,6 +20,7 @@ pythonpath = [
 markers = [
   "dev: development tests",
   "dev_docker: development tests using docker",
+  "validation: probe validation tests",
 ]
 
 [tool.isort]
