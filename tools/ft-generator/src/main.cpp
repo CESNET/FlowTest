@@ -75,7 +75,10 @@ int main(int argc, char* argv[])
 
 		logger->info("Finished!");
 
-		trafficMeter.WriteReport();
+		if (auto reportFile = args.GetReportFile()) {
+			logger->info("Writing report of generated flows to \"{}\"", *reportFile);
+			trafficMeter.WriteReportCsv(*reportFile);
+		}
 
 	} catch (const std::runtime_error& error) {
 		logger->critical(error.what());

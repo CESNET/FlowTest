@@ -7,6 +7,7 @@
  */
 #pragma once
 
+#include <optional>
 #include <string>
 
 namespace generator {
@@ -57,6 +58,13 @@ public:
 	const std::string& GetConfigFile() const { return _configFile; }
 
 	/**
+	 * @brief Get the provided file path for the report file if provided
+	 *
+	 * @return File path
+	 */
+	const std::optional<std::string>& GetReportFile() const { return _reportFile; }
+
+	/**
 	 * @brief Whether help should be printer
 	 *
 	 * @return true or false
@@ -73,6 +81,7 @@ private:
 	std::string _profilesFile;
 	std::string _outputFile;
 	std::string _configFile;
+	std::optional<std::string> _reportFile;
 	int _verbosity = 0;
 	bool _help = false;
 
