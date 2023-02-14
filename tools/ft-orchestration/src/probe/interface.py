@@ -19,7 +19,7 @@ class ProbeInterface(ABC):
     """Abstract class defining common interface for all probes"""
 
     @abstractmethod
-    def __init__(self, host, target, protocols, interfaces, **kwargs):
+    def __init__(self, host, target, protocols, interfaces, verbose, **kwargs):
         """Initialize the local or remote probe interface as object
 
         Parameters
@@ -37,6 +37,9 @@ class ProbeInterface(ABC):
         interfaces : list(InterfaceCfg)
             Network interfaces where the exporting process should be initiated.
 
+        verbose : bool
+            Increase verbosity of probe logs.
+
         kwargs : dict
             Additional startup arguments for specific probe variants.
 
@@ -52,18 +55,33 @@ class ProbeInterface(ABC):
         """Start the probe."""
         raise NotImplementedError
 
+    @abstractmethod
     def supported_fields(self):
         """Get list of IPFIX fields the probe may export in its current configuration."""
         raise NotImplementedError
 
+    @abstractmethod
     def get_special_fields(self):
         """Return dictionary of exported fields that need special evaluation."""
         raise NotImplementedError
 
+    @abstractmethod
     def stop(self):
         """Stop the probe."""
         raise NotImplementedError
 
+    @abstractmethod
     def cleanup(self):
         """Clean any artifacts which were created by the connector or the active probe itself."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def download_logs(self, directory: str):
+        """Download logs to given directory.
+
+        Parameters
+        ----------
+        directory : str
+            Path to a local directory where logs should be stored.
+        """
         raise NotImplementedError
