@@ -12,6 +12,7 @@ import logging
 import shutil
 import tempfile
 import time
+from typing import List
 
 from pathlib import Path
 
@@ -20,6 +21,7 @@ import invoke
 from src.probe.interface import ProbeException, ProbeInterface
 
 FLOWMONEXP_BIN = "/usr/bin/flowmonexp5"
+FLOWMONEXP_LOG = "/data/components/flowmonexp/log/"
 QUEUE_SIZE = 22
 DPDK_INFO_FILE = "/data/components/dpdk-tools/stats/ifc_map.csv"
 
@@ -119,6 +121,7 @@ FIELDS = {
 }
 
 
+# pylint: disable=too-many-instance-attributes
 class FlowmonProbe(ProbeInterface):
     """Flowmon Probe exporter. It's able to start, stop and terminate flow exporting process
     on a single monitoring interface."""
@@ -129,6 +132,7 @@ class FlowmonProbe(ProbeInterface):
         target,
         protocols,
         interfaces,
+        verbose=False,
         input_plugin="rawnetcap",
         active_timeout=300,
         inactive_timeout=30,
@@ -149,13 +153,17 @@ class FlowmonProbe(ProbeInterface):
         interfaces : list(InterfaceCfg)
             Network interfaces where the exporting process should be initiated.
 
+        verbose : bool, optional
+            If True, set verbosity of probe logs to DEBUG and also output flows
+            to JSON, otherwise set verbosity to WARN. Default is False.
+
         input_plugin : str, optional
             Input plugin - could be either dpdk or rawnetcap.
 
-        active_timeout : int
+        active_timeout : int, optional
             Maximum duration of an ongoing flow before the probe exports it (in seconds).
 
-        inactive_timeout : int
+        inactive_timeout : int, optional
             Maximum duration for which a flow is kept in the probe if no new data updates it (in seconds).
         """
 
@@ -180,6 +188,7 @@ class FlowmonProbe(ProbeInterface):
         self._interface = interface
         self._pidfile = f"/tmp/tmp_probe_{interface}.pidfile"
         self._settings = {}
+        self._verbose = verbose
         attributes = self._get_appliance_attributes(input_plugin)
         self._set_config(
             QUEUE_SIZE,
@@ -194,7 +203,9 @@ class FlowmonProbe(ProbeInterface):
         self._set_plugins()
         self._set_filters(attributes)
         self._set_output(target)
+        self._remote_dir = self._host.get_storage().get_remote_directory()
         self._probe_json = f"tmp_probe_{interface}.json"
+        self._probe_json_conf = Path(self._remote_dir) / self._probe_json
         self._pid = None
 
         local_temp_dir = tempfile.mkdtemp()
@@ -211,8 +222,6 @@ class FlowmonProbe(ProbeInterface):
 
         self._host.get_storage().push(local_conf_file)
         shutil.rmtree(local_temp_dir)
-        self._temporary_dir = self._host.get_storage().get_remote_directory()
-        self._probe_json_conf = Path(self._temporary_dir) / self._probe_json
 
     def _get_appliance_attributes(self, input_plugin):
         """Returns dict of appliance attributes"""
@@ -246,7 +255,7 @@ class FlowmonProbe(ProbeInterface):
                 "ifindex": int(ifc_map[11]),
             }
             return dpdk_info
-        logging.getLogger().error("Unable to find interface %s in %d", self._temporary_dir, DPDK_INFO_FILE)
+        logging.getLogger().error("Unable to find interface %s in %d", self._remote_dir, DPDK_INFO_FILE)
         raise ProbeException(f"Unable to find interface {self._interface} in {DPDK_INFO_FILE}.")
 
     def _set_config(self, queue_size, active_timeout, inactive_timeout, attributes):
@@ -260,7 +269,10 @@ class FlowmonProbe(ProbeInterface):
         self._settings["INACTIVE-TIMEOUT"] = int(inactive_timeout)
         self._settings["NUMA-NODE"] = attributes["numa_node"]
         self._settings["USER"] = "flowmon"
-        self._settings["VERBOSE"] = "DEBUG"
+        if self._verbose:
+            self._settings["VERBOSE"] = "DEBUG"
+        else:
+            self._settings["VERBOSE"] = "WARN"
         self._settings["PID-FILE"] = self._pidfile
 
     def _set_input(self, input_plugin, attributes):
@@ -300,6 +312,45 @@ class FlowmonProbe(ProbeInterface):
                 "FILTERS": [],
             }
         ]
+
+        if self._verbose:
+            self._remote_json_output = Path(self._remote_dir) / "probe_output.json"
+            self._settings["OUTPUTS"].append(
+                {
+                    "NAME": "json",
+                    "PARAMS": f"pretty=1,savefile={self._remote_json_output}",
+                    "FILTERS": [],
+                }
+            )
+
+    def _prepare_logs(self) -> List[str]:
+        """Prepare list of log files to download.
+
+        Returns
+        -------
+        List
+            Absolute paths to log files.
+        """
+        log_files = [
+            self._probe_json_conf,
+            Path(FLOWMONEXP_LOG) / "flowmonexp.log",
+            Path(self._remote_dir) / "flowmonexp_init.log",
+        ]
+        if self._verbose:
+            log_files.extend(
+                [
+                    self._remote_json_output,
+                    Path(FLOWMONEXP_LOG) / "flowmonexp_debug.log",
+                ]
+            )
+
+        # flowmonexp_init.log is not readable by flowmon, need to use this workaround
+        self._host.run(
+            f"sudo tail -n 999999 {FLOWMONEXP_LOG}/flowmonexp_init.log > {self._remote_dir}/flowmonexp_init.log",
+            check_rc=True,
+        )
+
+        return log_files
 
     def supported_fields(self):
         """Returns list of IPFIX fields the probe may export in its current configuration.
@@ -370,9 +421,24 @@ class FlowmonProbe(ProbeInterface):
     def cleanup(self):
         """Clean any artifacts which were created by the connector or the active probe itself."""
 
-        logging.getLogger().info("Removing remote temporary directory %s", self._temporary_dir)
+        logging.getLogger().info("Removing remote temporary directory %s", self._remote_dir)
         try:
-            self._host.run(f"rm -f {self._probe_json_conf}", check_rc=False)
+            self._host.run(f"rm -rf {self._remote_dir}", check_rc=False)
         except invoke.exceptions.UnexpectedExit as err:
             logging.getLogger().error("Unable to remove %s", self._probe_json_conf)
             raise ProbeException(f"Unable to remove {self._probe_json_conf}.") from err
+
+    def download_logs(self, directory: str):
+        """Download logs from flowmon probe.
+
+        Parameters
+        ----------
+        directory : str
+            Path to a local directory where logs should be stored.
+        """
+        storage = self._host.get_storage()
+        for log_file in self._prepare_logs():
+            try:
+                storage.pull(log_file, directory)
+            except RuntimeError as err:
+                logging.getLogger().warning("%s", err)
