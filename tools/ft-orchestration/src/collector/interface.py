@@ -23,11 +23,14 @@ class CollectorInterface(ABC):
     """Abstract class defining common interface for all collectors."""
 
     @abstractmethod
-    def __init__(self, **kwargs):
+    def __init__(self, verbose, **kwargs):
         """Initialize the collector.
 
         Parameters
         ----------
+        verbose : bool
+            Increase verbosity of the collector logs.
+
         kwargs : dict
             Startup arguments.
 
@@ -46,6 +49,17 @@ class CollectorInterface(ABC):
     @abstractmethod
     def stop(self):
         """Stop the collector."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def download_logs(self, directory: str):
+        """Download the logs to a given directory.
+
+        Parameters
+        ----------
+        directory : str
+            Path to a local directory where logs should be stored.
+        """
         raise NotImplementedError
 
     @abstractmethod
