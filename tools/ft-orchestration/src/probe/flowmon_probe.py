@@ -76,7 +76,7 @@ FIELDS = {
         "src_asn",
         "dst_asn",
     ],
-    "extended_tcp": [
+    "extended_l3_l4": [
         "tcp_syn_size",
         "tos",
         "ttl",
