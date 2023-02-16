@@ -13,5 +13,5 @@ flows:
     protocol:       89
     bytes:          108
     packets:        1
-    tos:            0x00
+    tos:            0xe0
     ttl:            1
