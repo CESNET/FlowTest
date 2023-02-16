@@ -1,8 +1,8 @@
-# Check that TCP header is properly parsed
 test:
-  name: Simple TCP traffic
+  name: TCP Traffic
   pcaps: ["tls12.pcap"]
   required_protocols: ["tcp"]
+  description: Check that TCP Flags and TCP Options are properly parsed from TCP header.
 
 flows:
   - src_ip:          "192.168.56.101"
@@ -13,12 +13,10 @@ flows:
     bytes@rev:       1900
     packets:         6
     packets@rev:     4
-    ttl:             64
-    ttl@rev:         64
-    tcp_flags:       0x1a
-    tcp_flags@rev:   0x1a
     src_port:        45422
     dst_port:        443
+    tcp_flags:       0x1a
+    tcp_flags@rev:   0x1a
     tcp_options:     0x11e
     tcp_options@rev: 0x11e
     tcp_syn_size:    60

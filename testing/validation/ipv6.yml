@@ -1,10 +1,8 @@
-# Check that IPv6 header is properly parsed
 test:
-  name: Simple IPv6 traffic
+  name: IPv6 Traffic
   pcaps: ["ipv6-smtp.pcap"]
   required_protocols: ["ipv6"]
-
-key: [src_ip, dst_ip, protocol]
+  description: Check that regular IPv6 header is parsed properly.
 
 flows:
   - src_ip:      "2001:470:e5bf:dead:4957:2174:e82c:4887"
@@ -15,6 +13,9 @@ flows:
     bytes@rev:   736
     packets:     9
     packets@rev: 8
+    src_port:    63943
+    dst_port:    25
     tos:         0x00
+    tos@rev:     0x00
     ttl:         64
     ttl@rev:     56

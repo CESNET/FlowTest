@@ -1,8 +1,8 @@
-# Check that at least one of the IPv6 addresses present in DNS response to type AAAA request is present in the flow
 test:
-  name: Simple DNS AAAA Request
+  name: DNS AAAA Request
   pcaps: ["dns_aaaa.pcap"]
   required_protocols: ["dns"]
+  description: Check that at least one of the IPv6 addresses present in DNS response to type AAAA request is present in the flow.
 
 flows:
   - src_ip:      "192.168.141.135"

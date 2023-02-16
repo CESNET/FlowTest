@@ -1,8 +1,8 @@
-# Check that TLS communication resulting in incompatible cipher suites is properly parsed
 test:
-  name: TLS cipher error traffic
+  name: TLS Cipher Error
   pcaps: ["tls_cipher_error.pcap"]
   required_protocols: ["tls"]
+  description: Check that TLS communication resulting in incompatible cipher suites is properly parsed.
 
 flows:
   - src_ip:      "192.168.1.29"

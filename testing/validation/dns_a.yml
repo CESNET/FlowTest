@@ -1,8 +1,8 @@
-# Check that at least one of the IPv4 addresses present in DNS response to type A request is present in the flow
 test:
-  name: Simple DNS A Request
+  name: DNS A Request
   pcaps: ["dns_a.pcap"]
   required_protocols: ["dns"]
+  description: Check that at least one of the IPv4 addresses present in DNS response to type A request is present in the flow.
 
 flows:
   - src_ip:      "192.168.21.89"

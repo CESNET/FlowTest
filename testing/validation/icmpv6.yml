@@ -1,8 +1,8 @@
-# Check that ICMPv6 is properly parsed
 test:
-  name: ICMPv6 traffic
+  name: ICMPv6 Traffic
   pcaps: ["ipv6-neighbor-discovery.pcap"]
   required_protocols: ["icmpv6"]
+  description: Check that ICMPv6 is properly parsed.
 
 key: [src_ip, dst_ip, protocol]
 

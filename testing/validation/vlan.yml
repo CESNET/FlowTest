@@ -1,8 +1,8 @@
-# Check that VLAN header is correctly parsed and skipped
 test:
-  name: Single VLAN header
+  name: VLAN Single
   pcaps: ["ICMP_across_dot1q.pcap"]
   required_protocols: ["vlan"]
+  description: Check that VLAN header is correctly parsed and skipped.
 
 key: [src_ip, dst_ip, protocol]
 

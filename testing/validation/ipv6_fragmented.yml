@@ -1,10 +1,8 @@
-# Check that fragmented IPv6 packets are properly parsed
 test:
-  name: Fragmented IPv6 traffic
+  name: IPv6 Traffic Fragmented
   pcaps: ["ipv6-udp-fragmented.pcap"]
   required_protocols: ["ipv6"]
-
-key: [src_ip, dst_ip, protocol]
+  description: Check that fragmented IPv6 packets are not split into multiple separate flows.
 
 flows:
   - src_ip:      "2607:f010:3f9::11:0"
@@ -15,6 +13,9 @@ flows:
     bytes@rev:   5579
     packets:     2
     packets@rev: 4
+    src_port:    6363
+    dst_port:    6363
     tos:         0x00
+    tos@rev:     0x00
     ttl:         64
     ttl@rev:     64

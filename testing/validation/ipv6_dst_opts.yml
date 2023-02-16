@@ -1,8 +1,8 @@
-# Check that packets with IPv6 header option Destination Options is parsed properly
 test:
   name: IPv6 Option Destination Options
   pcaps: ["ipv6-dst-opts.pcap"]
   required_protocols: ["ipv6", "icmpv6"]
+  description: Check that packets with IPv6 header option Destination Options are parsed properly.
 
 key: [src_ip, dst_ip, protocol]
 

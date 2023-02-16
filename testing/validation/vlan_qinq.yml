@@ -1,8 +1,8 @@
-# Check that two VLAN headers are correctly parsed and skipped
 test:
-  name: Two VLAN headers
+  name: VLAN QinQ
   pcaps: ["802.1Q_tunneling.pcap"]
   required_protocols: ["vlan"]
+  description: Check that both VLAN headers are correctly parsed and skipped.
 
 key: [src_ip, dst_ip, protocol]
 

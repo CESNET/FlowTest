@@ -1,10 +1,8 @@
-# Check that IP header is properly parsed
 test:
-  name: Simple IPv4 traffic
+  name: IPv4 Traffic
   pcaps: ["tls12.pcap"]
   required_protocols: ["ipv4"]
-
-key: [src_ip, dst_ip, protocol]
+  description: Check that regular IPv4 header is parsed properly.
 
 flows:
   - src_ip:      "192.168.56.101"
@@ -15,6 +13,9 @@ flows:
     bytes@rev:   1900
     packets:     6
     packets@rev: 4
+    src_port:    45422
+    dst_port:    443
     tos:         0x00
+    tos@rev:     0x00
     ttl:         64
     ttl@rev:     64

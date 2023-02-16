@@ -1,8 +1,8 @@
-# Check that TLS traffic with a malformed certificate is properly parsed
 test:
-  name: TLS malformed certificate traffic
+  name: TLS Malformed Certificate
   pcaps: ["tls_malformed_cert.pcap"]
   required_protocols: ["tls"]
+  description: Check that TLS traffic with a malformed certificate is properly parsed.
 
 flows:
   - src_ip:      "192.168.1.25"

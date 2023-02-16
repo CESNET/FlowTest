@@ -1,8 +1,8 @@
-# Check that at least one of the SRV servers are present in DNS response to type SRV request is present in the flow
 test:
   name: DNS SRV Request
   pcaps: ["dns_srv.pcap"]
   required_protocols: ["dns"]
+  description: Check that at least one of the SRV servers are present in DNS response to type SRV request is present in the flow.
 
 flows:
   - src_ip:      "192.168.122.190"

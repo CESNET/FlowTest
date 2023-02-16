@@ -1,8 +1,8 @@
-# Check that Zone change notification is parsed properly from DNS Zone change notification request
 test:
   name: DNS Zone Change Notification Request
   pcaps: ["dns_zone_change.pcap"]
   required_protocols: ["dns"]
+  description: Check that Zone change notification is parsed properly from DNS Zone change notification request.
 
 flows:
   - src_ip:      "192.168.3.250"

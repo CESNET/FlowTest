@@ -1,8 +1,8 @@
-# Check that packets with IPv6 header option Mobile IPv6 is parsed properly
 test:
   name: IPv6 Option Mobile IPv6
   pcaps: ["ipv6-mobile.pcap"]
   required_protocols: ["ipv6"]
+  description: Check that packets with IPv6 header option Mobile IPv6 are parsed properly.
 
 key: [src_ip, dst_ip, protocol]
 

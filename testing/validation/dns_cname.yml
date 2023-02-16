@@ -1,8 +1,8 @@
-# Check that the canonical name from DNS response to CNAME request is present in the flow
 test:
   name: DNS CNAME Request
   pcaps: ["dns_cname.pcap"]
   required_protocols: ["dns"]
+  description: Check that the canonical name from DNS response to CNAME request is present in the flow.
 
 flows:
   - src_ip:      "192.168.233.84"

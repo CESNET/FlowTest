@@ -1,8 +1,8 @@
-# Check that HTTP Get method is properly parsed from HTTP request
 test:
   name: HTTP Get Method
   pcaps: ["http_get.pcap"]
   required_protocols: ["http"]
+  description: Check that HTTP Get method is properly parsed from HTTP request.
 
 flows:
   - src_ip:      "192.168.1.140"

@@ -1,8 +1,8 @@
-# Check that packets with invalid HTTP method are parsed properly
 test:
-  name: HTTP invalid method
+  name: HTTP Invalid Method
   pcaps: ["http_invalid_method.pcap"]
   required_protocols: ["http"]
+  description: Check that packets with invalid HTTP method are parsed properly.
 
 flows:
   - src_ip:      "192.168.1.36"

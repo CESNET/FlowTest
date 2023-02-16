@@ -1,8 +1,8 @@
-# Check that TLS communication resulting in invalid certificate error is properly parsed
 test:
-  name: TLS invalid certificate traffic
+  name: TLS Invalid Certificate
   pcaps: ["tls_invalid_cert.pcap"]
   required_protocols: ["tls"]
+  description: Check that TLS communication resulting in invalid certificate error is properly parsed.
 
 flows:
   - src_ip:      "192.168.1.29"

@@ -1,8 +1,8 @@
-# Check that timezone information in DNS response to type SOA request is present in the flow
 test:
   name: DNS SOA Request
   pcaps: ["dns_soa.pcap"]
   required_protocols: ["dns"]
+  description: Check that timezone information in DNS response to type SOA request is present in the flow.
 
 flows:
   - src_ip:      "192.168.1.13"
