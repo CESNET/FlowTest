@@ -4,8 +4,6 @@ test:
   required_protocols: ["eth"]
   description: Check that MAC addresses are correctly parsed.
 
-key: [src_ip, dst_ip, protocol]
-
 flows:
   - src_ip:      "192.168.56.101"
     dst_ip:      "192.168.56.102"
@@ -15,5 +13,7 @@ flows:
     bytes@rev:   1900
     packets:     6
     packets@rev: 4
+    src_port:    45422
+    dst_port:    443
     src_mac:     "08:00:27:D8:CA:49"
     dst_mac:     "08:00:27:36:24:D6"

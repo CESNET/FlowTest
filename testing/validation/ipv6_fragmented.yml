@@ -4,8 +4,6 @@ test:
   required_protocols: ["ipv6"]
   description: Check that fragmented IPv6 packets are not split into multiple separate flows.
 
-key: [src_ip, dst_ip, protocol]
-
 flows:
   - src_ip:      "2607:f010:3f9::11:0"
     dst_ip:      "2607:f010:3f9::1001"
@@ -15,6 +13,8 @@ flows:
     bytes@rev:   5579
     packets:     2
     packets@rev: 4
+    src_port:    6363
+    dst_port:    6363
     tos:         0x00
     ttl:         64
     ttl@rev:     64

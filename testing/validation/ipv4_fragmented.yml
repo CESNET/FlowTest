@@ -4,8 +4,6 @@ test:
   required_protocols: ["ipv4"]
   description: Check that fragmented IPv4 packets are not split into multiple separate flows.
 
-key: [src_ip, dst_ip, protocol]
-
 flows:
   - src_ip:      "131.179.196.46"
     dst_ip:      "131.179.196.220"
@@ -15,6 +13,8 @@ flows:
     bytes@rev:   5467
     packets:     4
     packets@rev: 4
+    src_port:    6363
+    dst_port:    6363
     tos:         0x00
     ttl:         64
     ttl@rev:     64

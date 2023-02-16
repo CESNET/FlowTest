@@ -4,8 +4,6 @@ test:
   required_protocols: ["ipv4"]
   description: Check that regular IPv4 header is parsed properly.
 
-key: [src_ip, dst_ip, protocol]
-
 flows:
   - src_ip:      "192.168.56.101"
     dst_ip:      "192.168.56.102"
@@ -15,6 +13,8 @@ flows:
     bytes@rev:   1900
     packets:     6
     packets@rev: 4
+    src_port:    45422
+    dst_port:    443
     tos:         0x00
     ttl:         64
     ttl@rev:     64
