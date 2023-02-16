@@ -11,6 +11,7 @@ import logging
 import os
 import time
 from collections import namedtuple
+import re
 
 import docker
 import invoke
@@ -190,7 +191,8 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        assert fake_host.last_command == 'ipfixprobe -i "raw;ifc=eno1" -o "ipfix;h=127.0.0.1;p=4739"'
+        regex = 'ipfixprobe -i "raw;ifc=eno1" -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
+        assert re.search(regex, fake_host.last_command)
 
     @staticmethod
     def test_assert_without_interfaces(fake_host):
@@ -200,7 +202,7 @@ class TestWithFakeHost:
             IpfixprobeRaw(fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [])
 
         with pytest.raises(AssertionError):
-            IpfixprobeDpdk(fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [], core_mask=1)
+            IpfixprobeDpdk(fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [], False, core_mask=1)
 
     @staticmethod
     def test_prepare_cmd_plugins(fake_host):
@@ -216,10 +218,11 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        assert (
-            fake_host.last_command
-            == 'ipfixprobe -i "raw;ifc=eno1" -o "ipfix;h=127.0.0.1;p=4739" -p "basicplus" -p "dns" -p "http" -p "tls"'
+        regex = (
+            'ipfixprobe -i "raw;ifc=eno1" -o "ipfix;h=127.0.0.1;p=4739"'
+            ' -p "basicplus" -p "dns" -p "http" -p "tls" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
         )
+        assert re.search(regex, fake_host.last_command)
 
     @staticmethod
     def test_prepare_cmd_raw_plugin(fake_host):
@@ -228,30 +231,36 @@ class TestWithFakeHost:
         kwargs = {"fanout": True, "fanout_id": 242, "blocks": 2048, "packets": 64}
 
         probe = IpfixprobeRaw(
-            fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eno1", 10)], **kwargs
+            fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eno1", 10)], False, **kwargs
         )
 
         probe.start()
         probe.stop()
 
-        assert fake_host.last_command == 'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -o "ipfix;h=127.0.0.1;p=4739"'
+        regex = (
+            'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -o "ipfix;h=127.0.0.1;p=4739"'
+            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
+        )
+        assert re.search(regex, fake_host.last_command)
 
         probe = IpfixprobeRaw(
             fake_host,
             ProbeTarget("127.0.0.1", 4739, "tcp"),
             [],
             [InterfaceCfg("eno1", 10), InterfaceCfg("eno2", 10), InterfaceCfg("eno3", 10)],
+            False,
             **kwargs,
         )
 
         probe.start()
         probe.stop()
 
-        assert (
-            fake_host.last_command
-            == 'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -i "raw;ifc=eno2;f=242;b=2048;p=64"'
+        regex = (
+            'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -i "raw;ifc=eno2;f=242;b=2048;p=64"'
             ' -i "raw;ifc=eno3;f=242;b=2048;p=64" -o "ipfix;h=127.0.0.1;p=4739"'
+            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
         )
+        assert re.search(regex, fake_host.last_command)
 
     @staticmethod
     def test_prepare_cmd_dpdk_plugin(fake_host):
@@ -268,35 +277,37 @@ class TestWithFakeHost:
         }
 
         probe = IpfixprobeDpdk(
-            fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("0000:01:00.0", 10)], **kwargs
+            fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("0000:01:00.0", 10)], False, **kwargs
         )
 
         probe.start()
         probe.stop()
 
-        assert (
-            fake_host.last_command
-            == 'ipfixprobe -c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0 -- -i "dpdk;p=0;q=10;i=0;b=128;m=4096"'
-            ' -o "ipfix;h=127.0.0.1;p=4739"'
+        regex = (
+            'ipfixprobe -c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0 -- -i "dpdk;p=0;q=10;i=0;b=128;m=4096"'
+            ' -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
         )
+        assert re.search(regex, fake_host.last_command)
 
         probe = IpfixprobeDpdk(
             fake_host,
             ProbeTarget("127.0.0.1", 4739, "tcp"),
             [],
             [InterfaceCfg("0000:01:00.0", 10), InterfaceCfg("0000:01:00.1", 10), InterfaceCfg("0000:01:00.2", 10)],
+            False,
             **kwargs,
         )
 
         probe.start()
         probe.stop()
 
-        assert (
-            fake_host.last_command
-            == "ipfixprobe -c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0 -a 0000:01:00.1 -a 0000:01:00.2 --"
+        regex = (
+            "ipfixprobe -c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0 -a 0000:01:00.1 -a 0000:01:00.2 --"
             ' -i "dpdk;p=0;q=10;i=0;b=128;m=4096" -i "dpdk;p=1;q=10;i=0;b=128;m=4096"'
             ' -i "dpdk;p=2;q=10;i=0;b=128;m=4096" -o "ipfix;h=127.0.0.1;p=4739"'
+            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
         )
+        assert re.search(regex, fake_host.last_command)
 
     @staticmethod
     def test_prepare_cmd_ndp_plugin(fake_host):
@@ -307,7 +318,11 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        assert fake_host.last_command == 'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -o "ipfix;h=127.0.0.1;p=4739"'
+        regex = (
+            'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -o "ipfix;h=127.0.0.1;p=4739" '
+            "|& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
+        )
+        assert re.search(regex, fake_host.last_command)
 
         probe = IpfixprobeNdp(
             fake_host,
@@ -319,11 +334,11 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        assert (
-            fake_host.last_command
-            == 'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -i "ndp;dev=/dev/nfb0:1" -i "ndp;dev=/dev/nfb0:2"'
-            ' -o "ipfix;h=127.0.0.1;p=4739"'
+        regex = (
+            'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -i "ndp;dev=/dev/nfb0:1" -i "ndp;dev=/dev/nfb0:2"'
+            ' -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
         )
+        assert re.search(regex, fake_host.last_command)
 
 
 def get_ipfixprobe_pid(host):
@@ -342,7 +357,7 @@ class TestWithDockerIpfixprobe:
         """Run ipfixprobe with connector in docker."""
 
         probe = IpfixprobeRaw(
-            docker_ipfixprobe.host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eth0", 10)], True
+            docker_ipfixprobe.host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eth0", 10)], False, True
         )
 
         probe.start()
@@ -354,7 +369,7 @@ class TestWithDockerIpfixprobe:
         """Run ipfixprobe with connector in docker."""
 
         probe = IpfixprobeRaw(
-            docker_ipfixprobe.host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eth0", 10)], True
+            docker_ipfixprobe.host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eth0", 10)], False, True
         )
 
         probe.start()
@@ -378,6 +393,7 @@ class TestWithDockerIpfixprobe:
                 ProbeTarget("127.0.0.1", 4739, "tcp"),
                 [],
                 [InterfaceCfg("0000:01:00.0", 10)],
+                False,
                 True,
                 core_mask=0x01,
             )
@@ -391,7 +407,7 @@ class TestWithDockerIpfixprobe:
         old_pid = get_ipfixprobe_pid(docker_ipfixprobe.host)
 
         probe = IpfixprobeRaw(
-            docker_ipfixprobe.host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eth0", 10)], True
+            docker_ipfixprobe.host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eth0", 10)], False, True
         )
 
         probe.start()
@@ -411,4 +427,11 @@ class TestWithDockerSsh:
         """Test raise of ProbeException when ipfixprobe not installed on remote host."""
 
         with pytest.raises(ProbeException, match="Unable to locate or execute ipfixprobe binary."):
-            IpfixprobeRaw(docker_ssh.host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eth0", 10)], True)
+            IpfixprobeRaw(
+                docker_ssh.host,
+                ProbeTarget("127.0.0.1", 4739, "tcp"),
+                [],
+                [InterfaceCfg("eth0", 10), False],
+                False,
+                True,
+            )
