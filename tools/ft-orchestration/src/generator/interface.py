@@ -13,6 +13,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 
+class GeneratorException(Exception):
+    """Basic exception raised by generator."""
+
+
 @dataclass(frozen=True)
 class ReplaySpeed(ABC):
     """Base class for replay speed modifier."""
@@ -88,7 +92,7 @@ class PcapPlayer(ABC):
     """Interface for generator which replays PCAP file on a network interface."""
 
     @abstractmethod
-    def __init__(self, host, add_vlan: Optional[int] = None, **kwargs):
+    def __init__(self, host, add_vlan: Optional[int] = None, verbose: bool = False, **kwargs):
         """Init player.
 
         Parameters
@@ -97,6 +101,8 @@ class PcapPlayer(ABC):
             Host class with established remote connection.
         add_vlan : int, optional
             If specified, vlan header with given tag will be added to replayed packets.
+        verbose : bool, optional
+            If True, logs will collect all debug messages.
         kwargs : dict
             Additional arguments processed by implementation.
         """
@@ -141,6 +147,17 @@ class PcapPlayer(ABC):
     def stop(self):
         """Stop sending traffic."""
 
+        raise NotImplementedError
+
+    @abstractmethod
+    def download_logs(self, directory: str):
+        """Download logs to given directory.
+
+        Parameters
+        ----------
+        directory : str
+            Path to a local directory where logs should be stored.
+        """
         raise NotImplementedError
 
     @abstractmethod
