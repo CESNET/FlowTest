@@ -73,7 +73,7 @@ fields:
         reverse:   tcp_options@rev
     tcp_syn_size:
         type:      int
-        direction: always
+        direction: any
     dns_id:
         type:      int
         direction: always
