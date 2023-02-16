@@ -70,8 +70,8 @@ void CommandLineArgs::Parse(int argc, char** argv)
 
 void CommandLineArgs::PrintUsage()
 {
-	std::cerr << "Usage: ./ft-generator [-v] -p <flow profile file> -c <config file> -o <output "
-				 "pcap file> -r <output report file>\n";
+	std::cerr << "Usage: ./ft-generator [-v] -p <flow profile file> [-c <config file>] -o <output "
+				 "pcap file> [-r <output report file>]\n";
 	std::cerr << "  --profiles, -p FILE  The flow profiles file in csv format\n";
 	std::cerr << "  --output, -o FILE    The output pcap file\n";
 	std::cerr << "  --config, -c FILE    The yaml config file\n";
