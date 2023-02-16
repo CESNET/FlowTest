@@ -14,6 +14,7 @@ flows:
     packets:        6
     packets@rev:    4
     tos:            0x00
+    tos@rev:        0x00
     ttl:            64
     ttl@rev:        63
     src_port:       43424

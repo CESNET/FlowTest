@@ -16,5 +16,6 @@ flows:
     src_port:    45422
     dst_port:    443
     tos:         0x00
+    tos@rev:     0x00
     ttl:         64
     ttl@rev:     64

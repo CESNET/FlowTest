@@ -42,7 +42,8 @@ fields:
         reverse:   packets@rev
     tos:
         type:      int
-        direction: always
+        direction: forward
+        reverse:   tos@rev
     ttl:
         type:      int
         direction: forward

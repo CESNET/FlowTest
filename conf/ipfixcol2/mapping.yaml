@@ -24,6 +24,8 @@
   # converter: protocol_identifier_to_number  # fdsdump output has protocol number
 'iana:ipClassOfService':
   map: tos
+'iana@reverse:ipClassOfService@reverse':
+  map: tos@rev
 'iana:tcpControlBits':
   map: tcp_flags
   # converter: flags_to_hex  # fdsdump output has tcp flags as number
