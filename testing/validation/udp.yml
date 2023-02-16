@@ -1,8 +1,8 @@
-# Check that UDP header is properly parsed
 test:
-  name: Simple UDP traffic
+  name: UDP Traffic
   pcaps: ["dns_mx.pcap"]
   required_protocols: []
+  description: Check that UDP header is properly parsed.
 
 flows:
   - src_ip:          "192.168.170.8"

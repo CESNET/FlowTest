@@ -1,8 +1,8 @@
-# Check that DNS can be parsed even when TCP is used as transport
 test:
-  name: DNS TCP (A)
+  name: DNS over TCP
   pcaps: ["dns_tcp.pcap"]
   required_protocols: ["dns"]
+  description: Check that DNS can be parsed even when TCP is used as a transport protocol.
 
 flows:
   - src_ip:      "193.24.227.230"

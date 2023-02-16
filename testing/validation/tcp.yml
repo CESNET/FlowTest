@@ -1,8 +1,8 @@
-# Check that TCP header is properly parsed
 test:
-  name: Simple TCP traffic
+  name: TCP Traffic
   pcaps: ["tls12.pcap"]
   required_protocols: ["tcp"]
+  description: Check that TCP Flags and TCP Options are properly parsed from TCP header.
 
 flows:
   - src_ip:          "192.168.56.101"

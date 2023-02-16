@@ -1,8 +1,8 @@
-# Check that packets with IPv6 header option Hop-by-Hop is parsed properly
 test:
   name: IPv6 Option Hop-by-Hop
   pcaps: ["ipv6-hop-by-hop.pcap"]
   required_protocols: ["ipv6", "icmpv6"]
+  description: Check that packets with IPv6 header option Hop-by-Hop are parsed properly.
 
 key: [src_ip, dst_ip, protocol]
 

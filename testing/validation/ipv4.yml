@@ -1,8 +1,8 @@
-# Check that IP header is properly parsed
 test:
-  name: Simple IPv4 traffic
+  name: IPv4 Traffic
   pcaps: ["tls12.pcap"]
   required_protocols: ["ipv4"]
+  description: Check that regular IPv4 header is parsed properly.
 
 key: [src_ip, dst_ip, protocol]
 

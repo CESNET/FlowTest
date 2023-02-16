@@ -1,8 +1,8 @@
-# Check that DNS response code Server Failure is parsed properly
 test:
   name: DNS Server Failure
   pcaps: ["dns_server_failure.pcap"]
   required_protocols: ["dns"]
+  description: Check that DNS response code Server Failure is parsed properly.
 
 flows:
   - src_ip:      "192.168.236.146"

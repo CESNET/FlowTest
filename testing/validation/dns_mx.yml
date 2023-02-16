@@ -1,8 +1,8 @@
-# Check that at least one of the MX servers are present in DNS response to type MX request is present in the flow
 test:
   name: DNS MX Request
   pcaps: ["dns_mx.pcap"]
   required_protocols: ["dns"]
+  description: Check that at least one of the MX servers are present in DNS response to type MX request is present in the flow.
 
 flows:
   - src_ip:      "192.168.170.8"

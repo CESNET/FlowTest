@@ -1,8 +1,8 @@
-# Check that HTTP version 2.0 is parsed properly after switching from HTTP 1.1
 test:
   name: HTTP 2.0
   pcaps: ["http2_switch.pcap"]
   required_protocols: ["http"]
+  description: Check that HTTP version 2.0 is parsed properly after switching from HTTP 1.1.
 
 flows:
   - src_ip:      "10.9.0.2"

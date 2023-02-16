@@ -1,8 +1,8 @@
-# Check that DNS response code Refused is parsed properly
 test:
   name: DNS Refused
   pcaps: ["dns_refused.pcap"]
   required_protocols: ["dns"]
+  description: Check that DNS response code Refused is parsed properly.
 
 flows:
   - src_ip:      "192.168.97.51"

@@ -1,8 +1,8 @@
-# Check that MPLS headers are correctly parsed and skipped
 test:
-  name: Two MPLS headers
+  name: MPLS (Multiple Labels)
   pcaps: ["mpls-vpn-transport-vpn-labels.pcap"]
   required_protocols: ["mpls"]
+  description: Check that both MPLS headers are correctly parsed and skipped.
 
 key: [src_ip, dst_ip, protocol]
 

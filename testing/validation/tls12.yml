@@ -1,8 +1,8 @@
-# Check that TLS 1.2 is properly parsed
 test:
-  name: Simple TLS 1.2 traffic
+  name: TLS 1.2 Traffic
   pcaps: ["tls12_alpn.pcap"]
   required_protocols: ["tls"]
+  description: Check that TLS 1.2 is properly parsed.
 
 flows:
   - src_ip:                  "147.251.44.18"

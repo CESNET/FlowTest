@@ -1,8 +1,8 @@
-# Check that packets with IPv6 header option Routing Header is parsed properly
 test:
   name: IPv6 Option Routing Header
   pcaps: ["ipv6-routing-header.pcap"]
   required_protocols: ["ipv6"]
+  description: Check that packets with IPv6 header option Routing Header are parsed properly.
 
 flows:
   - src_ip:         "fc00:2:0:2::1"

@@ -1,8 +1,8 @@
-# Check that information from inner IP header are exported
 test:
-  name: Traffic in GRE tunnel
+  name: GRE Tunnel
   pcaps: ["gre.pcap"]
   required_protocols: ["gre"]
+  description: Parse GRE tunnel and check whether IP fields contain information from the inner IP header.
 
 key: [src_ip, dst_ip, protocol]
 
