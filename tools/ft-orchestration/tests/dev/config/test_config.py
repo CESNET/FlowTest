@@ -117,10 +117,11 @@ def test_authentications(create_config) -> None:
 
     authentications: Dict[str, AuthenticationCfg] = create_config.authentications
 
-    assert len(authentications) == 2
-    assert list(authentications.keys()) == ["cesnet-general", "flowmon-probes"]
+    assert len(authentications) == 3
+    assert list(authentications.keys()) == ["cesnet-general", "flowmon-probes", "cesnet-agent"]
     auth_1: AuthenticationCfg = authentications["cesnet-general"]
     auth_2: AuthenticationCfg = authentications["flowmon-probes"]
+    auth_3: AuthenticationCfg = authentications["cesnet-agent"]
 
     assert auth_1.key_path == "tools/ft-orchestration/tests/dev/config/files/cesnet-general.pem"
     assert auth_1.username is None
@@ -129,6 +130,11 @@ def test_authentications(create_config) -> None:
     assert auth_2.key_path is None
     assert auth_2.username == "slowmon"
     assert auth_2.password == "manyStars"
+
+    assert auth_3.username == "xcesne00"
+    assert auth_3.ssh_agent
+    assert auth_3.key_path is None
+    assert auth_3.password is None
 
 
 def test_authentications_invalid() -> None:
@@ -144,8 +150,7 @@ def test_authentications_invalid() -> None:
         assert False
     except ConfigException as err:
         assert str(err) == (
-            "Validation error: AuthenticationCfg config file can not contain both of the key_path and the "
-            "username/password."
+            "Validation error: AuthenticationCfg config file can not contain both of the key_path and the password."
         )
 
     try:
@@ -157,7 +162,21 @@ def test_authentications_invalid() -> None:
         )
         assert False
     except ConfigException as err:
-        assert str(err) == "Validation error: Field key_path or both fields username and password must be present."
+        assert (
+            str(err)
+            == "Validation error: At least one authentication (SSH agent, key_path or password) must be present."
+        )
+
+    try:
+        Config(
+            f"{FILES_DIR}/authentication-invalid-3.yml",
+            f"{FILES_DIR}/generators.yml",
+            f"{FILES_DIR}/collectors.yml",
+            f"{FILES_DIR}/probes.yml",
+        )
+        assert False
+    except ConfigException as err:
+        assert str(err) == "Validation error: Key path or password cannot be set if the ssh agent is used."
 
 
 def test_collectors(create_config) -> None:
