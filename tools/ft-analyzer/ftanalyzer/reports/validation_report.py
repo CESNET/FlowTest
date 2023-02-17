@@ -15,6 +15,87 @@ from collections import defaultdict
 from ftanalyzer.flow import ValidationResult, ValidationStats
 
 
+class ValidationReportSummary:
+    """Class for merging data from multiple ValidationReport objects
+    to provide summarized statistics across multiple validation tests.
+
+    Attributes
+    ----------
+    fields : defaultdict
+        Dictionary with summary counters of each field.
+    flows : ValidationStats
+        Summary counters for flow statistics.
+    unknown_fields : set
+        Fields which could not be recognized by Normalizer.
+    unmapped_fields : set
+        Fields which could not be mapped by Mapper.
+    """
+
+    def __init__(self) -> None:
+        """Basic init."""
+        # pylint: disable=W0108
+        self.fields = defaultdict(lambda: ValidationStats())
+        self.flows = ValidationStats()
+        self.unknown_fields = set()
+        self.unmapped_fields = set()
+
+    def update_fields_stats(self, fields: Dict[str, ValidationStats]) -> None:
+        """Update field statistics with a dictionary of ValidationStats object.
+
+        Parameters
+        ----------
+        fields : dict
+            Flow fields statistics from a validation report.
+        """
+        for name, stats in fields.items():
+            self.fields[name].update(stats)
+
+    def update_flows_stats(self, stats: ValidationStats) -> None:
+        """Update flow statistics with a ValidationStats object.
+
+        Parameters
+        ----------
+        stats : ValidationStats
+            Flow statistics from a validation report.
+        """
+        self.flows.update(stats)
+
+    def update_unknown_fields(self, fields: Set[str]) -> None:
+        """Update the set of unknown fields.
+
+        Parameters
+        ----------
+        fields : set
+            Flow field names.
+        """
+        self.unknown_fields.update(fields)
+
+    def update_unmapped_fields(self, fields: Set[str]) -> None:
+        """Update the set of unmapped fields.
+
+        Parameters
+        ----------
+        fields : set
+            Flow field names.
+        """
+        self.unmapped_fields.update(fields)
+
+    def get_fields_summary(self) -> ValidationStats:
+        """Get fields statistics summary across all compared flow fields.
+
+        Returns
+        ------
+        ValidationStats
+            Flow fields statistics summary.
+        """
+
+        summary = ValidationStats()
+        for stats in self.fields.values():
+            summary.update(stats)
+
+        return summary
+
+
 @dataclass
 class ValidationReportFlow:
     """Dataclass with validation result of a specific flow comparison.
