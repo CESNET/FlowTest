@@ -439,3 +439,13 @@ def test_alternative_field_values_wrong(setup) -> None:
 
     assert report.get_fields_summary_stats() == ValidationStats(ok=3, error=1)
     assert report.flows_stats == ValidationStats(error=1)
+
+
+def test_single_annotation(setup) -> None:
+    """Test scenario when the annotation is done on a single flow direction."""
+    key, references, flows = read_test_files("single-annotation.yml", "single-annotation.yml")
+    report = run_validation(key, flows, references, setup.fields_db, setup.normalizer, setup.supported, {})
+    assert report.is_passing() is True
+
+    assert report.get_fields_summary_stats() == ValidationStats(ok=5)
+    assert report.flows_stats == ValidationStats(ok=1)
