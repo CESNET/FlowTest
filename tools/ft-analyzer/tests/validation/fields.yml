@@ -42,7 +42,8 @@ fields:
         reverse:   packets@rev
     tos:
         type:      int
-        direction: always
+        direction: forward
+        reverse:   tos@rev
     ttl:
         type:      int
         direction: forward
@@ -73,7 +74,7 @@ fields:
         reverse:   tcp_options@rev
     tcp_syn_size:
         type:      int
-        direction: always
+        direction: any
     dns_id:
         type:      int
         direction: always
