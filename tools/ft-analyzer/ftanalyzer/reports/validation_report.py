@@ -246,6 +246,9 @@ class ValidationReport:
                         f"(expected: '{field.expected}', observed: '{field.observed}')"
                         f".{self.RST_CLR}"
                     )
+                if len(flow.result.unchecked) > 0:
+                    unchecked = ", ".join(flow.result.unchecked)
+                    print(f"{self.WARN_CLR}\t\t- Unchecked fields: {unchecked}.{self.RST_CLR}")
 
     def print_flows_stats(self) -> None:
         """Print statistics of the processed flows to stdout."""
@@ -259,16 +262,18 @@ class ValidationReport:
         """Print statistics of the compared flow fields to stdout."""
 
         print(f"\n{'':<25}===================== FIELDS ======================")
-        print(f"{'FIELD':<25}{'OK':<10}{'ERROR':<10}{'MISSING':<10}{'UNEXPECTED':<10}")
+        print(f"{'FIELD':<25}{'OK':<10}{'ERROR':<10}{'MISSING':<10}{'UNEXPECTED':<11}{'UNCHECKED':<10}")
         for field, stats in self.fields_stats.items():
             print(
-                f"{field:<25}{stats.ok:<10}{stats.error:<10}{stats.missing:<10}{stats.unexpected:<10}"
+                f"{field:<25}{stats.ok:<10}{stats.error:<10}{stats.missing:<10}"
+                f"{stats.unexpected:<11}{stats.unchecked:<10}"
             )
 
         summary = self.get_fields_summary_stats()
-        print(f"{'':<25}{'----------':<10}{'----------':<10}{'----------':<10}{'-----------':<10}")
+        print(f"{'':<25}{'----------':<10}{'----------':<10}{'----------':<10}{'-----------':<11}{'----------':<10}")
         print(
-            f"{'':<25}{summary.ok:<10}{summary.error:<10}{summary.missing:<10}{summary.unexpected:<10}"
+            f"{'':<25}{summary.ok:<10}{summary.error:<10}{summary.missing:<10}"
+            f"{summary.unexpected:<11}{summary.unchecked:<10}"
         )
 
     @staticmethod

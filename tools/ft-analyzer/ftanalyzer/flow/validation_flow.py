@@ -8,7 +8,7 @@ File contains ValidationFlow class which is used as an input to Validation model
 """
 
 from itertools import permutations
-from typing import Tuple, Union, Dict, List, Optional, Any
+from typing import Any, Tuple, Union, Dict, List, Optional, Set
 
 from ftanalyzer.fields import FieldDirection
 from ftanalyzer.flow.flow import Flow
@@ -24,15 +24,19 @@ class ValidationFlow(Flow):
     ----------
     _any_dir_fields : list
         Names of present flow fields which have direction value "any".
+    _rev_fixed_fields : list
+        Names of flow fields are expected to be in the flow from the opposite direction.
     """
 
-    __slots__ = ("_any_dir_fields",)
+    __slots__ = ("_any_dir_fields", "_rev_fixed_fields")
 
     def __init__(
         self,
         key_fmt: Tuple[str, ...],
         rev_key_fmt: Tuple[str, ...],
         fields: Dict[str, Union[str, int, Dict, List]],
+        biflow: bool,
+        rev_fixed_fields: Set[str],
         fields_db: "FieldDatabase",
     ) -> None:
         """Initialize Flow object by creating its keys from the provided normalized flow fields.
@@ -45,6 +49,10 @@ class ValidationFlow(Flow):
             Names of flow fields which create the reverse flow key.
         fields : Dict[str, Union[str, int, Dict, List]]
             Flow fields in format "name: value".
+        biflow : bool
+            Flag indicating whether the flow originates from a biflow.
+        rev_fixed_fields : set
+            Names of flow fields are expected to be in the flow from the opposite direction.
         fields_db : FieldDatabase
             Fields database object.
 
@@ -54,10 +62,11 @@ class ValidationFlow(Flow):
             Key field not present among flow fields.
         """
 
-        super().__init__(key_fmt, rev_key_fmt, fields)
+        super().__init__(key_fmt, rev_key_fmt, fields, biflow)
         self._any_dir_fields = [
             field for field in fields_db.get_fields_in_direction(FieldDirection.ANY) if field in self.fields
         ]
+        self._rev_fixed_fields = rev_fixed_fields
 
     def validate(
         self, flow: Flow, rev_flow: Optional[Flow], supported: List[str], special: Dict[str, str]
@@ -87,6 +96,12 @@ class ValidationFlow(Flow):
         """
         ret = ValidationResult()
         expected = {k: v for k, v in self.fields.items() if k in supported and k not in self.key_fmt}
+        unchecked = {k for k in flow.fields.keys() if k not in expected.keys() and k not in self.key_fmt}
+        if flow.biflow:
+            # Remove fields which are expected to be in the opposite direction, if the flow originates from a biflow.
+            unchecked = unchecked.difference(self._rev_fixed_fields)
+
+        ret.report_unchecked_fields(unchecked)
         for f_exp_name, f_exp_value in expected.items():
             if f_exp_name not in flow.fields:
                 # Flows with direction "any" can be in the flow from the opposite direction.

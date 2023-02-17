@@ -23,15 +23,18 @@ class Flow:
         Key that could be expected in flows in the opposite direction.
     fields : Dict[str, Union[str, int, Dict, List]]
         Flow fields in format "name: value".
+    biflow : bool
+        Flag indicating whether the flow originates from a biflow.
     """
 
-    __slots__ = ("key_fmt", "key", "rev_key", "fields")
+    __slots__ = ("key_fmt", "key", "rev_key", "fields", "biflow")
 
     def __init__(
         self,
         key_fmt: Tuple[str, ...],
         rev_key_fmt: Tuple[str, ...],
         fields: Dict[str, Union[str, int, Dict, List]],
+        biflow: bool,
     ) -> None:
         """Initialize Flow object by creating its keys from the provided normalized flow fields.
 
@@ -43,6 +46,8 @@ class Flow:
             Names of flow fields which create the reverse flow key.
         fields : Dict[str, Union[str, int, Dict, List]]
             Flow fields in format "name: value".
+        biflow : bool
+            Flag indicating whether the flow originates from a biflow.
 
         Raises
         ------
@@ -51,6 +56,7 @@ class Flow:
         """
         self.key_fmt = key_fmt
         self.fields = fields
+        self.biflow = biflow
 
         self.key = self._parse_key(key_fmt)
         self.rev_key = self._parse_key(rev_key_fmt)

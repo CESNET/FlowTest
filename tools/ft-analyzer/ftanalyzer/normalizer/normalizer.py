@@ -165,9 +165,9 @@ class Normalizer:
         biflow = self._is_biflow(norm_fields)
 
         rev_flow = None
-        fwd_flow = self._build_flow(FieldDirection.FORWARD, norm_fields, validation_flag)
+        fwd_flow = self._build_flow(FieldDirection.FORWARD, norm_fields, validation_flag, biflow)
         if biflow:
-            rev_flow = self._build_flow(FieldDirection.REVERSE, norm_fields, validation_flag)
+            rev_flow = self._build_flow(FieldDirection.REVERSE, norm_fields, validation_flag, biflow)
 
         return fwd_flow, rev_flow
 
@@ -176,6 +176,7 @@ class Normalizer:
         direction: FieldDirection,
         fields: Dict[str, Union[str, int, Dict, List]],
         validation_flag: bool,
+        biflow: bool,
     ) -> Union[Flow, ValidationFlow]:
         """Create Flow or ValidationFlow object from provided normalized flow fields.
 
@@ -187,6 +188,8 @@ class Normalizer:
             Normalized flow fields.
         validation_flag: bool
             Flag indicating whether ValidationFlow should be created instead of Flow.
+        biflow: bool
+            Flag indicating whether the flow originates from a biflow.
 
         Returns
         ------
@@ -199,11 +202,18 @@ class Normalizer:
             Unable to create Flow object due to a missing key field.
         """
         uni_fields = self._filter_fields_by_direction(direction, fields)
+        rev_fixed_fields = (
+            fields.get(f"_{FieldDirection.REVERSE.value}", {})
+            if direction == FieldDirection.FORWARD
+            else fields.get(f"_{FieldDirection.FORWARD.value}", {})
+        )
 
         if validation_flag:
-            return ValidationFlow(self._fwd_key_fmt, self._rev_key_fmt, uni_fields, self._field_db)
+            return ValidationFlow(
+                self._fwd_key_fmt, self._rev_key_fmt, uni_fields, biflow, set(rev_fixed_fields.keys()), self._field_db
+            )
 
-        return Flow(self._fwd_key_fmt, self._rev_key_fmt, uni_fields)
+        return Flow(self._fwd_key_fmt, self._rev_key_fmt, uni_fields, biflow)
 
     def _filter_fields_by_direction(
         self,
@@ -230,8 +240,8 @@ class Normalizer:
         excluded = self._rev_fields if direction == FieldDirection.FORWARD else self._fwd_fields
         filtered = {}
 
-        # Remove fields fixed for this direction to be later merged with the original fields.
-        fixed_fields = fields.pop(f"_{direction.value}", {})
+        # Pick fields fixed for this direction to be later merged with the original fields.
+        fixed_fields = fields.get(f"_{direction.value}", {})
 
         for f_name, f_value in fields.items():
             # Skip meta fields and fields in the opposite direction.

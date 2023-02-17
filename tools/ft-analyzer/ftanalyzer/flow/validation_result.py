@@ -28,6 +28,8 @@ class ValidationStats:
         Number of times compared flow fields were not equal.
     unexpected : int
         Number of times a flow field was present but should not have been.
+    unchecked : int
+        Number of times a flow field was present in the flow from probe but not in the validation flow.
     """
 
     # pylint: disable=invalid-name
@@ -35,6 +37,7 @@ class ValidationStats:
     error: int = 0
     missing: int = 0
     unexpected: int = 0
+    unchecked: int = 0
 
     def update(self, other: "ValidationStats") -> None:
         """Update every counter with values from the other statistics object.
@@ -49,6 +52,7 @@ class ValidationStats:
         self.error += other.error
         self.missing += other.missing
         self.unexpected += other.unexpected
+        self.unchecked += other.unchecked
 
     def score(self) -> int:
         """Get error score which is the sum of all error counters.
@@ -94,9 +98,11 @@ class ValidationResult:
         Unexpected fields.
     stats : Dict[str, ValidationStats]
         Validation counters per each compared flow field.
+    unchecked : Set[str]
+        Fields which were present in the flow from probe but not in the validation flow.
     """
 
-    __slots__ = ("errors", "missing", "unexpected", "stats")
+    __slots__ = ("errors", "missing", "unexpected", "stats", "unchecked")
 
     def __init__(self) -> None:
         """Initialize empty error lists and counters."""
@@ -104,6 +110,7 @@ class ValidationResult:
         self.errors = []
         self.missing = []
         self.unexpected = []
+        self.unchecked = set()
         # pylint: disable=unnecessary-lambda
         self.stats = defaultdict(lambda: ValidationStats())
 
@@ -119,6 +126,7 @@ class ValidationResult:
         self.errors += other.errors
         self.missing += other.missing
         self.unexpected += other.unexpected
+        self.unchecked.update(other.unchecked)
 
         for name, stats in other.stats.items():
             self.stats[name].update(stats)
@@ -176,6 +184,19 @@ class ValidationResult:
 
         self.stats[name].unexpected += 1
         self.unexpected.append(ValidationField(name, None, value))
+
+    def report_unchecked_fields(self, fields: Set[str]) -> None:
+        """Report unexpected field.
+
+        Parameters
+        ----------
+        fields : Set[str]
+            Set of flow fields which were present in the flow from probe but not in the validation flow.
+        """
+
+        self.unchecked.update(fields)
+        for field in fields:
+            self.stats[field].unchecked = 1
 
     def score(self) -> int:
         """Get number of errors in the validation result.
