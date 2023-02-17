@@ -111,7 +111,7 @@ class CollectorOutputMapper:
         self._reader = iter(self._reader)
         return self
 
-    def __next__(self) -> Tuple[dict, list, list]:
+    def __next__(self) -> Tuple[dict, set, set]:
         """Get flow from collector reader and map to YAML annotation format.
 
         Returns
@@ -162,7 +162,7 @@ class CollectorOutputMapper:
                         f"Unexpected key '{key}' in property '{attrib}' mapping. Allowed only 'map' and 'converter'."
                     )
 
-    def _map(self, json_flow: dict) -> Tuple[dict, list, list]:
+    def _map(self, json_flow: dict) -> Tuple[dict, set, set]:
         """Map attributes of single flow.
 
         Parameters
@@ -185,14 +185,14 @@ class CollectorOutputMapper:
             Converter method from config not found.
         """
         flow = {}
-        mapped_keys = []
-        unmapped_keys = []
+        mapped_keys = set()
+        unmapped_keys = set()
         for key, value in json_flow.items():
             if key in self._mapping:
                 mapping = self._mapping[key]
-                mapped_keys.append(key)
+                mapped_keys.add(key)
             else:
-                unmapped_keys.append(key)
+                unmapped_keys.add(key)
                 continue
 
             if "." not in mapping["map"]:
