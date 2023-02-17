@@ -99,7 +99,7 @@ class ValidationFlow(Flow):
                 f_value = flow.fields[f_exp_name]
 
             result = self._validate_field(f_exp_name, f_value, f_exp_value, supported, special)
-            ret.merge(result)
+            ret.update(result)
 
         return ret
 
@@ -137,10 +137,10 @@ class ValidationFlow(Flow):
 
         if isinstance(value, list):
             result = self._validate_list(name, value, ref, supported, special)
-            ret.merge(result)
+            ret.update(result)
         elif isinstance(value, dict):
             result = self._validate_dict(value, ref, supported, special)
-            ret.merge(result)
+            ret.update(result)
         elif (isinstance(ref, list) and value in ref) or ref == value:
             ret.report_correct_field(name)
         else:
@@ -185,10 +185,10 @@ class ValidationFlow(Flow):
 
                 results[val_index].update({ref_index: result})
                 if strategy == "OneInArray":
-                    if result.get_score() == 0:
+                    if result.score() == 0:
                         return result
 
-                    if not best_result or best_result.get_score() > result.get_score():
+                    if not best_result or best_result.score() > result.score():
                         best_result = result
 
         if strategy == "OneInArray":
@@ -238,7 +238,7 @@ class ValidationFlow(Flow):
 
                 continue
 
-            ret.merge(results[val_index][ref_index])
+            ret.update(results[val_index][ref_index])
 
         # If the flow list size is greater than the reference list size, it is necessary to report unexpected fields.
         for val_index, value in enumerate(values):
@@ -280,7 +280,7 @@ class ValidationFlow(Flow):
                 continue
 
             result = self._validate_field(f_exp_name, values[f_exp_name], f_exp_value, supported, special)
-            ret.merge(result)
+            ret.update(result)
 
         return ret
 
@@ -324,7 +324,7 @@ class ValidationFlow(Flow):
                 if flow_index == -1:
                     continue
 
-                score += results[flow_index][ref_index].get_score()
+                score += results[flow_index][ref_index].score()
 
             if best_perm is None or score < best_score:
                 best_score = score

@@ -8,52 +8,47 @@ File contains definition of ValidationResult and ValidationStats classes which h
 information about the result of comparison between two flows.
 """
 
-from typing import Dict, Union, List, Tuple
+from dataclasses import dataclass
+from collections import defaultdict
+
+from typing import Any, Union, Set
 
 
+@dataclass
 class ValidationStats:
     """Class for storing flow comparison counters.
 
     Attributes
     ----------
-    _correct : int
+    ok : int
         Number of times compared flow fields were equal.
-    _missing : int
+    error : int
         Number of times a flow field was missing.
-    _wrong : int
+    missing : int
         Number of times compared flow fields were not equal.
-    _unexpected : int
+    unexpected : int
         Number of times a flow field was present but should not have been.
     """
 
-    __slots__ = ("_correct", "_missing", "_wrong", "_unexpected")
+    # pylint: disable=invalid-name
+    ok: int = 0
+    error: int = 0
+    missing: int = 0
+    unexpected: int = 0
 
-    def __init__(self) -> None:
-        """Initialize all counters to 0."""
-        self._correct = 0
-        self._missing = 0
-        self._wrong = 0
-        self._unexpected = 0
-
-    def update(self, correct: int = 0, missing: int = 0, wrong: int = 0, unexpected: int = 0) -> None:
-        """Increase counters.
+    def update(self, other: "ValidationStats") -> None:
+        """Update every counter with values from the other statistics object.
 
         Parameters
         ----------
-        correct : int
-            Number of times compared flow fields were equal.
-        missing : int
-            Number of times a flow field was missing.
-        wrong : int
-            Number of times compared flow fields were not equal.
-        unexpected : int
-            Number of times a flow field was present but should not have been.
+        other : ValidationStats
+            Statistics to be used for update.
         """
 
-        self._correct += correct
-        self._missing += missing
-        self._wrong += wrong
-        self._unexpected += unexpected
+        self.ok += other.ok
+        self.error += other.error
+        self.missing += other.missing
+        self.unexpected += other.unexpected
 
     def score(self) -> int:
         """Get error score which is the sum of all error counters.
@@ -64,23 +59,26 @@ class ValidationStats:
             Sum of all error counters.
         """
 
-        return self._missing + self._wrong + self._unexpected
+        return self.error + self.missing + self.unexpected
 
-    def get_report(self) -> Dict[str, int]:
-        """Get all error counters.
 
-        Returns
-        ------
-        dict
-            Error counters.
-        """
+@dataclass
+class ValidationField:
+    """Flow field validation result issue.
 
-        return {
-            "correct": self._correct,
-            "missing": self._missing,
-            "wrong": self._wrong,
-            "unexpected": self._unexpected,
-        }
+    Attributes
+    ----------
+    name : str
+        Flow field name.
+    expected : Any
+        Expected value of the flow field (from annotation).
+    observed : Any
+        Observed value of the flow field (from tested probe).
+    """
+
+    name: str
+    expected: Any = None
+    observed: Any = None
 
 
 class ValidationResult:
@@ -88,42 +86,42 @@ class ValidationResult:
 
     Attributes
     ----------
-    _missing : list
+    errors : List[ValidationField]
         Missing fields and their expected values.
-    _wrong : list
+    missing : List[ValidationField]
         Fields which have different values than they should.
-    _unexpected : list
+    unexpected : List[ValidationField]
         Unexpected fields.
-    _stats : Dict[str, ValidationStats]
+    stats : Dict[str, ValidationStats]
         Validation counters per each compared flow field.
     """
 
-    __slots__ = ("_missing", "_wrong", "_unexpected", "_stats")
+    __slots__ = ("errors", "missing", "unexpected", "stats")
 
     def __init__(self) -> None:
-        """Initialize empty errors and counters."""
+        """Initialize empty error lists and counters."""
 
-        self._missing = []
-        self._wrong = []
-        self._unexpected = []
-        self._stats = {}
+        self.errors = []
+        self.missing = []
+        self.unexpected = []
+        # pylint: disable=unnecessary-lambda
+        self.stats = defaultdict(lambda: ValidationStats())
 
-    def merge(self, other: "ValidationResult") -> None:
-        """Merge other validation result into this one.
+    def update(self, other: "ValidationResult") -> None:
+        """Update validation result by merging lists of discovered validation issues and counters.
 
         Parameters
         ----------
         other : ValidationResult
-            Results that should be merged into this one.
+            Result to be merged into this.
         """
 
-        error_rep = other.get_error_report()
-        self._missing += error_rep["missing"]
-        self._wrong += error_rep["wrong"]
-        self._unexpected += error_rep["unexpected"]
+        self.errors += other.errors
+        self.missing += other.missing
+        self.unexpected += other.unexpected
 
-        for field, stats in other.get_stats_report().items():
-            self._update_stats(field, **stats)
+        for name, stats in other.stats.items():
+            self.stats[name].update(stats)
 
     def report_correct_field(self, name: str) -> None:
         """Report that field comparison was successful.
@@ -134,7 +132,7 @@ class ValidationResult:
             Name of the field.
         """
 
-        self._update_stats(name, correct=1)
+        self.stats[name].ok += 1
 
     def report_missing_field(self, name: str, reference: Union[str, int]) -> None:
         """Report missing field.
@@ -146,8 +144,8 @@ class ValidationResult:
         reference : str, int
             Expected field value.
         """
-        self._update_stats(name, missing=1)
-        self._missing.append((name, reference))
+        self.stats[name].missing += 1
+        self.missing.append(ValidationField(name, reference))
 
     def report_wrong_value_field(self, name: str, value: Union[str, int], reference: Union[str, int]) -> None:
         """Report wrong field value.
@@ -162,8 +160,8 @@ class ValidationResult:
             Expected field value.
         """
 
-        self._update_stats(name, wrong=1)
-        self._wrong.append((name, value, reference))
+        self.stats[name].error += 1
+        self.errors.append(ValidationField(name, reference, value))
 
     def report_unexpected_field(self, name: str, value: Union[str, int]) -> None:
         """Report unexpected field.
@@ -176,10 +174,10 @@ class ValidationResult:
             Field value.
         """
 
-        self._update_stats(name, unexpected=1)
-        self._unexpected.append((name, value))
+        self.stats[name].unexpected += 1
+        self.unexpected.append(ValidationField(name, None, value))
 
-    def get_score(self) -> int:
+    def score(self) -> int:
         """Get number of errors in the validation result.
 
         Returns
@@ -188,54 +186,4 @@ class ValidationResult:
             Number of errors in the result.
         """
 
-        return sum(map(lambda stat: stat.score(), self._stats.values()))
-
-    def get_stats_report(self) -> Dict[str, Dict[str, int]]:
-        """Get statistics counters per each field.
-
-        Returns
-        ------
-        Dict[str, Dict[str, int]]
-            Statistics counters per field.
-            Format: "{field name: {counter name: counter value}}"
-        """
-
-        return {field: stats.get_report() for field, stats in self._stats.items()}
-
-    def get_error_report(self) -> Dict[str, List[Tuple[str, ...]]]:
-        """Get all reported errors.
-
-        Returns
-        ------
-        Dict[str, List[Tuple[str, ...]]]
-            Reported errors per error type.
-            Format: {
-                    missing: [(name, expected value), ...],
-                    wrong: [(name, actual value, expected value), ...],
-                    unexpected: [(name, actual value), ...],
-                    }
-        """
-
-        return {"missing": self._missing, "wrong": self._wrong, "unexpected": self._unexpected}
-
-    def _update_stats(self, name: str, correct: int = 0, missing: int = 0, wrong: int = 0, unexpected: int = 0) -> None:
-        """Increase counters of a specified field.
-
-        Parameters
-        ----------
-        name : str
-            Name of the field.
-        correct : int
-            Number of times compared flow fields were equal.
-        missing : int
-            Number of times a flow field was missing.
-        wrong : int
-            Number of times compared flow fields were not equal.
-        unexpected : int
-            Number of times a flow field was present but should not have been.
-        """
-
-        if name not in self._stats:
-            self._stats[name] = ValidationStats()
-
-        self._stats[name].update(correct=correct, missing=missing, wrong=wrong, unexpected=unexpected)
+        return sum(map(lambda stat: stat.score(), self.stats.values()))

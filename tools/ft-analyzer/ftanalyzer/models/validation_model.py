@@ -10,7 +10,7 @@ File contains ValidationModel class for performing accurate comparison between l
 from copy import deepcopy
 from typing import List, Dict, Optional, Tuple
 
-from ftanalyzer.reports import ValidationModelReport
+from ftanalyzer.reports import ValidationReport
 from ftanalyzer.models.biflow_validator import BiflowValidator
 
 
@@ -58,7 +58,7 @@ class ValidationModel:
 
     def validate(
         self, flows: List[Tuple["Flow", Optional["Flow"]]], supported: List[str], special: Dict[str, str]
-    ) -> ValidationModelReport:
+    ) -> ValidationReport:
         """Perform the validation of provided flows against the initialized model.
 
         Parameters
@@ -73,18 +73,18 @@ class ValidationModel:
 
         Returns
         ------
-        ValidationModelReport
+        ValidationReport
             Validation report.
         """
-        report = ValidationModelReport(self._key_fmt)
+        report = ValidationReport(self._key_fmt)
         ref_matrix = deepcopy(self._ref_matrix)
 
         for fwd_flow, rev_flow in flows:
             access_key = self._get_matrix_access_key(fwd_flow.key, fwd_flow.rev_key)
             if access_key is None:
-                report.add_validation_result(fwd_flow, None, None)
+                report.add_entry(fwd_flow, None, None)
                 if rev_flow is not None:
-                    report.add_validation_result(rev_flow, None, None)
+                    report.add_entry(rev_flow, None, None)
 
                 continue
 
@@ -93,7 +93,7 @@ class ValidationModel:
         for mtrx in ref_matrix.values():
             results = mtrx.validate(supported, special)
             for flow, ref, res in results:
-                report.add_validation_result(flow, ref, res)
+                report.add_entry(flow, ref, res)
 
         return report
 
