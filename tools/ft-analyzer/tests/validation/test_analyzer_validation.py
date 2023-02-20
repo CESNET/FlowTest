@@ -92,6 +92,7 @@ def run_validation(
     norm_references = normalizer.normalize(reference, True)
     norm_flows = normalizer.normalize(flows)
     key_fmt, _ = fields_db.get_key_formats(key)
+    assert len(normalizer.pop_skipped_fields()) == 0
 
     report = ValidationModel(key_fmt, norm_references).validate(norm_flows, supported, special)
     report.print_results()
@@ -449,3 +450,22 @@ def test_single_annotation(setup) -> None:
 
     assert report.get_fields_summary_stats() == ValidationStats(ok=5)
     assert report.flows_stats == ValidationStats(ok=1)
+
+
+def test_skipped_fields(setup) -> None:
+    """Test normalizer to identify fields which were not present in the configuration file."""
+    key, references, flows = read_test_files("basic-ok.yml", "basic.yml")
+    flows[0]["unknown_field_probe"] = "hello"
+    references[1]["unknown_field_annotation"] = "world"
+
+    setup.normalizer.set_key_fmt(key)
+    norm_references = setup.normalizer.normalize(references, True)
+    norm_flows = setup.normalizer.normalize(flows)
+    key_fmt, _ = setup.fields_db.get_key_formats(key)
+    assert setup.normalizer.pop_skipped_fields() == {"unknown_field_probe", "unknown_field_annotation"}
+    assert len(setup.normalizer.pop_skipped_fields()) == 0
+
+    report = ValidationModel(key_fmt, norm_references).validate(norm_flows, setup.supported, {})
+    assert report.is_passing() is True
+    assert report.get_fields_summary_stats() == ValidationStats(ok=20)
+    assert report.flows_stats == ValidationStats(ok=4)

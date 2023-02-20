@@ -8,6 +8,7 @@ File contains the Normalizer class for creating normalized uni-flows or bi-flows
 so that they can be used in evaluation models.
 """
 
+import copy
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -29,6 +30,8 @@ class Normalizer:
     ----------
     _field_db : FieldDatabase
         Fields database object.
+    _skipped_fields : set
+        Fields which could not be processed by the normalizer.
     _fwd_key_fmt : tuple
         Flow key format for flows in forward direction.
     _rev_key_fmt : tuple
@@ -49,6 +52,7 @@ class Normalizer:
         """
 
         self._field_db = field_db
+        self._skipped_fields = set()
         self._fwd_fields = self._field_db.get_fields_in_direction(FieldDirection.FORWARD)
         self._rev_fields = self._field_db.get_fields_in_direction(FieldDirection.REVERSE)
 
@@ -71,6 +75,18 @@ class Normalizer:
         """
 
         self._fwd_key_fmt, self._rev_key_fmt = self._field_db.get_key_formats(key_fmt)
+
+    def pop_skipped_fields(self):
+        """Get and clear fields which could not be processed by the normalizer.
+
+        Returns
+        ------
+        Set(str)
+            Names of flow fields.
+        """
+        tmp = copy.copy(self._skipped_fields)
+        self._skipped_fields = set()
+        return tmp
 
     def normalize(
         self, flows: List[Dict[str, Any]], annotation: bool = False
@@ -260,6 +276,7 @@ class Normalizer:
             if new_value is not None:
                 normalized_fields[f_name] = new_value
             else:
+                self._skipped_fields.add(f_name)
                 logging.getLogger().warning("unknown or empty field=%s, skipping...", f_name)
 
         return normalized_fields
