@@ -5,10 +5,10 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 Orchestration configuration entity - AuthenticationCfg"""
+from dataclasses import dataclass
 from os.path import exists
 from typing import Optional
 
-from dataclasses import dataclass
 from dataclass_wizard import YAMLWizard
 
 
@@ -31,13 +31,13 @@ class AuthenticationCfg(YAMLWizard):
 
     def check(self) -> None:
         """Check the configuration validity."""
-        if self.key_path and self.password and self.password:
+        if self.key_path and self.password and self.username:
             raise AuthenticationCfgException(
                 "AuthenticationCfg config file can not contain both of the key_path and the username/password."
             )
         if self.key_path:
             self._check_key_path()
-        elif self.password and self.password:
+        elif self.password and self.username:
             pass
         else:
             raise AuthenticationCfgException("Field key_path or both fields username and password must be present.")
