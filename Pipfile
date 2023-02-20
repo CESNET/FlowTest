@@ -24,7 +24,7 @@ numpy = "*"
 pygad = "*"
 pytest = "*"
 pytest-cases = "*"
-lbr-trex-client = {version = "*", index = "liberouter-pypi"}
+lbr-trex-client = {version = ">=2.0.1", index = "liberouter-pypi"}
 lbr-testsuite = {version = "*", index = "flowtest-pypi"}
 
 [dev-packages]
