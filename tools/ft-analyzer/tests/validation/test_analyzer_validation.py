@@ -89,7 +89,7 @@ def run_validation(
 ) -> "ValidationReport":
     """Run the validation process and return the validation report."""
     normalizer.set_key_fmt(key)
-    norm_references = normalizer.normalize_validation(reference)
+    norm_references = normalizer.normalize(reference, True)
     norm_flows = normalizer.normalize(flows)
     key_fmt, _ = fields_db.get_key_formats(key)
 

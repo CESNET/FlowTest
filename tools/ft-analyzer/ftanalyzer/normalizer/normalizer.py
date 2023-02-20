@@ -72,74 +72,35 @@ class Normalizer:
 
         self._fwd_key_fmt, self._rev_key_fmt = self._field_db.get_key_formats(key_fmt)
 
-    def normalize(self, flows: List[Dict[str, Any]]) -> List[Tuple[Flow, Optional[Flow]]]:
+    def normalize(
+        self, flows: List[Dict[str, Any]], annotation: bool = False
+    ) -> List[Union[Tuple[Flow, Optional[Flow]], Tuple[ValidationFlow, Optional[ValidationFlow]]]]:
         """Create pairs of Flow objects (forward and reverse) from provided sets of flow fields.
 
         Parameters
         ----------
         flows : List[Dict[str, Any]]
             List of flows described by their flow fields.
-
-        Returns
-        ------
-        List[Tuple[Flow, Optional[Flow]]]
-            Pairs of Flow objects (forward and reverse) for each set of flow fields.
-            The reverse Flow object can be None if reverse fields were not detected.
-            Format: [(Flow, Flow), (Flow, None), ...]
-        """
-
-        return [self._normalize_single(flow, False) for flow in flows]
-
-    def normalize_validation(
-        self, flows: List[Dict[str, Any]]
-    ) -> List[Tuple[ValidationFlow, Optional[ValidationFlow]]]:
-        """Create pairs of ValidationFlow objects (forward and reverse) from provided sets of flow fields.
-
-        Parameters
-        ----------
-        flows : List[Dict[str, Any]]
-            List of flows described by their flow fields.
-
-        Returns
-        ------
-        List[Tuple[ValidationFlow, Optional[ValidationFlow]]]
-            Pairs of ValidationFlow objects (forward and reverse) for each set of flow fields.
-            The reverse ValidationFlow object can be None if reverse fields were not detected.
-            Format: [(ValidationFlow, ValidationFlow), (ValidationFlow, None), ...]
-        """
-
-        return self._normalize_noexcept(flows, True)
-
-    def _normalize_noexcept(
-        self, flows: List[Dict[str, Any]], validation_flag: bool
-    ) -> List[Tuple[Union[Flow, ValidationFlow], Union[Flow, ValidationFlow, None]]]:
-        """Create objects from provided flow fields. Skip objects which could not be created.
-
-        Parameters
-        ----------
-        flows : List[Dict[str, Any]]
-            List of flows described by their flow fields.
-        validation_flag: bool
+        annotation : bool
             Flag indicating whether ValidationFlow should be created instead of Flow.
 
         Returns
         ------
-        List[Tuple[Union[Flow, ValidationFlow], Union[Flow, ValidationFlow, None]]]
-            Flow objects for each set of flow fields.
-            Format: [(Flow, Flow), (Flow, None), ...]
+        List[Union[Tuple[Flow, Optional[Flow]], Tuple[ValidationFlow, Optional[ValidationFlow]]]]
+            Pairs of Flow or ValidationFlow objects (forward and reverse) for each set of flow fields.
+            The reverse Flow object can be None if reverse fields were not detected.
+            Format: [(Flow, Flow), (Flow, None), ...] or [(ValidationFlow, ValidationFlow), (ValidationFlow, None), ...]
+
+        Raises
+        ------
+        KeyError
+            Unable to create Flow object due to a missing key field.
         """
 
-        ret = []
-        for flow in flows:
-            try:
-                ret.append(self._normalize_single(flow, validation_flag))
-            except KeyError as err:
-                logging.getLogger().error("unable to create object from flow fields, error=%s", str(err))
-
-        return ret
+        return [self._normalize_single(flow, annotation) for flow in flows]
 
     def _normalize_single(
-        self, fields: Dict[str, Any], validation_flag: bool
+        self, fields: Dict[str, Any], annotation: bool
     ) -> Tuple[Union[Flow, ValidationFlow], Union[Flow, ValidationFlow, None]]:
         """Normalize provided flow fields and create Flow or ValidationFlow object from provided flow fields.
         May return 2 objects, if provided flow fields describe a bi-flow.
@@ -148,7 +109,7 @@ class Normalizer:
         ----------
         fields : Dict[str, Any]
             Flow fields.
-        validation_flag: bool
+        annotation: bool
             Flag indicating whether ValidationFlow should be created instead of Flow.
 
         Returns
@@ -165,9 +126,9 @@ class Normalizer:
         biflow = self._is_biflow(norm_fields)
 
         rev_flow = None
-        fwd_flow = self._build_flow(FieldDirection.FORWARD, norm_fields, validation_flag, biflow)
+        fwd_flow = self._build_flow(FieldDirection.FORWARD, norm_fields, annotation, biflow)
         if biflow:
-            rev_flow = self._build_flow(FieldDirection.REVERSE, norm_fields, validation_flag, biflow)
+            rev_flow = self._build_flow(FieldDirection.REVERSE, norm_fields, annotation, biflow)
 
         return fwd_flow, rev_flow
 
@@ -175,7 +136,7 @@ class Normalizer:
         self,
         direction: FieldDirection,
         fields: FieldsDict,
-        validation_flag: bool,
+        annotation: bool,
         biflow: bool,
     ) -> Union[Flow, ValidationFlow]:
         """Create Flow or ValidationFlow object from provided normalized flow fields.
@@ -186,7 +147,7 @@ class Normalizer:
             Forward or reverse. Indicates which fields should be selected to create the flow object.
         fields : FieldsDict
             Normalized flow fields.
-        validation_flag: bool
+        annotation: bool
             Flag indicating whether ValidationFlow should be created instead of Flow.
         biflow: bool
             Flag indicating whether the flow originates from a biflow.
@@ -208,7 +169,7 @@ class Normalizer:
             else fields.get(f"_{FieldDirection.FORWARD.value}", {})
         )
 
-        if validation_flag:
+        if annotation:
             return ValidationFlow(
                 self._fwd_key_fmt, self._rev_key_fmt, uni_fields, biflow, set(rev_fixed_fields.keys()), self._field_db
             )
