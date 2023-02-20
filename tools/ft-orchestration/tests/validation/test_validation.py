@@ -23,12 +23,15 @@ import logging
 import os
 from typing import List, Optional
 
+# pylint: disable=no-name-in-module
 import pytest
+from py.xml import html
 import yaml
+from _pytest.mark import ParameterSet
 from ftanalyzer.fields import FieldDatabase
 from ftanalyzer.models import ValidationModel
 from ftanalyzer.normalizer import Normalizer
-from ftanalyzer.reports import ValidationReport
+from ftanalyzer.reports import ValidationReport, ValidationReportSummary
 from lbr_testsuite.topology.topology import select_topologies
 from scapy.utils import rdpcap
 from src.collector.collector_builder import CollectorBuilder
@@ -47,8 +50,162 @@ MAPPER_CONF = os.path.join(PROJECT_ROOT, "conf/ipfixcol2/mapping.yaml")
 FIELD_DATABASE_CONF = os.path.join(PROJECT_ROOT, "conf/fields.yml")
 
 
-def collect_validation_tests() -> List[str]:
-    """Collect validation tests."""
+def pytest_html_report_title(report: "HTMLReport") -> None:
+    """Set pytest HTML report title.
+
+    Parameters
+    ----------
+    report: HTMLReport
+        HTML report object from pytest-html plugin.
+    """
+    report.title = "Validation Test Scenarios"
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Modify the table pytest environment. Add summary report to the pytest.
+
+    Parameters
+    ----------
+    config: pytest.Config
+        Pytest configuration object.
+    """
+    config_path = config.getoption("--config-path")
+    config_path = os.path.realpath(config_path) if config_path is not None else ""
+
+    meta = {
+        "generator": config.getoption("--pcap-player"),
+        "collector": config.getoption("--collector"),
+        "probe": config.getoption("--probe"),
+        "configuration": config_path,
+        "markers": config.getoption("-m"),
+        "name filter": config.getoption("-k"),
+    }
+
+    # pylint: disable=protected-access
+    config._metadata = meta
+    pytest.summary_report = ValidationReportSummary()
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_html_results_summary(summary: list) -> None:
+    """Append additional summary information into the HTML report.
+
+    Parameters
+    ----------
+    summary: list
+        HTML summary section.
+    """
+    # FLOWS
+    summary.append(html.h3("Flows"))
+    thead = [html.th("OK"), html.th("ERROR"), html.th("MISSING"), html.th("UNEXPECTED")]
+
+    stats = pytest.summary_report.flows
+    thead = html.thead(html.tr(thead))
+    tbody = html.tbody(
+        html.tr(html.td(stats.ok), html.td(stats.error), html.td(stats.missing), html.td(stats.unexpected))
+    )
+    summary.append(html.table([thead, tbody], id="environment"))
+
+    # FIELDS
+    summary.append(html.h3("Flow Fields"))
+    thead = [
+        html.th("FIELD"),
+        html.th("OK"),
+        html.th("ERROR"),
+        html.th("MISSING"),
+        html.th("UNEXPECTED"),
+        html.th("UNCHECKED"),
+    ]
+
+    rows = []
+    fields_summary = pytest.summary_report.get_fields_summary()
+    for name, stats in pytest.summary_report.fields.items():
+        rows.append(
+            html.tr(
+                [
+                    html.td(name),
+                    html.td(stats.ok),
+                    html.td(stats.error),
+                    html.td(stats.missing),
+                    html.td(stats.unexpected),
+                    html.td(stats.unchecked),
+                ]
+            )
+        )
+
+    rows.append(
+        html.tr(
+            [
+                html.td("SUMMARY"),
+                html.td(fields_summary.ok),
+                html.td(fields_summary.error),
+                html.td(fields_summary.missing),
+                html.td(fields_summary.unexpected),
+                html.td(fields_summary.unchecked),
+            ]
+        )
+    )
+    thead = html.thead(html.tr(thead))
+    tbody = html.tbody(rows)
+    summary.append(html.table([thead, tbody], id="environment"))
+
+    summary.append(html.h4("Fields unrecognized by Mapper"))
+    summary.append(html.p(", ".join(pytest.summary_report.unmapped_fields)))
+    summary.append(html.h4("Fields unrecognized by Normalizer"))
+    summary.append(html.p(", ".join(pytest.summary_report.unknown_fields)))
+
+
+def pytest_html_results_table_header(cells: list) -> None:
+    """Add description column to the HTML report results table.
+
+    Parameters
+    ----------
+    cells: list
+        HTML report results table column names.
+    """
+    cells.insert(2, html.th("Description"))
+
+
+def pytest_html_results_table_row(report: "HTMLReport", cells: list) -> None:
+    """Modify name and description cells of a test result in the HTML report results table.
+
+    Parameters
+    ----------
+    report: HTMLReport
+        HTML report object from pytest-html plugin.
+    cells: list
+        HTML report results table row cells.
+    """
+    if len(report.test_name) > 0:
+        cells[1] = html.td(report.test_name)
+
+    cells.insert(2, html.td(report.test_description))
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item) -> None:
+    """Add test name and description after each validation test finishes.
+
+    Parameters
+    ----------
+    item: pytest.Item
+        Test item.
+    """
+    outcome = yield
+    report = outcome.get_result()
+    if report.when == "teardown":
+        report.test_name = getattr(item.function, "test_name", "")
+        report.test_description = getattr(item.function, "test_description", "")
+
+
+def collect_validation_tests() -> list[ParameterSet]:
+    """Collect validation tests.
+
+    Returns
+    -------
+    list
+        Collected tests.
+    """
 
     files = os.listdir(VALIDATION_TESTS_DIR)
     files = [f for f in files if ".yml" in f]
@@ -78,8 +235,12 @@ def receive_flows(collector: CollectorInterface) -> List[dict]:
     """
 
     mapper = CollectorOutputMapper(collector.get_reader(), MAPPER_CONF)
-    # mapped_keys (flow[1]) and unmapped_keys (flow[2]) will be inserted into ValidationModelReport in future
-    return [flow[0] for flow in mapper]
+    flows = []
+    for item in mapper:
+        flows.append(item[0])
+        pytest.summary_report.update_unmapped_fields(item[2])
+
+    return flows
 
 
 def validate_flows(validation_test: dict, probe: ProbeInterface, received_flows: List[dict]) -> ValidationReport:
@@ -121,6 +282,7 @@ def validate_flows(validation_test: dict, probe: ProbeInterface, received_flows:
         logging.error(received_flows)
         raise
 
+    pytest.summary_report.update_unknown_fields(norm.pop_skipped_fields())
     val_model = ValidationModel(key, ref_flows)
     report = val_model.validate(received_flows, supported_fields, special_fields)
 
@@ -197,6 +359,8 @@ def test_validation(
             obj.cleanup()
 
     request.addfinalizer(cleanup)
+    test_validation.test_name = test["test"].get("name", "")
+    test_validation.test_description = test["test"].get("description", "No description provided.")
 
     # every validation test uses only 1 pcap
     pcap_file = test["test"]["pcaps"][0]
@@ -226,6 +390,9 @@ def test_validation(
     report.print_results()
     report.print_flows_stats()
     report.print_fields_stats()
+
+    pytest.summary_report.update_fields_stats(report.fields_stats)
+    pytest.summary_report.update_flows_stats(report.flows_stats)
 
     if not report.is_passing():
         assert False, f"Validation of test {request.node.name} failed"
