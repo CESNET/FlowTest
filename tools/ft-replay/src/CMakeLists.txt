@@ -33,6 +33,8 @@ add_executable(ft-replay
 	replicator-core/strategy.cpp
 	replicator-core/strategyFactory.hpp
 	replicator-core/strategyFactory.cpp
+	replicator-core/replicator.hpp
+	replicator-core/replicator.cpp
 )
 
 if (ENABLE_NFB)
