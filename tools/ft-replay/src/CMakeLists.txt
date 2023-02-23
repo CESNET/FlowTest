@@ -27,6 +27,7 @@ add_executable(ft-replay
 	replicator-core/configParserFactoryRegistrator.hpp
 	replicator-core/yamlConfigParser.hpp
 	replicator-core/yamlConfigParser.cpp
+	replicator-core/ipAddress.hpp
 )
 
 if (ENABLE_NFB)
