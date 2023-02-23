@@ -45,7 +45,6 @@ class RemoteStorage:
     _TEMP_STORAGES = {}
 
     def __init__(self, host, work_dir=None, user=get_real_user(), password=None, key_filename=None):
-
         if not ssh_agent_enabled() and password is None and key_filename is None:
             logging.getLogger().error("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")
             raise EnvironmentError("Missing SSH_AUTH_SOCK environment variable: SSH agent must be running.")

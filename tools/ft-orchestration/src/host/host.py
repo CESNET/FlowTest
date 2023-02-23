@@ -49,7 +49,6 @@ class Host:
     """
 
     def __init__(self, host="localhost", storage=None, user=get_real_user(), password=None, key_filename=None):
-
         connect_kwargs = {}
         if key_filename is not None:
             connect_kwargs = {"key_filename": key_filename}
