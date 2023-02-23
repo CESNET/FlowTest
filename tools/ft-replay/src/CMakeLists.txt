@@ -20,6 +20,8 @@ add_executable(ft-replay
 	raw.hpp
 	socketDescriptor.cpp
 	socketDescriptor.hpp
+	replicator-core/configParser.hpp
+	replicator-core/configParser.cpp
 )
 
 if (ENABLE_NFB)
