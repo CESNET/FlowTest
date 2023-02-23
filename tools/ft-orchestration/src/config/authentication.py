@@ -5,10 +5,10 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 Orchestration configuration entity - AuthenticationCfg"""
+from dataclasses import dataclass
 from os.path import exists
 from typing import Optional
 
-from dataclasses import dataclass
 from dataclass_wizard import YAMLWizard
 
 
@@ -28,19 +28,23 @@ class AuthenticationCfg(YAMLWizard):
     key_path: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
+    ssh_agent: bool = False
 
     def check(self) -> None:
         """Check the configuration validity."""
-        if self.key_path and self.password and self.password:
+        if self.key_path and self.password:
             raise AuthenticationCfgException(
-                "AuthenticationCfg config file can not contain both of the key_path and the username/password."
+                "AuthenticationCfg config file can not contain both of the key_path and the password."
             )
+        if self.ssh_agent and (self.key_path or self.password):
+            raise AuthenticationCfgException("Key path or password cannot be set if the ssh agent is used.")
+        if not (self.ssh_agent or self.key_path or self.password):
+            raise AuthenticationCfgException(
+                "At least one authentication (SSH agent, key_path or password) must be present."
+            )
+
         if self.key_path:
             self._check_key_path()
-        elif self.password and self.password:
-            pass
-        else:
-            raise AuthenticationCfgException("Field key_path or both fields username and password must be present.")
 
     def _check_key_path(self) -> None:
         if not exists(self.key_path):

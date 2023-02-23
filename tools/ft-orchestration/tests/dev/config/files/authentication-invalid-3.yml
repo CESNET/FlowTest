@@ -1,10 +1,10 @@
+- name: invalid3
+  password: manyStars
+  ssh_agent: true
+
 - name: cesnet-general
   key-path: tools/ft-orchestration/tests/dev/config/files/cesnet-general.pem
 
 - name: flowmon-probes
   username: slowmon
   password: manyStars
-
-- name: cesnet-agent
-  username: xcesne00
-  ssh_agent: true
