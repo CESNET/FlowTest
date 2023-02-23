@@ -15,6 +15,10 @@
 #include "packetQueueProvider.hpp"
 #include "rawPacketProvider.hpp"
 
+#include "replicator-core/configParser.hpp"
+#include "replicator-core/configParserFactory.hpp"
+#include "replicator-core/replicator.hpp"
+
 #include <cstdlib>
 #include <iostream>
 #include <thread>
@@ -22,39 +26,19 @@
 
 using namespace replay;
 
-void ReplicationThread(const std::unique_ptr<PacketQueue> packetQueue, OutputQueue* outputQueue)
+void ReplicationThread(
+	Replicator replicator,
+	std::unique_ptr<PacketQueue> packetQueue,
+	size_t loopCount)
 {
-	(void) packetQueue;
-	(void) outputQueue;
-	// Replicator replicator(packetQueue, outputQueue);
-
-	size_t maxBurstSize = outputQueue->GetMaxBurstSize();
-	size_t burstSize = maxBurstSize;
-	size_t packetsCount = packetQueue->size();
-	size_t sendCount = 0;
-
-	std::unique_ptr<PacketBuffer[]> burst = std::make_unique<PacketBuffer[]>(maxBurstSize);
-	for (unsigned i = 0; i < maxBurstSize; i++) {
-		burst[i]._len = 0;
-	}
-
-	for (unsigned r = 0; r < packetsCount; r += maxBurstSize) {
-		if (r + maxBurstSize > packetsCount) {
-			burstSize = packetsCount - r;
-		}
-		for (unsigned p = 0; p < burstSize; p++) {
-			burst[p]._len = (*packetQueue)[p + r]->dataLen;
-		}
-		outputQueue->GetBurst(burst.get(), burstSize);
-		for (unsigned p = 0; p < burstSize; p++) {
-			std::byte* data = (*packetQueue)[p + r]->data.get();
-			std::copy(data, data + burst[p]._len, burst[p]._data);
-		}
-		outputQueue->SendBurst(burst.get());
-		sendCount += burstSize;
-		burstSize = maxBurstSize;
-	}
-	std::cout << sendCount << " packets sent." << std::endl;
+	size_t currentLoop = 0;
+	while (currentLoop != loopCount) {
+		// TODO time wait
+		// TODO synchronization
+		replicator.SetReplicationLoopId(currentLoop);
+		replicator.Replicate(packetQueue->begin(), packetQueue->end());
+		currentLoop++;
+	};
 }
 
 int main(int argc, char** argv)
@@ -78,12 +62,16 @@ int main(int argc, char** argv)
 		return EXIT_SUCCESS;
 	}
 
-	size_t queueCount = 1; // placeholder
 	std::unique_ptr<OutputPlugin> outputPlugin;
+	std::unique_ptr<ConfigParser> replicatorConfigParser;
 
 	try {
 		outputPlugin
 			= OutputPluginFactory::Instance().Create(config.GetOutputPluginSpecification());
+		replicatorConfigParser
+			= ConfigParserFactory::Instance().Create(config.GetReplicatorConfig());
+
+		size_t queueCount = outputPlugin->GetQueueCount();
 		RawPacketProvider packetProvider(config.GetInputPcapFile());
 		PacketQueueProvider packetQueueProvider(queueCount);
 		const RawPacket* rawPacket;
@@ -97,10 +85,17 @@ int main(int argc, char** argv)
 		}
 
 		for (size_t queueId = 0; queueId < queueCount; queueId++) {
-			auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
-			OutputQueue* outputQueue = outputPlugin->GetQueue(queueId);
-			std::thread thread(ReplicationThread, std::move(packetQueue), outputQueue);
-			threads.emplace_back(std::move(thread));
+			Replicator replicator(replicatorConfigParser.get(), outputPlugin->GetQueue(queueId));
+
+			std::unique_ptr<PacketQueue> packetQueue
+				= packetQueueProvider.GetPacketQueueById(queueId);
+
+			std::thread worker(
+				ReplicationThread,
+				std::move(replicator),
+				std::move(packetQueue),
+				config.GetLoopsCount());
+			threads.emplace_back(std::move(worker));
 		}
 	} catch (const std::exception& ex) {
 		logger->critical(ex.what());
