@@ -27,7 +27,7 @@ std::unique_ptr<ConfigParser> ConfigParserFactory::Create(const std::string& con
 
 std::string ConfigParserFactory::ExtractFileExtension(const std::string& configFilename)
 {
-	std::size_t position = configFilename.find_last_of(".");
+	std::size_t position = configFilename.find_last_of('.');
 	if (position != std::string::npos) {
 		return std::string(configFilename, position + 1);
 	}

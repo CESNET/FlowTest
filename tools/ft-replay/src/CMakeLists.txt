@@ -31,6 +31,8 @@ add_executable(ft-replay
 	replicator-core/macAddress.hpp
 	replicator-core/strategy.hpp
 	replicator-core/strategy.cpp
+	replicator-core/strategyFactory.hpp
+	replicator-core/strategyFactory.cpp
 )
 
 if (ENABLE_NFB)
