@@ -24,6 +24,7 @@ add_executable(ft-replay
 	replicator-core/configParser.cpp
 	replicator-core/configParserFactory.hpp
 	replicator-core/configParserFactory.cpp
+	replicator-core/configParserFactoryRegistrator.hpp
 )
 
 if (ENABLE_NFB)
