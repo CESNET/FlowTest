@@ -25,6 +25,8 @@ add_executable(ft-replay
 	replicator-core/configParserFactory.hpp
 	replicator-core/configParserFactory.cpp
 	replicator-core/configParserFactoryRegistrator.hpp
+	replicator-core/yamlConfigParser.hpp
+	replicator-core/yamlConfigParser.cpp
 )
 
 if (ENABLE_NFB)
@@ -43,6 +45,7 @@ target_link_libraries(ft-replay PRIVATE
 	pcap::pcap
 	xxhash::xxhash
 	Threads::Threads
+	yaml-cpp::yaml-cpp
 )
 
 install(TARGETS ft-replay DESTINATION ${INSTALL_DIR_BIN})
