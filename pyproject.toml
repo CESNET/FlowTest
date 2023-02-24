@@ -22,6 +22,8 @@ markers = [
   "dev_docker: development tests using docker",
   "validation: probe validation tests",
 ]
+log_cli = "true"
+addopts = "-s"
 
 [tool.isort]
 known_third_party = ["docker"]
