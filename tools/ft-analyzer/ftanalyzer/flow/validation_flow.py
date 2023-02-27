@@ -11,7 +11,7 @@ from itertools import permutations
 from typing import Any, Tuple, Union, Dict, List, Optional, Set
 
 from ftanalyzer.fields import FieldDirection
-from ftanalyzer.flow.flow import Flow
+from ftanalyzer.flow.flow import FieldsDict, Flow
 from ftanalyzer.flow.validation_result import ValidationResult
 
 
@@ -34,7 +34,7 @@ class ValidationFlow(Flow):
         self,
         key_fmt: Tuple[str, ...],
         rev_key_fmt: Tuple[str, ...],
-        fields: Dict[str, Union[str, int, Dict, List]],
+        fields: FieldsDict,
         biflow: bool,
         rev_fixed_fields: Set[str],
         fields_db: "FieldDatabase",
@@ -47,7 +47,7 @@ class ValidationFlow(Flow):
             Names of flow fields which create the flow key.
         rev_key_fmt : tuple
             Names of flow fields which create the reverse flow key.
-        fields : Dict[str, Union[str, int, Dict, List]]
+        fields : FieldsDict
             Flow fields in format "name: value".
         biflow : bool
             Flag indicating whether the flow originates from a biflow.

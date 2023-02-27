@@ -12,7 +12,7 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ftanalyzer.fields import FieldDirection
-from ftanalyzer.flow import Flow, ValidationFlow
+from ftanalyzer.flow import FieldsDict, Flow, ValidationFlow
 
 
 class Normalizer:
@@ -174,7 +174,7 @@ class Normalizer:
     def _build_flow(
         self,
         direction: FieldDirection,
-        fields: Dict[str, Union[str, int, Dict, List]],
+        fields: FieldsDict,
         validation_flag: bool,
         biflow: bool,
     ) -> Union[Flow, ValidationFlow]:
@@ -184,7 +184,7 @@ class Normalizer:
         ----------
         direction : FieldDirection.FORWARD, FieldDirection.REVERSE
             Forward or reverse. Indicates which fields should be selected to create the flow object.
-        fields : Dict[str, Union[str, int, Dict, List]]
+        fields : FieldsDict
             Normalized flow fields.
         validation_flag: bool
             Flag indicating whether ValidationFlow should be created instead of Flow.
@@ -218,8 +218,8 @@ class Normalizer:
     def _filter_fields_by_direction(
         self,
         direction: FieldDirection,
-        fields: Dict[str, Union[str, int, Dict, List]],
-    ) -> Dict[str, Union[str, int, Dict, List]]:
+        fields: FieldsDict,
+    ) -> FieldsDict:
         """Filter provided fields based on the specified direction.
         Names of fields in reverse direction are automatically mapped
         to their forward counterparts (packets@rev -> packets, ..).
@@ -228,12 +228,12 @@ class Normalizer:
         ----------
         direction : FieldDirection.FORWARD, FieldDirection.REVERSE
             Forward or reverse. Indicates which fields should be selected to create the flow object.
-        fields : Dict[str, Union[str, int, Dict, List]]
+        fields : FieldsDict
             Normalized flow fields.
 
         Returns
         ------
-        Dict[str, Union[str, int, Dict, List]]
+        FieldsDict
             Fields filtered based on specified direction.
         """
 
@@ -256,12 +256,12 @@ class Normalizer:
 
         return {**filtered, **fixed_fields}
 
-    def _is_biflow(self, fields: Dict[str, Union[str, int, Dict, List]]) -> bool:
+    def _is_biflow(self, fields: FieldsDict) -> bool:
         """Check if the flow fields contain any non-empty reverse fields.
 
         Parameters
         ----------
-        fields : Dict[str, Union[str, int, Dict, List]]
+        fields : FieldsDict
             Normalized flow fields.
 
         Returns
@@ -279,7 +279,7 @@ class Normalizer:
 
         return False
 
-    def _normalize_fields(self, fields: Dict[str, Any]) -> Dict[str, Union[str, int, Dict, List]]:
+    def _normalize_fields(self, fields: Dict[str, Any]) -> FieldsDict:
         """Iterate over provided flow fields, filter out unknown fields and convert known fields to their expected type.
 
         Parameters
@@ -289,7 +289,7 @@ class Normalizer:
 
         Returns
         ------
-        Dict[str, Union[str, int, Dict, List]]
+        FieldsDict
             Normalized flow fields.
         """
 

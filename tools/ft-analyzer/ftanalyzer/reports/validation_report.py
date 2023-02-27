@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass
 from collections import defaultdict
 
-from ftanalyzer.flow import ValidationResult, ValidationStats
+from ftanalyzer.flow import FieldsDict, ValidationResult, ValidationStats
 
 
 class ValidationReportSummary:
@@ -102,13 +102,13 @@ class ValidationReportFlow:
 
     Attributes
     ----------
-    fields : dict
+    fields : FieldsDict
         Flow fields with its values (except fields part of a flow key).
     result : ValidationResult
         Validation result object.
     """
 
-    fields: Dict[str, Any]
+    fields: FieldsDict
     result: ValidationResult
 
 
@@ -130,34 +130,34 @@ class ValidationReportFlowGroup:
     missing: List[Dict[str, Any]]
     unexpected: List[Dict[str, Any]]
 
-    def add_missing_flow(self, fields: Dict[str, Any]) -> None:
+    def add_missing_flow(self, fields: FieldsDict) -> None:
         """Add missing flow to the flow group report.
 
         Parameters
         ----------
-        fields : dict
+        fields : FieldsDict
             Flow fields.
         """
 
         self.missing.append(fields)
 
-    def add_unexpected_flow(self, fields: Dict[str, Any]) -> None:
+    def add_unexpected_flow(self, fields: FieldsDict) -> None:
         """Add unexpected flow to the flow group report.
 
         Parameters
         ----------
-        fields : dict
+        fields : FieldsDict
             Flow fields.
         """
 
         self.unexpected.append(fields)
 
-    def add_comparison_result(self, fields: Dict[str, Any], result: ValidationResult) -> None:
+    def add_comparison_result(self, fields: FieldsDict, result: ValidationResult) -> None:
         """Add flow validation to the flow group report.
 
         Parameters
         ----------
-        fields : dict
+        fields : FieldsDict
             Flow fields.
         result : ValidationResult
             Result of the flow validation process.

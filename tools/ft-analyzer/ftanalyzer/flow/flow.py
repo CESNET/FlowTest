@@ -9,6 +9,8 @@ File contains Flow class.
 
 from typing import Tuple, Union, Dict, List
 
+FieldsDict = Dict[str, Union[str, int, Dict, List]]
+
 
 class Flow:
     """Flow object containing flow fields identifiable by its "key" - list of specific flow fields.
@@ -21,7 +23,7 @@ class Flow:
         Flow key.
     rev_key : tuple
         Key that could be expected in flows in the opposite direction.
-    fields : Dict[str, Union[str, int, Dict, List]]
+    fields : FieldsDict
         Flow fields in format "name: value".
     biflow : bool
         Flag indicating whether the flow originates from a biflow.
@@ -33,7 +35,7 @@ class Flow:
         self,
         key_fmt: Tuple[str, ...],
         rev_key_fmt: Tuple[str, ...],
-        fields: Dict[str, Union[str, int, Dict, List]],
+        fields: FieldsDict,
         biflow: bool,
     ) -> None:
         """Initialize Flow object by creating its keys from the provided normalized flow fields.
@@ -44,7 +46,7 @@ class Flow:
             Names of flow fields which create the flow key.
         rev_key_fmt : tuple
             Names of flow fields which create the reverse flow key.
-        fields : Dict[str, Union[str, int, Dict, List]]
+        fields : FieldsDict
             Flow fields in format "name: value".
         biflow : bool
             Flag indicating whether the flow originates from a biflow.
@@ -76,12 +78,12 @@ class Flow:
         """
         return self.key == flow.key
 
-    def get_non_key_fields(self) -> Dict[str, Union[str, int, Dict, List]]:
+    def get_non_key_fields(self) -> FieldsDict:
         """Get all flow fields which are not part of the key.
 
         Returns
         ------
-        Dict[str, Union[str, int, Dict, List]]
+        FieldsDict
             Flow fields in format "name: value".
         """
         return {f_name: f_value for f_name, f_value in self.fields.items() if f_name not in self.key_fmt}
