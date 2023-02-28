@@ -110,7 +110,7 @@ def validate_flows(validation_test: dict, probe: ProbeInterface, received_flows:
     norm.set_key_fmt(key)
 
     try:
-        ref_flows = norm.normalize_validation(ref_flows)
+        ref_flows = norm.normalize(ref_flows, True)
         received_flows = norm.normalize(received_flows)
 
     # Normalization can raise some exceptions
