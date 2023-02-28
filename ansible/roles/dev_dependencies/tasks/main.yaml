@@ -1,9 +1,14 @@
 ---
-- name: Standard 3rd party libraries are installed
+- name: libpcap library is installed
   ansible.builtin.dnf:
     name:
       - libpcap
       - libpcap-devel
+    state: latest
+
+- name: xxhash library is installed
+  ansible.builtin.dnf:
+    name:
       - xxhash-libs
       - xxhash-devel
     state: latest
