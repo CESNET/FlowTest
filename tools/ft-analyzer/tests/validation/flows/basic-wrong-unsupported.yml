@@ -1,41 +1,33 @@
 flows:
   - src_ip:          "192.168.56.101"
     dst_ip:          "192.168.56.102"
-    ip_version:      4
     protocol:        6
     bytes:           751
     packets:         6
-    ttl:             64
-    tcp_flags:       0x1a
     src_port:        45422
     dst_port:        443
+    tcp_flags:       0x1a
   - src_ip:          "192.168.56.102"
     dst_ip:          "192.168.56.101"
-    ip_version:      4
     protocol:        6
     bytes:           1900
     packets:         4
-    ttl:             64
-    tcp_flags:       0x1a
     src_port:        443
     dst_port:        45422
+    tcp_flags:       0x1a
   - src_ip:          "192.168.56.101"
     dst_ip:          "192.168.56.102"
-    ip_version:      4
     protocol:        6
     bytes:           625
     packets:         5
-    ttl:             128
-    tcp_flags:       0x1a
     src_port:        45422
     dst_port:        443
+    tcp_flags:       0x1a
   - src_ip:          "192.168.56.102"
     dst_ip:          "192.168.56.101"
-    ip_version:      4
     protocol:        6
     bytes:           1520
     packets:         3
-    ttl:             64
-    tcp_flags:       0x1a
     src_port:        443
     dst_port:        45422
+    tcp_flags:       0x1a

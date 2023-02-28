@@ -1,0 +1,11 @@
+key: [src_ip, dst_ip, protocol]
+
+flows:
+  - src_ip:         "fe80::21e:7aff:fe79:3f10"
+    dst_ip:         "ff02::5"
+    ip_version:     6
+    protocol:       89
+    bytes:          108
+    packets:        1
+    tos:            0xe0
+    ttl:            1

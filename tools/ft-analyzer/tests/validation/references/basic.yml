@@ -20,7 +20,6 @@ flows:
     dst_port:        443
     tcp_options:     0x11e
     tcp_options@rev: 0x11e
-    tcp_syn_size:    60
   - src_ip:          "192.168.56.101"
     dst_ip:          "192.168.56.102"
     ip_version:      4
@@ -37,5 +36,3 @@ flows:
     dst_port:        443
     tcp_options:     0x11e
     tcp_options@rev: 0x11e
-    tcp_syn_size:    60
-

@@ -5,8 +5,6 @@ flows:
     protocol:    6
     bytes:       1234
     packets:     21
-    tos:         0x00
-    ttl:         64
     src_port:    57678
     dst_port:    80
     http_host:         "packetlife.net"
@@ -21,8 +19,6 @@ flows:
     protocol:    6
     bytes:       23041
     packets:     19
-    tos:         0x00
-    ttl:         251
     src_port:    80
     dst_port:    57678
 

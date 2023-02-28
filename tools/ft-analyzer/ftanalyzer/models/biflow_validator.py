@@ -240,9 +240,9 @@ class BiflowValidator:
                 continue
 
             res_a, res_b = self._validate_biflow(supported, special, *self._get_biflow_indexes(*test))
-            test_score = res_a.get_score()
+            test_score = res_a.score()
             if res_b is not None:
-                test_score += res_b.get_score()
+                test_score += res_b.score()
 
             score += test_score
             self._results_cache[test] = (res_a, res_b, test_score)

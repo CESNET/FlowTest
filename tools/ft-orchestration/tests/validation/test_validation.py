@@ -28,7 +28,7 @@ import yaml
 from ftanalyzer.fields import FieldDatabase
 from ftanalyzer.models import ValidationModel
 from ftanalyzer.normalizer import Normalizer
-from ftanalyzer.reports.validation_model_report import ValidationModelReport
+from ftanalyzer.reports import ValidationReport
 from lbr_testsuite.topology.topology import select_topologies
 from scapy.utils import rdpcap
 from src.collector.collector_builder import CollectorBuilder
@@ -82,7 +82,7 @@ def receive_flows(collector: CollectorInterface) -> List[dict]:
     return [flow[0] for flow in mapper]
 
 
-def validate_flows(validation_test: dict, probe: ProbeInterface, received_flows: List[dict]) -> ValidationModelReport:
+def validate_flows(validation_test: dict, probe: ProbeInterface, received_flows: List[dict]) -> ValidationReport:
     """Validate received flows with reference flows.
 
     Parameters
@@ -223,7 +223,9 @@ def test_validation(
     report = validate_flows(test, probe_instance, received_flows)
 
     print("")
-    report.print_report()
+    report.print_results()
+    report.print_flows_stats()
+    report.print_fields_stats()
 
     if not report.is_passing():
         assert False, f"Validation of test {request.node.name} failed"

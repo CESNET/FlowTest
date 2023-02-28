@@ -17,7 +17,6 @@ flows:
     tcp_flags:       0x1a
     src_port:        443
     dst_port:        45422
-    tcp_syn_size:    65
   - src_ip:          "192.168.56.101"
     dst_ip:          "192.168.56.102"
     ip_version:      4
@@ -28,7 +27,6 @@ flows:
     tcp_flags:       0x1a
     src_port:        45422
     dst_port:        443
-    tcp_syn_size:    60
   - src_ip:          "192.168.56.102"
     dst_ip:          "192.168.56.101"
     ip_version:      4
@@ -39,4 +37,3 @@ flows:
     tcp_flags:       0x1a
     src_port:        443
     dst_port:        45422
-    tcp_syn_size:    60
