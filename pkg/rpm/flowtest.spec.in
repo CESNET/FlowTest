@@ -12,8 +12,16 @@ BuildRequires: gcc-c++ >= 8
 BuildRequires: make
 BuildRequires: cmake >= 3.12
 BuildRequires: libpcap-devel
+BuildRequires: libbpf-devel
+%if 0%{?rhel} > 8
+BuildRequires: libxdp-devel
+%endif
 
 Requires: libpcap
+Requires: libbpf
+%if 0%{?rhel} > 8
+Requires: libxdp
+%endif
 
 # Make sure that build is always performed out-of-source
 %undefine __cmake_in_source_build

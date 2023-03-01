@@ -30,13 +30,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
 
-find_package(PCAP REQUIRED)
-find_package(xxHash REQUIRED)
-find_package(Threads REQUIRED)
-
-if (ENABLE_NFB)
-	find_package(NFB REQUIRED)
-endif()
+include(cmake/dependencies.cmake)
 
 add_subdirectory(tools)
 add_subdirectory(pkg)
