@@ -168,6 +168,10 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 		return ReadProfile();
 	}
 
+	for (auto& piece : pieces) {
+		piece = StringStrip(piece);
+	}
+
 	std::optional<int64_t> startTime = ParseValue<int64_t>(pieces[_order[StartTime]]);
 	if (!startTime) {
 		ReportParseError(line, "bad START_TIME");
@@ -302,6 +306,10 @@ void FlowProfileReader::ReadHeader()
 	auto pieces = StringSplit(*line, ",");
 	if (pieces.size() != ComponentsCount) {
 		throw std::runtime_error("invalid number of components in header");
+	}
+
+	for (auto& piece : pieces) {
+		piece = StringStrip(piece);
 	}
 
 	const std::unordered_map<std::string, Component> componentMap {
