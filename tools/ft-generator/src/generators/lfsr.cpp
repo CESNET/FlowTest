@@ -153,8 +153,8 @@ static const std::vector<std::vector<uint64_t>> LFSR_TAPS = {
 
 Lfsr::Lfsr(unsigned int nBits, const std::bitset<128>& seed)
 {
-	if (nBits < 1 || nBits > 128) {
-		throw std::invalid_argument("number of bits must be between 1 and 128 inclusive");
+	if (nBits > 128) {
+		throw std::invalid_argument("number of bits must be between 0 and 128 inclusive");
 	}
 	_nBits = nBits;
 	_taps = LFSR_TAPS[nBits];
