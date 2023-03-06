@@ -59,6 +59,9 @@ int main(int argc, char* argv[])
 		} catch (const config::ConfigError& error) {
 			error.PrintPrettyError(args.GetConfigFile(), std::cerr);
 			return EXIT_FAILURE;
+		} catch (const std::runtime_error& error) {
+			logger->error(error.what());
+			return EXIT_FAILURE;
 		}
 	}
 

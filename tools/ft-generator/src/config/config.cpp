@@ -41,7 +41,12 @@ Config::Config(const YAML::Node& node)
 
 Config Config::LoadFromFile(const std::string& configFilename)
 {
-	YAML::Node node = YAML::LoadFile(configFilename);
+	YAML::Node node;
+	try {
+		node = YAML::LoadFile(configFilename);
+	} catch (const YAML::BadFile& ex) {
+		throw std::runtime_error("Config file \"" + configFilename + "\" cannot be loaded");
+	}
 	return Config(node);
 }
 
