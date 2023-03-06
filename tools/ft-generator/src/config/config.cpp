@@ -21,10 +21,22 @@ Config::Config(const YAML::Node& node)
 			"mac",
 			"encapsulation",
 		});
-	_ipv4 = IPv4(node["ipv4"]);
-	_ipv6 = IPv6(node["ipv6"]);
-	_mac = Mac(node["mac"]);
-	_encapsulation = Encapsulation(node["encapsulation"]);
+
+	if (node["ipv4"].IsDefined()) {
+		_ipv4 = IPv4(node["ipv4"]);
+	}
+
+	if (node["ipv6"].IsDefined()) {
+		_ipv6 = IPv6(node["ipv6"]);
+	}
+
+	if (node["mac"].IsDefined()) {
+		_mac = Mac(node["mac"]);
+	}
+
+	if (node["encapsulation"].IsDefined()) {
+		_encapsulation = Encapsulation(node["encapsulation"]);
+	}
 }
 
 Config Config::LoadFromFile(const std::string& configFilename)
