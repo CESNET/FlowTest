@@ -20,6 +20,23 @@ add_executable(ft-replay
 	raw.hpp
 	socketDescriptor.cpp
 	socketDescriptor.hpp
+	replicator-core/configParser.hpp
+	replicator-core/configParser.cpp
+	replicator-core/configParserFactory.hpp
+	replicator-core/configParserFactory.cpp
+	replicator-core/configParserFactoryRegistrator.hpp
+	replicator-core/yamlConfigParser.hpp
+	replicator-core/yamlConfigParser.cpp
+	replicator-core/ipAddress.hpp
+	replicator-core/macAddress.hpp
+	replicator-core/strategy.hpp
+	replicator-core/strategy.cpp
+	replicator-core/strategyFactory.hpp
+	replicator-core/strategyFactory.cpp
+	replicator-core/replicator.hpp
+	replicator-core/replicator.cpp
+	replicator-core/packetModifier.hpp
+	replicator-core/packetModifier.cpp
 )
 
 if (ENABLE_NFB)
@@ -38,6 +55,7 @@ target_link_libraries(ft-replay PRIVATE
 	pcap::pcap
 	xxhash::xxhash
 	Threads::Threads
+	yaml-cpp::yaml-cpp
 )
 
 install(TARGETS ft-replay DESTINATION ${INSTALL_DIR_BIN})
