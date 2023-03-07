@@ -84,7 +84,7 @@ FIELDS = {
 }
 
 
-SPECIAL_FIELDS = {"dns_resp_rr": "OneInArray"}
+SPECIAL_FIELDS = {"dns_resp_rr": "OneInArray", "http_agent": "StartsWith"}
 
 
 class IpfixprobePluginType(Enum):
