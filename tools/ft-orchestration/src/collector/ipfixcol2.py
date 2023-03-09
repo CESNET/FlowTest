@@ -9,16 +9,18 @@ as FDS file.
 """
 
 import logging
-import pathlib
 import shutil
 import tempfile
 import time
 import xml.etree.ElementTree as ET
 
+from typing import List
+from pathlib import Path
 from src.collector.fdsdump import Fdsdump
 from src.collector.interface import CollectorException, CollectorInterface
 
 
+# pylint: disable=too-many-instance-attributes
 class Ipfixcol2(CollectorInterface):
     """Ipfixcol2 collector reads NetFlow/IPFIX data supplied by exporter
     and stores it as FDS file.
@@ -47,7 +49,7 @@ class Ipfixcol2(CollectorInterface):
     # traverse YYYY/MM/DD directory structure
     FDS_FILE = "*/*/*/*.fds"
 
-    def __init__(self, host, input_plugin="udp", port=4739):  # pylint: disable=super-init-not-called
+    def __init__(self, host, input_plugin="udp", port=4739, verbose=False):  # pylint: disable=super-init-not-called
         """Initialize the collector.
 
         Parameters
@@ -58,6 +60,9 @@ class Ipfixcol2(CollectorInterface):
             Input plugin. Only 'udp' and 'tcp' plugins are supported.
         port : int, optional
             Listen for incoming NetFlow/IPFIX data on this port.
+        verbose : bool, optional
+            If True, logs will collect all debug messages and
+            additional json flow output.
 
         Raises
         ------
@@ -78,13 +83,78 @@ class Ipfixcol2(CollectorInterface):
 
         logging.getLogger().info("Initiating collector: %s", self.NAME)
 
+        # change ipfixcol2 verbosity based on input parameter
+        self._verbose = verbose
+        if self._verbose:
+            self._verbosity = "-vvv"
+        else:
+            self._verbosity = "-v"
+
         self._host = host
         self._work_dir = tempfile.mkdtemp()
-        self._cmd = f"ipfixcol2 -c {pathlib.Path(self._work_dir, self.CONFIG_FILE)}"
+
+        if self._host.is_local():
+            self._conf_dir = self._work_dir
+            self._log_dir = Path(tempfile.mkdtemp())
+        else:
+            self._conf_dir = Path(self._host.get_storage().get_remote_directory())
+            self._log_dir = self._conf_dir
+        self._log_file = Path(self._log_dir, "ipfixcol2.log")
+
+        self._cmd = (
+            f"(set -o pipefail; ipfixcol2 {self._verbosity} "
+            f"-c {Path(self._conf_dir, self.CONFIG_FILE)} "
+            f"|& tee -i {self._log_file})"
+        )
         self._process = None
         self._fdsdump = None
         self._input_plugin = input_plugin
         self._port = port
+
+    def _json_verbosity(self, output_plugins):
+        """Adds flow json output plugin for machine readable and easily
+        comparable checks
+
+        Parameters
+        ----------
+        output_plugins : xml.etree.ElementTree.Element
+            output plugins xml.etree element to add new json output configuration element
+        """
+
+        outpt_logs = ET.SubElement(output_plugins, "output")
+        outpt_logs_name = ET.SubElement(outpt_logs, "name")
+        outpt_logs_name.text = "JSON output"
+        outpt_logs_plugin = ET.SubElement(outpt_logs, "plugin")
+        outpt_logs_plugin.text = "json"
+        outpt_logs_params = ET.SubElement(outpt_logs, "params")
+        ET.SubElement(outpt_logs_params, "tcpFlags").text = "formatted"
+        ET.SubElement(outpt_logs_params, "timestamp").text = "formatted"
+        ET.SubElement(outpt_logs_params, "protocol").text = "formatted"
+        ET.SubElement(outpt_logs_params, "ignoreUnknown").text = "false"
+        ET.SubElement(outpt_logs_params, "ignoreOptions").text = "false"
+        ET.SubElement(outpt_logs_params, "nonPrintableChar").text = "true"
+        ET.SubElement(outpt_logs_params, "detailedInfo").text = "true"
+        ET.SubElement(outpt_logs_params, "templateInfo").text = "true"
+        outpt_logs_params_outputs = ET.SubElement(outpt_logs_params, "outputs")
+        outpt_logs_params_outputs_file = ET.SubElement(outpt_logs_params_outputs, "file")
+        ET.SubElement(outpt_logs_params_outputs_file, "name").text = "Store json output"
+        ET.SubElement(outpt_logs_params_outputs_file, "path").text = str(self._log_dir)
+        ET.SubElement(outpt_logs_params_outputs_file, "prefix").text = "json."
+        ET.SubElement(outpt_logs_params_outputs_file, "timeWindow").text = "999999999"
+        ET.SubElement(outpt_logs_params_outputs_file, "timeAlignment").text = "no"
+
+    def _prepare_logs(self) -> List[str]:
+        """Prepare list of log files to download.
+
+        Returns
+        -------
+        List
+            Absolute paths to log files.
+        """
+        log_files = [Path(self._conf_dir, self.CONFIG_FILE), self._log_file]
+        if self._verbose:
+            log_files.extend([self._log_dir / "json.*"])
+        return log_files
 
     def _create_xml_config(self):
         """Create XML configuration file for Ipfixcol2 based on startup arguments.
@@ -139,8 +209,16 @@ class Ipfixcol2(CollectorInterface):
         outpt_params_dump_interval_time_window.text = "999999999"
         outpt_params_dump_interval_align.text = "no"
 
+        # add json output to the logs based on verbosity of logging
+        if self._verbose:
+            self._json_verbosity(output_plugins)
+
         tree = ET.ElementTree(root)
-        tree.write(str(pathlib.Path(self._work_dir, self.CONFIG_FILE)))
+        tree.write(str(Path(self._work_dir, self.CONFIG_FILE)))
+        if self._host.is_local():
+            tree.write(str(Path(self._log_dir / self.CONFIG_FILE)))
+        else:
+            self._host.get_storage().push(Path(self._work_dir, self.CONFIG_FILE))
 
     def start(self):
         """Start ipfixcol2 process.
@@ -153,7 +231,6 @@ class Ipfixcol2(CollectorInterface):
 
         if self._process is not None:
             self.stop()
-
         self._create_xml_config()
         self._process = self._host.run(self._cmd, asynchronous=True, check_rc=False)
         time.sleep(1)
@@ -186,12 +263,33 @@ class Ipfixcol2(CollectorInterface):
 
         self._process = None
 
+    def download_logs(self, directory: str):
+        """Download logs from ipfixcol2 collector.
+
+        Parameters
+        ----------
+        directory : str
+            Path to a local directory where logs should be stored.
+        """
+        storage = self._host.get_storage()
+
+        for log_file in self._prepare_logs():
+            if self._host.is_local():
+                Path(directory).mkdir(parents=True, exist_ok=True)
+                shutil.copy(log_file, directory)
+            else:
+                try:
+                    storage.pull(log_file, directory)
+                except RuntimeError as err:
+                    logging.getLogger().warning("%s", err)
+
     def cleanup(self):
         """Delete working directory."""
 
-        if not self._host.is_local():
+        if self._host.is_local():
+            shutil.rmtree(self._log_dir, ignore_errors=True)
+        else:
             self._host.get_storage().remove_all()
-
         shutil.rmtree(self._work_dir, ignore_errors=True)
 
     def get_reader(self):
@@ -225,6 +323,6 @@ class Ipfixcol2(CollectorInterface):
         else:
             work_dir = self._host.get_storage().get_remote_directory()
 
-        self._fdsdump = Fdsdump(self._host, str(pathlib.Path(work_dir, self.FDS_FILE)))
+        self._fdsdump = Fdsdump(self._host, str(Path(work_dir, self.FDS_FILE)))
 
         return self._fdsdump

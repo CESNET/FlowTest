@@ -9,8 +9,10 @@ Module implements RemoteStorage class providing access to remote storage.
 
 import logging
 import os
+from pathlib import Path
 
 import fabric
+import invoke
 from src.host.common import get_real_user, ssh_agent_enabled
 
 
@@ -79,19 +81,21 @@ class RemoteStorage:
 
         return self._remote_dir
 
-    def push(self, file_or_directory, checksum_diff=False):
-        """Push file or directory to remote storage.
+    def _prepare_for_filesync(self, checksum_diff=False):
+        """
+        Prepare connection details (password, key and checksum)
+        to be passed to a rsync instance for pull and push methods.
 
-        Parameters
-        ----------
-        file_or_directory : str
-            File or directory to push to remote storage.
         checksum_diff : bool, optional
+            Passed for either pull or push functions.
             If file/directory already exists on remote storage, then
-            it is replaced only if it differs. By default, difference is
-            based on time modification and file size. If set to True, then
-            difference is based on checksum (which is slower and more
-            resource intensive).
+            it is replaced only if it differs.
+
+        Returns
+        -------
+        Dict[str, str, str]
+            Rsync command extensions for ssh password, checksum, ssh key
+            via remote shell
 
         Raises
         ------
@@ -118,12 +122,78 @@ class RemoteStorage:
             key = connect_kwargs["key_filename"][0]
             rsh = f"--rsh='ssh -i {key}'"
 
-        # Use os.environ to preserve SSH agent
-        self._connection.local(
-            f"{sshpass} rsync {checksum} --recursive {rsh}"
-            f" {file_or_directory} {self._connection.user}@{self._connection.host}:{self._remote_dir}",
-            env=os.environ,
-        )
+        connection_details = {"sshpass": sshpass, "checksum": checksum, "rsh": rsh}
+
+        return connection_details
+
+    def push(self, source, checksum_diff=False):
+        """Push file or directory to remote storage.
+
+        Parameters
+        ----------
+        source : str
+            File or directory to push to remote storage.
+        checksum_diff : bool, optional
+            If file/directory already exists on remote storage, then
+            it is replaced only if it differs. By default, difference is
+            based on time modification and file size. If set to True, then
+            difference is based on checksum (which is slower and more
+            resource intensive).
+
+        Raises
+        ------
+        RuntimeError
+            sshpass is not installed (only if password verification is used) or
+            couldn't push file to remote storage.
+        """
+
+        cmd = self._prepare_for_filesync(checksum_diff)
+
+        try:
+            # Use os.environ to preserve SSH agent
+            self._connection.local(
+                f"{cmd['sshpass']} rsync {cmd['checksum']} --recursive {cmd['rsh']}"
+                f" {source} {self._connection.user}@{self._connection.host}:{self._remote_dir}",
+                env=os.environ,
+            )
+        except invoke.exceptions.UnexpectedExit as err:
+            err_msg = str(err).replace("\n", " ").split("Stdout:", maxsplit=1)[0]
+            raise RuntimeError(f"Couldn't push {source}, error: {err_msg}") from err
+
+    def pull(self, source, destination="."):
+        """Pull file or directory from remote storage
+
+        Parameters
+        ----------
+        source : str
+            File or directory to pull from remote storage.
+        destination: str, optional
+            Local directory to store downloaded content.
+
+        Raises
+        ------
+        RuntimeError
+            sshpass is not installed (only if password verification is used) or
+            or could'nt create local directory or couldn't pull file from remote storage.
+        """
+
+        cmd = self._prepare_for_filesync()
+
+        try:
+            Path(destination).mkdir(parents=True, exist_ok=True)
+        except OSError as err:
+            raise RuntimeError(f"Couldn't create local directory {destination}, error: {err}") from err
+
+        try:
+            # Use os.environ to preserve SSH agent
+            self._connection.local(
+                f"{cmd['sshpass']} rsync --recursive {cmd['rsh']}"
+                f" {self._connection.user}@{self._connection.host}:{source} {destination}",
+                env=os.environ,
+            )
+        except invoke.exceptions.UnexpectedExit as err:
+            err_msg = str(err).replace("\n", " ").split("Stdout:", maxsplit=1)[0]
+            raise RuntimeError(f"Couldn't pull {source}, error: {err_msg}") from err
 
     def remove(self, file_or_directory):
         """Remove file or directory from remote storage.

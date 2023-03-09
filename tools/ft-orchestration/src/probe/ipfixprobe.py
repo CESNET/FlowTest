@@ -13,6 +13,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
+from pathlib import Path
+import tempfile
+import shutil
 
 import invoke
 from src.common.required_field import required_field
@@ -317,7 +320,8 @@ class Ipfixprobe(ProbeInterface, ABC):
         target: ProbeTarget,
         protocols: List[str],
         interfaces: List[InterfaceCfg],
-        settings: IpfixprobeSettings,
+        verbose: bool = False,
+        settings: IpfixprobeSettings = None,
         sudo: bool = False,
     ):
         """Init ipfixprobe connector.
@@ -332,7 +336,9 @@ class Ipfixprobe(ProbeInterface, ABC):
             List of networking protocols which the probe should parse and export.
         interfaces: list
             Network interfaces where the exporting process should be initiated.
-        settings : IpfixprobeSettings
+        verbose : bool, optional
+            If True, logs will collect all debug messages.
+        settings : IpfixprobeSettings, optional
             Settings for ipfixprobe including input interface configuration.
         sudo : bool, optional
             Run ipfixprobe process as administrator with sudo.
@@ -347,11 +353,17 @@ class Ipfixprobe(ProbeInterface, ABC):
         self._process = None
         self._sudo = sudo
         self._ifc_names = ",".join([ifc.name for ifc in interfaces])
+        self._verbose = verbose
         self._enabled_plugins = []
         self._last_run_stats = None
 
         self._check_binary()
         self._cmd = self._prepare_cmd(target, protocols, settings)
+        self._log_filename = "ipfixprobe.log"
+        if self._host.is_local():
+            self._log_file = Path(tempfile.mkdtemp(), "ipfixprobe.log")
+        else:
+            self._log_file = Path(self._host.get_storage().get_remote_directory(), "ipfixprobe.log")
 
     def supported_fields(self) -> List[str]:
         """Returns list of IPFIX fields the probe may export in its current configuration.
@@ -392,8 +404,9 @@ class Ipfixprobe(ProbeInterface, ABC):
             self._stop_process(running_pid)
             time.sleep(2)
 
-        cmd = f"sudo {self._cmd}" if self._sudo else self._cmd
-        self._process = self._host.run(cmd, check_rc=False, asynchronous=True)
+        cmd_tee = f"{self._cmd} |& tee -i {self._log_file}"
+        cmd = f"sudo {cmd_tee}" if self._sudo else cmd_tee
+        self._process = self._host.run(f"(set -o pipefail; {cmd})", check_rc=False, asynchronous=True)
         time.sleep(1)
 
         if not isinstance(self._process, invoke.Promise):
@@ -443,10 +456,28 @@ class Ipfixprobe(ProbeInterface, ABC):
         self._process = None
 
     def cleanup(self) -> None:
-        """Clean any artifacts which were created by the connector or the active probe itself.
-        In case ipfixprobe not necessary.
+        """Clean any artifacts which were created by the connector or the active probe itself."""
+        if self._host.is_local():
+            shutil.rmtree(Path.parent(self._log_file))
+        else:
+            self._host.get_storage().remove_all()
+
+    def download_logs(self, directory: str):
+        """Download logs from ipfix probe.
+
+        Parameters
+        ----------
+        directory : str
+            Path to a local directory where logs should be stored.
         """
-        pass  # pylint: disable=unnecessary-pass
+        if self._host.is_local():
+            Path(directory).mkdir(parents=True, exist_ok=True)
+            shutil.copy(self._log_file, directory)
+        else:
+            try:
+                self._host.get_storage().pull(self._log_file, directory)
+            except RuntimeError as err:
+                logging.getLogger().warning("%s", err)
 
     @property
     def last_run_stats(self) -> Optional[IpfixprobeStats]:
@@ -591,6 +622,7 @@ class Ipfixprobe(ProbeInterface, ABC):
 
         return args
 
+    # pylint: disable=too-many-branches
     def _get_common_args(self, target: ProbeTarget, protocols: List[str], settings: IpfixprobeSettings) -> List[str]:
         """Prepare args list with common settings - cache size, buffer sizes, queue sizes, timeouts, etc.
 
@@ -635,6 +667,8 @@ class Ipfixprobe(ProbeInterface, ABC):
             output_params.append(f"m={settings.mtu_size}")
         if settings.exporter_id:
             output_params.append(f"m={settings.exporter_id}")
+        if self._verbose:
+            output_params.append("v")
 
         args += self._get_plugin_arg(IpfixprobePluginType.OUTPUT, "ipfix", output_params)
 
@@ -674,12 +708,13 @@ class IpfixprobeRaw(Ipfixprobe):
         target: ProbeTarget,
         protocols: List[str],
         interfaces: List[InterfaceCfg],
+        verbose: bool = False,
         sudo: bool = False,
         **kwargs: dict,
     ):
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeRawSettings(interfaces=interfaces_names, **kwargs)
-        super().__init__(host, target, protocols, interfaces, settings, sudo)
+        super().__init__(host, target, protocols, interfaces, verbose, settings, sudo)
 
     def _prepare_cmd(self, target: ProbeTarget, protocols: List[str], settings: IpfixprobeSettings) -> str:
         self._check_plugin("raw")
@@ -716,12 +751,13 @@ class IpfixprobeDpdk(Ipfixprobe):
         target: ProbeTarget,
         protocols: List[str],
         interfaces: List[InterfaceCfg],
+        verbose: bool = False,
         sudo: bool = False,
         **kwargs: dict,
     ):
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeDpdkSettings(devices=interfaces_names, **kwargs)
-        super().__init__(host, target, protocols, interfaces, settings, sudo)
+        super().__init__(host, target, protocols, interfaces, verbose, settings, sudo)
 
     def _prepare_cmd(self, target: ProbeTarget, protocols: List[str], settings: IpfixprobeSettings) -> str:
         self._check_plugin("dpdk")
@@ -765,12 +801,13 @@ class IpfixprobeNdp(Ipfixprobe):
         target: ProbeTarget,
         protocols: List[str],
         interfaces: List[InterfaceCfg],
+        verbose: bool = False,
         sudo: bool = False,
         **kwargs: dict,
     ):
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeNdpSettings(devices=interfaces_names, **kwargs)
-        super().__init__(host, target, protocols, interfaces, settings, sudo)
+        super().__init__(host, target, protocols, interfaces, verbose, settings, sudo)
 
     def _prepare_cmd(self, target: ProbeTarget, protocols: List[str], settings: IpfixprobeSettings) -> str:
         self._check_plugin("ndp")

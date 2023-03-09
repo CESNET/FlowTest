@@ -130,13 +130,8 @@ def test_tcpreplay_remote_asynchronous_stop(connection_parameters, require_root)
 
     tcpreplay = TcpReplay(connection_parameters["host"])
     tcpreplay.add_interface(HOST_INTERFACE)
-    res = tcpreplay.start(PCAP_FILE, asynchronous=True, check_rc=False)
+    tcpreplay.start(PCAP_FILE, asynchronous=True, check_rc=False)
     tcpreplay.stop()
-    res = res.join()
-
-    # Command is terminated via CTRL+C
-    assert res.stdout == "^C"
-    assert res.stderr == ""
 
 
 @pytest.mark.dev
@@ -168,8 +163,8 @@ def test_tcpreplay_remote_timeout_asynchronous(connection_parameters, require_ro
     tcpreplay = TcpReplay(connection_parameters["host"])
     with pytest.raises(invoke.exceptions.CommandTimedOut):
         tcpreplay.add_interface(HOST_INTERFACE)
-        res = tcpreplay.start(PCAP_FILE, loop_count=9199999, timeout=2.5)
-        res.join()
+        tcpreplay.start(PCAP_FILE, loop_count=9199999, timeout=2.5)
+        tcpreplay.stop()
 
 
 @pytest.mark.dev

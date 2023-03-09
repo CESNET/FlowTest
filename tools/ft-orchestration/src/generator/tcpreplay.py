@@ -10,8 +10,11 @@ Module implements TcpReplay class representing tcpreplay tool.
 import logging
 import re
 import tempfile
+import shutil
 from os import path
 from typing import Optional
+from pathlib import Path
+import invoke
 
 from src.generator.interface import (
     MbpsSpeed,
@@ -21,10 +24,12 @@ from src.generator.interface import (
     PpsSpeed,
     ReplaySpeed,
     TopSpeed,
+    GeneratorException,
 )
 from src.generator.scapy_rewriter import RewriteRules, rewrite_pcap
 
 
+# pylint: disable=too-many-instance-attributes
 class TcpReplay(PcapPlayer):
     """Class provides means to use tcpreplay tool.
 
@@ -36,21 +41,29 @@ class TcpReplay(PcapPlayer):
         If specified, vlan header with given tag will be added to replayed packets.
     mtu: int, optional
         Mtu size of interface on which traffic will be replayed.
+    verbose : bool, optional
+        If True, logs will collect all debug messages.
     """
 
     # pylint: disable=super-init-not-called
-    def __init__(self, host, add_vlan: Optional[int] = None, mtu: int = 2000):
+    def __init__(self, host, add_vlan: Optional[int] = None, verbose: bool = False, mtu: int = 2000):
         self._host = host
         self._vlan = add_vlan
         self._interface = None
         self._dst_mac = None
+        self._verbose = verbose
         self._mtu = mtu
-        self._result = None
+        self._process = None
 
         self._bin = "tcpreplay"
         if host.run(f"command -v {self._bin}", check_rc=False).exited != 0:
             logging.getLogger().error("%s is missing on host %s", self._bin, host.get_host())
             raise RuntimeError(f"{self._bin} is missing")
+
+        if self._host.is_local():
+            self._log_file = Path(tempfile.mkdtemp(), "tcpreplay.log")
+        else:
+            self._log_file = Path(self._host.get_storage().get_remote_directory(), "tcpreplay.log")
 
     def add_interface(self, ifc_name: str, dst_mac: Optional[str] = None):
         """Add interface on which traffic will be replayed.
@@ -106,16 +119,16 @@ class TcpReplay(PcapPlayer):
             Raise ``CommandTimedOut`` if command doesn't finish within
             specified timeout (in seconds).
 
-        Returns
-        -------
-        invoke.runners.Result or invoke.runners.Promise
-            Execution result. If ``asynchronous``, Promise is returned.
-
         Raises
         ------
         RuntimeError
             If tcpreplay or tcpreplay-edit is missing or output interface was not specified.
+        GeneratorException
+            Tcpreplay process exited unexpectedly with an error.
+
         """
+        if self._process is not None:
+            self.stop()
 
         if not self._interface:
             logging.getLogger().error("no output interface was specified")
@@ -141,6 +154,8 @@ class TcpReplay(PcapPlayer):
         cmd_options += [f"--loop={loop_count}"]
         cmd_options += ["--preload-pcap"]  # always preload pcap file
         cmd_options += [f"--intf1={self._interface}"]
+        if self._verbose:
+            cmd_options += ["-v"]
 
         self._host.run(f"sudo ip link set dev {self._interface} up")
         self._host.run(f"sudo ip link set dev {self._interface} mtu {self._mtu}")
@@ -149,14 +164,25 @@ class TcpReplay(PcapPlayer):
             if rewrite_rules:
                 pcap_path = rewrite_pcap(pcap_path, rewrite_rules, path.join(temp_dir, path.basename(pcap_path)))
 
-            self._result = self._host.run(
-                f"sudo {self._bin} {' '.join(cmd_options)} {pcap_path}", asynchronous, check_rc, timeout=timeout
+            self._process = self._host.run(
+                f"(set -o pipefail; sudo {self._bin} {' '.join(cmd_options)} {pcap_path} |& tee -i {self._log_file})",
+                asynchronous,
+                check_rc,
+                timeout=timeout,
             )
 
-        return self._result
+        if asynchronous:
+            runner = self._process.runner
+            if runner.process_is_finished:
+                res = self._process.join()
+                if res.failed:
+                    # If pty is true, stderr is redirected to stdout
+                    err = res.stdout if runner.opts["pty"] else res.stderr
+                    logging.getLogger().error("tcpreplay return code: %d, error: %s", res.return_code, err)
+                    raise GeneratorException("tcpreplay startup error")
 
     def stats(self) -> PcapPlayerStats:
-        """Get stats based on result from ``start`` method.
+        """Get stats based on process from ``start`` method.
 
         This method will block if tcpreplay was started in asynchronous mode.
 
@@ -166,22 +192,74 @@ class TcpReplay(PcapPlayer):
             Class containing statistics of sent packets and bytes.
         """
 
-        result = self._result
-        if not hasattr(result, "stdout"):
-            result = self._host.wait_until_finished(result)
+        process = self._process
+        if not hasattr(process, "stdout"):
+            process = self._host.wait_until_finished(process)
 
-        pkts = int(re.findall(r"(\d+) packets", result.stdout)[0])
-        bts = int(re.findall(r"(\d+) bytes", result.stdout)[0])
+        pkts = int(re.findall(r"(\d+) packets", process.stdout)[0])
+        bts = int(re.findall(r"(\d+) bytes", process.stdout)[0])
         return PcapPlayerStats(pkts, bts)
 
     def stop(self):
         """Stop current execution of tcpreplay.
 
-        This method is valid only if tcpreplay was started in
-        asynchronous mode. Otherwise it won't have any effect.
+        If tcpreplay was started in synchronous mode, do nothing.
+        Otherwise stop the process.
+
+        Raises
+        ------
+        GeneratorException
+            Tcpreplay process exited unexpectedly with an error.
         """
 
-        self._host.stop(self._result)
+        if self._process is None:
+            return
+
+        if not isinstance(self._process, invoke.runners.Promise) or not self._process.runner.opts["asynchronous"]:
+            self._process = None
+            return
+
+        self._host.stop(self._process)
+        res = self._host.wait_until_finished(self._process)
+        if not isinstance(res, invoke.Result):
+            raise TypeError("Host method wait_until_finished returned non result object.")
+        runner = self._process.runner
+
+        if res.failed:
+            # If pty is true, stderr is redirected to stdout
+            # Since stdout could be filled with normal output, print only last 1 line
+            err = runner.stdout[-1] if runner.opts["pty"] else runner.stderr
+            logging.getLogger().error("tcpreplay runtime error: %s, error: %s", res.return_code, err)
+            raise GeneratorException("tcpreplay runtime error")
+
+        self._process = None
+
+    def cleanup(self) -> None:
+        """Clean any artifacts which were created by the connector or the tcpreplay itself.
+        Input pcap is copied to storage work_dir in Host.run(), so we need to remove everything.
+        """
+        if self._host.is_local():
+            shutil.rmtree(Path.parent(self._log_file))
+        else:
+            self._host.get_storage().remove_all()
+
+    def download_logs(self, directory: str):
+        """Download logs from tcpreplay.
+
+        Parameters
+        ----------
+        directory : str
+            Path to a local directory where logs should be stored.
+        """
+
+        if self._host.is_local():
+            Path(directory).mkdir(parents=True, exist_ok=True)
+            shutil.copy(self._log_file, directory)
+        else:
+            try:
+                self._host.get_storage().pull(self._log_file, directory)
+            except RuntimeError as err:
+                logging.getLogger().warning("%s", err)
 
     @staticmethod
     def _get_speed_arg(speed: ReplaySpeed) -> str:
