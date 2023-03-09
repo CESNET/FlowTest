@@ -25,7 +25,6 @@ from typing import List, Optional
 
 # pylint: disable=no-name-in-module
 import pytest
-from py.xml import html
 import yaml
 from _pytest.mark import ParameterSet
 from ftanalyzer.fields import FieldDatabase
@@ -33,6 +32,7 @@ from ftanalyzer.models import ValidationModel
 from ftanalyzer.normalizer import Normalizer
 from ftanalyzer.reports import ValidationReport, ValidationReportSummary
 from lbr_testsuite.topology.topology import select_topologies
+from py.xml import html
 from scapy.utils import rdpcap
 from src.collector.collector_builder import CollectorBuilder
 from src.collector.interface import CollectorInterface
@@ -48,6 +48,9 @@ VALIDATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/validation")
 PCAP_DIR = os.path.join(PROJECT_ROOT, "pcap")
 MAPPER_CONF = os.path.join(PROJECT_ROOT, "conf/ipfixcol2/mapping.yaml")
 FIELD_DATABASE_CONF = os.path.join(PROJECT_ROOT, "conf/fields.yml")
+
+WARN_CLR = "\033[33m"
+RST_CLR = "\033[0m"
 
 
 def pytest_html_report_title(report: "HTMLReport") -> None:
@@ -315,6 +318,39 @@ def check_generator_stats(generator_instance: PcapPlayer, pcap_file: str, vlan: 
     assert stats.bytes == expected_bytes
 
 
+def check_required_fields(test: dict, report: ValidationReport):
+    """Check that at least one of the fields marked as required has been checked.
+
+    Parameters
+    ----------
+    test: dict
+        Test definition from yaml.
+    report: ValidationReport
+        Report with stats of checked fields.
+    """
+
+    if not "at_least_one" in test:
+        return
+    required = test["at_least_one"]
+    found = False
+
+    for field in required:
+        if field in report.fields_stats and (
+            report.fields_stats[field].ok > 0
+            or report.fields_stats[field].error > 0
+            or report.fields_stats[field].missing > 0
+        ):
+            found = True
+            break
+
+    if not found:
+        print(
+            f"{WARN_CLR}None of the required fields have been checked (at least one of: {required}).\n"
+            f"Test will be skipped...{RST_CLR}"
+        )
+        pytest.skip(f"None of the required fields have been checked (at least one of: {required}).")
+
+
 def stop_components(probe: ProbeInterface, collector: CollectorInterface):
     """Stop probe and collector to ensure data are flushed from cache.
 
@@ -396,3 +432,5 @@ def test_validation(
 
     if not report.is_passing():
         assert False, f"Validation of test {request.node.name} failed"
+
+    check_required_fields(test, report)
