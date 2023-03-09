@@ -25,7 +25,6 @@ from typing import List, Optional
 
 # pylint: disable=no-name-in-module
 import pytest
-from py.xml import html
 import yaml
 from _pytest.mark import ParameterSet
 from ftanalyzer.fields import FieldDatabase
@@ -33,6 +32,7 @@ from ftanalyzer.models import ValidationModel
 from ftanalyzer.normalizer import Normalizer
 from ftanalyzer.reports import ValidationReport, ValidationReportSummary
 from lbr_testsuite.topology.topology import select_topologies
+from py.xml import html
 from scapy.utils import rdpcap
 from src.collector.collector_builder import CollectorBuilder
 from src.collector.interface import CollectorInterface
@@ -48,6 +48,7 @@ VALIDATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/validation")
 PCAP_DIR = os.path.join(PROJECT_ROOT, "pcap")
 MAPPER_CONF = os.path.join(PROJECT_ROOT, "conf/ipfixcol2/mapping.yaml")
 FIELD_DATABASE_CONF = os.path.join(PROJECT_ROOT, "conf/fields.yml")
+LOGS_DIR = os.path.join(os.getcwd(), "logs/validation")
 
 
 def pytest_html_report_title(report: "HTMLReport") -> None:
@@ -333,6 +334,36 @@ def stop_components(probe: ProbeInterface, collector: CollectorInterface):
     collector.stop()
 
 
+def download_logs(probe: ProbeInterface, collector: CollectorInterface, generator: PcapPlayer, test_name: str):
+    """Download logs from component instances and save for further analysis.
+
+    Parameters
+    ----------
+    probe: ProbeInterface
+        Probe instance.
+    collector: CollectorInterface
+        Collector instance.
+    generator: PcapPlayer
+        Generator instance.
+    test_name: str
+        Test name used for log directory naming.
+    """
+
+    logs_path = os.path.join(LOGS_DIR, test_name)
+
+    logs_dir = os.path.join(logs_path, "probe")
+    os.makedirs(logs_dir, exist_ok=True)
+    probe.download_logs(logs_dir)
+
+    logs_dir = os.path.join(logs_path, "collector")
+    os.makedirs(logs_dir, exist_ok=True)
+    collector.download_logs(logs_dir)
+
+    logs_dir = os.path.join(logs_path, "generator")
+    os.makedirs(logs_dir, exist_ok=True)
+    generator.download_logs(logs_dir)
+
+
 select_topologies(["pcap_player"])
 
 
@@ -385,6 +416,8 @@ def test_validation(
 
     received_flows = receive_flows(collector_instance)
     report = validate_flows(test, probe_instance, received_flows)
+
+    download_logs(probe_instance, collector_instance, generator_instance, request.node.name)
 
     print("")
     report.print_results()
