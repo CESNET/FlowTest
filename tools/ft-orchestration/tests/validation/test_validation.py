@@ -21,6 +21,7 @@ Test executes following steps:
 
 import logging
 import os
+import time
 from typing import List, Optional
 
 # pylint: disable=no-name-in-module
@@ -379,6 +380,7 @@ def test_validation(
     logging.info("\t- Sending packets via generator to probe...")
     generator_instance = generator.get()
     generator_instance.start(os.path.join(PCAP_DIR, pcap_file), PpsSpeed(10))
+    time.sleep(0.1)
 
     check_generator_stats(generator_instance, pcap_file, generator.get_vlan())
     stop_components(probe_instance, collector_instance)
