@@ -156,7 +156,56 @@ class ValidationFlow(Flow):
         elif isinstance(value, dict):
             result = self._validate_dict(value, ref, supported, special)
             ret.update(result)
-        elif (isinstance(ref, list) and value in ref) or ref == value:
+        else:
+            result = self._validate_value(name, value, ref, special)
+            ret.update(result)
+
+        return ret
+
+    def _validate_value(
+        self,
+        name: str,
+        value: Union[str, int],
+        ref: Union[str, int, List],
+        special: Dict[str, str],
+    ) -> ValidationResult:
+        """Compare flow field value with its reference. Reference could be simple value or list with possible values.
+
+        Parameters
+        ----------
+        name : str
+            Name of the field to be compared.
+        value : str, int
+            Value of the field. Must be simple value str/int.
+        ref : str, int, list
+            Reference value of the field. Simple value or list with possible values.
+        special : dict
+            Fields which require non-standard evaluation (typically lists).
+            Format: "name: strategy"
+
+        Returns
+        ------
+        ValidationResult
+            Object containing comparison statistics and reported errors.
+        """
+
+        def compare(val, ref_val):
+            if not strategy:
+                return val == ref_val
+            if strategy == "StartsWith":
+                return len(val) > 0 and ref_val.startswith(val)
+            raise ValueError(f"Unknown compare strategy '{strategy}' of field '{name}'.")
+
+        strategy = special.get(name, None)
+        ret = ValidationResult()
+        correct = False
+
+        if isinstance(ref, list):
+            correct = any(compare(value, item) for item in ref)
+        else:
+            correct = compare(value, ref)
+
+        if correct:
             ret.report_correct_field(name)
         else:
             ret.report_wrong_value_field(name, value, ref)
