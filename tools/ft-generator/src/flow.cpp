@@ -285,8 +285,15 @@ void Flow::PlanPacketsTimestamps()
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int64_t> secDis(_tsFirst.tv_sec, _tsLast.tv_sec);
 	std::uniform_int_distribution<int64_t> usecDis(0, 999999);
-	std::uniform_int_distribution<int64_t> firstUsecDis(_tsFirst.tv_usec, 999999);
-	std::uniform_int_distribution<int64_t> lastUsecDis(0, _tsLast.tv_usec);
+	std::uniform_int_distribution<int64_t> firstUsecDis;
+	std::uniform_int_distribution<int64_t> lastUsecDis;
+	if (_tsFirst.tv_sec == _tsLast.tv_sec) {
+		firstUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.tv_usec, _tsLast.tv_usec);
+		lastUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.tv_usec, _tsLast.tv_usec);
+	} else {
+		firstUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.tv_usec, 999999);
+		lastUsecDis = std::uniform_int_distribution<int64_t>(0, _tsLast.tv_usec);
+	}
 
 	std::vector<timeval> timestamps({_tsFirst, _tsLast});
 
