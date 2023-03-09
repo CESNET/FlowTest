@@ -26,6 +26,10 @@ static timeval MillisecsToTimeval(int64_t millisecs)
 	timeval time;
 	time.tv_sec = millisecs / 1000;
 	time.tv_usec = (millisecs % 1000) * 1000;
+	if (time.tv_usec < 0) {
+		time.tv_sec--;
+		time.tv_usec += 1000000;
+	}
 	return time;
 }
 
