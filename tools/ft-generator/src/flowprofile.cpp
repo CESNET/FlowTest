@@ -178,6 +178,7 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 		return ReadProfile();
 	}
 	profile._startTime = MillisecsToTimeval(*startTime);
+	assert(profile._startTime.tv_usec < 1000000 && profile._startTime.tv_usec >= 0);
 
 	std::optional<int64_t> endTime = ParseValue<int64_t>(pieces[_order[EndTime]]);
 	;
@@ -186,6 +187,7 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 		return ReadProfile();
 	}
 	profile._endTime = MillisecsToTimeval(*endTime);
+	assert(profile._endTime.tv_usec < 1000000 && profile._endTime.tv_usec >= 0);
 
 	std::optional<uint8_t> l3ProtoNum = ParseValue<uint8_t>(pieces[_order[L3Proto]]);
 	if (!l3ProtoNum) {

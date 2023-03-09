@@ -77,6 +77,9 @@ Flow::Flow(
 	, _tsLast(profile._endTime)
 	, _id(id)
 {
+	assert(_tsFirst.tv_usec < 1000000 && _tsFirst.tv_usec >= 0);
+	assert(_tsLast.tv_usec < 1000000 && _tsLast.tv_usec >= 0);
+
 	MacAddress macSrc = addressGenerators.GenerateMac();
 	MacAddress macDst = addressGenerators.GenerateMac();
 	AddLayer(std::make_unique<Ethernet>(macSrc, macDst));
