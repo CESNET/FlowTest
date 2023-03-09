@@ -12,6 +12,7 @@
 #include "logger.h"
 #include "packet.h"
 #include "pcpppacket.h"
+#include "timeval.h"
 
 #include <pcapplusplus/EthLayer.h>
 #include <pcapplusplus/IPv4Layer.h>
@@ -41,8 +42,8 @@ struct FlowRecord {
 	L3Protocol _l3Proto;
 	L4Protocol _l4Proto;
 
-	timeval _firstTs = {0, 0};
-	timeval _lastTs = {0, 0};
+	Timeval _firstTs;
+	Timeval _lastTs;
 
 	MacAddress _fwdMacAddr;
 	IPAddress _fwdIpAddr;
@@ -94,7 +95,7 @@ public:
 	 * @param dir     The direction of the packet
 	 * @param packet  The generated packet
 	 */
-	void RecordPacket(uint64_t flowId, timeval time, Direction dir, const PcppPacket& packet);
+	void RecordPacket(uint64_t flowId, Timeval time, Direction dir, const PcppPacket& packet);
 
 	/**
 	 * @brief Write out summary of the recorded flows and packets to a csv file

@@ -22,6 +22,7 @@
 #include "packet.h"
 #include "packetflowspan.h"
 #include "randomgenerator.h"
+#include "timeval.h"
 #include "valuegenerator.h"
 
 #include <pcapplusplus/Packet.h>
@@ -77,9 +78,6 @@ Flow::Flow(
 	, _tsLast(profile._endTime)
 	, _id(id)
 {
-	assert(_tsFirst.tv_usec < 1000000 && _tsFirst.tv_usec >= 0);
-	assert(_tsLast.tv_usec < 1000000 && _tsLast.tv_usec >= 0);
-
 	MacAddress macSrc = addressGenerators.GenerateMac();
 	MacAddress macDst = addressGenerators.GenerateMac();
 	AddLayer(std::make_unique<Ethernet>(macSrc, macDst));
@@ -251,7 +249,7 @@ PacketExtraInfo Flow::GenerateNextPacket(PcppPacket& packet)
 	return extra;
 }
 
-timeval Flow::GetNextPacketTime() const
+Timeval Flow::GetNextPacketTime() const
 {
 	return _packets.front()._timestamp;
 }
@@ -286,28 +284,29 @@ void Flow::PlanPacketsTimestamps()
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int64_t> secDis(_tsFirst.tv_sec, _tsLast.tv_sec);
+	std::uniform_int_distribution<int64_t> secDis(_tsFirst.GetSec(), _tsLast.GetSec());
 	std::uniform_int_distribution<int64_t> usecDis(0, 999999);
 	std::uniform_int_distribution<int64_t> firstUsecDis;
 	std::uniform_int_distribution<int64_t> lastUsecDis;
-	if (_tsFirst.tv_sec == _tsLast.tv_sec) {
-		firstUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.tv_usec, _tsLast.tv_usec);
-		lastUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.tv_usec, _tsLast.tv_usec);
+	if (_tsFirst.GetSec() == _tsLast.GetSec()) {
+		firstUsecDis
+			= std::uniform_int_distribution<int64_t>(_tsFirst.GetUsec(), _tsLast.GetUsec());
+		lastUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.GetUsec(), _tsLast.GetUsec());
 	} else {
-		firstUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.tv_usec, 999999);
-		lastUsecDis = std::uniform_int_distribution<int64_t>(0, _tsLast.tv_usec);
+		firstUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.GetUsec(), 999999);
+		lastUsecDis = std::uniform_int_distribution<int64_t>(0, _tsLast.GetUsec());
 	}
 
-	std::vector<timeval> timestamps({_tsFirst, _tsLast});
+	std::vector<Timeval> timestamps({_tsFirst, _tsLast});
 
 	size_t timestampsToGen = _packets.size() > 2 ? _packets.size() - 2 : 0;
 
 	for (size_t i = 0; i < timestampsToGen; i++) {
 		timeval time;
 		time.tv_sec = secDis(gen);
-		if (time.tv_sec == _tsFirst.tv_sec) {
+		if (time.tv_sec == _tsFirst.GetSec()) {
 			time.tv_usec = firstUsecDis(gen);
-		} else if (time.tv_sec == _tsLast.tv_sec) {
+		} else if (time.tv_sec == _tsLast.GetSec()) {
 			time.tv_usec = lastUsecDis(gen);
 		} else {
 			time.tv_usec = usecDis(gen);
@@ -315,7 +314,7 @@ void Flow::PlanPacketsTimestamps()
 		timestamps.emplace_back(time);
 	}
 
-	std::sort(timestamps.begin(), timestamps.end(), [](const timeval& a, const timeval& b) {
+	std::sort(timestamps.begin(), timestamps.end(), [](const Timeval& a, const Timeval& b) {
 		return a < b;
 	});
 

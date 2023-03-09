@@ -37,6 +37,7 @@ add_executable(ft-generator
 	pcppethlayer.cpp
 	pcpppacket.cpp
 	randomgenerator.cpp
+	timeval.cpp
 	trafficmeter.cpp
 	valuegenerator.cpp
 )
