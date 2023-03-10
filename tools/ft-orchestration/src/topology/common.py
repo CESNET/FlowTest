@@ -82,6 +82,7 @@ def config(request: pytest.FixtureRequest) -> Config:
         f"{config_dir}/generators.yml",
         f"{config_dir}/collectors.yml",
         f"{config_dir}/probes.yml",
+        f"{config_dir}/whitelists.yml",
     )
 
 
