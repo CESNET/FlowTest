@@ -5,6 +5,7 @@ test:
   description: Check that packets with IPv6 header option Hop-by-Hop are parsed properly.
 
 key: [src_ip, dst_ip, protocol]
+at_least_one: ["icmp_type", "icmp_code", "icmp_type_code"]
 
 flows:
   - src_ip:            "fe80::a6cf:65f:272a:9453"

@@ -4,6 +4,8 @@ test:
   required_protocols: ["http"]
   description: Check that HTTP 401 error response code is parsed properly.
 
+at_least_one: ["http_host", "http_method_id", "http_url", "http_method", "http_status_code", "http_agent"]
+
 flows:
   - src_ip:      "202.254.1.2"
     dst_ip:      "6.0.0.1"

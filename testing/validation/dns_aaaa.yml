@@ -4,6 +4,10 @@ test:
   required_protocols: ["dns"]
   description: Check that at least one of the IPv6 addresses present in DNS response to type AAAA request is present in the flow.
 
+at_least_one: ["dns_id", "dns_flags", "dns_req_query_type", "dns_req_query_class", "dns_req_query_name",
+              "dns_resp_rcode", "dns_resp_rr.name", "dns_resp_rr.type", "dns_resp_rr.class", "dns_resp_rr.ttl",
+              "dns_resp_rr.data", "dns_resp_rr.flowmon_data"]
+
 flows:
   - src_ip:      "192.168.141.135"
     dst_ip:      "192.168.94.13"

@@ -5,6 +5,7 @@ test:
   description: Check that packets with IPv6 header option Destination Options are parsed properly.
 
 key: [src_ip, dst_ip, protocol]
+at_least_one: ["icmp_type", "icmp_code", "icmp_type_code"]
 
 flows:
   - src_ip:            "6ea1:86f8:169:115f:76a0:c016:3074:6f95"

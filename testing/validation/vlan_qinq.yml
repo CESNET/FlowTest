@@ -5,6 +5,7 @@ test:
   description: Check that both VLAN headers are correctly parsed and skipped.
 
 key: [src_ip, dst_ip, protocol]
+at_least_one: ["vlan_id", "vlan_id_inner"]
 
 flows:
   - src_ip:        "10.118.10.1"

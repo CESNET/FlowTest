@@ -4,6 +4,9 @@ test:
   required_protocols: ["http"]
   description: Check that HTTP 500 error response code is parsed properly.
 
+at_least_one: ["http_host", "http_method", "http_method_id", "http_url", "http_status_code", "http_agent",
+              "http_content_type", "http_referer"]
+
 flows:
   - src_ip:      "192.168.0.113"
     dst_ip:      "209.31.22.39"

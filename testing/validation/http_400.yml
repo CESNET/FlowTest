@@ -4,6 +4,8 @@ test:
   required_protocols: ["http"]
   description: Check that HTTP 400 error response code is parsed properly.
 
+at_least_one: ["http_status_code", "http_content_type"]
+
 flows:
   - src_ip:      "192.168.1.36"
     dst_ip:      "192.168.1.25"

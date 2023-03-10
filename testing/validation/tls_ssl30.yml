@@ -4,6 +4,9 @@ test:
   required_protocols: ["tls"]
   description: Check that SSL v3.0 is properly parsed.
 
+at_least_one: ["tls_server_version", "tls_cipher_suite", "tls_client_version", "tls_ja3", "tls_subject_cn",
+              "tls_validity_not_before", "tls_validity_not_after", "tls_public_key_alg"]
+
 flows:
   - src_ip:      "195.113.172.20"
     dst_ip:      "162.216.8.226"
