@@ -21,6 +21,8 @@ the form of pcap files.
 
 Input of the generator is a CSV file containing anonymized biflow records with
 following fields:
+
+**Required fields**
  * *START_TIME* - relative time of the first observed packet of the flow in
    milliseconds
  * *END_TIME* - relative time of the last observed packet of the flow in
@@ -37,6 +39,12 @@ following fields:
    flow (0 if the other direction was not found)
  * *BYTES_REV* - number of bytes observed in the opposite direction of the flow
    (0 if the other direction was not found)
+
+**Optional fields**
+ * *SRC_IP* - IP address (blank in case a generated IP address should be used
+   instead)
+ * *DST_IP*  - IP address (blank in case a generated IP address should be used
+   instead)
 
 Lines starting with the # character are skipped. First row must contain the
 header to specify the order of the fields.
