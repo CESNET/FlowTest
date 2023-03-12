@@ -27,6 +27,7 @@
 #include <pcapplusplus/Packet.h>
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <numeric>
 #include <random>
@@ -98,16 +99,44 @@ Flow::Flow(
 		throw std::runtime_error("Unknown L3 protocol");
 
 	case L3Protocol::Ipv4: {
-		IPv4Address ipSrc = addressGenerators.GenerateIPv4();
-		IPv4Address ipDst = addressGenerators.GenerateIPv4();
+		IPv4Address ipSrc;
+		if (profile._srcIp) {
+			assert(profile._srcIp->getType() == IPAddress::AddressType::IPv4AddressType);
+			ipSrc = profile._srcIp->getIPv4();
+		} else {
+			ipSrc = addressGenerators.GenerateIPv4();
+		}
+
+		IPv4Address ipDst;
+		if (profile._dstIp) {
+			assert(profile._dstIp->getType() == IPAddress::AddressType::IPv4AddressType);
+			ipDst = profile._dstIp->getIPv4();
+		} else {
+			ipDst = addressGenerators.GenerateIPv4();
+		}
+
 		auto fragProb = config.GetIPv4().GetFragmentationProbability();
 		auto minPktSizeToFragment = config.GetIPv4().GetMinPacketSizeToFragment();
 		AddLayer(std::make_unique<IPv4>(ipSrc, ipDst, fragProb, minPktSizeToFragment));
 	} break;
 
 	case L3Protocol::Ipv6: {
-		IPv6Address ipSrc = addressGenerators.GenerateIPv6();
-		IPv6Address ipDst = addressGenerators.GenerateIPv6();
+		IPv6Address ipSrc;
+		if (profile._srcIp) {
+			assert(profile._srcIp->getType() == IPAddress::AddressType::IPv6AddressType);
+			ipSrc = profile._srcIp->getIPv6();
+		} else {
+			ipSrc = addressGenerators.GenerateIPv6();
+		}
+
+		IPv6Address ipDst;
+		if (profile._dstIp) {
+			assert(profile._dstIp->getType() == IPAddress::AddressType::IPv6AddressType);
+			ipDst = profile._dstIp->getIPv6();
+		} else {
+			ipDst = addressGenerators.GenerateIPv6();
+		}
+
 		AddLayer(std::make_unique<IPv6>(ipSrc, ipDst));
 	} break;
 	}
