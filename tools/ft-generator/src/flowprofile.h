@@ -10,6 +10,7 @@
 
 #include "logger.h"
 
+#include <pcapplusplus/IpAddress.h>
 #include <sys/time.h>
 
 #include <array>
@@ -18,6 +19,8 @@
 #include <string>
 
 namespace generator {
+
+using pcpp::IPAddress;
 
 enum class L3Protocol : uint8_t { Unknown, Ipv4 = 4, Ipv6 = 6 };
 
@@ -75,6 +78,8 @@ struct FlowProfile {
 	uint64_t _bytes;
 	uint64_t _packetsRev;
 	uint64_t _bytesRev;
+	std::optional<IPAddress> _srcIp;
+	std::optional<IPAddress> _dstIp;
 
 	std::string ToString() const;
 };
@@ -129,6 +134,8 @@ private:
 		Bytes,
 		PacketsRev,
 		BytesRev,
+		SrcIp,
+		DstIp,
 		ComponentsCount
 	};
 
@@ -137,6 +144,7 @@ private:
 	std::ifstream _ifs;
 	unsigned int _lineNum = 0;
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("FlowProfileReader");
+	unsigned int _headerComponentsNum = 0;
 
 	std::optional<std::string> ReadLine();
 	void ReadHeader();

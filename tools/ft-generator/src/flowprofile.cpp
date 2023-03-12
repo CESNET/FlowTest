@@ -20,6 +20,8 @@ namespace generator {
 using config::ParseValue;
 using config::StringSplit;
 using config::StringStrip;
+using pcpp::IPv4Address;
+using pcpp::IPv6Address;
 
 static timeval MillisecsToTimeval(int64_t millisecs)
 {
@@ -117,6 +119,8 @@ std::string FlowProfile::ToString() const
 	   << "endTime=" << TimevalToMilliseconds(_endTime) << ", "
 	   << "l3Proto=" << L3ProtocolToString(_l3Proto) << ", "
 	   << "l4Proto=" << L4ProtocolToString(_l4Proto) << ", "
+	   << "srcIp=" << (_srcIp ? _srcIp->toString() : "N/A") << ", "
+	   << "dstIp=" << (_dstIp ? _dstIp->toString() : "N/A") << ", "
 	   << "srcPort=" << _srcPort << ", "
 	   << "dstPort=" << _dstPort << ", "
 	   << "packets=" << _packets << ", "
@@ -163,7 +167,7 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	const std::string& line = *maybeLine;
 
 	std::vector<std::string> pieces = StringSplit(line, ",");
-	if (pieces.size() != ComponentsCount) {
+	if (pieces.size() != _headerComponentsNum) {
 		ReportParseError(line, "bad line, invalid number of components");
 		return ReadProfile();
 	}
@@ -257,6 +261,56 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	}
 	profile._bytesRev = *bytesRev;
 
+	if (_order[SrcIp] != -1) {
+		const auto& srcIpStr = pieces[_order[SrcIp]];
+		// Allow not specifying the IP address by leaving the value of the field blank
+		if (!srcIpStr.empty()) {
+			if (profile._l3Proto == L3Protocol::Ipv4) {
+				IPv4Address ipv4(srcIpStr);
+				if (!ipv4.isValid()) {
+					ReportParseError(line, "bad SRC_IP - invalid ipv4 address");
+					return ReadProfile();
+				}
+				profile._srcIp = ipv4;
+			} else if (profile._l3Proto == L3Protocol::Ipv6) {
+				IPv6Address ipv6(srcIpStr);
+				if (!ipv6.isValid()) {
+					ReportParseError(line, "bad SRC_IP - invalid ipv6 address");
+					return ReadProfile();
+				}
+				profile._srcIp = ipv6;
+			} else {
+				ReportParseError(line, "bad SRC_IP - invalid L3 protocol for address");
+				return ReadProfile();
+			}
+		}
+	}
+
+	if (_order[DstIp] != -1) {
+		const auto& dstIpStr = pieces[_order[DstIp]];
+		// Allow not specifying the IP address by leaving the value of the field blank
+		if (!dstIpStr.empty()) {
+			if (profile._l3Proto == L3Protocol::Ipv4) {
+				IPv4Address ipv4(dstIpStr);
+				if (!ipv4.isValid()) {
+					ReportParseError(line, "bad DST_IP - invalid ipv4 address");
+					return ReadProfile();
+				}
+				profile._dstIp = ipv4;
+			} else if (profile._l3Proto == L3Protocol::Ipv6) {
+				IPv6Address ipv6(dstIpStr);
+				if (!ipv6.isValid()) {
+					ReportParseError(line, "bad DST_IP - invalid ipv6 address");
+					return ReadProfile();
+				}
+				profile._dstIp = ipv6;
+			} else {
+				ReportParseError(line, "bad DST_IP - invalid L3 protocol for address");
+				return ReadProfile();
+			}
+		}
+	}
+
 	if (profile._startTime > profile._endTime) {
 		ReportParseError(line, "bad START_TIME > END_TIME");
 		return ReadProfile();
@@ -300,9 +354,6 @@ void FlowProfileReader::ReadHeader()
 	}
 
 	auto pieces = StringSplit(*line, ",");
-	if (pieces.size() != ComponentsCount) {
-		throw std::runtime_error("invalid number of components in header");
-	}
 
 	const std::unordered_map<std::string, Component> componentMap {
 		{"START_TIME", StartTime},
@@ -315,6 +366,8 @@ void FlowProfileReader::ReadHeader()
 		{"BYTES", Bytes},
 		{"PACKETS_REV", PacketsRev},
 		{"BYTES_REV", BytesRev},
+		{"SRC_IP", SrcIp},
+		{"DST_IP", DstIp},
 	};
 
 	_order.fill(-1);
@@ -333,7 +386,12 @@ void FlowProfileReader::ReadHeader()
 	}
 
 	for (const auto& [cName, cId] : componentMap) {
-		if (_order[cId] == -1) {
+		if (_order[cId] != -1) {
+			_headerComponentsNum++;
+			continue;
+		}
+
+		if (cName != "SRC_IP" && cName != "DST_IP") {
 			throw std::runtime_error("component \"" + cName + "\" missing in header");
 		}
 	}
