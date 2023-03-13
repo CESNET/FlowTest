@@ -39,10 +39,10 @@ void TrafficMeter::ExtractPacketParams(
 	L3Protocol l3Proto,
 	L4Protocol l4Proto,
 	MacAddress& srcMac,
-	IPAddress& srcIp,
+	IPAddressVariant& srcIp,
 	uint16_t& srcPort,
 	MacAddress& dstMac,
-	IPAddress& dstIp,
+	IPAddressVariant& dstIp,
 	uint16_t& dstPort)
 {
 	pcpp::EthLayer* ethLayer = static_cast<pcpp::EthLayer*>(packet.getLayerOfType(pcpp::Ethernet));
