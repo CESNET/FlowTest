@@ -421,12 +421,12 @@ class FlowmonProbe(ProbeInterface):
     def cleanup(self):
         """Clean any artifacts which were created by the connector or the active probe itself."""
 
-        logging.getLogger().info("Removing remote temporary directory %s", self._remote_dir)
+        logging.getLogger().info("Cleaning up remote temporary directory %s", self._remote_dir)
         try:
-            self._host.run(f"rm -rf {self._remote_dir}", check_rc=False)
+            self._host.get_storage().remove_all()
         except invoke.exceptions.UnexpectedExit as err:
-            logging.getLogger().error("Unable to remove %s", self._probe_json_conf)
-            raise ProbeException(f"Unable to remove {self._probe_json_conf}.") from err
+            logging.getLogger().error("Unable to remove files in %s", self._remote_dir)
+            raise ProbeException(f"Unable to remove files in {self._remote_dir}.") from err
 
     def download_logs(self, directory: str):
         """Download logs from flowmon probe.
