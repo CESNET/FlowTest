@@ -149,7 +149,7 @@ private:
 	std::optional<std::string> ReadLine();
 	void ReadHeader();
 	std::optional<FlowProfile> ReadProfile();
-	void ReportParseError(const std::string& value, const std::string& errorMessage);
+	[[noreturn]] void ThrowParseError(const std::string& value, const std::string& errorMessage);
 };
 
 } // namespace generator

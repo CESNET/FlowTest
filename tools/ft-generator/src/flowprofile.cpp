@@ -168,46 +168,39 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 
 	std::vector<std::string> pieces = StringSplit(line, ",");
 	if (pieces.size() != _headerComponentsNum) {
-		ReportParseError(line, "bad line, invalid number of components");
-		return ReadProfile();
+		ThrowParseError(line, "bad line, invalid number of components");
 	}
 
 	std::optional<int64_t> startTime = ParseValue<int64_t>(pieces[_order[StartTime]]);
 	if (!startTime) {
-		ReportParseError(line, "bad START_TIME");
-		return ReadProfile();
+		ThrowParseError(line, "bad START_TIME");
 	}
 	profile._startTime = MillisecsToTimeval(*startTime);
 
 	std::optional<int64_t> endTime = ParseValue<int64_t>(pieces[_order[EndTime]]);
 	;
 	if (!endTime) {
-		ReportParseError(line, "bad END_TIME");
-		return ReadProfile();
+		ThrowParseError(line, "bad END_TIME");
 	}
 	profile._endTime = MillisecsToTimeval(*endTime);
 
 	std::optional<uint8_t> l3ProtoNum = ParseValue<uint8_t>(pieces[_order[L3Proto]]);
 	if (!l3ProtoNum) {
-		ReportParseError(line, "bad L3_PROTO - invalid number");
-		return ReadProfile();
+		ThrowParseError(line, "bad L3_PROTO - invalid number");
 	}
 	std::optional<L3Protocol> l3Proto = GetL3Protocol(*l3ProtoNum);
 	if (!l3Proto) {
-		ReportParseError(line, "bad L3_PROTO - unknown protocol");
-		return ReadProfile();
+		ThrowParseError(line, "bad L3_PROTO - unknown protocol");
 	}
 	profile._l3Proto = *l3Proto;
 
 	std::optional<uint8_t> l4ProtoNum = ParseValue<uint8_t>(pieces[_order[L4Proto]]);
 	if (!l4ProtoNum) {
-		ReportParseError(line, "bad L4_PROTO - invalid number");
-		return ReadProfile();
+		ThrowParseError(line, "bad L4_PROTO - invalid number");
 	}
 	std::optional<L4Protocol> l4Proto = GetL4Protocol(*l4ProtoNum);
 	if (!l4Proto) {
-		ReportParseError(line, "bad L4_PROTO - unknown protocol");
-		return ReadProfile();
+		ThrowParseError(line, "bad L4_PROTO - unknown protocol");
 	}
 	profile._l4Proto = *l4Proto;
 
@@ -216,8 +209,7 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	} else {
 		std::optional<uint16_t> srcPort = ParseValue<uint16_t>(pieces[_order[SrcPort]]);
 		if (!srcPort) {
-			ReportParseError(line, "bad SRC_PORT");
-			return ReadProfile();
+			ThrowParseError(line, "bad SRC_PORT");
 		}
 		profile._srcPort = *srcPort;
 	}
@@ -227,37 +219,32 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	} else {
 		std::optional<uint16_t> dstPort = ParseValue<uint16_t>(pieces[_order[DstPort]]);
 		if (!dstPort) {
-			ReportParseError(line, "bad DST_PORT");
-			return ReadProfile();
+			ThrowParseError(line, "bad DST_PORT");
 		}
 		profile._dstPort = *dstPort;
 	}
 
 	std::optional<uint64_t> packets = ParseValue<uint64_t>(pieces[_order[Packets]]);
 	if (!packets) {
-		ReportParseError(line, "bad PACKETS");
-		return ReadProfile();
+		ThrowParseError(line, "bad PACKETS");
 	}
 	profile._packets = *packets;
 
 	std::optional<uint64_t> bytes = ParseValue<uint64_t>(pieces[_order[Bytes]]);
 	if (!bytes) {
-		ReportParseError(line, "bad BYTES");
-		return ReadProfile();
+		ThrowParseError(line, "bad BYTES");
 	}
 	profile._bytes = *bytes;
 
 	std::optional<uint64_t> packetsRev = ParseValue<uint64_t>(pieces[_order[PacketsRev]]);
 	if (!packetsRev) {
-		ReportParseError(line, "bad PACKETS_REV");
-		return ReadProfile();
+		ThrowParseError(line, "bad PACKETS_REV");
 	}
 	profile._packetsRev = *packetsRev;
 
 	std::optional<uint64_t> bytesRev = ParseValue<uint64_t>(pieces[_order[BytesRev]]);
 	if (!bytesRev) {
-		ReportParseError(line, "bad BYTES_REV");
-		return ReadProfile();
+		ThrowParseError(line, "bad BYTES_REV");
 	}
 	profile._bytesRev = *bytesRev;
 
@@ -268,20 +255,17 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 			if (profile._l3Proto == L3Protocol::Ipv4) {
 				IPv4Address ipv4(srcIpStr);
 				if (!ipv4.isValid()) {
-					ReportParseError(line, "bad SRC_IP - invalid ipv4 address");
-					return ReadProfile();
+					ThrowParseError(line, "bad SRC_IP - invalid ipv4 address");
 				}
 				profile._srcIp = ipv4;
 			} else if (profile._l3Proto == L3Protocol::Ipv6) {
 				IPv6Address ipv6(srcIpStr);
 				if (!ipv6.isValid()) {
-					ReportParseError(line, "bad SRC_IP - invalid ipv6 address");
-					return ReadProfile();
+					ThrowParseError(line, "bad SRC_IP - invalid ipv6 address");
 				}
 				profile._srcIp = ipv6;
 			} else {
-				ReportParseError(line, "bad SRC_IP - invalid L3 protocol for address");
-				return ReadProfile();
+				ThrowParseError(line, "bad SRC_IP - invalid L3 protocol for address");
 			}
 		}
 	}
@@ -293,27 +277,23 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 			if (profile._l3Proto == L3Protocol::Ipv4) {
 				IPv4Address ipv4(dstIpStr);
 				if (!ipv4.isValid()) {
-					ReportParseError(line, "bad DST_IP - invalid ipv4 address");
-					return ReadProfile();
+					ThrowParseError(line, "bad DST_IP - invalid ipv4 address");
 				}
 				profile._dstIp = ipv4;
 			} else if (profile._l3Proto == L3Protocol::Ipv6) {
 				IPv6Address ipv6(dstIpStr);
 				if (!ipv6.isValid()) {
-					ReportParseError(line, "bad DST_IP - invalid ipv6 address");
-					return ReadProfile();
+					ThrowParseError(line, "bad DST_IP - invalid ipv6 address");
 				}
 				profile._dstIp = ipv6;
 			} else {
-				ReportParseError(line, "bad DST_IP - invalid L3 protocol for address");
-				return ReadProfile();
+				ThrowParseError(line, "bad DST_IP - invalid L3 protocol for address");
 			}
 		}
 	}
 
 	if (profile._startTime > profile._endTime) {
-		ReportParseError(line, "bad START_TIME > END_TIME");
-		return ReadProfile();
+		ThrowParseError(line, "bad START_TIME > END_TIME");
 	}
 
 	return profile;
@@ -402,15 +382,15 @@ void FlowProfileReader::ReadHeader()
  *
  * @param value         The errorneous value
  * @param errorMessage  The error message
+ *
+ * @throw runtime_error is always thrown
  */
-void FlowProfileReader::ReportParseError(const std::string& value, const std::string& errorMessage)
+[[noreturn]] void
+FlowProfileReader::ThrowParseError(const std::string& value, const std::string& errorMessage)
 {
-	_logger->error(
-		"Ignoring line with invalid value \"{}\": {} ({}:{})",
-		value,
-		errorMessage,
-		_filename,
-		_lineNum);
+	throw std::runtime_error(
+		"Invalid line in profile \"" + value + "\": " + errorMessage + " (" + _filename + ":"
+		+ std::to_string(_lineNum) + ")");
 }
 
 } // namespace generator
