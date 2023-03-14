@@ -9,12 +9,12 @@ Orchestration config file management
 import logging
 from typing import Dict, Union
 
-from dataclass_wizard.errors import ParseError, MissingFields
-
+from dataclass_wizard.errors import MissingFields, ParseError
 from src.config.authentication import AuthenticationCfg, AuthenticationCfgException
 from src.config.collector import CollectorCfg, CollectorCfgException
 from src.config.generator import GeneratorCfg, GeneratorCfgException
 from src.config.probe import ProbeCfg, ProbeCfgException
+from src.config.whitelist import WhitelistCfg, WhitelistCfgException
 
 
 class ConfigException(Exception):
@@ -42,7 +42,14 @@ class Config:
         Dictionary of the AuthenticationCfg objects, key is the 'name' field
     """
 
-    def __init__(self, authentications_path: str, generators_path: str, collectors_path: str, probes_path: str) -> None:
+    def __init__(
+        self,
+        authentications_path: str,
+        generators_path: str,
+        collectors_path: str,
+        probes_path: str,
+        whitelists_path: str,
+    ) -> None:
         """Reads the configuration files.
 
         Parameters
@@ -51,6 +58,7 @@ class Config:
         generators_path - path to the generators.yml
         collectors_path - path to the collectors.yml
         probes_path - path to the probes.yml
+        whitelists_path - path to the whitelists.yml
 
         Raises
         ------
@@ -60,6 +68,7 @@ class Config:
         self.authentications: Dict[str, AuthenticationCfg] = self._load(
             authentications_path, AuthenticationCfg.from_yaml_file
         )
+        self.whitelists: Dict[str, WhitelistCfg] = self._load(whitelists_path, WhitelistCfg.from_yaml_file)
         self.generators: Dict[str, GeneratorCfg] = self._load(generators_path, GeneratorCfg.from_yaml_file)
         self.collectors: Dict[str, CollectorCfg] = self._load(collectors_path, CollectorCfg.from_yaml_file)
         self.probes: Dict[str, ProbeCfg] = self._load(probes_path, ProbeCfg.from_yaml_file)
@@ -85,17 +94,20 @@ class Config:
         try:
             for val in self.authentications.values():
                 val.check()
+            for val in self.whitelists.values():
+                val.check(self.whitelists)
             for val in self.generators.values():
                 val.check(self.authentications)
             for val in self.collectors.values():
                 val.check(self.authentications)
             for val in self.probes.values():
-                val.check(self.authentications)
+                val.check(self.authentications, self.whitelists)
         except (
             AuthenticationCfgException,
             CollectorCfgException,
             GeneratorCfgException,
             ProbeCfgException,
+            WhitelistCfgException,
         ) as err:
             logging.getLogger().error("Validation error: %s", err)
             raise ConfigException(f"Validation error: {err}") from err
