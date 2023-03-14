@@ -6,3 +6,4 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 
 from .validation_report import ValidationReport, ValidationReportSummary
+from .statistical_report import StatisticalReport
