@@ -1,0 +1,22 @@
+- name: flowmon-whitelist
+  items:
+    validation:
+      - test1.yml
+      - test2.yml
+      - test3.yml
+    simulation:
+      - test4.yml
+      - test5.yml
+
+- name: flowmon-whitelist-via-switch
+  include: flowmon-whitelist
+  items:
+    validation:
+      - vlan.yml
+      - mac.yml: "Mac addresses are changed when testing via switch."
+
+- name: inherited
+  include: not-existing-whitelist
+  items:
+    validation:
+      - last_inherited.yml: "Because"
