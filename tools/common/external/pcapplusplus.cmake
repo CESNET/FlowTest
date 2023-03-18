@@ -21,7 +21,7 @@ find_program(MAKE_EXE NAMES gmake nmake make)
 ExternalProject_Add(pcapplusplus_build
 	PREFIX pcapplusplus
 	GIT_REPOSITORY "https://github.com/seladb/PcapPlusPlus"
-	GIT_TAG "v22.05"
+	GIT_TAG "v22.11"
 	GIT_SHALLOW ON
 
 	UPDATE_COMMAND ""
