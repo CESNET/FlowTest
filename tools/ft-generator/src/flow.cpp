@@ -161,10 +161,16 @@ Flow::Flow(
 	} break;
 
 	case L4Protocol::Icmp: {
+		if (profile._l3Proto != L3Protocol::Ipv4) {
+			throw std::runtime_error("L4 protocol is ICMP but L3 protocol is not IPv4");
+		}
 		AddLayer(MakeIcmpLayer(profile._l3Proto));
 	} break;
 
 	case L4Protocol::Icmpv6: {
+		if (profile._l3Proto != L3Protocol::Ipv6) {
+			throw std::runtime_error("L4 protocol is ICMPv6 but L3 protocol is not IPv6");
+		}
 		AddLayer(MakeIcmpLayer(profile._l3Proto));
 	} break;
 	}
