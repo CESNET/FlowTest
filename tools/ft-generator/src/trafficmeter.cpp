@@ -8,12 +8,49 @@
 
 #include "trafficmeter.h"
 
+#include <arpa/inet.h>
+#include <pcapplusplus/PayloadLayer.h>
+#include <pcapplusplus/TcpLayer.h>
+#include <pcapplusplus/UdpLayer.h>
+
 #include <cstring>
 #include <iomanip>
 #include <limits>
 #include <stdexcept>
 
 namespace generator {
+
+static bool ExtractUdpParamsFromPayloadLayer(
+	const pcpp::PayloadLayer* payloadLayer,
+	uint16_t& srcPort,
+	uint16_t& dstPort)
+{
+	if (payloadLayer->getDataLen() < sizeof(pcpp::udphdr)) {
+		return false;
+	}
+
+	const pcpp::udphdr* udpHdr = reinterpret_cast<const pcpp::udphdr*>(payloadLayer->getDataPtr());
+	srcPort = ntohs(udpHdr->portSrc);
+	dstPort = ntohs(udpHdr->portDst);
+
+	return true;
+}
+
+static bool ExtractTcpParamsFromPayloadLayer(
+	const pcpp::PayloadLayer* payloadLayer,
+	uint16_t& srcPort,
+	uint16_t& dstPort)
+{
+	if (payloadLayer == nullptr || payloadLayer->getDataLen() < sizeof(pcpp::tcphdr)) {
+		return false;
+	}
+
+	const pcpp::tcphdr* tcpHdr = reinterpret_cast<const pcpp::tcphdr*>(payloadLayer->getDataPtr());
+	srcPort = ntohs(tcpHdr->portSrc);
+	dstPort = ntohs(tcpHdr->portDst);
+
+	return true;
+}
 
 void TrafficMeter::OpenFlow(uint64_t flowId, const FlowProfile& profile)
 {
@@ -64,16 +101,45 @@ void TrafficMeter::ExtractPacketParams(
 		dstIp = ipv6Layer->getDstIPv6Address();
 	}
 
+	// Extract source and destination ports from the TCP/UDP layer of the generated packet
+	srcPort = 0;
+	dstPort = 0;
+
 	if (l4Proto == L4Protocol::Tcp) {
 		pcpp::TcpLayer* tcpLayer = static_cast<pcpp::TcpLayer*>(packet.getLayerOfType(pcpp::TCP));
-		assert(tcpLayer != nullptr);
-		srcPort = tcpLayer->getSrcPort();
-		dstPort = tcpLayer->getDstPort();
+		if (tcpLayer != nullptr) {
+			srcPort = tcpLayer->getSrcPort();
+			dstPort = tcpLayer->getDstPort();
+		} else {
+			// In case of a fragmented packet, the TCP/UDP layer might become a generic Payload
+			// layer, try to parse the parameters from that instead
+			pcpp::PayloadLayer* payloadLayer
+				= dynamic_cast<pcpp::PayloadLayer*>(packet.getLastLayer());
+			if (!ExtractTcpParamsFromPayloadLayer(payloadLayer, srcPort, dstPort)) {
+				// If this happens, it is probably a bug. Should we crash instead?
+				_logger->error(
+					"Could not parse TCP ports from generated packet, but the specified L4 in flow "
+					"profile is TCP. Generated report will contain 0 as the port number.");
+			}
+		}
+
 	} else if (l4Proto == L4Protocol::Udp) {
 		pcpp::UdpLayer* udpLayer = static_cast<pcpp::UdpLayer*>(packet.getLayerOfType(pcpp::UDP));
-		assert(udpLayer != nullptr);
-		srcPort = udpLayer->getSrcPort();
-		dstPort = udpLayer->getDstPort();
+		if (udpLayer != nullptr) {
+			srcPort = udpLayer->getSrcPort();
+			dstPort = udpLayer->getDstPort();
+		} else {
+			// In case of a fragmented packet, the TCP/UDP layer might become a generic Payload
+			// layer, try to parse the parameters from that instead
+			pcpp::PayloadLayer* payloadLayer
+				= dynamic_cast<pcpp::PayloadLayer*>(packet.getLastLayer());
+			if (!ExtractUdpParamsFromPayloadLayer(payloadLayer, srcPort, dstPort)) {
+				// If this happens, it is probably a bug. Should we crash instead?
+				_logger->error(
+					"Could not parse UDP ports from generated packet, but the specified L4 in flow "
+					"profile is UDP. Generated report will contain 0 as the port number.");
+			}
+		}
 	}
 }
 
