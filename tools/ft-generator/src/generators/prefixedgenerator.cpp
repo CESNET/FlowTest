@@ -21,7 +21,7 @@ PrefixedGenerator::PrefixedGenerator(
 	, _prefixLen(prefixLen)
 	, _lfsr(Lfsr(totalLen - prefixLen, seed))
 {
-	if (prefixLen >= totalLen) {
+	if (prefixLen > totalLen) {
 		throw std::invalid_argument("invalid PrefixedGenerator prefix length");
 	}
 }

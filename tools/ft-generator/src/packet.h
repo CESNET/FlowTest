@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "timeval.h"
+
 #include <ctime>
 #include <iostream>
 #include <map>
@@ -41,7 +43,7 @@ public:
 	using layer = std::pair<Layer*, layerParams>;
 
 	Direction _direction = Direction::Unknown; //< Packet direction
-	timeval _timestamp = {0, 0}; //< Timestamp
+	Timeval _timestamp; //< Timestamp
 	size_t _size = 0; //< Planned packet size (IP header and above)
 	bool _isFinished = false; //< Do not add more layers to packet
 	std::vector<layer> _layers; //< Packet protocol layers in order

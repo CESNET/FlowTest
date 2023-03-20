@@ -14,6 +14,7 @@
 #include "generators/addressgenerators.h"
 #include "packet.h"
 #include "pcpppacket.h"
+#include "timeval.h"
 
 #include <ctime>
 #include <iostream>
@@ -29,7 +30,7 @@ class Layer;
  * @brief Extra information about the flow packet
  */
 struct PacketExtraInfo {
-	timeval _time; //< The timestamp of the packet
+	Timeval _time; //< The timestamp of the packet
 	Direction _direction; //< The direction of the packet
 };
 
@@ -42,8 +43,8 @@ public:
 	uint64_t _revPackets = 0; //< Number of packets in reverse direction
 	uint64_t _fwdBytes = 0; //< Number of bytes in forward direction
 	uint64_t _revBytes = 0; //< Number of bytes in reverse direction
-	timeval _tsFirst = {0, 0}; //< Timestamp of the first packet
-	timeval _tsLast = {0, 0}; //< Timestamp of the last packet
+	Timeval _tsFirst; //< Timestamp of the first packet
+	Timeval _tsLast; //< Timestamp of the last packet
 	std::list<Packet> _packets; //< The planned packets
 
 	/**
@@ -96,7 +97,7 @@ public:
 	 *
 	 * @return The time
 	 */
-	timeval GetNextPacketTime() const;
+	Timeval GetNextPacketTime() const;
 
 	/**
 	 * @brief Check whether the flow is finished and wont be generating any additional packets

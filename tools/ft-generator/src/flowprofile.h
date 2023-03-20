@@ -9,6 +9,7 @@
 #pragma once
 
 #include "logger.h"
+#include "timeval.h"
 
 #include <sys/time.h>
 
@@ -23,50 +24,12 @@ enum class L3Protocol : uint8_t { Unknown, Ipv4 = 4, Ipv6 = 6 };
 
 enum class L4Protocol : uint8_t { Unknown, Icmp = 1, Tcp = 6, Udp = 17, Icmpv6 = 58 };
 
-static inline bool operator==(const timeval& a, const timeval& b)
-{
-	return a.tv_sec == b.tv_sec && a.tv_usec == b.tv_usec;
-}
-
-static inline bool operator<(const timeval& a, const timeval& b)
-{
-	return a.tv_sec == b.tv_sec ? a.tv_usec < b.tv_usec : a.tv_sec < b.tv_sec;
-}
-
-static inline bool operator>(const timeval& a, const timeval& b)
-{
-	return a.tv_sec == b.tv_sec ? a.tv_usec > b.tv_usec : a.tv_sec > b.tv_sec;
-}
-
-static inline bool operator<=(const timeval& a, const timeval& b)
-{
-	return !(a > b);
-}
-
-static inline bool operator>=(const timeval& a, const timeval& b)
-{
-	return !(a < b);
-}
-
-static inline timeval operator-(timeval a, timeval b)
-{
-	timeval res;
-	timersub(&a, &b, &res);
-	return res;
-}
-
-static inline timeval& operator-=(timeval& a, const timeval& b)
-{
-	a = timeval(a) - timeval(b);
-	return a;
-}
-
 /**
  * @brief Struct representing a flow profile entry in the input file
  */
 struct FlowProfile {
-	timeval _startTime;
-	timeval _endTime;
+	Timeval _startTime;
+	Timeval _endTime;
 	L3Protocol _l3Proto;
 	L4Protocol _l4Proto;
 	uint16_t _srcPort;

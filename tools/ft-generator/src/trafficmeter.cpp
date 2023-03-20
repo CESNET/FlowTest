@@ -94,7 +94,7 @@ static uint64_t GetPacketSizeFromIPLayer(const PcppPacket& packet)
 
 void TrafficMeter::RecordPacket(
 	uint64_t flowId,
-	timeval time,
+	Timeval time,
 	Direction dir,
 	const PcppPacket& packet)
 {
@@ -141,25 +141,6 @@ void TrafficMeter::RecordPacket(
 	}
 }
 
-static int64_t TimevalToMicroseconds(const timeval& tv)
-{
-	int64_t microseconds = 0;
-
-	if (tv.tv_sec > std::numeric_limits<int64_t>::max() / 1000000
-		|| tv.tv_sec < std::numeric_limits<int64_t>::min() / 1000000) {
-		throw std::runtime_error("cannot convert timeval to microseconds due to overflow");
-	}
-	microseconds += tv.tv_sec * 1000000;
-
-	if ((microseconds > 0 && std::numeric_limits<int64_t>::max() - microseconds < tv.tv_usec)
-		|| (microseconds < 0 && tv.tv_usec < std::numeric_limits<int64_t>::min() - microseconds)) {
-		throw std::runtime_error("cannot convert timeval to microseconds due to overflow");
-	}
-	microseconds += tv.tv_usec;
-
-	return microseconds;
-}
-
 void TrafficMeter::WriteReportCsv(const std::string& fileName)
 {
 	errno = 0;
@@ -183,12 +164,12 @@ void TrafficMeter::WriteReportCsv(const std::string& fileName)
 		}
 
 		// START_TIME
-		uint64_t startUsec = TimevalToMicroseconds(rec._firstTs);
+		uint64_t startUsec = rec._firstTs.ToMicroseconds();
 		uint64_t startMsec = startUsec / 1000;
 		uint64_t startMsecDecimal = startUsec % 1000;
 		csvFile << startMsec << "." << std::setfill('0') << std::setw(3) << startMsecDecimal << ",";
 		// END_TIME
-		uint64_t endUsec = TimevalToMicroseconds(rec._lastTs);
+		uint64_t endUsec = rec._lastTs.ToMicroseconds();
 		uint64_t endMsec = endUsec / 1000;
 		uint64_t endMsecDecimal = endUsec % 1000;
 		csvFile << endMsec << "." << std::setfill('0') << std::setw(3) << endMsecDecimal << ",";

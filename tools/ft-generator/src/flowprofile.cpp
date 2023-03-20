@@ -21,19 +21,6 @@ using config::ParseValue;
 using config::StringSplit;
 using config::StringStrip;
 
-static timeval MillisecsToTimeval(int64_t millisecs)
-{
-	timeval time;
-	time.tv_sec = millisecs / 1000;
-	time.tv_usec = (millisecs % 1000) * 1000;
-	return time;
-}
-
-static int64_t TimevalToMilliseconds(const timeval& time)
-{
-	return (int64_t(time.tv_sec) * 1000) + (time.tv_usec / 1000);
-}
-
 /**
  * Attempt to convert the provided value to a L3Protocol value
  */
@@ -113,8 +100,8 @@ std::string FlowProfile::ToString() const
 {
 	std::stringstream ss;
 	ss << "FlowProfile("
-	   << "startTime=" << TimevalToMilliseconds(_startTime) << ", "
-	   << "endTime=" << TimevalToMilliseconds(_endTime) << ", "
+	   << "startTime=" << _startTime.ToMilliseconds() << ", "
+	   << "endTime=" << _endTime.ToMilliseconds() << ", "
 	   << "l3Proto=" << L3ProtocolToString(_l3Proto) << ", "
 	   << "l4Proto=" << L4ProtocolToString(_l4Proto) << ", "
 	   << "srcPort=" << _srcPort << ", "
@@ -168,12 +155,16 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 		return ReadProfile();
 	}
 
+	for (auto& piece : pieces) {
+		piece = StringStrip(piece);
+	}
+
 	std::optional<int64_t> startTime = ParseValue<int64_t>(pieces[_order[StartTime]]);
 	if (!startTime) {
 		ReportParseError(line, "bad START_TIME");
 		return ReadProfile();
 	}
-	profile._startTime = MillisecsToTimeval(*startTime);
+	profile._startTime = Timeval::FromMilliseconds(*startTime);
 
 	std::optional<int64_t> endTime = ParseValue<int64_t>(pieces[_order[EndTime]]);
 	;
@@ -181,7 +172,7 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 		ReportParseError(line, "bad END_TIME");
 		return ReadProfile();
 	}
-	profile._endTime = MillisecsToTimeval(*endTime);
+	profile._endTime = Timeval::FromMilliseconds(*endTime);
 
 	std::optional<uint8_t> l3ProtoNum = ParseValue<uint8_t>(pieces[_order[L3Proto]]);
 	if (!l3ProtoNum) {
@@ -302,6 +293,10 @@ void FlowProfileReader::ReadHeader()
 	auto pieces = StringSplit(*line, ",");
 	if (pieces.size() != ComponentsCount) {
 		throw std::runtime_error("invalid number of components in header");
+	}
+
+	for (auto& piece : pieces) {
+		piece = StringStrip(piece);
 	}
 
 	const std::unordered_map<std::string, Component> componentMap {
