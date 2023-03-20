@@ -32,7 +32,7 @@ namespace generator {
 using MacAddress = pcpp::MacAddress;
 using IPv4Address = pcpp::IPv4Address;
 using IPv6Address = pcpp::IPv6Address;
-using IPAddress = std::variant<std::monostate, IPv4Address, IPv6Address>;
+using IPAddressVariant = std::variant<std::monostate, IPv4Address, IPv6Address>;
 
 /**
  * @brief The flow record
@@ -46,13 +46,13 @@ struct FlowRecord {
 	Timeval _lastTs;
 
 	MacAddress _fwdMacAddr;
-	IPAddress _fwdIpAddr;
+	IPAddressVariant _fwdIpAddr;
 	uint64_t _fwdPkts = 0;
 	uint64_t _fwdBytes = 0;
 	uint16_t _fwdPort = 0;
 
 	MacAddress _revMacAddr;
-	IPAddress _revIpAddr;
+	IPAddressVariant _revIpAddr;
 	uint64_t _revPkts = 0;
 	uint64_t _revBytes = 0;
 	uint16_t _revPort = 0;
@@ -116,10 +116,10 @@ private:
 		L3Protocol l3Proto,
 		L4Protocol l4Proto,
 		MacAddress& srcMac,
-		IPAddress& srcIp,
+		IPAddressVariant& srcIp,
 		uint16_t& srcPort,
 		MacAddress& dstMac,
-		IPAddress& dstIp,
+		IPAddressVariant& dstIp,
 		uint16_t& dstPort);
 };
 
