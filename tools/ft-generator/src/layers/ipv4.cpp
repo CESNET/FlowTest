@@ -44,7 +44,7 @@ void IPv4::PlanFlow(Flow& flow)
 	PacketFlowSpan packetsSpan(&flow, true);
 	for (auto& packet : packetsSpan) {
 		Packet::layerParams params;
-		packet._size += pcpp::IPv4Layer().getHeaderLen();
+		packet._size += IPV4_HDR_SIZE;
 		packet._layers.emplace_back(std::make_pair(this, params));
 	}
 }
@@ -73,7 +73,7 @@ void IPv4::PlanExtra(Flow& flow)
 	for (auto& packet : packetsSpan) {
 		if (packet._isExtra) {
 			Packet::layerParams params;
-			packet._size += pcpp::IPv4Layer().getHeaderLen();
+			packet._size += IPV4_HDR_SIZE;
 			packet._layers.emplace_back(std::make_pair(this, params));
 			packet._isFinished = true;
 		}
