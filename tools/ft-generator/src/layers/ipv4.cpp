@@ -22,6 +22,8 @@ namespace generator {
 
 enum class IPv4Map : int { FragmentCount };
 
+constexpr int IPV4_HDR_SIZE = sizeof(pcpp::iphdr);
+
 IPv4::IPv4(
 	IPv4Address ipSrc,
 	IPv4Address ipDst,
@@ -134,6 +136,7 @@ void IPv4::BuildFragment(PcppPacket& packet, pcpp::iphdr* ipHdr)
 		ipHdr->fragmentOffset |= PCPP_IP_MORE_FRAGMENTS;
 	}
 	ipHdr->ipId = htons(_fragmentId);
+	ipHdr->totalLength = htons(IPV4_HDR_SIZE + fragmentSize);
 	ipHdr->protocol = _fragmentProto;
 	pcpp::PayloadLayer* payloadLayer
 		= new pcpp::PayloadLayer(&_fragmentBuffer[_fragmentOffset], fragmentSize, false);
