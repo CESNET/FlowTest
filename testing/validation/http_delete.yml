@@ -8,20 +8,20 @@ at_least_one: ["http_host", "http_method", "http_method_id", "http_url", "http_s
               "http_content_type"]
 
 flows:
-  - src_ip:      "192.168.50.44"
-    dst_ip:      "172.217.23.206"
+  - src_ip:      "10.100.52.22"
+    dst_ip:      "77.75.79.222"
     ip_version:  4
     protocol:    6
-    bytes:       539
-    bytes@rev:   1777
-    packets:     2
-    packets@rev: 1
-    src_port:    40942
+    bytes:       450
+    bytes@rev:   369
+    packets:     6
+    packets@rev: 4
+    src_port:    60278
     dst_port:    80
-    http_host:         "google.com"
+    http_host:         "seznam.cz"
     http_url:          "/"
     http_method:       "DELETE"
     http_method_id:    32
-    http_status_code:  405
-    http_agent:        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/53.0.2785.143 Chrome/53.0.2785.143 Safari/537.36"
-    http_content_type: ["text/html", "text/html; charset=UTF-8"]
+    http_status_code:  302
+    http_agent:        "curl/7.29.0"
+    http_content_type: ["application/json"]
