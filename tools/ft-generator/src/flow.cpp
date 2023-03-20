@@ -152,7 +152,9 @@ Flow::Flow(
 			ipDst = addressGenerators.GenerateIPv6();
 		}
 
-		AddLayer(std::make_unique<IPv6>(ipSrc, ipDst));
+		auto fragProb = config.GetIPv6().GetFragmentationProbability();
+		auto minPktSizeToFragment = config.GetIPv6().GetMinPacketSizeToFragment();
+		AddLayer(std::make_unique<IPv6>(ipSrc, ipDst, fragProb, minPktSizeToFragment));
 	} break;
 	}
 
