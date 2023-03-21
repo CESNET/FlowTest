@@ -349,6 +349,8 @@ def download_logs(probe: ProbeInterface, collector: CollectorInterface, generato
         Test name used for log directory naming.
     """
 
+    # for rsync to work correctly, the path must not contain the character ;
+    test_name = test_name.replace(";", "_")
     logs_path = os.path.join(LOGS_DIR, test_name)
 
     logs_dir = os.path.join(logs_path, "probe")
