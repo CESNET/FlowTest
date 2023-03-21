@@ -27,7 +27,12 @@
 #include "timeval.h"
 #include "valuegenerator.h"
 
+#include <pcapplusplus/IPv4Layer.h>
+#include <pcapplusplus/IPv6Layer.h>
+#include <pcapplusplus/IcmpLayer.h>
+#include <pcapplusplus/IcmpV6Layer.h>
 #include <pcapplusplus/Packet.h>
+#include <pcapplusplus/UdpLayer.h>
 
 #include <algorithm>
 #include <cassert>
@@ -39,7 +44,14 @@
 
 namespace generator {
 
-static constexpr int ICMP_HEADER_SIZE = sizeof(pcpp::icmphdr);
+static constexpr int ICMP_HDR_SIZE = sizeof(pcpp::icmphdr);
+static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
+static constexpr int IPV4_HDR_SIZE = sizeof(pcpp::iphdr);
+static constexpr int IPV6_HDR_SIZE = sizeof(pcpp::ip6_hdr);
+static constexpr int UDP_HDR_SIZE = sizeof(pcpp::udphdr);
+static constexpr int ICMP_UNREACH_PKT_SIZE = ICMP_HDR_SIZE + IPV4_HDR_SIZE + UDP_HDR_SIZE;
+// Unreachable ICMPv6 message includes 4 reserved bytes after the header
+static constexpr int ICMPV6_UNREACH_PKT_SIZE = ICMPV6_HDR_SIZE + 4 + IPV6_HDR_SIZE + UDP_HDR_SIZE;
 
 const static std::vector<IntervalInfo> PACKET_SIZE_PROBABILITIES {
 	{64, 79, 0.2824},
@@ -203,7 +215,8 @@ std::unique_ptr<Layer> Flow::MakeIcmpLayer(L3Protocol l3Proto)
 	assert(l3Proto == L3Protocol::Ipv4 || l3Proto == L3Protocol::Ipv6);
 	std::unique_ptr<Layer> layer;
 	if (l3Proto == L3Protocol::Ipv4) {
-		if ((_fwdPackets <= 3 || _revPackets <= 3) && (bytesPerPkt <= 1.10 * ICMP_HEADER_SIZE)) {
+		if ((_fwdPackets <= 3 || _revPackets <= 3)
+			&& (bytesPerPkt <= 1.10 * ICMP_UNREACH_PKT_SIZE)) {
 			// Low amount of small enough packets
 			layer = std::make_unique<IcmpRandom>();
 		} else if (fwdRevRatioDiff <= 0.2) {
@@ -217,7 +230,8 @@ std::unique_ptr<Layer> Flow::MakeIcmpLayer(L3Protocol l3Proto)
 			layer = std::make_unique<IcmpEcho>();
 		}
 	} else {
-		if ((_fwdPackets <= 3 || _revPackets <= 3) && (bytesPerPkt <= 1.10 * ICMP_HEADER_SIZE)) {
+		if ((_fwdPackets <= 3 || _revPackets <= 3)
+			&& (bytesPerPkt <= 1.10 * ICMPV6_UNREACH_PKT_SIZE)) {
 			// Low amount of small enough packets
 			layer = std::make_unique<Icmpv6Random>();
 		} else if (fwdRevRatioDiff <= 0.2) {
