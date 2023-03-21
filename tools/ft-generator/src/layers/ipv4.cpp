@@ -126,7 +126,9 @@ void IPv4::BuildFragment(PcppPacket& packet, pcpp::iphdr* ipHdr)
 	uint64_t sizeRemaining = _fragmentBuffer.size() - _fragmentOffset;
 	uint64_t fragmentSize = _fragmentBuffer.size() / _fragmentCount;
 	fragmentSize = (fragmentSize + 7) / 8 * 8;
-	fragmentSize = std::min<uint64_t>(fragmentSize, sizeRemaining);
+	if (sizeRemaining < fragmentSize || _fragmentRemaining == 1) {
+		fragmentSize = sizeRemaining;
+	}
 
 	assert(_fragmentOffset % 8 == 0);
 	assert(sizeRemaining >= fragmentSize);
