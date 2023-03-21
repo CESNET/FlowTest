@@ -38,7 +38,11 @@ IPv6::IPv6(const YAML::Node& node)
 		{
 			"ip_range",
 		});
-	_ipRange = ParseOneOrMany<IPv6AddressRange>(node["ip_range"]);
+
+	const auto& ipRangeNode = node["ip_range"];
+	if (ipRangeNode.IsDefined()) {
+		_ipRange = ParseOneOrMany<IPv6AddressRange>(ipRangeNode);
+	}
 }
 
 } // namespace config

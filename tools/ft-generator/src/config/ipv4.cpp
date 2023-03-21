@@ -37,10 +37,17 @@ IPv4::IPv4(const YAML::Node& node)
 		node,
 		{"ip_range", "fragmentation_probability", "min_packet_size_to_fragment"});
 
-	_ipRange = ParseOneOrMany<IPv4AddressRange>(node["ip_range"]);
-	_fragmentationProbability = ParseProbability(node["fragmentation_probability"]);
+	const auto& ipRangeNode = node["ip_range"];
+	if (ipRangeNode.IsDefined()) {
+		_ipRange = ParseOneOrMany<IPv4AddressRange>(ipRangeNode);
+	}
 
-	auto minPktSizeToFragmentNode = node["min_packet_size_to_fragment"];
+	const auto& fragProbNode = node["fragmentation_probability"];
+	if (fragProbNode.IsDefined()) {
+		_fragmentationProbability = ParseProbability(fragProbNode);
+	}
+
+	const auto& minPktSizeToFragmentNode = node["min_packet_size_to_fragment"];
 	if (minPktSizeToFragmentNode.IsDefined()) {
 		auto result = ParseValue<uint16_t>(AsScalar(minPktSizeToFragmentNode));
 		if (!result) {

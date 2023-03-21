@@ -39,21 +39,21 @@ std::string StringStrip(std::string s)
 
 void ExpectSequence(const YAML::Node& node)
 {
-	if (!node.IsSequence()) {
+	if (!node.IsDefined() || !node.IsSequence()) {
 		throw ConfigError(node, "expected a sequence, but got " + NodeTypeToStr(node));
 	}
 }
 
 void ExpectMap(const YAML::Node& node)
 {
-	if (!node.IsMap()) {
+	if (!node.IsDefined() || !node.IsMap()) {
 		throw ConfigError(node, "expected a map, but got " + NodeTypeToStr(node));
 	}
 }
 
 void ExpectScalar(const YAML::Node& node)
 {
-	if (!node.IsScalar()) {
+	if (!node.IsDefined() || !node.IsScalar()) {
 		throw ConfigError(node, "expected a scalar, but got " + NodeTypeToStr(node));
 	}
 }
