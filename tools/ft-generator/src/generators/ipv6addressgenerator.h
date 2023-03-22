@@ -26,9 +26,8 @@ public:
 	 *
 	 * @param netIp      The network address to generate the addresses from
 	 * @param prefixLen  The prefix length
-	 * @param seed       The seed
 	 */
-	IPv6AddressGenerator(IPv6Address netIp, uint8_t prefixLen, const std::bitset<128>& seed);
+	IPv6AddressGenerator(IPv6Address netIp, uint8_t prefixLen);
 
 	/**
 	 * @brief Generate an IPv6 address

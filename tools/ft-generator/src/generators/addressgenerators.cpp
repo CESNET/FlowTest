@@ -8,7 +8,6 @@
 
 #include "addressgenerators.h"
 #include "../randomgenerator.h"
-#include "common.h"
 
 #include <cassert>
 #include <iostream>
@@ -21,10 +20,10 @@ static MultiRangeGenerator<GeneratorT, AddressT> Make(const std::vector<RangeT>&
 	std::vector<GeneratorT> generators;
 	generators.reserve(configs.size());
 	for (const auto& range : configs) {
-		generators.emplace_back(range.GetBaseAddr(), range.GetPrefixLen(), GenerateSeed());
+		generators.emplace_back(range.GetBaseAddr(), range.GetPrefixLen());
 	}
 	if (configs.empty()) {
-		generators.emplace_back(AddressT::Zero, 0, GenerateSeed());
+		generators.emplace_back(AddressT::Zero, 0);
 	}
 	return MultiRangeGenerator<GeneratorT, AddressT>(std::move(generators));
 }

@@ -8,15 +8,11 @@
 
 #include "ipv6addressgenerator.h"
 
-#include "common.h"
-
 namespace generator {
 
-IPv6AddressGenerator::IPv6AddressGenerator(
-	IPv6Address netIp,
-	uint8_t prefixLen,
-	const std::bitset<128>& seed)
-	: _gen(PrefixedGenerator(BytesToBitset(netIp.toBytes(), 16), prefixLen, 128, seed))
+IPv6AddressGenerator::IPv6AddressGenerator(IPv6Address netIp, uint8_t prefixLen)
+	: _gen(
+		PrefixedGenerator(std::vector<uint8_t>(netIp.toBytes(), netIp.toBytes() + 16), prefixLen))
 {
 	if (prefixLen > 0 && !netIp.isValid()) {
 		throw std::invalid_argument("invalid IPv6AddressGenerator net address");
@@ -25,9 +21,7 @@ IPv6AddressGenerator::IPv6AddressGenerator(
 
 IPv6Address IPv6AddressGenerator::Generate()
 {
-	uint8_t bytes[16];
-	BitsetToBytes(_gen.Generate(), bytes, 16);
-	return IPv6Address(bytes);
+	return IPv6Address(_gen.Generate().data());
 }
 
 } // namespace generator

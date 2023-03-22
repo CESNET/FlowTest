@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <bitset>
+#include <cstdint>
 #include <vector>
 
 namespace generator {
@@ -25,29 +25,25 @@ public:
 	/**
 	 * @brief Construct a new Lfsr object
 	 *
-	 * @param nBits  The number of bits
-	 * @param seed   The initial seed, respectively the shift register state
+	 * @param nBits  The number of state register bits, at most 128
 	 *
 	 * @throw std::invalid_argument in case nBits is an invalid number of bits
 	 */
-	Lfsr(unsigned int nBits, const std::bitset<128>& seed);
+	Lfsr(unsigned int nBits);
 
 	/**
-	 * @brief Generate the next 128 bit value
-	 *
-	 * @return The generated bits
-	 *
-	 * @warning Despite the return value being 128 bits, bits on positions
-	 *          higher than the specified totalLen have undefined value!
+	 * @brief Generate the next bit
 	 */
-	std::bitset<128> Next();
+	void Next();
+
+	/**
+	 * @brief Get the state of the shift register
+	 */
+	const std::vector<bool>& GetState() const { return _state; }
 
 private:
-	unsigned int _nBits; //< The number of bits
-	std::vector<uint64_t> _taps; //< The taps used for calculation of the next bit
-	std::bitset<128> _state; //< The shift register state
-
-	void Shift();
+	std::vector<int> _taps; //< The tap mask used for calculation of the next bit
+	std::vector<bool> _state; //< The shift register state
 };
 
 } // namespace generator

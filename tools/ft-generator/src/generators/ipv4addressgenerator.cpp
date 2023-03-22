@@ -8,15 +8,10 @@
 
 #include "ipv4addressgenerator.h"
 
-#include "common.h"
-
 namespace generator {
 
-IPv4AddressGenerator::IPv4AddressGenerator(
-	IPv4Address netIp,
-	uint8_t prefixLen,
-	const std::bitset<128>& seed)
-	: _gen(PrefixedGenerator(BytesToBitset(netIp.toBytes(), 4), prefixLen, 32, seed))
+IPv4AddressGenerator::IPv4AddressGenerator(IPv4Address netIp, uint8_t prefixLen)
+	: _gen(PrefixedGenerator(std::vector<uint8_t>(netIp.toBytes(), netIp.toBytes() + 4), prefixLen))
 {
 	if (prefixLen > 0 && !netIp.isValid()) {
 		throw std::invalid_argument("invalid net address");
@@ -25,9 +20,7 @@ IPv4AddressGenerator::IPv4AddressGenerator(
 
 IPv4Address IPv4AddressGenerator::Generate()
 {
-	uint8_t bytes[4];
-	BitsetToBytes(_gen.Generate(), bytes, 4);
-	return IPv4Address(bytes);
+	return IPv4Address(_gen.Generate().data());
 }
 
 } // namespace generator

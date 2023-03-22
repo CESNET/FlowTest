@@ -10,8 +10,8 @@
 
 #include "lfsr.h"
 
-#include <bitset>
 #include <cstdint>
+#include <vector>
 
 namespace generator {
 
@@ -23,30 +23,26 @@ public:
 	/**
 	 * @brief Construct a new Prefixed Generator object
 	 *
-	 * @param prefix     The prefix bits
-	 * @param prefixLen  The length of the prefix
-	 * @param totalLen   Total length of the generated addresses
-	 * @param seed       The seed
+	 * @param base       The base address
+	 * @param prefixLen  Number of prefix bits in base address
+	 *
+	 * @note The length of the generated addresses is determined by the length of the
+	 *       base address vector.
 	 */
-	PrefixedGenerator(
-		const std::bitset<128>& prefix,
-		uint8_t prefixLen,
-		uint8_t totalLen,
-		const std::bitset<128>& seed);
+	PrefixedGenerator(const std::vector<uint8_t>& base, unsigned int prefixLen);
 
 	/**
 	 * @brief Generate a series of bits with the desired length and prefix
 	 *
-	 * @return The generated bits
-	 *
-	 * @warning Despite the return value being 128 bits, bits on positions
-	 *          higher than the specified totalLen have undefined value!
+	 * @return The generated bits. The size of the returned vector is equal to the size of the
+	 *         provided base address.
 	 */
-	std::bitset<128> Generate();
+	std::vector<uint8_t> Generate();
 
 private:
-	std::bitset<128> _prefix;
-	uint8_t _prefixLen;
+	std::vector<uint8_t> _base;
+	unsigned int _prefixLen;
+	unsigned int _totalLen;
 	Lfsr _lfsr;
 };
 

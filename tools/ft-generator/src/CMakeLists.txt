@@ -13,7 +13,6 @@ set(FT_GENERATOR_SOURCES
 	flowprofile.cpp
 	generator.cpp
 	generators/addressgenerators.cpp
-	generators/common.cpp
 	generators/ipv4addressgenerator.cpp
 	generators/ipv6addressgenerator.cpp
 	generators/lfsr.cpp

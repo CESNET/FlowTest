@@ -24,9 +24,8 @@ public:
 	 *
 	 * @param netIp      The network address to generate the addresses from
 	 * @param prefixLen  The prefix length
-	 * @param seed       The seed
 	 */
-	IPv4AddressGenerator(IPv4Address netIp, uint8_t prefixLen, const std::bitset<128>& seed);
+	IPv4AddressGenerator(IPv4Address netIp, uint8_t prefixLen);
 
 	/**
 	 * @brief Generate an IPv4 address
