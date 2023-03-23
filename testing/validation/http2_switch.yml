@@ -4,6 +4,8 @@ test:
   required_protocols: ["http"]
   description: Check that HTTP version 2.0 is parsed properly after switching from HTTP 1.1.
 
+at_least_one: ["http_host", "http_method", "http_method_id", "http_url", "http_status_code", "http_agent"]
+
 flows:
   - src_ip:      "10.9.0.2"
     dst_ip:      "139.162.123.134"

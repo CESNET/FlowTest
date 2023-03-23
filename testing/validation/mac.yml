@@ -4,6 +4,8 @@ test:
   required_protocols: ["eth"]
   description: Check that MAC addresses are correctly parsed.
 
+at_least_one: ["src_mac", "dst_mac"]
+
 flows:
   - src_ip:      "192.168.56.101"
     dst_ip:      "192.168.56.102"

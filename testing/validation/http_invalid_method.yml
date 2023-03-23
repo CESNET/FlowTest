@@ -4,6 +4,8 @@ test:
   required_protocols: ["http"]
   description: Check that packets with invalid HTTP method are parsed properly.
 
+at_least_one: ["http_host", "http_method", "http_url", "http_status_code", "http_agent", "http_content_type"]
+
 flows:
   - src_ip:      "192.168.1.36"
     dst_ip:      "192.168.1.25"

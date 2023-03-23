@@ -4,6 +4,8 @@ test:
   required_protocols: ["tls"]
   description: Check that TLS communication resulting in incompatible cipher suites is properly parsed.
 
+at_least_one: ["tls_server_version", "tls_client_version", "tls_ja3"]
+
 flows:
   - src_ip:      "192.168.1.29"
     dst_ip:      "192.168.1.25"

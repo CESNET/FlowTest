@@ -5,6 +5,7 @@ test:
   description: Check that MPLS header is correctly parsed and skipped.
 
 key: [src_ip, dst_ip, protocol]
+at_least_one: ["mpls_label_1", "mpls_label_1@rev"]
 
 flows:
   - src_ip:           "1.1.1.1"

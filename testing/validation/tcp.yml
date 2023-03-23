@@ -4,6 +4,8 @@ test:
   required_protocols: ["tcp"]
   description: Check that TCP Flags and TCP Options are properly parsed from TCP header.
 
+at_least_one: ["tcp_flags", "tcp_flags@rev", "tcp_options", "tcp_options@rev", "tcp_syn_size"]
+
 flows:
   - src_ip:          "192.168.56.101"
     dst_ip:          "192.168.56.102"

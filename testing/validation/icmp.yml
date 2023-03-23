@@ -5,6 +5,7 @@ test:
   description: Check that ICMPv4 is properly parsed.
 
 key: [src_ip, dst_ip, protocol]
+at_least_one: [icmp_type, icmp_type@rev, icmp_code, icmp_code@rev, icmp_type_code, icmp_type_code@rev]
 
 flows:
   - src_ip:             "192.168.158.139"

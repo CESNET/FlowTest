@@ -5,6 +5,7 @@ test:
   description: Check that ICMPv6 is properly parsed.
 
 key: [src_ip, dst_ip, protocol]
+at_least_one: ["icmp_type", "icmp_code", "icmp_type_code"]
 
 flows:
   - src_ip:             "fe80::c002:3ff:fee4:0"

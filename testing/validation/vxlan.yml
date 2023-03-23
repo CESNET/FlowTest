@@ -6,6 +6,7 @@ test:
   description: Parse VXLAN tunnel and check whether MAC resp. IP fields contain information from the inner ethernet resp. IP header.
 
 key: [src_ip, dst_ip, protocol]
+at_least_one: ["vxlan_id"]
 
 flows:
   - src_ip:           "10.0.0.1"
