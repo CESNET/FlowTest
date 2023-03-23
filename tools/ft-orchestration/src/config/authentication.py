@@ -6,7 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Orchestration configuration entity - AuthenticationCfg"""
 from dataclasses import dataclass
-from os.path import exists
+from os.path import exists, expanduser, expandvars
 from typing import Optional
 
 from dataclass_wizard import YAMLWizard
@@ -22,6 +22,8 @@ class AuthenticationCfg(YAMLWizard):
 
     - name is mandatory
     - contains the key_path OR pair of the username and the password
+    - in key_path, username and password strings can be used environment variable, e.g. $CI_PASSWORD or ${$CI_USER}
+    - key_path can contain ~ or ~user for expanding user home directory, e.g. "~/.ssh/${KEY_NAME}"
     """
 
     name: str
@@ -43,9 +45,19 @@ class AuthenticationCfg(YAMLWizard):
                 "At least one authentication (SSH agent, key_path or password) must be present."
             )
 
+        self._expand_environment()
+
         if self.key_path:
             self._check_key_path()
 
     def _check_key_path(self) -> None:
         if not exists(self.key_path):
             raise AuthenticationCfgException(f"Key file {self.key_path} was not found.")
+
+    def _expand_environment(self):
+        if self.username:
+            self.username = expandvars(self.username)
+        if self.password:
+            self.password = expandvars(self.password)
+        if self.key_path:
+            self.key_path = expandvars(expanduser(self.key_path))
