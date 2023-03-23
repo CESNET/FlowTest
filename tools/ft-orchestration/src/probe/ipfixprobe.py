@@ -45,6 +45,7 @@ FIELDS = {
     "basic": [
         "dst_mac",
         "src_mac",
+        "ip_version",
         "dst_ip",
         "src_ip",
         "bytes",
@@ -53,7 +54,6 @@ FIELDS = {
         "src_port",
         "protocol",
         "tcp_flags",
-        "tos",
     ],
     "basicplus": [
         "ttl",
@@ -72,7 +72,7 @@ FIELDS = {
     "tls": [
         "tls_sni",
         "tls_alpn",
-        "tls_client_version",
+        "tls_server_version",
         "tls_ja3",
     ],
     "dns": [

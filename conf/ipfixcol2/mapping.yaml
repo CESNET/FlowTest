@@ -118,6 +118,8 @@
 # DNS
 'flowmon:dnsId':
   map: dns_id
+'cesnet:DNSTransactionID':
+  map: dns_id
 'flowmon:dnsFlagsCodes':
   map: dns_flags
 'cesnet:DNSQType':
@@ -188,6 +190,8 @@
 'flowmon:tlsSni':
   map: tls_sni
   converter: rstrip_zeroes
+'cesnet:TLSSNI':
+  map: tls_sni
 'flowmon:tlsClientVersion':
   map: tls_client_version
 'flowmon:tlsIssuerCn':
