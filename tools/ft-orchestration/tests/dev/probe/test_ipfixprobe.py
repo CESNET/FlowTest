@@ -270,8 +270,7 @@ class TestWithFakeHost:
             "core_mask": 0x01,
             "memory": 2048,
             "file_prefix": "ipfixprobe",
-            "queues_count": 10,
-            "queue_id": 0,
+            "queues_count": 4,
             "mbuf_size": 128,
             "mempool_size": 4096,
         }
@@ -284,30 +283,21 @@ class TestWithFakeHost:
         probe.stop()
 
         regex = (
-            'ipfixprobe -c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0 -- -i "dpdk;p=0;q=10;i=0;b=128;m=4096"'
-            ' -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
+            'ipfixprobe -i "dpdk;p=0;q=4;b=128;m=4096;e=-c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0"'
+            ' -i "dpdk" -i "dpdk" -i "dpdk" -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
         )
         assert re.search(regex, fake_host.last_command)
 
-        probe = IpfixprobeDpdk(
-            fake_host,
-            ProbeTarget("127.0.0.1", 4739, "tcp"),
-            [],
-            [InterfaceCfg("0000:01:00.0", 10), InterfaceCfg("0000:01:00.1", 10), InterfaceCfg("0000:01:00.2", 10)],
-            False,
-            **kwargs,
-        )
-
-        probe.start()
-        probe.stop()
-
-        regex = (
-            "ipfixprobe -c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0 -a 0000:01:00.1 -a 0000:01:00.2 --"
-            ' -i "dpdk;p=0;q=10;i=0;b=128;m=4096" -i "dpdk;p=1;q=10;i=0;b=128;m=4096"'
-            ' -i "dpdk;p=2;q=10;i=0;b=128;m=4096" -o "ipfix;h=127.0.0.1;p=4739"'
-            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
-        )
-        assert re.search(regex, fake_host.last_command)
+        # Only 1 input interface is supported by ipfixprobe-dpdk at the time.
+        with pytest.raises(ProbeException):
+            probe = IpfixprobeDpdk(
+                fake_host,
+                ProbeTarget("127.0.0.1", 4739, "tcp"),
+                [],
+                [InterfaceCfg("0000:01:00.0", 10), InterfaceCfg("0000:01:00.1", 10), InterfaceCfg("0000:01:00.2", 10)],
+                False,
+                **kwargs,
+            )
 
     @staticmethod
     def test_prepare_cmd_ndp_plugin(fake_host):

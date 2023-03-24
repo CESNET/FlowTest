@@ -190,12 +190,10 @@ class IpfixprobeDpdkSettings(IpfixprobeSettings):
         Prefix for hugepage filenames. EAL parameter.
     queues_count: int, optional
         Number of RX queues. Default: 1.
-    queue_id: int, optional
-        Queue ID.
     mbuf_size: int, optional
-        Size of the MBUF packet buffer. Default: 64.
+        Size of the MBUF packet buffer.
     mempool_size: int, optional
-        Size of the memory pool for received packets. Default: 8191.
+        Size of the memory pool for received packets.
     """
 
     # EAL params
@@ -205,8 +203,7 @@ class IpfixprobeDpdkSettings(IpfixprobeSettings):
     file_prefix: Optional[str] = None
 
     # dpdk plugin params, same values for all devices
-    queues_count: Optional[int] = None
-    queue_id: Optional[int] = None
+    queues_count: int = 1
     mbuf_size: Optional[int] = None
     mempool_size: Optional[int] = None
 
@@ -755,6 +752,11 @@ class IpfixprobeDpdk(Ipfixprobe):
         sudo: bool = False,
         **kwargs: dict,
     ):
+        if len(interfaces) > 1:
+            raise ProbeException(
+                "Only 1 input interface is supported by ipfixprobe-dpdk at the time. "
+                "Behavior will be changed with future updates of ipfixprobe."
+            )
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeDpdkSettings(devices=interfaces_names, **kwargs)
         super().__init__(host, target, protocols, interfaces, verbose, settings, sudo)
@@ -765,7 +767,7 @@ class IpfixprobeDpdk(Ipfixprobe):
         if not isinstance(settings, IpfixprobeDpdkSettings):
             raise TypeError("In IpfixprobeDpdk settings should be IpfixprobeDpdkSettings.")
 
-        args = []
+        args = ["ipfixprobe"]
 
         eal_params = ["-c", str(settings.core_mask)]
         if settings.memory:
@@ -773,23 +775,26 @@ class IpfixprobeDpdk(Ipfixprobe):
         if settings.file_prefix:
             eal_params += ["--file-prefix", settings.file_prefix]
 
+        for dev in settings.devices:
+            eal_params += ["-a", dev]
+
         for port, dev in enumerate(settings.devices):
             dpdk_params = [f"p={port}"]
-            if settings.queues_count:
-                dpdk_params.append(f"q={settings.queues_count}")
-            if settings.queue_id is not None:
-                dpdk_params.append(f"i={settings.queue_id}")
+            dpdk_params.append(f"q={settings.queues_count}")
             if settings.mbuf_size:
                 dpdk_params.append(f"b={settings.mbuf_size}")
             if settings.mempool_size:
                 dpdk_params.append(f"m={settings.mempool_size}")
-
-            eal_params += ["-a", dev]
+            eal_params_str = " ".join(eal_params)
+            dpdk_params.append(f"e={eal_params_str}")
 
             args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "dpdk", dpdk_params)
 
+            for _ in range(settings.queues_count - 1):
+                args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "dpdk", [])
+
         args += self._get_common_args(target, protocols, settings)
-        return " ".join(["ipfixprobe"] + eal_params + ["--"] + args)
+        return " ".join(args)
 
 
 class IpfixprobeNdp(Ipfixprobe):
