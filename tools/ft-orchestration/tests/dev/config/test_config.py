@@ -16,6 +16,7 @@ from src.config.common import InterfaceCfg
 from src.config.config import Config, ConfigException
 from src.config.generator import GeneratorCfg
 from src.config.probe import ProbeCfg
+from src.config.whitelist import WhitelistCfg
 
 FILES_DIR = f"{os.getcwd()}/tools/ft-orchestration/tests/dev/config/files"
 
@@ -28,6 +29,7 @@ def fixture_create_config():
         f"{FILES_DIR}/generators.yml",
         f"{FILES_DIR}/collectors.yml",
         f"{FILES_DIR}/probes.yml",
+        f"{FILES_DIR}/whitelists.yml",
     )
 
 
@@ -86,6 +88,7 @@ def test_generators_invalid() -> None:
             f"{FILES_DIR}/generators-invalid-1.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -97,6 +100,7 @@ def test_generators_invalid() -> None:
             f"{FILES_DIR}/generators-invalid-2.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -146,6 +150,7 @@ def test_authentications_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -159,6 +164,7 @@ def test_authentications_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -173,6 +179,7 @@ def test_authentications_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -224,6 +231,7 @@ def test_collectors_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors-invalid-1.yml",
             f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -238,6 +246,7 @@ def test_collectors_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors-invalid-2.yml",
             f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -321,6 +330,7 @@ def test_probes_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes-invalid-1.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -335,6 +345,7 @@ def test_probes_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes-invalid-2.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -349,6 +360,7 @@ def test_probes_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes-invalid-3.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
@@ -360,20 +372,121 @@ def test_probes_invalid() -> None:
             f"{FILES_DIR}/generators.yml",
             f"{FILES_DIR}/collectors.yml",
             f"{FILES_DIR}/probes-invalid-4.yml",
+            f"{FILES_DIR}/whitelists.yml",
         )
         assert False
     except ConfigException as err:
         assert "Validation error: Mac address cannot be empty in probe interface" in str(err)
+
+    try:
+        Config(
+            f"{FILES_DIR}/authentication.yml",
+            f"{FILES_DIR}/generators.yml",
+            f"{FILES_DIR}/collectors.yml",
+            f"{FILES_DIR}/probes-invalid-bad-whitelist.yml",
+            f"{FILES_DIR}/whitelists.yml",
+        )
+        assert False
+    except ConfigException as err:
+        assert "Validation error: Whitelist 'not-existing-whitelist' was not found in whitelists config" in str(err)
 
 
 def test_file_not_found() -> None:
     """Checks when the config files are not found"""
 
     try:
-        Config("file_not_found.yml", "file_not_found.yml", "file_not_found.yml", "file_not_found.yml")
+        Config(
+            "file_not_found.yml", "file_not_found.yml", "file_not_found.yml", "file_not_found.yml", "file_not_found.yml"
+        )
         assert False
     except ConfigException as err:
         assert str(err) == (
             "Error reading config file file_not_found.yml, code 2, exception [Errno 2] No such file or "
             "directory: 'file_not_found.yml'"
         )
+
+
+def test_whitelists(create_config) -> None:
+    """Check reading whitelists
+
+    Example data:
+        - name: flowmon-whitelist
+            items:
+                validation:
+                    - test1.yml
+                    - test2.yml
+                    - test3.yml
+                simulation:
+                    - test4.yml
+                    - test5.yml
+
+        - name: flowmon-whitelist-via-switch
+            include: flowmon-whitelist
+            items:
+                validation:
+                    - vlan.yml
+                    - mac.yml: "Mac addresses are changed when testing via switch."
+    """
+
+    whitelists: Dict[str, WhitelistCfg] = create_config.whitelists
+
+    assert len(whitelists) == 3
+    assert list(whitelists.keys()) == ["flowmon-whitelist", "flowmon-whitelist-via-switch", "inherited"]
+    wl_1: WhitelistCfg = whitelists["flowmon-whitelist"]
+    wl_2: WhitelistCfg = whitelists["flowmon-whitelist-via-switch"]
+    wl_3: WhitelistCfg = whitelists["inherited"]
+
+    # check wl_1
+    assert wl_1.name == "flowmon-whitelist"
+    assert wl_1.get_items("validation") == {"test1.yml": None, "test2.yml": None, "test3.yml": None}
+
+    # check wl_2
+    assert wl_2.name == "flowmon-whitelist-via-switch"
+    assert wl_2.get_items("validation") == {
+        "test1.yml": None,
+        "test2.yml": None,
+        "test3.yml": None,
+        "vlan.yml": None,
+        "mac.yml": "Mac addresses are changed when testing via switch.",
+    }
+
+    # check wl_3
+    assert wl_3.name == "inherited"
+    assert wl_3.get_items("validation") == {
+        "test1.yml": None,
+        "test2.yml": None,
+        "test3.yml": None,
+        "vlan.yml": None,
+        "mac.yml": "Mac addresses are changed when testing via switch.",
+        "last_inherited.yml": "Because",
+    }
+
+
+def test_whitelists_invalid() -> None:
+    """Checks invalid whitelists reading"""
+
+    try:
+        Config(
+            f"{FILES_DIR}/authentication.yml",
+            f"{FILES_DIR}/generators.yml",
+            f"{FILES_DIR}/collectors.yml",
+            f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists-invalid-circular.yml",
+        )
+        assert False
+    except ConfigException as err:
+        assert "Validation error: WhitelistCfg config error: Circular dependency in whitelist" in str(err)
+
+    try:
+        Config(
+            f"{FILES_DIR}/authentication.yml",
+            f"{FILES_DIR}/generators.yml",
+            f"{FILES_DIR}/collectors.yml",
+            f"{FILES_DIR}/probes.yml",
+            f"{FILES_DIR}/whitelists-invalid-include.yml",
+        )
+        assert False
+    except ConfigException as err:
+        assert (
+            "Validation error: WhitelistCfg config error: Referenced whitelist 'not-existing-whitelist' was not found."
+        ) in str(err)

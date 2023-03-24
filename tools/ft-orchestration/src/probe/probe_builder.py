@@ -8,13 +8,14 @@ Builder for creating a probe instance based on a static configuration.
 """
 
 from os import path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from lbr_testsuite.topology import Device
 from src.common.builder_base import BuilderBase, BuilderError
 from src.config.common import InterfaceCfg
 from src.config.config import Config
 from src.config.probe import ProbeCfg
+from src.config.whitelist import WhitelistCfg
 from src.probe.interface import ProbeInterface
 from src.probe.probe_target import ProbeTarget
 
@@ -67,6 +68,11 @@ class ProbeBuilder(BuilderBase, Device):
         self._interfaces = self._load_interfaces(probe_cfg, enabled_interfaces)
         self._connector_args = probe_cfg.connector if probe_cfg.connector else {}
 
+        if probe_cfg.tests_whitelist:
+            self._whitelist = config.whitelists[probe_cfg.tests_whitelist]
+        else:
+            self._whitelist = None
+
         # cmd additional arguments has higher priority, update arguments from config
         self._connector_args.update(cmd_connector_args)
 
@@ -99,6 +105,17 @@ class ProbeBuilder(BuilderBase, Device):
         """
 
         return [ifc.mac for ifc in self._interfaces]
+
+    def get_tests_whitelist(self) -> Optional[WhitelistCfg]:
+        """Get whitelist with expected failure tests.
+
+        Returns
+        -------
+        WhitelistCfg, optional
+            Whitelist with expected failure tests if specified in probe configuration.
+        """
+
+        return self._whitelist
 
     @staticmethod
     def _load_interfaces(probe_cfg: ProbeCfg, enabled_interfaces: List[str]) -> List[InterfaceCfg]:

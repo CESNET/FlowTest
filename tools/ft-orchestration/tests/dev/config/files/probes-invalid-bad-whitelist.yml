@@ -26,4 +26,4 @@
   tags: [ http, tls, dns, vxlan, gre ]
   connector:
     input-plugin-type: [ dpdk, rawnetcap ]
-  tests_whitelist: flowmon-whitelist
+  tests_whitelist: not-existing-whitelist

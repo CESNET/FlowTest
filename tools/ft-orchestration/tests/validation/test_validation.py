@@ -220,7 +220,7 @@ def collect_validation_tests() -> list[ParameterSet]:
         with open(f"{VALIDATION_TESTS_DIR}/{file}", "r", encoding="utf-8") as test_file:
             validation_test = yaml.safe_load(test_file)
             marks = [getattr(pytest.mark, prot) for prot in validation_test["test"]["required_protocols"]]
-            tests.append(pytest.param(validation_test, marks=marks, id=file))
+            tests.append(pytest.param(validation_test, file, marks=marks, id=file))
 
     return tests
 
@@ -406,18 +406,40 @@ def download_logs(probe: ProbeInterface, collector: CollectorInterface, generato
 select_topologies(["pcap_player"])
 
 
+@pytest.fixture(name="xfail_by_probe")
+def fixture_xfail_by_probe(request: pytest.FixtureRequest, test_filename: str, device: ProbeBuilder):
+    """The fixture_xfail_by_probe function is a pytest fixture that marks
+    the test as xfail if it's in the whitelist. Whitelist must be
+    associated in probe static configuration.
+
+    Parameters
+    ----------
+    request: pytest.FixtureRequest
+        Request from pytest.
+    test_filename: str
+        Get the name of the test file.
+    device: ProbeBuilder
+        Get the whitelist for the device.
+    """
+
+    whitelist = device.get_tests_whitelist()
+    if whitelist:
+        validation_whitelist = whitelist.get_items("validation")
+        if test_filename in validation_whitelist:
+            request.applymarker(pytest.mark.xfail(run=True, reason=validation_whitelist[test_filename] or ""))
+
+
 @pytest.mark.validation
-@pytest.mark.parametrize(
-    "test",
-    collect_validation_tests(),
-)
+@pytest.mark.parametrize("test, test_filename", collect_validation_tests())
 # pylint: disable=too-many-locals
+# pylint: disable=unused-argument
 def test_validation(
     request: pytest.FixtureRequest,
     test: dict,
     generator: GeneratorBuilder,
     device: ProbeBuilder,
     analyzer: CollectorBuilder,
+    xfail_by_probe,
 ):
     """Execute validation tests."""
 

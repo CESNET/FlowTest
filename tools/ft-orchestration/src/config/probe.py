@@ -13,6 +13,7 @@ from dataclass_wizard import YAMLWizard
 
 from src.config.authentication import AuthenticationCfg
 from src.config.common import InterfaceCfg
+from src.config.whitelist import WhitelistCfg
 
 
 class ProbeCfgException(Exception):
@@ -31,8 +32,9 @@ class ProbeCfg(YAMLWizard):
     tags: List[str]
     connector: Optional[dict] = None
     ansible_playbook_role: Optional[str] = None
+    tests_whitelist: Optional[str] = None
 
-    def check(self, authentications: Dict[str, AuthenticationCfg]) -> None:
+    def check(self, authentications: Dict[str, AuthenticationCfg], whitelists: Dict[str, WhitelistCfg]) -> None:
         """Check the configuration validity.
 
         Parameters
@@ -51,3 +53,6 @@ class ProbeCfg(YAMLWizard):
                 f"ProbeCfg config error: AuthenticationCfg name {self.authentication} was not found in the "
                 f"Authentications config file"
             )
+
+        if self.tests_whitelist and self.tests_whitelist not in whitelists:
+            raise ProbeCfgException(f"Whitelist '{self.tests_whitelist}' was not found in whitelists config")
