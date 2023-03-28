@@ -26,6 +26,7 @@ from typing import List, Optional
 
 # pylint: disable=no-name-in-module
 import pytest
+import pytest_html
 import yaml
 from _pytest.mark import ParameterSet
 from ftanalyzer.fields import FieldDatabase
@@ -187,6 +188,27 @@ def pytest_html_results_table_row(report: "HTMLReport", cells: list) -> None:
     cells.insert(2, html.td(report.test_description))
 
 
+def get_logs_url(relative_logs_path: str) -> str:
+    """Add url prefix for browsing artifacts in CI.
+
+    Parameters
+    ----------
+    relative_logs_path: str
+        Path to test log directory relative to html report file.
+
+    Returns
+    -------
+    str
+        Url to log directory.
+    """
+
+    # tests are running in GitLab CI pipeline
+    ci_job_url = os.getenv("CI_JOB_URL")
+    if ci_job_url:
+        return f"{ci_job_url}/artifacts/browse/{relative_logs_path}"
+    return relative_logs_path
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item: pytest.Item) -> None:
     """Add test name and description after each validation test finishes.
@@ -201,6 +223,13 @@ def pytest_runtest_makereport(item: pytest.Item) -> None:
     if report.when == "teardown":
         report.test_name = getattr(item.function, "test_name", "")
         report.test_description = getattr(item.function, "test_description", "")
+
+    extra = getattr(report, "extra", [])
+    if report.when == "call" and hasattr(item.function, "logs_path"):
+        logs_path = getattr(item.function, "logs_path")
+        relative_logs_path = os.path.relpath(logs_path, os.path.dirname(item.config.getoption("htmlpath")))
+        extra.append(pytest_html.extras.url(get_logs_url(relative_logs_path), name="Logs"))
+        report.extra = extra
 
 
 def collect_validation_tests() -> list[ParameterSet]:
@@ -389,6 +418,7 @@ def download_logs(probe: ProbeInterface, collector: CollectorInterface, generato
     # for rsync to work correctly, the path must not contain the character ;
     test_name = test_name.replace(";", "_")
     logs_path = os.path.join(LOGS_DIR, test_name)
+    test_validation.logs_path = logs_path
 
     logs_dir = os.path.join(logs_path, "probe")
     os.makedirs(logs_dir, exist_ok=True)
