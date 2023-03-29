@@ -18,6 +18,8 @@ add_executable(ft-replay
 	outputQueue.hpp
 	raw.cpp
 	raw.hpp
+	ethTool.cpp
+	ethTool.hpp
 	socketDescriptor.cpp
 	socketDescriptor.hpp
 	pcapFile.cpp
