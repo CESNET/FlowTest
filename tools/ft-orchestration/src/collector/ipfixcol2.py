@@ -323,6 +323,6 @@ class Ipfixcol2(CollectorInterface):
         else:
             work_dir = self._host.get_storage().get_remote_directory()
 
-        self._fdsdump = Fdsdump(self._host, str(Path(work_dir, self.FDS_FILE)))
+        self._fdsdump = Fdsdump(self._host, str(Path(work_dir, self.FDS_FILE)), work_dir)
 
         return self._fdsdump
