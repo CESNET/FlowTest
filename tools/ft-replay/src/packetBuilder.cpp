@@ -108,7 +108,7 @@ PacketBuilder::GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen)
 
 	ethhdr* ethHeader = reinterpret_cast<ethhdr*>(packetData.get());
 	uint16_t originL2EtherType = ethHeader->h_proto;
-	ethHeader->h_proto = vlanEtherType;
+	ethHeader->h_proto = htons(vlanEtherType);
 
 	VlanHeader* vlanHeader = reinterpret_cast<VlanHeader*>(packetData.get() + sizeof(ethhdr));
 	vlanHeader->vlanTci = htons(_vlanID);
