@@ -279,7 +279,7 @@ void NfbPlugin::ParseMap(const std::map<std::string, std::string>& argMap)
 
 void NfbPlugin::DetermineSuperPacketSize()
 {
-	static const char* superCompName = "cesnet,ofm,frameunpacker";
+	static const char* superCompName = "cesnet,ofm,frame_unpacker";
 
 	int ret = nfb_comp_count(_nfbDevice.get(), superCompName);
 	if (ret > 0) {
