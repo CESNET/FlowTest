@@ -72,7 +72,7 @@ class StatisticalModel:
         "BYTES": "sum",
     }
 
-    def __init__(self, flows: str, reference: str, timeouts: Tuple[int, int]) -> None:
+    def __init__(self, flows: str, reference: str, timeouts: Tuple[int, int], start_time: int = 0) -> None:
         """Read provided files and converts it to data frames.
 
         Parameters
@@ -84,6 +84,9 @@ class StatisticalModel:
         timeouts : tuple
             Active and inactive timeout (in seconds) which was configured on the network
             probe during the monitoring period.
+        start_time : int
+            Treat times in the reference file as offsets (in milliseconds) from the provided start time.
+            UTC timestamp in milliseconds.
 
         Raises
         ------
@@ -96,6 +99,10 @@ class StatisticalModel:
             self._ref = pd.read_csv(reference, engine="pyarrow", dtype=self.CSV_COLUMN_TYPES)
         except Exception as err:
             raise SMException("Unable to read file with flows.") from err
+
+        if start_time > 0:
+            self._ref["START_TIME"] = self._ref["START_TIME"] + start_time
+            self._ref["END_TIME"] = self._ref["END_TIME"] + start_time
 
         self._merge_flows(timeouts[0])
 
@@ -282,12 +289,10 @@ class StatisticalModel:
         if segment.start is not None:
             dt_obj = datetime.strptime(segment.start, segment.form).replace(tzinfo=timezone.utc)
             start_time = int(dt_obj.timestamp() * 1000)
-            start_time += dt_obj.microsecond // 1000
 
         if segment.end is not None:
             dt_obj = datetime.strptime(segment.end, segment.form).replace(tzinfo=timezone.utc)
             end_time = int(dt_obj.timestamp() * 1000)
-            end_time += dt_obj.microsecond // 1000
 
         if start_time is not None and end_time is not None:
             mask_flow = self._flows["START_TIME"].apply(lambda x: x >= start_time) & self._flows["END_TIME"].apply(

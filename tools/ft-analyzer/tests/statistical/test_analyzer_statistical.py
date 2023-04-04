@@ -173,3 +173,33 @@ def test_wrong_difference():
 
     with pytest.raises(ValueError):
         SMMetric(SMMetricType.PACKETS, 1.1)
+
+
+def test_relative_time():
+    """Test correct update of reference flows when start time is provided."""
+    model = SMod(
+        os.path.join(FLOWS_PATH, "relative_time.csv"),
+        os.path.join(REF_PATH, "relative_time.csv"),
+        (300, 30),
+        start_time=1678312157497,
+    )
+    metrics = [
+        SMMetric(SMMetricType.PACKETS, 0),
+        SMMetric(SMMetricType.BYTES, 0),
+        SMMetric(SMMetricType.FLOWS, 0),
+    ]
+
+    segment = SMTimeSegment(start="2023-03-08 21:49:22.275", end="2023-03-08 21:49:22.483")
+    report = model.validate([SMRule(metrics, segment)])
+    report.print_results()
+    assert report.is_passing() is True
+
+    segment = SMTimeSegment(start="2023-03-08 21:49:22.275")
+    report = model.validate([SMRule(metrics, segment)])
+    report.print_results()
+    assert report.is_passing() is True
+
+    segment = SMTimeSegment(end="2023-03-08 21:49:27.962")
+    report = model.validate([SMRule(metrics, segment)])
+    report.print_results()
+    assert report.is_passing() is True
