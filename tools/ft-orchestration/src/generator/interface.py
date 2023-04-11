@@ -10,7 +10,7 @@ generator which replays PCAP file on a network interface.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
+from typing import Iterable, Optional, Union
 
 from src.generator.ft_generator import FtGeneratorConfig
 
@@ -153,7 +153,7 @@ class PcapPlayer(ABC):
         speed: ReplaySpeed = MultiplierSpeed(1.0),
         loop_count: int = 1,
         generator_config: Optional[FtGeneratorConfig] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Start network traffic replaying from given profile.
 
@@ -203,6 +203,108 @@ class PcapPlayer(ABC):
         -------
         GeneratorStats
             Class containing statistics of sent packets and bytes.
+        """
+
+        raise NotImplementedError
+
+
+class Replicator(PcapPlayer):
+    """Interface for generator which replicates network traffic from PCAP file according to a configuration."""
+
+    @dataclass(frozen=True)
+    class IpModifier:
+        """Base class for ip address modifier used in replication unit."""
+
+        def __init__(self) -> None:
+            raise NotImplementedError
+
+    @dataclass(frozen=True)
+    class AddConstant(IpModifier):
+        """Add constant number to the IP address in replication unit.
+
+        Attributes
+        ----------
+        value: int
+            Constant added to each IP address.
+        """
+
+        value: int
+
+        def __str__(self) -> str:
+            return f"addConstant({self.value})"
+
+    @dataclass(frozen=True)
+    class AddCounter(IpModifier):
+        """Add counter value to the ip address, counter initial value is <start>
+        and counter is incremented by <step> on every call.
+
+        Attributes
+        ----------
+        start: int
+            Counter initial value.
+        step: int
+            Increment by step each call.
+        """
+
+        start: int
+        step: int
+
+        def __str__(self) -> str:
+            return f"addCounter({self.start},{self.step})"
+
+    @abstractmethod
+    def add_replication_unit(
+        self,
+        srcip: Optional[IpModifier] = None,
+        dstip: Optional[IpModifier] = None,
+        srcmac: Optional[str] = None,
+        dstmac: Optional[str] = None,
+        loop_only: Optional[Union[int, Iterable]] = None,
+    ) -> None:
+        """Add replication unit.
+        Replication unit specifies how to modify each single packet, the number of replication units
+        specifies the multiplication rate of the input PCAP file.
+
+        Parameters
+        ----------
+        srcip : IpModifier, optional
+            Modifier for source IP address.
+        dstip : IpModifier, optional
+            Modifier for destination IP address.
+        srcmac : str, optional
+            Modifier for source MAC address. Original MAC address will be overwritten by given value.
+        dstmac : str, optional
+            Modifier for destination MAC address. Original MAC address will be overwritten by given value.
+            Warning: dstmac could be changed to real interface MAC when sending packets over a switch.
+        loop_only : int or Iterable or None, optional
+            Specifies the replication loops in which the replication unit will be applied.
+            Index of loop or list of indices.
+        """
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_loop_modifiers(self, srcip_offset: Optional[int] = None, dstip_offset: Optional[int] = None) -> None:
+        """Define how to rewrite IP addresses in each loop. Used to distinguish flows in individual loops.
+
+        Parameters
+        ----------
+        srcip_offset : int, optional
+            Add offset to the source IP address. Offset is increased by integer value on each replication loop.
+        dstip_offset : int, optional
+            Add offset to the destination IP address. Offset is increased by integer value on each replication loop.
+        """
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_replicator_config(self) -> dict:
+        """Get replicator configuration in form of a dict.
+
+        Returns
+        -------
+        dict
+            Replicator configuration.
         """
 
         raise NotImplementedError
