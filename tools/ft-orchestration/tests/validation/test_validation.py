@@ -224,12 +224,16 @@ def pytest_runtest_makereport(item: pytest.Item) -> None:
         report.test_name = getattr(item.function, "test_name", "")
         report.test_description = getattr(item.function, "test_description", "")
 
-    extra = getattr(report, "extra", [])
-    if report.when == "call" and hasattr(item.function, "logs_path"):
-        logs_path = getattr(item.function, "logs_path")
-        relative_logs_path = os.path.relpath(logs_path, os.path.dirname(item.config.getoption("htmlpath")))
-        extra.append(pytest_html.extras.url(get_logs_url(relative_logs_path), name="Logs"))
-        report.extra = extra
+        extra = getattr(report, "extra", [])
+        logs_path = getattr(item.function, "logs_path", None)
+        if logs_path:
+            html_path = item.config.getoption("htmlpath")
+            if html_path:
+                relative_logs_path = os.path.relpath(logs_path, os.path.dirname(html_path))
+            else:
+                relative_logs_path = logs_path
+            extra.append(pytest_html.extras.url(get_logs_url(relative_logs_path), name="Logs"))
+            report.extra = extra
 
 
 def collect_validation_tests() -> list[ParameterSet]:
@@ -420,17 +424,20 @@ def download_logs(probe: ProbeInterface, collector: CollectorInterface, generato
     logs_path = os.path.join(LOGS_DIR, test_name)
     test_validation.logs_path = logs_path
 
-    logs_dir = os.path.join(logs_path, "probe")
-    os.makedirs(logs_dir, exist_ok=True)
-    probe.download_logs(logs_dir)
+    if probe:
+        logs_dir = os.path.join(logs_path, "probe")
+        os.makedirs(logs_dir, exist_ok=True)
+        probe.download_logs(logs_dir)
 
-    logs_dir = os.path.join(logs_path, "collector")
-    os.makedirs(logs_dir, exist_ok=True)
-    collector.download_logs(logs_dir)
+    if collector:
+        logs_dir = os.path.join(logs_path, "collector")
+        os.makedirs(logs_dir, exist_ok=True)
+        collector.download_logs(logs_dir)
 
-    logs_dir = os.path.join(logs_path, "generator")
-    os.makedirs(logs_dir, exist_ok=True)
-    generator.download_logs(logs_dir)
+    if generator:
+        logs_dir = os.path.join(logs_path, "generator")
+        os.makedirs(logs_dir, exist_ok=True)
+        generator.download_logs(logs_dir)
 
 
 select_topologies(["pcap_player"])
@@ -480,9 +487,17 @@ def test_validation(
             obj.stop()
             obj.cleanup()
 
+    probe_instance, collector_instance, generator_instance = (None, None, None)
+
+    def finalizer_download_logs():
+        download_logs(probe_instance, collector_instance, generator_instance, request.node.name)
+
     request.addfinalizer(cleanup)
+    request.addfinalizer(finalizer_download_logs)
+
     test_validation.test_name = test["test"].get("name", "")
     test_validation.test_description = test["test"].get("description", "No description provided.")
+    test_validation.logs_path = None
 
     # every validation test uses only 1 pcap
     pcap_file = test["test"]["pcaps"][0]
@@ -508,8 +523,6 @@ def test_validation(
 
     received_flows = receive_flows(collector_instance)
     report = validate_flows(test, probe_instance, received_flows)
-
-    download_logs(probe_instance, collector_instance, generator_instance, request.node.name)
 
     print("")
     report.print_results()
