@@ -10,8 +10,11 @@
 #include "ipv6.h"
 #include "../packetflowspan.h"
 #include "../randomgenerator.h"
+#include "icmpv6echo.h"
+#include "icmpv6random.h"
 
 #include <arpa/inet.h>
+#include <pcapplusplus/IPv4Layer.h>
 #include <pcapplusplus/IPv6Layer.h>
 
 #include <cstdlib>
@@ -44,6 +47,9 @@ void IPv6::PlanFlow(Flow& flow)
 		packet._size += pcpp::IPv6Layer().getHeaderLen();
 		packet._layers.emplace_back(std::make_pair(this, params));
 	}
+
+	Layer* nextLayer = GetNextLayer();
+	_isIcmpv6Next = dynamic_cast<Icmpv6Echo*>(nextLayer) || dynamic_cast<Icmpv6Random*>(nextLayer);
 }
 
 void IPv6::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
@@ -69,6 +75,12 @@ void IPv6::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 		ip6Header->flowLabel[0] = _revFlowLabel[0];
 		ip6Header->flowLabel[1] = _revFlowLabel[1];
 		ip6Header->flowLabel[2] = _revFlowLabel[2];
+	}
+
+	// pcpp::IcmpV6Layer misses ICMPv6 option in its automatic nextHeader
+	// setting logic, so we have to do it ourselves
+	if (_isIcmpv6Next) {
+		ip6Header->nextHeader = pcpp::IPProtocolTypes::PACKETPP_IPPROTO_ICMPV6;
 	}
 
 	if (plan._size > ip6Layer->getHeaderLen()) {

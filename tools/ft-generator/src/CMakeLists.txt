@@ -23,6 +23,8 @@ add_executable(ft-generator
 	layers/ethernet.cpp
 	layers/icmpecho.cpp
 	layers/icmprandom.cpp
+	layers/icmpv6echo.cpp
+	layers/icmpv6random.cpp
 	layers/ipv4.cpp
 	layers/ipv6.cpp
 	layers/mpls.cpp

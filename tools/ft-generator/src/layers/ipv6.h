@@ -41,6 +41,7 @@ private:
 	uint8_t _ttl;
 	uint8_t _fwdFlowLabel[3];
 	uint8_t _revFlowLabel[3];
+	bool _isIcmpv6Next = false;
 };
 
 } // namespace generator

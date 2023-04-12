@@ -12,6 +12,8 @@
 #include "layers/ethernet.h"
 #include "layers/icmpecho.h"
 #include "layers/icmprandom.h"
+#include "layers/icmpv6echo.h"
+#include "layers/icmpv6random.h"
 #include "layers/ipv4.h"
 #include "layers/ipv6.h"
 #include "layers/mpls.h"
@@ -25,7 +27,12 @@
 #include "timeval.h"
 #include "valuegenerator.h"
 
+#include <pcapplusplus/IPv4Layer.h>
+#include <pcapplusplus/IPv6Layer.h>
+#include <pcapplusplus/IcmpLayer.h>
+#include <pcapplusplus/IcmpV6Layer.h>
 #include <pcapplusplus/Packet.h>
+#include <pcapplusplus/UdpLayer.h>
 
 #include <algorithm>
 #include <cassert>
@@ -37,7 +44,14 @@
 
 namespace generator {
 
-static constexpr int ICMP_HEADER_SIZE = sizeof(pcpp::icmphdr);
+static constexpr int ICMP_HDR_SIZE = sizeof(pcpp::icmphdr);
+static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
+static constexpr int IPV4_HDR_SIZE = sizeof(pcpp::iphdr);
+static constexpr int IPV6_HDR_SIZE = sizeof(pcpp::ip6_hdr);
+static constexpr int UDP_HDR_SIZE = sizeof(pcpp::udphdr);
+static constexpr int ICMP_UNREACH_PKT_SIZE = ICMP_HDR_SIZE + IPV4_HDR_SIZE + UDP_HDR_SIZE;
+// Unreachable ICMPv6 message includes 4 reserved bytes after the header
+static constexpr int ICMPV6_UNREACH_PKT_SIZE = ICMPV6_HDR_SIZE + 4 + IPV6_HDR_SIZE + UDP_HDR_SIZE;
 
 const static std::vector<IntervalInfo> PACKET_SIZE_PROBABILITIES {
 	{64, 79, 0.2824},
@@ -159,11 +173,18 @@ Flow::Flow(
 	} break;
 
 	case L4Protocol::Icmp: {
-		AddLayer(MakeIcmpLayer());
+		if (profile._l3Proto != L3Protocol::Ipv4) {
+			throw std::runtime_error("L4 protocol is ICMP but L3 protocol is not IPv4");
+		}
+		AddLayer(MakeIcmpLayer(profile._l3Proto));
 	} break;
 
-	case L4Protocol::Icmpv6:
-		throw std::runtime_error("ICMPv6 not implemented");
+	case L4Protocol::Icmpv6: {
+		if (profile._l3Proto != L3Protocol::Ipv6) {
+			throw std::runtime_error("L4 protocol is ICMPv6 but L3 protocol is not IPv6");
+		}
+		AddLayer(MakeIcmpLayer(profile._l3Proto));
+	} break;
 	}
 
 	if (profile._l4Proto == L4Protocol::Tcp || profile._l4Proto == L4Protocol::Udp) {
@@ -173,7 +194,7 @@ Flow::Flow(
 	Plan();
 }
 
-std::unique_ptr<Layer> Flow::MakeIcmpLayer()
+std::unique_ptr<Layer> Flow::MakeIcmpLayer(L3Protocol l3Proto)
 {
 	double fwdRevRatioDiff = 1.0;
 	double bytesPerPkt = 0;
@@ -191,19 +212,38 @@ std::unique_ptr<Layer> Flow::MakeIcmpLayer()
 	 * NOTE: Might need further evaluation if this is a "good enough" way to do this
 	 * and/or some tweaking
 	 */
+	assert(l3Proto == L3Protocol::Ipv4 || l3Proto == L3Protocol::Ipv6);
 	std::unique_ptr<Layer> layer;
-	if ((_fwdPackets <= 3 || _revPackets <= 3) && (bytesPerPkt <= 1.10 * ICMP_HEADER_SIZE)) {
-		// Low amount of small enough packets
-		layer = std::make_unique<IcmpRandom>();
-	} else if (fwdRevRatioDiff <= 0.2) {
-		// About the same number of packets in both directions
-		layer = std::make_unique<IcmpEcho>();
-	} else if (bytesPerPkt <= 1.10 * ICMP_HEADER_SIZE) {
-		// Small enough packets
-		layer = std::make_unique<IcmpRandom>();
+	if (l3Proto == L3Protocol::Ipv4) {
+		if ((_fwdPackets <= 3 || _revPackets <= 3)
+			&& (bytesPerPkt <= 1.10 * ICMP_UNREACH_PKT_SIZE)) {
+			// Low amount of small enough packets
+			layer = std::make_unique<IcmpRandom>();
+		} else if (fwdRevRatioDiff <= 0.2) {
+			// About the same number of packets in both directions
+			layer = std::make_unique<IcmpEcho>();
+		} else if (bytesPerPkt <= 1.10 * ICMP_UNREACH_PKT_SIZE) {
+			// Small enough packets
+			layer = std::make_unique<IcmpRandom>();
+		} else {
+			// Enough packets and many of them
+			layer = std::make_unique<IcmpEcho>();
+		}
 	} else {
-		// Enough packets and many of them
-		layer = std::make_unique<IcmpEcho>();
+		if ((_fwdPackets <= 3 || _revPackets <= 3)
+			&& (bytesPerPkt <= 1.10 * ICMPV6_UNREACH_PKT_SIZE)) {
+			// Low amount of small enough packets
+			layer = std::make_unique<Icmpv6Random>();
+		} else if (fwdRevRatioDiff <= 0.2) {
+			// About the same number of packets in both directions
+			layer = std::make_unique<Icmpv6Echo>();
+		} else if (bytesPerPkt <= 1.10 * ICMPV6_UNREACH_PKT_SIZE) {
+			// Small enough packets
+			layer = std::make_unique<Icmpv6Random>();
+		} else {
+			// Enough packets and many of them
+			layer = std::make_unique<Icmpv6Echo>();
+		}
 	}
 
 	return layer;

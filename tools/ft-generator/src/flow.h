@@ -148,9 +148,11 @@ private:
 	/**
 	 * @brief Create icmp layer
 	 *
+	 * @param l3Proto  The L3 protocol of the flow (IPv4 or IPv6)
+	 *
 	 * @return std::unique_ptr<Layer>
 	 */
-	std::unique_ptr<Layer> MakeIcmpLayer();
+	std::unique_ptr<Layer> MakeIcmpLayer(L3Protocol l3Proto);
 };
 
 } // namespace generator
