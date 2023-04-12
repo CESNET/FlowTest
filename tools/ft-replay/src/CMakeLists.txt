@@ -26,6 +26,8 @@ add_executable(ft-replay
 	socketDescriptor.hpp
 	pcapFile.cpp
 	pcapFile.hpp
+	rateLimiter.hpp
+	rateLimiter.cpp
 	replicator-core/configParser.hpp
 	replicator-core/configParser.cpp
 	replicator-core/configParserFactory.hpp
