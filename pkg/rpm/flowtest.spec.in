@@ -44,5 +44,6 @@ that make up the main components of the test environment.
 %license LICENSE
 %{_bindir}/ft-replay
 %{_bindir}/ft-generator
+%{_bindir}/ft-profile-sampler
 
 %changelog
