@@ -112,28 +112,20 @@ where each variant consists of an object in the following format:
 * `probability` - the probability of using this encapsulation variant, as a
   floating point number 0.0 - 1.0 or a percentage 0% - 100%
 
-### IPv4
+### IPv4/IPv6
 
-* `fragmentation_probability` - the probability an IPv4 packet will be
-  fragmented, as a floating point number 0.0 - 1.0 or a percentage 0% - 100%
-  _(default = 0%)_
+* `fragmentation_probability` - the probability a packet will be fragmented, as
+  a floating point number 0.0 - 1.0 or a percentage 0% - 100% _(default = 0%)_
 * `min_packet_size_to_fragment` - the minimum size of a packet in bytes for a
   packet to be considered for fragmentation _(default = 512)_
-* `ip_range` - possible ranges of IPv4 addresses that can be choosen from when
-  generating an address presented in the form of an IPv4 address with a prefix
-  length, e.g. `10.0.0.0/8`, can be a single value or a list of values _(default
-  = all addresses)_
+* `ip_range` - possible ranges of IP addresses that can be choosen from when
+  generating an address presented in the form of an IP address with a prefix
+  length, e.g. `10.0.0.0/8` in case of IPv4 or `ffff::/16` in case of IPv6, can
+  be a single value or a list of values _(default = all addresses)_
 
 *Note: Enabling fragmentation may cause the generated flows that use
 fragmentation to contain more bytes and packets than specified in the profiles
 file*
-
-### IPv6
-
-* `ip_range` - possible ranges of IPv6 addresses that can be choosen from when
-  generating an address presented in the form of an IPv6 address with a prefix
-  length, e.g. `ffff::/16`, can be a single value or a list of values _(default
-  = all addresses)_
 
 ### MAC
 * `mac_range` - possible ranges of MAC addresses that can be choosen from when

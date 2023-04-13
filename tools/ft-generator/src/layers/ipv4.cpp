@@ -22,6 +22,8 @@ namespace generator {
 
 enum class IPv4Map : int { FragmentCount };
 
+constexpr int IPV4_HDR_SIZE = sizeof(pcpp::iphdr);
+
 IPv4::IPv4(
 	IPv4Address ipSrc,
 	IPv4Address ipDst,
@@ -42,7 +44,7 @@ void IPv4::PlanFlow(Flow& flow)
 	PacketFlowSpan packetsSpan(&flow, true);
 	for (auto& packet : packetsSpan) {
 		Packet::layerParams params;
-		packet._size += pcpp::IPv4Layer().getHeaderLen();
+		packet._size += IPV4_HDR_SIZE;
 		packet._layers.emplace_back(std::make_pair(this, params));
 	}
 }
@@ -71,7 +73,7 @@ void IPv4::PlanExtra(Flow& flow)
 	for (auto& packet : packetsSpan) {
 		if (packet._isExtra) {
 			Packet::layerParams params;
-			packet._size += pcpp::IPv4Layer().getHeaderLen();
+			packet._size += IPV4_HDR_SIZE;
 			packet._layers.emplace_back(std::make_pair(this, params));
 			packet._isFinished = true;
 		}
@@ -124,7 +126,9 @@ void IPv4::BuildFragment(PcppPacket& packet, pcpp::iphdr* ipHdr)
 	uint64_t sizeRemaining = _fragmentBuffer.size() - _fragmentOffset;
 	uint64_t fragmentSize = _fragmentBuffer.size() / _fragmentCount;
 	fragmentSize = (fragmentSize + 7) / 8 * 8;
-	fragmentSize = std::min<uint64_t>(fragmentSize, sizeRemaining);
+	if (sizeRemaining < fragmentSize || _fragmentRemaining == 1) {
+		fragmentSize = sizeRemaining;
+	}
 
 	assert(_fragmentOffset % 8 == 0);
 	assert(sizeRemaining >= fragmentSize);
@@ -134,6 +138,7 @@ void IPv4::BuildFragment(PcppPacket& packet, pcpp::iphdr* ipHdr)
 		ipHdr->fragmentOffset |= PCPP_IP_MORE_FRAGMENTS;
 	}
 	ipHdr->ipId = htons(_fragmentId);
+	ipHdr->totalLength = htons(IPV4_HDR_SIZE + fragmentSize);
 	ipHdr->protocol = _fragmentProto;
 	pcpp::PayloadLayer* payloadLayer
 		= new pcpp::PayloadLayer(&_fragmentBuffer[_fragmentOffset], fragmentSize, false);
