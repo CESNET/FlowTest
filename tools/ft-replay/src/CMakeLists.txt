@@ -18,6 +18,8 @@ add_executable(ft-replay
 	outputQueue.hpp
 	raw.cpp
 	raw.hpp
+	xdp.cpp
+	xdp.hpp
 	ethTool.cpp
 	ethTool.hpp
 	socketDescriptor.cpp
@@ -57,6 +59,7 @@ endif()
 target_link_libraries(ft-replay PRIVATE
 	common
 	pcap::pcap
+	xdp::xdp
 	xxhash::xxhash
 	Threads::Threads
 	yaml-cpp::yaml-cpp
