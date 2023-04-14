@@ -5,7 +5,6 @@ Copyright: (C) 2023 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 """
-from datetime import datetime, timezone
 from typing import List, Optional, Tuple, Union
 import ipaddress
 
@@ -287,12 +286,10 @@ class StatisticalModel:
 
         start_time = end_time = None
         if segment.start is not None:
-            dt_obj = datetime.strptime(segment.start, segment.form).replace(tzinfo=timezone.utc)
-            start_time = int(dt_obj.timestamp() * 1000)
+            start_time = int(segment.start.timestamp() * 1000)
 
         if segment.end is not None:
-            dt_obj = datetime.strptime(segment.end, segment.form).replace(tzinfo=timezone.utc)
-            end_time = int(dt_obj.timestamp() * 1000)
+            end_time = int(segment.end.timestamp() * 1000)
 
         if start_time is not None and end_time is not None:
             mask_flow = self._flows["START_TIME"].apply(lambda x: x >= start_time) & self._flows["END_TIME"].apply(

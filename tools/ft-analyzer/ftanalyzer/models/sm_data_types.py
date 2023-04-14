@@ -69,19 +69,16 @@ class SMTimeSegment:
 
     Attributes
     ----------
-    start : str, None
-        Start time in milliseconds in a default format (%Y-%m-%d %H:%M:%S.%f) or in custom format.
+    start : datetime, None
+        Start time in milliseconds.
         Start time is not considered if None is set.
-    end : str, None
-        End time in milliseconds in a default format (%Y-%m-%d %H:%M:%S.%f) or in custom format.
+    end : datetime, None
+        End time in milliseconds.
         End time is not considered if None is set.
-    form : bool
-        Time format passed to strptime function to convert provided date strings to datetime object.
     """
 
-    start: Optional[str] = None
-    end: Optional[str] = None
-    form: str = "%Y-%m-%d %H:%M:%S.%f"
+    start: Optional["datetime"] = None
+    end: Optional["datetime"] = None
 
     def __eq__(self, other: "SMTimeSegment") -> bool:
         """Compare start and end times of both segments.

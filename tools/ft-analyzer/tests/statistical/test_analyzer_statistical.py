@@ -5,6 +5,7 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 """
+from datetime import datetime, timezone
 import os
 
 import pytest
@@ -131,7 +132,9 @@ def test_time_segment():
         SMMetric(SMMetricType.FLOWS, 0),
     ]
 
-    segment = SMTimeSegment(start="2023-03-08 21:51:20.000", end="2023-03-08 21:51:22.000")
+    tstart = datetime(2023, 3, 8, 21, 51, 20, 0, timezone.utc)
+    tend = datetime(2023, 3, 8, 21, 51, 22, 0, timezone.utc)
+    segment = SMTimeSegment(start=tstart, end=tend)
     report = model.validate([SMRule(metrics, segment)])
     report.print_results()
     assert report.is_passing() is True
@@ -189,17 +192,21 @@ def test_relative_time():
         SMMetric(SMMetricType.FLOWS, 0),
     ]
 
-    segment = SMTimeSegment(start="2023-03-08 21:49:22.275", end="2023-03-08 21:49:22.483")
+    tstart = datetime(2023, 3, 8, 21, 49, 22, 275000, timezone.utc)
+    tend = datetime(2023, 3, 8, 21, 49, 22, 483000, timezone.utc)
+
+    segment = SMTimeSegment(start=tstart, end=tend)
     report = model.validate([SMRule(metrics, segment)])
     report.print_results()
     assert report.is_passing() is True
 
-    segment = SMTimeSegment(start="2023-03-08 21:49:22.275")
+    segment = SMTimeSegment(start=tstart)
     report = model.validate([SMRule(metrics, segment)])
     report.print_results()
     assert report.is_passing() is True
 
-    segment = SMTimeSegment(end="2023-03-08 21:49:27.962")
+    tend = datetime(2023, 3, 8, 21, 49, 27, 962000, timezone.utc)
+    segment = SMTimeSegment(end=tend)
     report = model.validate([SMRule(metrics, segment)])
     report.print_results()
     assert report.is_passing() is True
