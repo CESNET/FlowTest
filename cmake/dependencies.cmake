@@ -8,6 +8,7 @@ find_package(Threads REQUIRED)
 # NFB framework for CESNET FPGA cards
 if (ENABLE_NFB)
 	find_package(NFB REQUIRED)
+	find_package(FDT REQUIRED)
 endif()
 
 # XDP (eXpress Data Path) dependencies
