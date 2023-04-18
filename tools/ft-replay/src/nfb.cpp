@@ -6,10 +6,14 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
 #include "nfb.hpp"
 
+extern "C" {
+#include <libfdt.h>
 #include <nfb/ndp.h>
 #include <nfb/nfb.h>
+}
 
 #include <cstddef>
 #include <map>
@@ -32,10 +36,16 @@ void SuperPacketHeader::setHasNextHeader(bool value) noexcept
 	_hasNextHeader = !!value;
 }
 
-NfbQueue::NfbQueue(nfb_device* dev, unsigned int queue_id, size_t burstSize, size_t superPacketSize)
+NfbQueue::NfbQueue(
+	nfb_device* dev,
+	unsigned int queue_id,
+	size_t burstSize,
+	size_t superPacketSize,
+	size_t superPacketLimit)
 	: _txPacket(std::make_unique<ndp_packet[]>(burstSize))
 	, _burstSize(burstSize)
 	, _superPacketSize(superPacketSize)
+	, _superPacketLimit(superPacketLimit)
 {
 	_txQueue.reset(ndp_open_tx_queue(dev, queue_id));
 	if (!_txQueue) {
@@ -110,15 +120,19 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 
 	// fill _txPacket data_len
 	unsigned txSuperPacketIndex = 0;
+	size_t txSuperPacketCount = 0;
 	_txPacket[0].data_length = 0;
 	for (unsigned i = 0; i < burstSize; i++) {
 		size_t nextSize = headerLen + std::max(burst[i]._len, minPacketSize);
 		nextSize = AlignBlockSize(nextSize);
 
-		if (_txPacket[txSuperPacketIndex].data_length + nextSize <= _superPacketSize) {
+		if (_txPacket[txSuperPacketIndex].data_length + nextSize <= _superPacketSize
+			&& txSuperPacketCount < _superPacketLimit) {
 			_txPacket[txSuperPacketIndex].data_length += nextSize;
+			txSuperPacketCount++;
 		} else {
 			_txPacket[++txSuperPacketIndex].data_length = nextSize;
+			txSuperPacketCount = 0;
 		}
 	}
 	txSuperPacketIndex++;
@@ -221,9 +235,18 @@ NfbPlugin::NfbPlugin(const std::string& params)
 
 	DetermineSuperPacketSize();
 
+	size_t superPacketLimit = 0;
+	if (_superPacketSize != 0) {
+		superPacketLimit = GetSuperPacketLimit();
+	}
+
 	for (size_t id = 0; id < _queueCount; id++) {
-		_queues.emplace_back(
-			std::make_unique<NfbQueue>(_nfbDevice.get(), id, _burstSize, _superPacketSize));
+		_queues.emplace_back(std::make_unique<NfbQueue>(
+			_nfbDevice.get(),
+			id,
+			_burstSize,
+			_superPacketSize,
+			superPacketLimit));
 	}
 }
 
@@ -302,6 +325,36 @@ void NfbPlugin::DetermineSuperPacketSize()
 		_logger->critical("nfb::nfb_comp_count() has failed, SuperPackets disabled");
 		_superPacketSize = 0;
 	}
+}
+
+size_t NfbPlugin::GetSuperPacketLimit()
+{
+	int len;
+	uint32_t limit = 0;
+
+	const void* fdt = nfb_get_fdt(_nfbDevice.get());
+	if (fdt == nullptr) {
+		_logger->error("Cannot load device tree");
+		throw std::runtime_error("NfbPlugin::GetSuperPacketLimit() has failed");
+	}
+
+	int offset
+		= fdt_path_offset(fdt, "/firmware/mi_bus0/application/replicator_core_0/frame_unpacker/");
+	const void* buffer = fdt_getprop(fdt, offset, "unpack_limit", &len);
+
+	if (len == sizeof(limit)) {
+		limit = fdt32_to_cpu(*reinterpret_cast<const uint32_t*>(buffer));
+	} else {
+		_logger->error("Unexpected format of unpack_limit");
+		throw std::runtime_error("NfbPlugin::GetSuperPacketLimit() has failed");
+	}
+
+	if (limit == 0) {
+		_logger->error("Unpack_limit is zero");
+		throw std::runtime_error("NfbPlugin::GetSuperPacketLimit() has failed");
+	}
+
+	return limit;
 }
 
 size_t NfbPlugin::GetQueueCount() const noexcept

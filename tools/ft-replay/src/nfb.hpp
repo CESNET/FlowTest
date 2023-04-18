@@ -14,8 +14,11 @@
 #include "outputPluginFactoryRegistrator.hpp"
 #include "outputQueue.hpp"
 
+extern "C" {
+#include <libfdt.h>
 #include <nfb/ndp.h>
 #include <nfb/nfb.h>
+}
 
 #include <cstddef>
 #include <memory>
@@ -72,7 +75,12 @@ public:
 	 * @param[in] queue id
 	 * @param[in] maximal size of burst
 	 */
-	NfbQueue(nfb_device* dev, unsigned int queue_id, size_t burstSize, size_t superPacketSize);
+	NfbQueue(
+		nfb_device* dev,
+		unsigned int queue_id,
+		size_t burstSize,
+		size_t superPacketSize,
+		size_t superPacketLimit);
 
 	/**
 	 * @brief Destructor
@@ -125,6 +133,7 @@ private:
 	std::unique_ptr<ndp_packet[]> _txPacket;
 	size_t _burstSize;
 	size_t _superPacketSize;
+	size_t _superPacketLimit;
 	bool _isBufferInUse = false;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("NfbQueue");
@@ -168,6 +177,8 @@ public:
 
 private:
 	void DetermineSuperPacketSize();
+
+	size_t GetSuperPacketLimit();
 
 	int ParseArguments(const std::string& args);
 
