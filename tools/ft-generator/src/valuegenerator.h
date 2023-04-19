@@ -65,12 +65,14 @@ private:
 	uint64_t _desiredSum;
 	std::vector<IntervalInfo> _intervals;
 	double _intervalProbSum;
+	bool _saveBestValuesEveryStep = false;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("ValueGenerator");
 
 	void Generate();
 	void PostIntervalUpdate();
 	uint64_t GenerateRandomValue();
+	void GenerateUniformly();
 };
 
 } // namespace generator
