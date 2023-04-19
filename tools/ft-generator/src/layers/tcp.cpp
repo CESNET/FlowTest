@@ -118,28 +118,28 @@ void Tcp::PlanTerminationHandshake(FlowPlanHelper& planner)
 	planner._assignedRevPkts++;
 	params.clear();
 
-	if (planner.FwdPktsRemaining() == 0) {
-		return;
-	}
-	pkt = planner.NextPacket();
-	pkt->_direction = Direction::Forward;
-	pkt->_isFinished = true;
-	params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::End3);
-	pkt->_layers.emplace_back(this, params);
-	pkt->_size += pcpp::TcpLayer().getHeaderLen();
-	planner._assignedFwdPkts++;
-	params.clear();
-
 	if (planner.RevPktsRemaining() == 0) {
 		return;
 	}
 	pkt = planner.NextPacket();
 	pkt->_direction = Direction::Reverse;
 	pkt->_isFinished = true;
-	params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::End4);
+	params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::End3);
 	pkt->_layers.emplace_back(this, params);
 	pkt->_size += pcpp::TcpLayer().getHeaderLen();
 	planner._assignedRevPkts++;
+	params.clear();
+
+	if (planner.FwdPktsRemaining() == 0) {
+		return;
+	}
+	pkt = planner.NextPacket();
+	pkt->_direction = Direction::Forward;
+	pkt->_isFinished = true;
+	params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::End4);
+	pkt->_layers.emplace_back(this, params);
+	pkt->_size += pcpp::TcpLayer().getHeaderLen();
+	planner._assignedFwdPkts++;
 }
 
 void Tcp::PlanData(FlowPlanHelper& planner)
