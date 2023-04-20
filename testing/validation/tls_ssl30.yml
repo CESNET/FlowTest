@@ -8,21 +8,21 @@ at_least_one: ["tls_server_version", "tls_cipher_suite", "tls_client_version", "
               "tls_validity_not_before", "tls_validity_not_after", "tls_public_key_alg"]
 
 flows:
-  - src_ip:      "195.113.172.20"
-    dst_ip:      "162.216.8.226"
-    ip_version:  4
-    protocol:    6
-    bytes:       1083
-    bytes@rev:   5569
-    packets:     13
-    packets@rev: 11
-    src_port:    33884
-    dst_port:    443
+  - src_ip:                  "10.100.50.48"
+    dst_ip:                  "10.100.50.139"
+    ip_version:              4
+    protocol:                6
+    bytes:                   3302
+    bytes@rev:               2919
+    packets:                 15
+    packets@rev:             11
+    src_port:                44854
+    dst_port:                7001
     tls_server_version:      0x0300
-    tls_cipher_suite:        0x0039
+    tls_cipher_suite:        0xc014
     tls_client_version:      0x0300
-    tls_subject_cn:          "canadachannel.ca"
-    tls_validity_not_before: 1632654491
-    tls_validity_not_after:  1640430490
+    tls_subject_cn:          ""
+    tls_validity_not_before: 1679647830
+    tls_validity_not_after:  1682239830
     tls_public_key_alg:      "rsaEncryption"
     tls_ja3:                 "0x77BFEEB56CC1AF3A4241CF31C4A49E1A"

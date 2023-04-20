@@ -1,6 +1,6 @@
 test:
   name: TLS 1.3 Traffic with 0-RTT Handshake
-  pcaps: ["tls13-0rtt.pcap"]
+  pcaps: ["tls13_0rtt.pcap"]
   required_protocols: ["tls"]
   description: Check that TLS 1.3 is properly parsed when Zero Round Trip Time is used in a handshake.
 

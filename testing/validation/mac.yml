@@ -7,15 +7,15 @@ test:
 at_least_one: ["src_mac", "dst_mac"]
 
 flows:
-  - src_ip:      "192.168.56.101"
-    dst_ip:      "192.168.56.102"
+  - src_ip:      "10.100.50.48"
+    dst_ip:      "10.100.50.139"
     ip_version:  4
     protocol:    6
-    bytes:       751
-    bytes@rev:   1900
-    packets:     6
-    packets@rev: 4
-    src_port:    45422
-    dst_port:    443
-    src_mac:     "08:00:27:D8:CA:49"
-    dst_mac:     "08:00:27:36:24:D6"
+    bytes:       3218
+    bytes@rev:   3798
+    packets:     15
+    packets@rev: 11
+    src_port:    46588
+    dst_port:    7001
+    src_mac:     "00:50:56:BF:FB:74"
+    dst_mac:     "00:50:56:BF:C3:9E"

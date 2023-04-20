@@ -7,18 +7,18 @@ test:
 at_least_one: ["tcp_flags", "tcp_flags@rev", "tcp_options", "tcp_options@rev", "tcp_syn_size"]
 
 flows:
-  - src_ip:          "192.168.56.101"
-    dst_ip:          "192.168.56.102"
+  - src_ip:          "10.100.50.48"
+    dst_ip:          "10.100.50.139"
     ip_version:      4
     protocol:        6
-    bytes:           751
-    bytes@rev:       1900
-    packets:         6
-    packets@rev:     4
-    src_port:        45422
-    dst_port:        443
-    tcp_flags:       0x1a
-    tcp_flags@rev:   0x1a
-    tcp_options:     0x11e
-    tcp_options@rev: 0x11e
-    tcp_syn_size:    60
+    bytes:           3218
+    bytes@rev:       3798
+    packets:         15
+    packets@rev:     11
+    src_port:        46588
+    dst_port:        7001
+    tcp_flags:       0x1f
+    tcp_flags@rev:   0x1b
+    tcp_options:     0x78
+    tcp_options@rev: 0x7c
+    tcp_syn_size:    52

@@ -8,22 +8,22 @@ at_least_one: ["tls_server_version", "tls_cipher_suite", "tls_client_version", "
               "tls_subject_cn", "tls_validity_not_before", "tls_validity_not_after", "tls_public_key_alg"]
 
 flows:
-  - src_ip:                  "192.168.56.101"
-    dst_ip:                  "192.168.56.102"
+  - src_ip:                  "10.100.50.48"
+    dst_ip:                  "10.100.50.139"
     ip_version:              4
     protocol:                6
-    bytes:                   651
-    bytes@rev:               1906
-    packets:                 6
-    packets@rev:             4
-    src_port:                45432
-    dst_port:                443
+    bytes:                   3319
+    bytes@rev:               3864
+    packets:                 15
+    packets@rev:             11
+    src_port:                45216
+    dst_port:                7001
     tls_server_version:      0x0301
     tls_cipher_suite:        0xc014
     tls_client_version:      0x0301
-    tls_issuer_cn:           "server.blah.com"
-    tls_subject_cn:          "server.blah.com"
-    tls_validity_not_before: 1502118257
-    tls_validity_not_after:  1533654257
+    tls_issuer_cn:           "Flowmon Packet Investigator"
+    tls_subject_cn:          ""
+    tls_validity_not_before: 1679647830
+    tls_validity_not_after:  1682239830
     tls_public_key_alg:      "rsaEncryption"
-    tls_ja3:                 "0xC26335BAA54CC3FF4227EBB3876C114F"
+    tls_ja3:                 "0xF51D9908719E96C24A1B539DA446A39F"
