@@ -69,7 +69,10 @@ class GeneratorBuilder(BuilderBase, Generator):
         self._edit_dst_mac = edit_dst_mac
         self._probe_mac_addresses = probe_mac_addresses
         self._interfaces = generator_cfg.interfaces
-        self._connector_args = cmd_connector_args
+
+        self._connector_args = generator_cfg.connector if generator_cfg.connector else {}
+        # cmd additional arguments has higher priority, update arguments from config
+        self._connector_args.update(cmd_connector_args)
 
         if len(self._probe_mac_addresses) != len(self._interfaces):
             logging.getLogger().error("Number of generator interfaces should match number of probe interfaces.")
