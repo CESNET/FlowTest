@@ -295,6 +295,8 @@ void NfbPlugin::DetermineSuperPacketSize()
 			_superPacketSize = 0;
 		} else if (_superPackets == SuperPackets::Enable) {
 			_logger->warn("SuperPackets are not supported, but enabled");
+		} else if (_superPackets == SuperPackets::Disable) {
+			_superPacketSize = 0;
 		}
 	} else {
 		_logger->critical("nfb::nfb_comp_count() has failed, SuperPackets disabled");
