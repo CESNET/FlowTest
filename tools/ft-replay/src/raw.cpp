@@ -67,6 +67,7 @@ void RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 void RawQueue::SendBurst(const PacketBuffer* burst)
 {
 	for (unsigned i = 0; i < _pktsToSend; i++) {
+		RateLimit(1, burst[i]._len);
 		while (true) {
 			int ret = sendto(
 				_socket.GetSocketId(),
