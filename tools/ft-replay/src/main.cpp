@@ -41,6 +41,26 @@ void ReplicationThread(
 	};
 }
 
+void ConfigureOutputQueueRateLimit(
+	OutputQueue* outputQueue,
+	PacketQueueProvider::QueueDistribution queueDistribution,
+	Config::RateLimit rateLimit)
+{
+	if (std::holds_alternative<Config::RateLimitPps>(rateLimit)) {
+		auto& limit = std::get<Config::RateLimitPps>(rateLimit);
+		const uint64_t packetsPerQueue = queueDistribution.packets * limit.value;
+		const uint64_t max = std::max(packetsPerQueue, static_cast<uint64_t>(1));
+		limit.value = max;
+	} else if (std::holds_alternative<Config::RateLimitMbps>(rateLimit)) {
+		auto& limit = std::get<Config::RateLimitMbps>(rateLimit);
+		const uint64_t bytesPerQueue = queueDistribution.bytes * limit.value;
+		const uint64_t max = std::max(bytesPerQueue, static_cast<uint64_t>(1));
+		limit.value = max;
+	}
+
+	outputQueue->SetRateLimiter(rateLimit);
+}
+
 int main(int argc, char** argv)
 {
 	Config config;
@@ -83,12 +103,13 @@ int main(int argc, char** argv)
 		while ((rawPacket = packetProvider.Next())) {
 			packetQueueProvider.InsertPacket(builder.Build(rawPacket));
 		}
-
 		for (size_t queueId = 0; queueId < queueCount; queueId++) {
-			Replicator replicator(replicatorConfigParser.get(), outputPlugin->GetQueue(queueId));
+			auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
+			auto packetQueueRatio = packetQueueProvider.GetPacketQueueRatioById(queueId);
 
-			std::unique_ptr<PacketQueue> packetQueue
-				= packetQueueProvider.GetPacketQueueById(queueId);
+			OutputQueue* outputQueue = outputPlugin->GetQueue(queueId);
+			ConfigureOutputQueueRateLimit(outputQueue, packetQueueRatio, config.GetRateLimit());
+			Replicator replicator(replicatorConfigParser.get(), outputQueue);
 
 			std::thread worker(
 				ReplicationThread,
