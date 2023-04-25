@@ -16,6 +16,7 @@ add_executable(ft-replay
 	outputPluginFactory.cpp
 	outputPluginFactoryRegistrator.hpp
 	outputQueue.hpp
+	outputQueue.cpp
 	raw.cpp
 	raw.hpp
 	xdp.cpp
