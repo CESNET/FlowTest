@@ -12,13 +12,14 @@ import shutil
 import tempfile
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import invoke
 from src.common.required_field import required_field
+from src.common.typed_dataclass import bool_convertor, typed_dataclass
 from src.config.common import InterfaceCfg
 from src.host.host import Host
 from src.probe.interface import ProbeException, ProbeInterface
@@ -99,6 +100,7 @@ class IpfixprobePluginType(Enum):
     PROCESS = 3
 
 
+@typed_dataclass
 @dataclass
 class IpfixprobeSettings(ABC):
     """Structure used to hold ipfixprobe settings which are passed to Ipfixprobe class.
@@ -144,6 +146,7 @@ class IpfixprobeSettings(ABC):
     packet_buffer_size: Optional[int] = None
 
 
+@typed_dataclass
 @dataclass
 class IpfixprobeRawSettings(IpfixprobeSettings):
     """Settings for IpfixprobeRaw input variant.
@@ -165,7 +168,7 @@ class IpfixprobeRawSettings(IpfixprobeSettings):
     interfaces: List[str] = required_field()
 
     # for simplicity, same values of following params are used for each enabled interface
-    fanout: Optional[bool] = None
+    fanout: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor})
     fanout_id: Optional[int] = None
     blocks: Optional[int] = None
     packets: Optional[int] = None
@@ -174,6 +177,7 @@ class IpfixprobeRawSettings(IpfixprobeSettings):
         assert len(self.interfaces) > 0
 
 
+@typed_dataclass
 @dataclass
 class IpfixprobeDpdkSettings(IpfixprobeSettings):
     """Settings for IpfixprobeDpdk input variant.
@@ -211,6 +215,7 @@ class IpfixprobeDpdkSettings(IpfixprobeSettings):
         assert len(self.devices) > 0
 
 
+@typed_dataclass
 @dataclass
 class IpfixprobeNdpSettings(IpfixprobeSettings):
     """Settings for IpfixprobeNdp input variant.
