@@ -43,9 +43,11 @@ NfbQueue::NfbQueue(
 	size_t superPacketSize,
 	size_t superPacketLimit)
 	: _txPacket(std::make_unique<ndp_packet[]>(burstSize))
-	, _burstSize(burstSize)
+	, _maxBurstSize(burstSize)
 	, _superPacketSize(superPacketSize)
 	, _superPacketLimit(superPacketLimit)
+	, _lastBurstTotalPacketLen(0)
+	, _lastBurstSize(0)
 {
 	_txQueue.reset(ndp_open_tx_queue(dev, queue_id));
 	if (!_txQueue) {
@@ -71,13 +73,15 @@ void NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 			"processed by SendBurst()");
 		throw std::runtime_error("NfbQueue::GetBurst() has failed");
 	}
-	if (burstSize > _burstSize) {
+	if (burstSize > _maxBurstSize) {
 		_logger->error(
 			"Requested burstSize {} is bigger than predefined {}",
 			burstSize,
-			_burstSize);
+			_maxBurstSize);
 		throw std::runtime_error("NfbQueue::GetBurst() has failed");
 	}
+
+	_lastBurstTotalPacketLen = 0;
 
 	if (_superPacketSize) {
 		GetSuperBurst(burst, burstSize);
@@ -98,6 +102,8 @@ void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 		} else {
 			_txPacket[i].data_length = burst[i]._len;
 		}
+
+		_lastBurstTotalPacketLen += _txPacket[i].data_length;
 	}
 
 	GetBuffers(burstSize);
@@ -111,6 +117,7 @@ void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 				0);
 		}
 	}
+	_lastBurstSize = burstSize;
 }
 
 void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
@@ -144,6 +151,7 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 	unsigned i, pos = 0;
 	for (i = 0; i < burstSize; i++) {
 		size_t pktLen = std::max(burst[i]._len, minPacketSize);
+		_lastBurstTotalPacketLen += pktLen;
 		size_t nextSize = headerLen + pktLen;
 		nextSize = AlignBlockSize(nextSize);
 		// next packet/break condition
@@ -175,6 +183,7 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 		}
 		pos += nextSize - headerLen;
 	}
+	_lastBurstSize = burstSize;
 }
 
 void NfbQueue::GetBuffers(size_t burstSize)
@@ -199,6 +208,8 @@ void NfbQueue::SendBurst(const PacketBuffer* burst)
 {
 	(void) burst;
 
+	RateLimit(_lastBurstSize, _lastBurstTotalPacketLen);
+
 	ndp_tx_burst_put(_txQueue.get());
 	_isBufferInUse = false;
 }
@@ -211,7 +222,7 @@ void NfbQueue::Flush()
 
 size_t NfbQueue::GetMaxBurstSize() const noexcept
 {
-	return _burstSize;
+	return _maxBurstSize;
 }
 
 NfbPlugin::NfbPlugin(const std::string& params)
