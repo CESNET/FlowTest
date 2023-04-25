@@ -40,14 +40,18 @@
   map: src_ip
 'iana:sourceIPv6Address':
   map: src_ip
+  converter: hex_to_lower
 'iana:destinationIPv4Address':
   map: dst_ip
 'iana:destinationIPv6Address':
   map: dst_ip
+  converter: hex_to_lower
 'iana:sourceMacAddress':
   map: src_mac
+  converter: hex_to_lower
 'iana:destinationMacAddress':
   map: dst_mac
+  converter: hex_to_lower
 'iana:ipTTL':
   map: ttl
 'iana@reverse:ipTTL@reverse':
@@ -209,3 +213,4 @@
   converter: tls_alg_nid_to_longname
 'flowmon:tlsJa3Fingerprint':
   map: tls_ja3
+  converter: hex_to_lower

@@ -20,4 +20,4 @@ flows:
     tls_server_version:      0x0303
     tls_cipher_suite:        0xc030
     tls_client_version:      0x0303
-    tls_ja3:     "0xFBE7E189E37A07EE33706F86BC746344"
+    tls_ja3:     "0xfbe7e189e37a07ee33706f86bc746344"

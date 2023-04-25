@@ -19,6 +19,6 @@ flows:
     bytes_outer@rev:   536
     packets:           4
     packets@rev:       4
-    src_mac:           "BA:09:2B:6E:F8:BE"
-    dst_mac:           "4A:7F:01:3B:A2:71"
+    src_mac:           "ba:09:2b:6e:f8:be"
+    dst_mac:           "4a:7f:01:3b:a2:71"
     vxlan_id:          123

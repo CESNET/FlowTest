@@ -28,4 +28,4 @@ flows:
     tls_validity_not_before: 1680498180
     tls_validity_not_after:  1688274179
     tls_public_key_alg:      "rsaEncryption"
-    tls_ja3:                 "0x7F9EE38AF4D6BFADB75F00B209FEBE07"
+    tls_ja3:                 "0x7f9ee38af4d6bfadb75f00b209febe07"

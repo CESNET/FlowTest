@@ -17,5 +17,5 @@ flows:
     packets@rev: 11
     src_port:    46588
     dst_port:    7001
-    src_mac:     "00:50:56:BF:FB:74"
-    dst_mac:     "00:50:56:BF:C3:9E"
+    src_mac:     "00:50:56:bf:fb:74"
+    dst_mac:     "00:50:56:bf:c3:9e"

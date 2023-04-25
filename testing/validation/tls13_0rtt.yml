@@ -21,7 +21,7 @@ flows:
     tls_cipher_suite:   0x1302
     tls_sni:            "dogfish.lan"
     tls_client_version: 0x7f1c
-    tls_ja3:            "0xA66E498C488AA0523759691248CDFB01"
+    tls_ja3:            "0xa66e498c488aa0523759691248cdfb01"
   - src_ip:             "172.16.1.117"
     dst_ip:             "172.16.1.130"
     ip_version:         4
@@ -36,4 +36,4 @@ flows:
     tls_cipher_suite:   0x1302
     tls_sni:            "dogfish.lan"
     tls_client_version: 0x7f1c
-    tls_ja3:            "0x7802AD1A89A41B351FB2AC5B7C9834BF"
+    tls_ja3:            "0x7802ad1a89a41b351fb2ac5b7c9834bf"
