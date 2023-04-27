@@ -66,6 +66,11 @@ class Converters:
         """Convert hex string with leading 0x into integer."""
         return int(value, 0)
 
+    @staticmethod
+    def hex_to_lower(value: str) -> str:
+        """Convert hex string to lower alphabet."""
+        return value.lower()
+
 
 class CollectorOutputMapper:
     """Wrapper of CollectorOutputReaderInterface. Flows are mapped from JSON ipfix to YAML annotation format.

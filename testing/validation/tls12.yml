@@ -8,24 +8,24 @@ at_least_one: ["tls_server_version", "tls_cipher_suite", "tls_alpn", "tls_sni", 
               "tls_ja3", "tls_subject_cn", "tls_validity_not_before", "tls_validity_not_after", "tls_public_key_alg"]
 
 flows:
-  - src_ip:                  "147.251.44.18"
-    dst_ip:                  "77.75.78.146"
+  - src_ip:                  "10.100.50.30"
+    dst_ip:                  "77.75.77.222"
     ip_version:              4
     protocol:                6
-    bytes:                   1454
-    bytes@rev:               12897
-    packets:                 12
-    packets@rev:             14
-    src_port:                49395
+    bytes:                   1726
+    bytes@rev:               6358
+    packets:                 23
+    packets@rev:             16
+    src_port:                46766
     dst_port:                443
     tls_server_version:      0x0303
-    tls_cipher_suite:        0xc02f
-    tls_alpn:                "http/1.1"
-    tls_sni:                 "geo.seznam.cz"
+    tls_cipher_suite:        0xcca8
+    tls_alpn:                "h2"
+    tls_sni:                 "seznam.cz"
     tls_client_version:      0x0303
-    tls_issuer_cn:           "thawte SSL CA - G2"
-    tls_subject_cn:          "geo.seznam.cz"
-    tls_validity_not_before: 1480291200
-    tls_validity_not_after:  1511913599
+    tls_issuer_cn:           "R3"
+    tls_subject_cn:          "www.seznam.cz"
+    tls_validity_not_before: 1680498180
+    tls_validity_not_after:  1688274179
     tls_public_key_alg:      "rsaEncryption"
-    tls_ja3:                 "0x0FFEE3BA8E615AD22535E7F771690A28"
+    tls_ja3:                 "0x7f9ee38af4d6bfadb75f00b209febe07"

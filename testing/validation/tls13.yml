@@ -21,4 +21,4 @@ flows:
     tls_cipher_suite:   0x1302
     tls_sni:            "dogfish"
     tls_client_version: 0x7f1c
-    tls_ja3:            "0xA66E498C488AA0523759691248CDFB01"
+    tls_ja3:            "0xa66e498c488aa0523759691248cdfb01"
