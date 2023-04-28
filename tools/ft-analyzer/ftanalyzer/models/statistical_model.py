@@ -50,10 +50,10 @@ class StatisticalModel:
 
     # pylint: disable=too-few-public-methods
     TIME_EPSILON = 100
-    FLOW_KEY = ["PROTOCOL", "SRC_IP", "DST_IP", "SRC_PORT", "DST_PORT"]
+    FLOW_KEY = ["SRC_IP", "DST_IP", "SRC_PORT", "DST_PORT", "PROTOCOL"]
     CSV_COLUMN_TYPES = {
-        "START_TIME": np.uint64,
-        "END_TIME": np.uint64,
+        "START_TIME": np.int64,
+        "END_TIME": np.int64,
         "PROTOCOL": np.uint8,
         "SRC_IP": str,
         "DST_IP": str,
@@ -70,7 +70,9 @@ class StatisticalModel:
         "BYTES": "sum",
     }
 
-    def __init__(self, flows: str, reference: str, timeouts: Tuple[int, int], start_time: int = 0) -> None:
+    def __init__(
+        self, flows: str, reference: str, timeouts: Tuple[int, int], start_time: int = 0, sort: bool = False
+    ) -> None:
         """Read provided files and converts it to data frames.
 
         Parameters
@@ -85,6 +87,10 @@ class StatisticalModel:
         start_time : int
             Treat times in the reference file as offsets (in milliseconds) from the provided start time.
             UTC timestamp in milliseconds.
+        sort : bool
+            Sort flows by the flow key (SRC_IP, DST_IP, SRC_PORT, DST_PORT, PROTOCOL).
+            Necessary for the precise model, not needed for the statistical model.
+            Must be done before IP addresses are converted to ipaddr objects.
 
         Raises
         ------
@@ -108,6 +114,9 @@ class StatisticalModel:
             self._ref["END_TIME"] = self._ref["END_TIME"] + start_time
 
         self._merge_flows(timeouts[0])
+        if sort:
+            self._flows = self._flows.sort_values(self.FLOW_KEY).reset_index(drop=True)
+            self._ref = self._ref.sort_values(self.FLOW_KEY).reset_index(drop=True)
 
         self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(ipaddress.ip_address)
         self._flows.loc[:, "DST_IP"] = self._flows["DST_IP"].apply(ipaddress.ip_address)
@@ -272,7 +281,7 @@ class StatisticalModel:
                 mask_flow = self._flows["DST_IP"].apply(lambda x: x in subnet_dest)
                 mask_ref = self._ref["DST_IP"].apply(lambda x: x in subnet_dest)
 
-        return self._flows[mask_flow], self._ref[mask_ref]
+        return self._flows[mask_flow].reset_index(drop=True), self._ref[mask_ref].reset_index(drop=True)
 
     def _filter_time_segment(self, segment: SMTimeSegment) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Create subsets of data frames based on time interval.
@@ -309,4 +318,4 @@ class StatisticalModel:
             mask_flow = self._flows["END_TIME"].apply(lambda x: x <= end_time)
             mask_ref = self._ref["END_TIME"].apply(lambda x: x <= end_time)
 
-        return self._flows[mask_flow], self._ref[mask_ref]
+        return self._flows[mask_flow].reset_index(drop=True), self._ref[mask_ref].reset_index(drop=True)
