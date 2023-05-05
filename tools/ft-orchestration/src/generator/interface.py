@@ -12,6 +12,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
+from src.generator.ft_generator import FtGeneratorConfig
+
 
 class GeneratorException(Exception):
     """Basic exception raised by generator."""
@@ -137,6 +139,39 @@ class PcapPlayer(ABC):
         loop_count : int, optional
             Packets from pcap will be replayed loop_count times.
             Processing of zero or negative value depends on implementation.
+        kwargs : dict
+            Additional arguments processed by implementation.
+        """
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def start_profile(
+        self,
+        profile_path: str,
+        report_path: str,
+        speed: ReplaySpeed = MultiplierSpeed(1.0),
+        loop_count: int = 1,
+        generator_config: Optional[FtGeneratorConfig] = None,
+        **kwargs
+    ) -> None:
+        """Start network traffic replaying from given profile.
+
+        Parameters
+        ----------
+        profile_path : str
+            Path to network profile in CSV form. Path to CSV file must be local path.
+            Method will synchronize CSV file when remote is used.
+        report_path : str
+            Local path to save report CSV (table with generated flows).
+            Preprocessed to use with StatisticalModel/FlowReplicator.
+        speed : ReplaySpeed, optional
+            Argument to modify packets replay speed.
+        loop_count : int, optional
+            Packets from pcap will be replayed loop_count times.
+            Processing of zero or negative value depends on implementation.
+        generator_config : FtGeneratorConfig, optional
+            Configuration of PCAP generation from profile. Passed to ft-generator.
         kwargs : dict
             Additional arguments processed by implementation.
         """
