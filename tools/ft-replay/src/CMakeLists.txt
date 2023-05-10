@@ -53,6 +53,7 @@ if (ENABLE_NFB)
 
 	target_link_libraries(ft-replay PRIVATE
 		nfb::nfb
+		fdt::fdt
 	)
 endif()
 
