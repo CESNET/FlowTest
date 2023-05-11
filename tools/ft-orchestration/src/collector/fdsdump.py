@@ -10,9 +10,17 @@ Fdsdump iterates over entries in FDS file and return them as JSON/dict.
 import io
 import json
 import logging
+import shutil
 import time
+from os import path
 
-from src.collector.interface import CollectorOutputReaderException, CollectorOutputReaderInterface
+from src.collector.interface import (
+    CollectorOutputReaderException,
+    CollectorOutputReaderInterface,
+)
+
+FDSDUMP_CSV_FIELDS = "flowstart,flowend,proto,srcip,dstip,srcport,dstport,packets,bytes"
+ANALYZER_CSV_FIELDS = "START_TIME,END_TIME,PROTOCOL,SRC_IP,DST_IP,SRC_PORT,DST_PORT,PACKETS,BYTES"
 
 
 class Fdsdump(CollectorOutputReaderInterface):
@@ -34,7 +42,7 @@ class Fdsdump(CollectorOutputReaderInterface):
         Current index in fdsdump output.
     """
 
-    def __init__(self, host, file):  # pylint: disable=super-init-not-called
+    def __init__(self, host, file, work_dir):  # pylint: disable=super-init-not-called
         """Initialize the collector output reader.
 
         Parameters
@@ -44,6 +52,8 @@ class Fdsdump(CollectorOutputReaderInterface):
         file : str
             FDS file to read. If running on remote machine, it should be
             path on remote machine.
+        work_dir: str
+            Temp (remote) directory used to save helper files when exporting to csv.
 
         Raises
         ------
@@ -65,7 +75,9 @@ class Fdsdump(CollectorOutputReaderInterface):
 
         self._host = host
         self._file = file
-        self._cmd = f"fdsdump -r {file} -o json-raw:no-biflow-split"
+        self._work_dir = work_dir
+        self._cmd_json = f"fdsdump -r {file} -o json-raw:no-biflow-split"
+        self._cmd_csv = f"fdsdump -r {file} -o 'csv:{FDSDUMP_CSV_FIELDS};timestamp=unix'"
         self._process = None
         self._buf = None
         self._idx = 0
@@ -100,7 +112,7 @@ class Fdsdump(CollectorOutputReaderInterface):
             Fdsdump process exited unexpectedly with an error.
         """
 
-        self._process = self._host.run(self._cmd, asynchronous=True, check_rc=False)
+        self._process = self._host.run(self._cmd_json, asynchronous=True, check_rc=False)
         # Wait until fdsdump produces some output or fails on startup
         time.sleep(1)
 
@@ -217,3 +229,35 @@ class Fdsdump(CollectorOutputReaderInterface):
 
         self._stop()
         raise StopIteration
+
+    def save_csv(self, csv_file: str):
+        """Convert flows from FDS format to CSV file.
+        Used for significant amount of flows in performance testing.
+
+        Parameters
+        ----------
+        csv_file: str
+            Path to CSV file. Local file, CSV will be downloaded when collector running on remote.
+        """
+
+        filename = path.basename(csv_file)
+        tmp_file = path.join(self._work_dir, filename)
+
+        logging.getLogger().info("Preparing CSV output by calling fdsdump command...")
+        start = time.time()
+        # use internal (analyzer) column names
+        self._host.run(f"echo '{ANALYZER_CSV_FIELDS}' > {tmp_file}")
+        # discard row with column names from fdsdump
+        self._host.run(f"{self._cmd_csv} | tail -n +2 >> {tmp_file}")
+        end = time.time()
+        logging.getLogger().info("CSV output saved in %.2f seconds.", (end - start))
+
+        if self._host.is_local():
+            shutil.move(tmp_file, csv_file)
+        else:
+            logging.getLogger().info("Downloading CSV output to local directory...")
+            start = time.time()
+            self._host.get_storage().pull(tmp_file, path.dirname(csv_file))
+            end = time.time()
+            logging.getLogger().info("CSV output downloaded in %.2f seconds.", (end - start))
+            self._host.get_storage().remove(tmp_file)
