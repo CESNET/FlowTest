@@ -85,6 +85,7 @@ int main(int argc, char* argv[])
 
 	} catch (const std::runtime_error& error) {
 		logger->critical(error.what());
+		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
