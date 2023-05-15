@@ -94,7 +94,12 @@ class StatisticalModel:
         """
 
         try:
-            self._flows = pd.read_csv(flows, engine="pyarrow", dtype=self.CSV_COLUMN_TYPES)
+            # ports could be empty in flows with protocol like ICMP
+            flows = pd.read_csv(flows, engine="pyarrow")
+            flows["SRC_PORT"] = flows["SRC_PORT"].fillna(0)
+            flows["DST_PORT"] = flows["DST_PORT"].fillna(0)
+            self._flows = flows.astype(self.CSV_COLUMN_TYPES)
+
             self._ref = pd.read_csv(reference, engine="pyarrow", dtype=self.CSV_COLUMN_TYPES)
         except Exception as err:
             raise SMException("Unable to read file with flows.") from err
