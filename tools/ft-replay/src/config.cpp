@@ -47,7 +47,7 @@ void Config::Parse(int argc, char** argv)
 				_loopsCount = std::numeric_limits<size_t>::max();
 			}
 			break;
-		case 'p':
+		case 'i':
 			_pcapFile = optarg;
 			break;
 		case 'h':
@@ -78,7 +78,7 @@ const option* Config::GetLongOptions()
 		   {"output-plugin", required_argument, nullptr, 'o'},
 		   {"vlan-id", required_argument, nullptr, 'v'},
 		   {"loops", required_argument, nullptr, 'l'},
-		   {"pcap", required_argument, nullptr, 'p'},
+		   {"input", required_argument, nullptr, 'i'},
 		   {"help", no_argument, nullptr, 'h'},
 		   {nullptr, 0, nullptr, 0}};
 	return longOptions;
@@ -86,7 +86,7 @@ const option* Config::GetLongOptions()
 
 const char* Config::GetShortOptions()
 {
-	return "c:r:o:v:l:p:h";
+	return "c:r:o:v:l:i:h";
 }
 
 void Config::Validate()
@@ -101,7 +101,7 @@ void Config::Validate()
 		throw std::invalid_argument("Missing output plugin params (-o)");
 	}
 	if (_pcapFile.empty()) {
-		throw std::invalid_argument("Missing input pcap file argument (-p)");
+		throw std::invalid_argument("Missing input pcap file argument (-i)");
 	}
 }
 
@@ -142,14 +142,14 @@ bool Config::IsHelp() const
 
 void Config::PrintUsage() const
 {
-	std::cerr << "Usage: ./ft-replay [options] -c <replicator config file> -p <pcap file> -o "
+	std::cerr << "Usage: ./ft-replay [options] -c <replicator config file> -i <pcap file> -o "
 				 "<output plugin params>\n";
 	std::cerr << "  --replicator-config, -c  ... The replicator config file\n";
 	std::cerr
 		<< "  --replay-multiplier, -r  ... Replay speed multiplier. [0 - As fast as possible]\n";
 	std::cerr << "  --output-plugin, -o      ... The output plugin specification\n";
 	std::cerr << "  --vlan-id, -v            ... The vlan ID number\n";
-	std::cerr << "  --pcap, -p               ... Input PCAP file\n";
+	std::cerr << "  --input, -i              ... Input PCAP file\n";
 	std::cerr << "  --loops, -o              ... Number of loops over PCAP file. [0 - infinite]\n";
 	std::cerr << "  --help, -h               ... Show this help message\n";
 }
