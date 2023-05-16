@@ -5,6 +5,7 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 """
 
+from .precise_model import PreciseModel
 from .sm_data_types import (
     SMException,
     SMMetric,
