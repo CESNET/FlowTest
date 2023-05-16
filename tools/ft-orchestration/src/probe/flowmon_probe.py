@@ -12,12 +12,10 @@ import logging
 import shutil
 import tempfile
 import time
+from pathlib import Path
 from typing import List
 
-from pathlib import Path
-
 import invoke
-
 from src.probe.interface import ProbeException, ProbeInterface
 
 FLOWMONEXP_BIN = "/usr/bin/flowmonexp5"

@@ -8,10 +8,10 @@ File contains ValidationModel class for performing accurate comparison between l
 """
 
 from copy import deepcopy
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from ftanalyzer.reports import ValidationReport
 from ftanalyzer.models.biflow_validator import BiflowValidator
+from ftanalyzer.reports import ValidationReport
 
 
 # pylint: disable=R0903

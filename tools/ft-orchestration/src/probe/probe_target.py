@@ -7,9 +7,9 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Class for exporter's targets"""
 
+import ipaddress
 import logging
 import socket
-import ipaddress
 
 # pylint: disable=R0903
 

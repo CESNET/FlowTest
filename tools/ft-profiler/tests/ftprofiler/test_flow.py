@@ -7,17 +7,18 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Unit tests for ftprofiler - flow.py.
 """
+import copy
 import random
 import socket
 import struct
 from ipaddress import IPv4Address, IPv6Address
-import copy
 from typing import List, Union
 from unittest.mock import patch
-import pytest
-from hypothesis import given, assume, settings, HealthCheck
+
 import hypothesis.strategies as st
+import pytest
 from ftprofiler.flow import Flow
+from hypothesis import HealthCheck, assume, given, settings
 
 
 class GenerateFlows:

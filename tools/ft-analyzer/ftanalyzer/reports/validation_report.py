@@ -8,9 +8,9 @@ File contains class ValidationReport which processes validation results
 and provides report from validation testing.
 """
 
-from typing import Any, Dict, List, Optional, Set, Tuple
-from dataclasses import dataclass
 from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from ftanalyzer.flow import FieldsDict, ValidationResult, ValidationStats
 

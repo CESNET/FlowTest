@@ -8,14 +8,14 @@ Library for managing ipfixprobe.
 """
 
 import logging
+import shutil
+import tempfile
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 from pathlib import Path
-import tempfile
-import shutil
+from typing import Dict, List, Optional, Tuple
 
 import invoke
 from src.common.required_field import required_field

@@ -8,11 +8,12 @@ SPDX-License-Identifier: BSD-3-Clause
 Unit tests for ftprofiler - writer.py.
 """
 import os
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
 import pytest
-from test_cache import GenerateCache
 from ftprofiler.flow import Flow
-from ftprofiler.writer import ProfileWriter, OutputException
+from ftprofiler.writer import OutputException, ProfileWriter
+from test_cache import GenerateCache
 
 
 @pytest.fixture(scope="function", autouse=True)

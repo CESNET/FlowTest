@@ -6,11 +6,10 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Orchestration configuration entity - GeneratorCfg"""
 
-from typing import List, Optional, Dict
-
 from dataclasses import dataclass
-from dataclass_wizard import YAMLWizard
+from typing import Dict, List, Optional
 
+from dataclass_wizard import YAMLWizard
 from src.config.authentication import AuthenticationCfg
 from src.config.common import InterfaceCfg
 

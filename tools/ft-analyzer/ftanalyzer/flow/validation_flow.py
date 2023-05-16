@@ -8,7 +8,7 @@ File contains ValidationFlow class which is used as an input to Validation model
 """
 
 from itertools import permutations
-from typing import Any, Tuple, Union, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from ftanalyzer.fields import FieldDirection
 from ftanalyzer.flow.flow import FieldsDict, Flow

@@ -7,10 +7,10 @@ SPDX-License-Identifier: BSD-3-Clause
 Mapping JSON output of ipfixcol2 (ipfix attributes) to format expected by validation tests (YAML test description).
 """
 import string
-from typing import Tuple, Any
-import yaml
-from OpenSSL._util import lib, ffi
+from typing import Any, Tuple
 
+import yaml
+from OpenSSL._util import ffi, lib
 from src.collector.interface import CollectorOutputReaderInterface
 from src.collector.protocols import known_protocols
 

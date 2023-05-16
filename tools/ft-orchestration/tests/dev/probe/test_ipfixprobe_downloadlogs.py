@@ -10,16 +10,16 @@ Test for download_logs and cleanup.
 
 import os
 import time
-import pytest
 
+import pytest
+from src.config.authentication import AuthenticationCfg
 from src.config.common import InterfaceCfg
+from src.config.config import Config
+from src.config.probe import ProbeCfg
 from src.host.host import Host
 from src.host.storage import RemoteStorage
-from src.probe.probe_target import ProbeTarget
 from src.probe.ipfixprobe import IpfixprobeRaw
-from src.config.probe import ProbeCfg
-from src.config.config import Config
-from src.config.authentication import AuthenticationCfg
+from src.probe.probe_target import ProbeTarget
 
 FILES_DIR = f"{os.getcwd()}/tools/ft-orchestration/conf/"
 

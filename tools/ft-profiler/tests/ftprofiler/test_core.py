@@ -7,9 +7,10 @@ SPDX-License-Identifier: BSD-3-Clause
 Unit tests for ftprofiler - core.py.
 """
 
-import sys
 import os
+import sys
 from unittest.mock import patch
+
 import pytest
 from ftprofiler import core
 from ftprofiler.readers.nffile import Nffile

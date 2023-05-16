@@ -9,13 +9,14 @@ SPDX-License-Identifier: BSD-3-Clause
 Unit tests for ftprofiler - cache.py.
 """
 
-import random
 import copy
-from hypothesis import given, example
+import random
+
 import hypothesis.strategies as st
-from test_flow import GenerateFlows
 from ftprofiler.cache import FlowCache
 from ftprofiler.flow import Flow
+from hypothesis import example, given
+from test_flow import GenerateFlows
 
 
 class GenerateCache:

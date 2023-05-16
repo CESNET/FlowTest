@@ -10,18 +10,18 @@ Test for download_logs and cleanup.
 
 import os
 import time
-import pytest
 
+import pytest
+from src.config.authentication import AuthenticationCfg
 from src.config.common import InterfaceCfg
+from src.config.config import Config
 from src.config.generator import GeneratorCfg
+from src.config.probe import ProbeCfg
+from src.generator.tcpreplay import TcpReplay
 from src.host.host import Host
 from src.host.storage import RemoteStorage
-from src.probe.probe_target import ProbeTarget
 from src.probe.flowmon_probe import FlowmonProbe
-from src.config.probe import ProbeCfg
-from src.config.config import Config
-from src.config.authentication import AuthenticationCfg
-from src.generator.tcpreplay import TcpReplay
+from src.probe.probe_target import ProbeTarget
 
 FILES_DIR = f"{os.getcwd()}/tools/ft-orchestration/conf/"
 PCAP_FILE = f"{os.getcwd()}/tools/ft-orchestration/tests/dev/tcpreplay/NTP_sync.pcap"
