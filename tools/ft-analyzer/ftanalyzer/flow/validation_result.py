@@ -8,10 +8,9 @@ File contains definition of ValidationResult and ValidationStats classes which h
 information about the result of comparison between two flows.
 """
 
-from dataclasses import dataclass
 from collections import defaultdict
-
-from typing import Any, Union, Set
+from dataclasses import dataclass
+from typing import Any, Set, Union
 
 
 @dataclass

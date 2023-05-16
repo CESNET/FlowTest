@@ -5,17 +5,16 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 """
-from typing import Any, Dict, List, Optional, Tuple
-
 import collections
 import os
+from typing import Any, Dict, List, Optional, Tuple
+
 import pytest
 import yaml
-
 from ftanalyzer.fields import FieldDatabase
-from ftanalyzer.normalizer import Normalizer
-from ftanalyzer.models import ValidationModel
 from ftanalyzer.flow import ValidationField, ValidationStats
+from ftanalyzer.models import ValidationModel
+from ftanalyzer.normalizer import Normalizer
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
 FLOWS_PATH = os.path.join(BASE_PATH, "flows")

@@ -12,7 +12,6 @@ Script entry-point.
 
 import sys
 
-
 if __name__ == "__main__":
     from ftprofiler.core import main
 

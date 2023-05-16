@@ -5,19 +5,19 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 """
-from datetime import datetime, timezone
 import os
+from datetime import datetime, timezone
 
 import pytest
 from ftanalyzer.models import (
-    StatisticalModel as SMod,
-    SMRule,
+    SMException,
     SMMetric,
     SMMetricType,
+    SMRule,
     SMSubnetSegment,
     SMTimeSegment,
-    SMException,
 )
+from ftanalyzer.models import StatisticalModel as SMod
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
 FLOWS_PATH = os.path.join(BASE_PATH, "flows")

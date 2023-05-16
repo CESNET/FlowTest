@@ -8,9 +8,9 @@ SPDX-License-Identifier: BSD-3-Clause
 import argparse
 
 from .csvfile import CSVFile
+from .fdsfile import Fdsfile
 from .interface import InputException, InputInterface
 from .nffile import Nffile
-from .fdsfile import Fdsfile
 
 flow_readers = [Nffile, CSVFile, Fdsfile]
 

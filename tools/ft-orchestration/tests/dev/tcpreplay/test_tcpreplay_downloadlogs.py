@@ -10,13 +10,13 @@ Test for download_logs and cleanup.
 
 import os
 import time
-import pytest
 
+import pytest
+from src.config.authentication import AuthenticationCfg
+from src.config.config import Config
+from src.generator.tcpreplay import TcpReplay
 from src.host.host import Host
 from src.host.storage import RemoteStorage
-from src.config.config import Config
-from src.config.authentication import AuthenticationCfg
-from src.generator.tcpreplay import TcpReplay
 
 FILES_DIR = f"{os.getcwd()}/tools/ft-orchestration/conf/"
 PCAP_FILE = f"{os.getcwd()}/tools/ft-orchestration/tests/dev/tcpreplay/NTP_sync.pcap"

@@ -11,7 +11,7 @@ acquire flows from input reader and pass them to flow cache and then to the writ
 import argparse
 import logging
 
-from ftprofiler.cache import FlowCacheException, FlowCache
+from ftprofiler.cache import FlowCache, FlowCacheException
 from ftprofiler.flow import Flow
 from ftprofiler.readers import InputException, InputInterface, flow_readers, init_reader
 from ftprofiler.writer import OutputException, ProfileWriter

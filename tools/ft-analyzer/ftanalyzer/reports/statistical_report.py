@@ -7,7 +7,12 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 from typing import List, Optional, Union
 
-from ftanalyzer.models.sm_data_types import SMMetricType, SMSubnetSegment, SMTimeSegment, SMTestOutcome
+from ftanalyzer.models.sm_data_types import (
+    SMMetricType,
+    SMSubnetSegment,
+    SMTestOutcome,
+    SMTimeSegment,
+)
 
 
 class StatisticalReport:

@@ -63,3 +63,11 @@ black:
   artifacts:
     paths: [black.log]
     when: always
+
+isort:
+  stage: check
+  script:
+    - pipenv run isort --check --diff . | tee isort.log
+  artifacts:
+    paths: [isort.log]
+    when: always

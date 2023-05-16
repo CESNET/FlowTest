@@ -5,21 +5,20 @@ Copyright: (C) 2023 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 """
-from typing import List, Optional, Tuple, Union
 import ipaddress
+from typing import List, Optional, Tuple, Union
 
-import pandas as pd
 import numpy as np
-
-from ftanalyzer.reports import StatisticalReport
+import pandas as pd
 from ftanalyzer.models.sm_data_types import (
-    SMRule,
-    SMTestOutcome,
-    SMMetricType,
-    SMSubnetSegment,
-    SMTimeSegment,
     SMException,
+    SMMetricType,
+    SMRule,
+    SMSubnetSegment,
+    SMTestOutcome,
+    SMTimeSegment,
 )
+from ftanalyzer.reports import StatisticalReport
 
 
 class StatisticalModel:

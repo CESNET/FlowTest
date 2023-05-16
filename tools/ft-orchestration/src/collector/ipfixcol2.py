@@ -13,9 +13,9 @@ import shutil
 import tempfile
 import time
 import xml.etree.ElementTree as ET
-
-from typing import List
 from pathlib import Path
+from typing import List
+
 from src.collector.fdsdump import Fdsdump
 from src.collector.interface import CollectorException, CollectorInterface
 

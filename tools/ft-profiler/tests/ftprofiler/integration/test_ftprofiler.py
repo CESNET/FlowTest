@@ -7,10 +7,11 @@ SPDX-License-Identifier: BSD-3-Clause
 Integration tests for ftprofiler.
 """
 
-import sys
-import os
 import filecmp
+import os
+import sys
 from unittest.mock import patch
+
 from ftprofiler import core
 
 INTEGRATION_BASE = "tools/ft-profiler/tests/ftprofiler/integration/data"

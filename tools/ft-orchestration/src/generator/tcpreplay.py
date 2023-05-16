@@ -9,14 +9,15 @@ Module implements TcpReplay class representing tcpreplay tool.
 
 import logging
 import re
-import tempfile
 import shutil
+import tempfile
 from os import path
-from typing import Optional
 from pathlib import Path
-import invoke
+from typing import Optional
 
+import invoke
 from src.generator.interface import (
+    GeneratorException,
     MbpsSpeed,
     MultiplierSpeed,
     PcapPlayer,
@@ -24,7 +25,6 @@ from src.generator.interface import (
     PpsSpeed,
     ReplaySpeed,
     TopSpeed,
-    GeneratorException,
 )
 from src.generator.scapy_rewriter import RewriteRules, rewrite_pcap
 

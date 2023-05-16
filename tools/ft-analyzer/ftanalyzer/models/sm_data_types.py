@@ -8,7 +8,6 @@ File contains data structures which are used for statistical model tests.
 """
 from dataclasses import dataclass
 from enum import Enum
-
 from typing import List, Optional, Union
 
 

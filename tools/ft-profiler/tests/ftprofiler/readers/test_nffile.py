@@ -7,15 +7,16 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Unit tests for ftprofiler/reader - nffile.py.
 """
-import subprocess
 import argparse
-from unittest.mock import patch, MagicMock
-import pytest
-from hypothesis import given, settings, HealthCheck
+import subprocess
+from unittest.mock import MagicMock, patch
+
 import hypothesis.strategies as st
-from test_cache import GenerateCache
+import pytest
 from ftprofiler.flow import Flow
-from ftprofiler.readers.nffile import Nffile, InputException
+from ftprofiler.readers.nffile import InputException, Nffile
+from hypothesis import HealthCheck, given, settings
+from test_cache import GenerateCache
 
 
 class NffileHelper:

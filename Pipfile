@@ -37,6 +37,7 @@ build = "*"
 twine = "*"
 hypothesis = "*"
 docker = "*"
+isort = "*"
 
 [requires]
 python_version = "3.9"

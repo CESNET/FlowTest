@@ -9,9 +9,9 @@ Tests for ipfixprobe connector.
 
 import logging
 import os
+import re
 import time
 from collections import namedtuple
-import re
 
 import docker
 import invoke

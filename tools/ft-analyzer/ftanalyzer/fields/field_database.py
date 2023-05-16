@@ -7,9 +7,10 @@ SPDX-License-Identifier: BSD-3-Clause
 Database of flow fields created from a yaml configuration file.
 """
 
-from enum import Enum
 import logging
-from typing import List, Dict, Tuple, Union
+from enum import Enum
+from typing import Dict, List, Tuple, Union
+
 import yaml
 
 

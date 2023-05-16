@@ -7,22 +7,21 @@ SPDX-License-Identifier: BSD-3-Clause
 Tests for CollectorOutputMapper.
 """
 import json
-from os import path
 import os
 import re
 import shutil
+from os import path
 from typing import List, Union
-import pytest
 
+import pytest
+from src.collector.interface import CollectorOutputReaderInterface
 from src.collector.mapper import (
-    Converters,
     CollectorOutputMapper,
+    Converters,
     MappingException,
     MappingFileReadException,
     MappingFormatException,
 )
-from src.collector.interface import CollectorOutputReaderInterface
-
 
 CONF_FILE = path.join(path.dirname(path.realpath(__file__)), "../../../../../conf/ipfixcol2/mapping.yaml")
 TESTING_TMP_DIR = path.join(path.dirname(path.realpath(__file__)), "tests_tmp")

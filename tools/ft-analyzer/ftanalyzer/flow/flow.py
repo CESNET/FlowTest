@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 File contains Flow class.
 """
 
-from typing import Tuple, Union, Dict, List
+from typing import Dict, List, Tuple, Union
 
 FieldsDict = Dict[str, Union[str, int, Dict, List]]
 

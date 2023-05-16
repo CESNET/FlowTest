@@ -24,12 +24,11 @@ import logging
 import signal
 import sys
 import time
-
 from types import FrameType
 from typing import Optional, Tuple
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pygad
 
 LOGGING_FORMAT = "%(asctime)-15s,[%(levelname)s] - %(message)s"

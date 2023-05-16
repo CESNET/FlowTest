@@ -5,6 +5,13 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 """
 
-from .validation_model import ValidationModel
+from .sm_data_types import (
+    SMException,
+    SMMetric,
+    SMMetricType,
+    SMRule,
+    SMSubnetSegment,
+    SMTimeSegment,
+)
 from .statistical_model import StatisticalModel
-from .sm_data_types import SMRule, SMMetric, SMMetricType, SMSubnetSegment, SMTimeSegment, SMException
+from .validation_model import ValidationModel
