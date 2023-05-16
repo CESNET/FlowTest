@@ -26,4 +26,5 @@ log_cli = "true"
 addopts = "-s"
 
 [tool.isort]
+profile = "black"
 known_third_party = ["docker"]
