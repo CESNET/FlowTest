@@ -15,8 +15,17 @@
 namespace replay {
 
 Config::Config()
+	: _exclusiveOption(std::nullopt)
 {
 	SetDefaultValues();
+}
+
+void Config::CheckExclusiveOption(char option)
+{
+	if (_exclusiveOption && _exclusiveOption.value() != option) {
+		throw std::runtime_error("Options -x, -t, -p, and -M are mutually exclusive.");
+	}
+	_exclusiveOption = option;
 }
 
 void Config::Parse(int argc, char** argv)
@@ -32,13 +41,23 @@ void Config::Parse(int argc, char** argv)
 		case 'c':
 			_replicatorConfig = optarg;
 			break;
-		case 'r':
+		case 'x':
+			CheckExclusiveOption(c);
 			_replayTimeMultiplier = std::atof(optarg);
+			if (!_replayTimeMultiplier) {
+				throw std::runtime_error("Option -x cannot be zero.");
+			}
+			break;
+		case 't':
+			CheckExclusiveOption(c);
+			_replayTimeMultiplier = 0;
 			break;
 		case 'p':
+			CheckExclusiveOption(c);
 			SetRateLimit(RateLimitPps {std::stoull(optarg)});
 			break;
 		case 'M':
+			CheckExclusiveOption(c);
 			SetRateLimit(RateLimitMbps {std::stoull(optarg)});
 			break;
 		case 'o':
@@ -71,23 +90,25 @@ void Config::SetDefaultValues()
 	_pcapFile.clear();
 
 	_rateLimit = std::monostate();
-	_replayTimeMultiplier = 0;
+	_replayTimeMultiplier = 1;
 	_vlanID = 0;
 	_loopsCount = 1;
 	_help = false;
+	_exclusiveOption.reset();
 }
 
 const option* Config::GetLongOptions()
 {
 	static struct option longOptions[]
-		= {{"replicator-config", required_argument, nullptr, 'c'},
-		   {"replay-multiplier", required_argument, nullptr, 'r'},
-		   {"output-plugin", required_argument, nullptr, 'o'},
-		   {"vlan-id", required_argument, nullptr, 'v'},
-		   {"loops", required_argument, nullptr, 'l'},
-		   {"input", required_argument, nullptr, 'i'},
-		   {"mbps", required_argument, nullptr, 'M'},
+		= {{"input", required_argument, nullptr, 'i'},
+		   {"output", required_argument, nullptr, 'o'},
+		   {"config", required_argument, nullptr, 'c'},
+		   {"multiplier", required_argument, nullptr, 'x'},
 		   {"pps", required_argument, nullptr, 'p'},
+		   {"mbps", required_argument, nullptr, 'M'},
+		   {"topspeed", no_argument, nullptr, 't'},
+		   {"vlan-id", required_argument, nullptr, 'v'},
+		   {"loop", required_argument, nullptr, 'l'},
 		   {"help", no_argument, nullptr, 'h'},
 		   {nullptr, 0, nullptr, 0}};
 	return longOptions;
@@ -95,7 +116,7 @@ const option* Config::GetLongOptions()
 
 const char* Config::GetShortOptions()
 {
-	return "c:r:o:v:l:p:M:i:h";
+	return "i:o:c:x:p:M:tv:l:h";
 }
 
 void Config::Validate()
@@ -163,17 +184,17 @@ bool Config::IsHelp() const
 
 void Config::PrintUsage() const
 {
-	std::cerr << "Usage: ./ft-replay [options] -i <pcap file> -o <output plugin params>\n";
-	std::cerr << "  --replicator-config, -c  ... The replicator config file\n";
-	std::cerr
-		<< "  --replay-multiplier, -r  ... Replay speed multiplier. [0 - As fast as possible]\n";
-	std::cerr << "  --output-plugin, -o      ... The output plugin specification\n";
-	std::cerr << "  --pps, -p                ... Replay packets at a given packets/sec\n";
-	std::cerr << "  --mbps, -M               ... Replay packets at a given mbps\n";
-	std::cerr << "  --vlan-id, -v            ... The vlan ID number\n";
-	std::cerr << "  --input, -i              ... Input PCAP file\n";
-	std::cerr << "  --loops, -l              ... Number of loops over PCAP file. [0 - infinite]\n";
-	std::cerr << "  --help, -h               ... Show this help message\n";
+	std::cout << "Usage: ./ft-replay [options] -i <pcap file> -o <output plugin params>\n";
+	std::cout << "  -i, --input=str           Input PCAP file\n";
+	std::cout << "  -o, --output=str          The output plugin specification\n";
+	std::cout << "  -c, --config=str,         The replicator config file\n";
+	std::cout << "  -x. --multiplier=num      Modify replay speed to a given multiple.\n";
+	std::cout << "  -p, --pps=num             Replay packets at a given packets/sec\n";
+	std::cout << "  -M, --mbps=num            Replay packets at a given mbps\n";
+	std::cout << "  -t, --topspeed            Replay packets as fast as possible\n";
+	std::cout << "  -v, --vlan-id=num         The vlan ID number\n";
+	std::cout << "  -l, --loop=num            Number of loops over PCAP file. [0 = infinite]\n";
+	std::cout << "  -h, --help                Show this help message\n";
 }
 
 } // namespace replay

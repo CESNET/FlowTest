@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <getopt.h>
+#include <optional>
 #include <string>
 #include <variant>
 
@@ -103,6 +104,7 @@ public:
 private:
 	void SetDefaultValues();
 	void SetRateLimit(RateLimit limit);
+	void CheckExclusiveOption(char option);
 	void Validate();
 
 	const option* GetLongOptions();
@@ -116,6 +118,8 @@ private:
 	float _replayTimeMultiplier;
 	uint16_t _vlanID;
 	size_t _loopsCount;
+
+	std::optional<char> _exclusiveOption;
 
 	bool _help;
 };
