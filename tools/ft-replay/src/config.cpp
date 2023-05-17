@@ -35,6 +35,12 @@ void Config::Parse(int argc, char** argv)
 		case 'r':
 			_replayTimeMultiplier = std::atof(optarg);
 			break;
+		case 'p':
+			SetRateLimit(RateLimitPps {std::stoull(optarg)});
+			break;
+		case 'M':
+			SetRateLimit(RateLimitMbps {std::stoull(optarg)});
+			break;
 		case 'o':
 			_outputPlugin = optarg;
 			break;
@@ -47,7 +53,7 @@ void Config::Parse(int argc, char** argv)
 				_loopsCount = std::numeric_limits<size_t>::max();
 			}
 			break;
-		case 'p':
+		case 'i':
 			_pcapFile = optarg;
 			break;
 		case 'h':
@@ -64,6 +70,7 @@ void Config::SetDefaultValues()
 	_outputPlugin.clear();
 	_pcapFile.clear();
 
+	_rateLimit = std::monostate();
 	_replayTimeMultiplier = 0;
 	_vlanID = 0;
 	_loopsCount = 1;
@@ -78,7 +85,9 @@ const option* Config::GetLongOptions()
 		   {"output-plugin", required_argument, nullptr, 'o'},
 		   {"vlan-id", required_argument, nullptr, 'v'},
 		   {"loops", required_argument, nullptr, 'l'},
-		   {"pcap", required_argument, nullptr, 'p'},
+		   {"input", required_argument, nullptr, 'i'},
+		   {"mbps", required_argument, nullptr, 'M'},
+		   {"pps", required_argument, nullptr, 'p'},
 		   {"help", no_argument, nullptr, 'h'},
 		   {nullptr, 0, nullptr, 0}};
 	return longOptions;
@@ -86,7 +95,7 @@ const option* Config::GetLongOptions()
 
 const char* Config::GetShortOptions()
 {
-	return "c:r:o:v:l:p:h";
+	return "c:r:o:v:l:p:M:i:h";
 }
 
 void Config::Validate()
@@ -95,14 +104,24 @@ void Config::Validate()
 		return;
 	}
 	if (_replicatorConfig.empty()) {
-		throw std::invalid_argument("Missing replicator config argument (-r)");
+		throw std::invalid_argument("Missing replicator config argument (-c)");
 	}
 	if (_outputPlugin.empty()) {
 		throw std::invalid_argument("Missing output plugin params (-o)");
 	}
 	if (_pcapFile.empty()) {
-		throw std::invalid_argument("Missing input pcap file argument (-p)");
+		throw std::invalid_argument("Missing input pcap file argument (-i)");
 	}
+}
+
+void Config::SetRateLimit(Config::RateLimit limit)
+{
+	if (std::holds_alternative<std::monostate>(_rateLimit)) {
+		_rateLimit = limit;
+		return;
+	}
+
+	throw std::invalid_argument("Multiple rate limits are not allowed");
 }
 
 const std::string& Config::GetReplicatorConfig() const
@@ -118,6 +137,11 @@ const std::string& Config::GetOutputPluginSpecification() const
 const std::string& Config::GetInputPcapFile() const
 {
 	return _pcapFile;
+}
+
+Config::RateLimit Config::GetRateLimit() const
+{
+	return _rateLimit;
 }
 
 float Config::GetReplayTimeMultiplier() const
@@ -142,15 +166,17 @@ bool Config::IsHelp() const
 
 void Config::PrintUsage() const
 {
-	std::cerr << "Usage: ./ft-replay [options] -c <replicator config file> -p <pcap file> -o "
+	std::cerr << "Usage: ./ft-replay [options] -c <replicator config file> -i <pcap file> -o "
 				 "<output plugin params>\n";
 	std::cerr << "  --replicator-config, -c  ... The replicator config file\n";
 	std::cerr
 		<< "  --replay-multiplier, -r  ... Replay speed multiplier. [0 - As fast as possible]\n";
 	std::cerr << "  --output-plugin, -o      ... The output plugin specification\n";
+	std::cerr << "  --pps, -p                ... Replay packets at a given packets/sec\n";
+	std::cerr << "  --mbps, -M               ... Replay packets at a given mbps\n";
 	std::cerr << "  --vlan-id, -v            ... The vlan ID number\n";
-	std::cerr << "  --pcap, -p               ... Input PCAP file\n";
-	std::cerr << "  --loops, -o              ... Number of loops over PCAP file. [0 - infinite]\n";
+	std::cerr << "  --input, -i              ... Input PCAP file\n";
+	std::cerr << "  --loops, -l              ... Number of loops over PCAP file. [0 - infinite]\n";
 	std::cerr << "  --help, -h               ... Show this help message\n";
 }
 

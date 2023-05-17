@@ -131,9 +131,11 @@ private:
 		nullptr,
 		&ndp_close_tx_queue};
 	std::unique_ptr<ndp_packet[]> _txPacket;
-	size_t _burstSize;
+	const size_t _maxBurstSize;
 	size_t _superPacketSize;
 	size_t _superPacketLimit;
+	size_t _lastBurstTotalPacketLen;
+	size_t _lastBurstSize;
 	bool _isBufferInUse = false;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("NfbQueue");

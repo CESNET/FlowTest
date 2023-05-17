@@ -7,6 +7,7 @@
  */
 
 #include "xdp.hpp"
+
 #include "ethTool.hpp"
 
 #include <arpa/inet.h>
@@ -128,6 +129,7 @@ XdpQueue::XdpQueue(const QueueConfig& cfg, size_t id)
 	: _pktSize(cfg._packetSize)
 	, _bufferSize(cfg._umemSize * cfg._packetSize)
 	, _burstSize(cfg._burstSize)
+	, _lastBurstTotalPacketLen(0)
 	, _xskQueueSize(cfg._xskQueueSize)
 	, _umem(cfg)
 	, _socket(cfg, _umem, id)
@@ -150,6 +152,7 @@ XdpQueue::~XdpQueue()
 void XdpQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 {
 	uint32_t txId = 0;
+	_lastBurstTotalPacketLen = 0;
 
 	CollectSlots();
 
@@ -163,6 +166,7 @@ void XdpQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 		struct xdp_desc* txDesc = xsk_ring_prod__tx_desc(_socket.GetTx(), txId++);
 		txDesc->addr = _umemAddr;
 		txDesc->len = burst[i]._len;
+		_lastBurstTotalPacketLen += burst[i]._len;
 
 		burst[i]._data = _umem[_umemAddr];
 		_umemAddr += _pktSize;
@@ -177,6 +181,8 @@ void XdpQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 void XdpQueue::SendBurst(const PacketBuffer* burst)
 {
 	(void) burst;
+
+	RateLimit(_lastBurstSize, _lastBurstTotalPacketLen);
 
 	xsk_ring_prod__submit(_socket.GetTx(), _lastBurstSize);
 	_outstandingTx += _lastBurstSize;

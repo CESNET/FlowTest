@@ -191,6 +191,7 @@ private:
 	size_t _pktSize;
 	size_t _bufferSize;
 	size_t _burstSize;
+	size_t _lastBurstTotalPacketLen;
 	size_t _xskQueueSize;
 	size_t _lastBurstSize = 0;
 
