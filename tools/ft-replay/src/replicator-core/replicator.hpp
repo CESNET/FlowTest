@@ -44,7 +44,7 @@ public:
 	/**
 	 * @brief Construct a new Replicator
 	 *
-	 * @param configParser Replication units configuration
+	 * @param configParser Replication units configuration. It can be nullptr.
 	 * @param outputQueue Output interface to send the packet
 	 */
 	Replicator(const ConfigParser* configParser, OutputQueue* outputQueue);

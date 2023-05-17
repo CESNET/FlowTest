@@ -103,9 +103,6 @@ void Config::Validate()
 	if (_help) {
 		return;
 	}
-	if (_replicatorConfig.empty()) {
-		throw std::invalid_argument("Missing replicator config argument (-c)");
-	}
 	if (_outputPlugin.empty()) {
 		throw std::invalid_argument("Missing output plugin params (-o)");
 	}
@@ -166,8 +163,7 @@ bool Config::IsHelp() const
 
 void Config::PrintUsage() const
 {
-	std::cerr << "Usage: ./ft-replay [options] -c <replicator config file> -i <pcap file> -o "
-				 "<output plugin params>\n";
+	std::cerr << "Usage: ./ft-replay [options] -i <pcap file> -o <output plugin params>\n";
 	std::cerr << "  --replicator-config, -c  ... The replicator config file\n";
 	std::cerr
 		<< "  --replay-multiplier, -r  ... Replay speed multiplier. [0 - As fast as possible]\n";
