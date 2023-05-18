@@ -78,16 +78,21 @@ void RawQueue::SendBurst(const PacketBuffer* burst)
 				sizeof(sockaddr_ll));
 
 			if (ret == static_cast<int>(burst[i]._len)) {
+				_outputQueueStats.transmittedPackets++;
+				_outputQueueStats.transmittedBytes += burst[i]._len;
 				break;
 			}
 
 			if (ret == -1 && errno == EINTR) {
 				continue;
 			}
+			_outputQueueStats.failedPackets++;
 			_logger->error("RawQueue::SendBurst() Error while sending, errno: {} ", errno);
 			break;
 		}
+		_outputQueueStats.UpdateTime();
 	}
+
 	_bufferFlag = false;
 }
 
