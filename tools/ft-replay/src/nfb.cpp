@@ -99,6 +99,7 @@ void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 	for (unsigned i = 0; i < burstSize; i++) {
 		if (burst[i]._len < minPacketSize) {
 			_txPacket[i].data_length = minPacketSize;
+			_outputQueueStats.upscaledPackets++;
 		} else {
 			_txPacket[i].data_length = burst[i]._len;
 		}
@@ -212,6 +213,10 @@ void NfbQueue::SendBurst(const PacketBuffer* burst)
 
 	ndp_tx_burst_put(_txQueue.get());
 	_isBufferInUse = false;
+
+	_outputQueueStats.transmittedPackets += _lastBurstSize;
+	_outputQueueStats.transmittedBytes += _lastBurstTotalPacketLen;
+	_outputQueueStats.UpdateTime();
 }
 
 void NfbQueue::Flush()
