@@ -70,16 +70,13 @@ void CommandLineArgs::Parse(int argc, char** argv)
 
 void CommandLineArgs::PrintUsage()
 {
-	std::cerr << "Usage: ./ft-generator [-v] -p <flow profile file> [-c <config file>] -o <output "
-				 "pcap file> [-r <output report file>]\n";
-	std::cerr << "  --profiles, -p FILE  The flow profiles file in csv format\n";
-	std::cerr << "  --output, -o FILE    The output pcap file\n";
-	std::cerr << "  --config, -c FILE    The yaml config file\n";
-	std::cerr
-		<< "  --report, -r FILE    The output csv file with the report of the generated flows\n";
-	std::cerr << "  --verbose, -v        Verbosity level, specify multiple times for more verbose "
-				 "logging\n";
-	std::cerr << "  --help, -h           Show this help message\n";
+	std::cerr << "Usage: ./ft-generator [options] -p <profiles file> -o <pcap file>\n";
+	std::cerr << "  -c, --config=str    Optional configuration of generation process (YAML file)\n";
+	std::cerr << "  -p, --profiles=str  Input CSV file with flow profiles\n";
+	std::cerr << "  -o, --output=str    Output PCAP file with generated packets\n";
+	std::cerr << "  -r, --report=str    Output CSV file of actually generated flows\n";
+	std::cerr << "  -v, --verbose       Increase verbosity level. Can be used multiple times.\n";
+	std::cerr << "  -h, --help          Show this help message\n";
 }
 
 void CommandLineArgs::CheckValidity()
