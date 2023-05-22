@@ -16,6 +16,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "tools
 pytest_plugins = [
     "src.topology.common",
     "src.topology.pcap_player",
+    "src.topology.replicator",
     "tests.validation.test_validation",
     "tests.simulation.test_simulation_original",
 ]
