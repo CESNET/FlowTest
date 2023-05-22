@@ -10,6 +10,7 @@
 #include "logger.h"
 #include "outputPlugin.hpp"
 #include "outputPluginFactory.hpp"
+#include "outputPluginStatsPrinter.hpp"
 #include "outputQueue.hpp"
 #include "packetBuilder.hpp"
 #include "packetQueueProvider.hpp"
@@ -100,6 +101,9 @@ void ReplicatorExecutor(const Config& config)
 	for (auto& thread : threads) {
 		thread.join();
 	}
+
+	OutputPluginStatsPrinter outputPluginStatsPrinter;
+	outputPluginStatsPrinter.PrintStats(outputPlugin.get());
 }
 
 int main(int argc, char** argv)
