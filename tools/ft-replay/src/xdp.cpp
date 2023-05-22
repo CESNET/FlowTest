@@ -190,6 +190,10 @@ void XdpQueue::SendBurst(const PacketBuffer* burst)
 	if (_wakeUpFlag) {
 		sendto(_socket.GetDescriptor(), nullptr, 0, MSG_DONTWAIT, nullptr, 0);
 	}
+
+	_outputQueueStats.transmittedPackets += _lastBurstSize;
+	_outputQueueStats.transmittedBytes += _lastBurstTotalPacketLen;
+	_outputQueueStats.UpdateTime();
 }
 
 size_t XdpQueue::GetMaxBurstSize() const noexcept

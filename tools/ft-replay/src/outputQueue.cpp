@@ -10,6 +10,18 @@
 
 namespace replay {
 
+void OutputQueueStats::UpdateTime() noexcept
+{
+	timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC_COARSE, &now);
+	transmitEndTime = now;
+
+	if (!transmitStartTime.tv_sec && !transmitStartTime.tv_nsec) {
+		transmitStartTime = now;
+	}
+}
+
 OutputQueue::OutputQueue()
 	: _rateLimitType(std::monostate())
 	, _rateLimiter(0)

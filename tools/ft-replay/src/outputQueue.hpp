@@ -26,6 +26,28 @@ struct PacketBuffer {
 };
 
 /**
+ * @brief Struct that holds statistical information about a Output Queue.
+ */
+struct OutputQueueStats {
+	/**
+	 * @brief Updates the time-related statistics of the Output Queue.
+	 *
+	 * This function updates the time-related statistics of the Output Queue, such as the transmit
+	 * start time and end time. It uses the CLOCK_MONOTONIC_COARSE clock to retrieve the current
+	 * time and updates the transmit end time with the current time. If the transmit start time is
+	 * uninitialized (zero), it is also set to the current time.
+	 */
+	void UpdateTime() noexcept;
+
+	uint64_t transmittedPackets {}; /**< Number of transmitted packets. */
+	uint64_t transmittedBytes {}; /**< Total size of transmitted data in bytes. */
+	uint64_t failedPackets {}; /**< Number of transmit failed packets. */
+	uint64_t upscaledPackets {}; /**< Number of upscaled packets to min size. */
+	timespec transmitStartTime {}; /**< Start time of the transmit process. */
+	timespec transmitEndTime {}; /**< End time of the transmit process. */
+};
+
+/**
  * @brief Output queue virtual interface
  *
  * First, the user must fill array of PacketBuffer structure with required
@@ -59,6 +81,13 @@ public:
 	 * @throws std::logic_error If the rate limit config type is not implemented.
 	 */
 	void SetRateLimiter(Config::RateLimit rateLimitConfig);
+
+	/**
+	 * @brief Get the statistics of the Output Queue.
+	 *
+	 * @return OutputQueueStats object containing the statistical information.
+	 */
+	OutputQueueStats GetOutputQueueStats() const noexcept { return _outputQueueStats; }
 
 	/**
 	 * @brief Get the Maximal Burst Size
@@ -110,6 +139,8 @@ protected:
 	 * @param[in] sumOfPacketsLength The total length of all packets to be sent.
 	 */
 	void RateLimit(uint64_t packetsCount, uint64_t sumOfPacketsLength);
+
+	OutputQueueStats _outputQueueStats;
 
 private:
 	Config::RateLimit _rateLimitType;
