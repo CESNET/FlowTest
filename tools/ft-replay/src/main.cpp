@@ -61,10 +61,50 @@ void ConfigureOutputQueueRateLimit(
 	outputQueue->SetRateLimiter(rateLimit);
 }
 
+void ReplicatorExecutor(const Config& config)
+{
+	std::vector<std::thread> threads;
+	std::unique_ptr<OutputPlugin> outputPlugin;
+	std::unique_ptr<ConfigParser> replicatorConfigParser;
+	outputPlugin = OutputPluginFactory::Instance().Create(config.GetOutputPluginSpecification());
+	replicatorConfigParser = ConfigParserFactory::Instance().Create(config.GetReplicatorConfig());
+
+	size_t queueCount = outputPlugin->GetQueueCount();
+	RawPacketProvider packetProvider(config.GetInputPcapFile());
+	PacketQueueProvider packetQueueProvider(queueCount);
+	const RawPacket* rawPacket;
+
+	PacketBuilder builder;
+	builder.SetVlan(config.GetVlanID());
+	builder.SetTimeMultiplier(config.GetReplayTimeMultiplier());
+
+	while ((rawPacket = packetProvider.Next())) {
+		packetQueueProvider.InsertPacket(builder.Build(rawPacket));
+	}
+	for (size_t queueId = 0; queueId < queueCount; queueId++) {
+		auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
+		auto packetQueueRatio = packetQueueProvider.GetPacketQueueRatioById(queueId);
+
+		OutputQueue* outputQueue = outputPlugin->GetQueue(queueId);
+		ConfigureOutputQueueRateLimit(outputQueue, packetQueueRatio, config.GetRateLimit());
+		Replicator replicator(replicatorConfigParser.get(), outputQueue);
+
+		std::thread worker(
+			ReplicationThread,
+			std::move(replicator),
+			std::move(packetQueue),
+			config.GetLoopsCount());
+		threads.emplace_back(std::move(worker));
+	}
+
+	for (auto& thread : threads) {
+		thread.join();
+	}
+}
+
 int main(int argc, char** argv)
 {
 	Config config;
-	std::vector<std::thread> threads;
 
 	ft::LoggerInit();
 	auto logger = ft::LoggerGet("main");
@@ -85,49 +125,11 @@ int main(int argc, char** argv)
 		return EXIT_SUCCESS;
 	}
 
-	std::unique_ptr<OutputPlugin> outputPlugin;
-	std::unique_ptr<ConfigParser> replicatorConfigParser;
-
 	try {
-		outputPlugin
-			= OutputPluginFactory::Instance().Create(config.GetOutputPluginSpecification());
-		replicatorConfigParser
-			= ConfigParserFactory::Instance().Create(config.GetReplicatorConfig());
-
-		size_t queueCount = outputPlugin->GetQueueCount();
-		RawPacketProvider packetProvider(config.GetInputPcapFile());
-		PacketQueueProvider packetQueueProvider(queueCount);
-		const RawPacket* rawPacket;
-
-		PacketBuilder builder;
-		builder.SetVlan(config.GetVlanID());
-		builder.SetTimeMultiplier(config.GetReplayTimeMultiplier());
-
-		while ((rawPacket = packetProvider.Next())) {
-			packetQueueProvider.InsertPacket(builder.Build(rawPacket));
-		}
-		for (size_t queueId = 0; queueId < queueCount; queueId++) {
-			auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
-			auto packetQueueRatio = packetQueueProvider.GetPacketQueueRatioById(queueId);
-
-			OutputQueue* outputQueue = outputPlugin->GetQueue(queueId);
-			ConfigureOutputQueueRateLimit(outputQueue, packetQueueRatio, config.GetRateLimit());
-			Replicator replicator(replicatorConfigParser.get(), outputQueue);
-
-			std::thread worker(
-				ReplicationThread,
-				std::move(replicator),
-				std::move(packetQueue),
-				config.GetLoopsCount());
-			threads.emplace_back(std::move(worker));
-		}
+		ReplicatorExecutor(config);
 	} catch (const std::exception& ex) {
 		logger->critical(ex.what());
 		return EXIT_FAILURE;
-	}
-
-	for (auto& thread : threads) {
-		thread.join();
 	}
 
 	return EXIT_SUCCESS;
