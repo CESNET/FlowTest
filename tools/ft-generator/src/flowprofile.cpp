@@ -298,20 +298,23 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 std::optional<std::string> FlowProfileReader::ReadLine()
 {
 	std::string line;
-	if (!std::getline(_ifs, line)) {
-		if (!_ifs.eof()) {
-			throw std::runtime_error("failed to read file");
+
+	while (std::getline(_ifs, line)) {
+		_lineNum++;
+
+		line = StringStrip(line);
+		if (line.empty() || line[0] == '#') {
+			continue;
 		}
+
+		return line;
+	}
+
+	if (_ifs.eof()) {
 		return std::nullopt;
 	}
-	_lineNum++;
 
-	line = StringStrip(line);
-	if (line.empty() || line[0] == '#') {
-		return ReadLine();
-	}
-
-	return line;
+	throw std::runtime_error("failed to read file");
 }
 
 /**
