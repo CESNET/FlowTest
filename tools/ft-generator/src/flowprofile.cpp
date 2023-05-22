@@ -136,22 +136,31 @@ void FlowProfileReader::Provide(std::vector<FlowProfile>& profiles)
 }
 
 /**
- * @brief Parse and return the next FlowProfile if available
- *
- * Invalid lines are skipped and an error message is printed
- *
- * @return The FlowProfile if there is any left, else std::nullopt
+ * @brief Get the next profile record from the file.
+ * @return Profile or std::nullopt (no more records)
  */
 std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 {
-	FlowProfile profile;
+	while (std::optional<std::string> line = ReadLine()) {
+		auto profile = ParseProfile(*line);
+		if (!profile) {
+			continue;
+		}
 
-	auto maybeLine = ReadLine();
-	if (!maybeLine) {
-		return std::nullopt;
+		return profile;
 	}
 
-	const std::string& line = *maybeLine;
+	return std::nullopt;
+}
+
+/**
+ * @brief Parse a line and return the corresponding profile record.
+ * @param line Line to parse.
+ * @return Profile if valid. std::nullopt if line should be ignored.
+ */
+std::optional<FlowProfile> FlowProfileReader::ParseProfile(const std::string& line)
+{
+	FlowProfile profile;
 
 	std::vector<std::string> pieces = StringSplit(line, ",");
 	if (pieces.size() != _headerComponentsNum) {
@@ -169,7 +178,6 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	profile._startTime = Timeval::FromMilliseconds(*startTime);
 
 	std::optional<int64_t> endTime = ParseValue<int64_t>(pieces[_order[EndTime]]);
-	;
 	if (!endTime) {
 		ThrowParseError(line, "bad END_TIME");
 	}

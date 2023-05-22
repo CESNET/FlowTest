@@ -111,7 +111,10 @@ private:
 
 	std::optional<std::string> ReadLine();
 	void ReadHeader();
+
+	std::optional<FlowProfile> ParseProfile(const std::string& line);
 	std::optional<FlowProfile> ReadProfile();
+
 	[[noreturn]] void ThrowParseError(const std::string& value, const std::string& errorMessage);
 };
 
