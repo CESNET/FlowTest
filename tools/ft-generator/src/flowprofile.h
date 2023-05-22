@@ -69,10 +69,11 @@ public:
 	 * @brief Construct a new Flow Profile Reader object
 	 *
 	 * @param filename  The filename
+	 * @param skipUnknown Skip/ignore records with unknown/unsupported protocols
 	 *
 	 * @throws std::runtime_error  When the provided file couldn't be read or has invalid header
 	 */
-	explicit FlowProfileReader(const std::string& filename);
+	explicit FlowProfileReader(const std::string& filename, bool skipUnknown = false);
 
 	/**
 	 * @brief Provide flow profiles to the supplied vector
@@ -108,6 +109,8 @@ private:
 	unsigned int _lineNum = 0;
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("FlowProfileReader");
 	unsigned int _headerComponentsNum = 0;
+
+	bool _skipUnknown;
 
 	std::optional<std::string> ReadLine();
 	void ReadHeader();

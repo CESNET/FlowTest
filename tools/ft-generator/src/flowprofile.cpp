@@ -117,9 +117,10 @@ std::string FlowProfile::ToString() const
 	return ss.str();
 }
 
-FlowProfileReader::FlowProfileReader(const std::string& filename)
+FlowProfileReader::FlowProfileReader(const std::string& filename, bool skipUnknown)
 	: _filename(filename)
 	, _ifs(filename)
+	, _skipUnknown(skipUnknown)
 {
 	if (!_ifs) {
 		throw std::runtime_error("failed to open file \"" + filename + "\"");
@@ -199,6 +200,10 @@ std::optional<FlowProfile> FlowProfileReader::ParseProfile(const std::string& li
 	}
 	std::optional<L4Protocol> l4Proto = GetL4Protocol(*l4ProtoNum);
 	if (!l4Proto) {
+		if (_skipUnknown) {
+			return std::nullopt;
+		}
+
 		ThrowParseError(line, "bad L4_PROTO - unknown protocol");
 	}
 	profile._l4Proto = *l4Proto;
