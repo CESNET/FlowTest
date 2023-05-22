@@ -21,11 +21,17 @@ namespace replay {
 Replicator::Replicator(const ConfigParser* configParser, OutputQueue* outputQueue)
 	: _outputQueue(outputQueue)
 {
-	StrategyFactory strategyFactory;
-	const auto& loopStrategy = configParser->GetLoopStrategyDescription();
-	for (const auto& unitStrategy : configParser->GetUnitsStrategyDescription()) {
-		ReplicationUnit replicationUnit(strategyFactory.Create(unitStrategy, loopStrategy));
+	if (!configParser) {
+		ReplicationUnit replicationUnit(ModifierStrategies {});
 		_replicationUnits.emplace_back(std::move(replicationUnit));
+	} else {
+		StrategyFactory strategyFactory;
+		const auto& loopStrategy = configParser->GetLoopStrategyDescription();
+
+		for (const auto& unitStrategy : configParser->GetUnitsStrategyDescription()) {
+			ReplicationUnit replicationUnit(strategyFactory.Create(unitStrategy, loopStrategy));
+			_replicationUnits.emplace_back(std::move(replicationUnit));
+		}
 	}
 
 	_replicationLoopId = 0;

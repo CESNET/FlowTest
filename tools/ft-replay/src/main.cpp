@@ -75,6 +75,9 @@ int main(int argc, char** argv)
 		logger->critical(ex.what());
 		config.PrintUsage();
 		return EXIT_FAILURE;
+	} catch (const std::exception& ex) {
+		logger->critical(ex.what());
+		return EXIT_FAILURE;
 	}
 
 	if (config.IsHelp()) {

@@ -44,6 +44,8 @@ public:
 	 *
 	 * extension = Registered file extension name
 	 *
+	 * If @p configFilename parameter is empty, nullptr is returned.
+	 *
 	 * @param configFilename Name of configuration file
 	 * @return ConfigParser* Pointer to config parser context.
 	 */

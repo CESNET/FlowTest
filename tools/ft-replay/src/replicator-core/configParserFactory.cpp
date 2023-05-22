@@ -14,6 +14,10 @@ namespace replay {
 
 std::unique_ptr<ConfigParser> ConfigParserFactory::Create(const std::string& configFilename)
 {
+	if (configFilename.empty()) {
+		return nullptr;
+	}
+
 	std::string fileExtension = ExtractFileExtension(configFilename);
 
 	auto it = _RegisteredParsers.find(fileExtension);
