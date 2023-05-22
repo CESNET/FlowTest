@@ -56,7 +56,7 @@ std::string_view Biflow::ConsumeField(std::string_view line, T& value)
 std::ostream& operator<<(std::ostream& os, const Biflow& f)
 {
 	os << f.start_time << ',' << f.end_time << ',';
-	os << static_cast<int>(f.l3_proto) << f.l4_proto << ',';
+	os << static_cast<int>(f.l3_proto) << ',' << f.l4_proto << ',';
 	os << f.src_port << ',' << f.dst_port << ',' << f.packets << ',' << f.bytes << ',';
 	os << f.packets_rev << ',' << f.bytes_rev;
 	return os;
