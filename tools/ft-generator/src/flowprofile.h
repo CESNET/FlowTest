@@ -48,6 +48,16 @@ struct FlowProfile {
 };
 
 /**
+ * @brief Structure with statistics about profile records in a file
+ */
+struct FlowProfileStats {
+	/** Successfully parsed profile records */
+	uint64_t _parsed = 0;
+	/** Skipped profile records e.g. due to unsupported L4 protocol */
+	uint64_t _skipped = 0;
+};
+
+/**
  * @brief An interface of a flow profile provider
  */
 class FlowProfileProvider {
@@ -111,6 +121,7 @@ private:
 	unsigned int _headerComponentsNum = 0;
 
 	bool _skipUnknown;
+	FlowProfileStats _stats;
 
 	std::optional<std::string> ReadLine();
 	void ReadHeader();

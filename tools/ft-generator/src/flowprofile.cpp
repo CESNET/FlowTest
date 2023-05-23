@@ -148,6 +148,7 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 			continue;
 		}
 
+		_stats._parsed++;
 		return profile;
 	}
 
@@ -201,6 +202,7 @@ std::optional<FlowProfile> FlowProfileReader::ParseProfile(const std::string& li
 	std::optional<L4Protocol> l4Proto = GetL4Protocol(*l4ProtoNum);
 	if (!l4Proto) {
 		if (_skipUnknown) {
+			_stats._skipped++;
 			return std::nullopt;
 		}
 
