@@ -134,6 +134,11 @@ void FlowProfileReader::Provide(std::vector<FlowProfile>& profiles)
 	while (auto profile = ReadProfile()) {
 		profiles.emplace_back(*profile);
 	}
+
+	_logger->info(
+		"{} profile records loaded ({} records skipped)",
+		_stats._parsed,
+		_stats._skipped);
 }
 
 /**
