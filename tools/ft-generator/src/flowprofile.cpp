@@ -139,6 +139,10 @@ void FlowProfileReader::Provide(std::vector<FlowProfile>& profiles)
 		"{} profile records loaded ({} records skipped)",
 		_stats._parsed,
 		_stats._skipped);
+	_logger->info(
+		"Profile summary: {} packets, {} bytes",
+		_stats._parsedPackets,
+		_stats._parsedBytes);
 }
 
 /**
@@ -154,6 +158,9 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 		}
 
 		_stats._parsed++;
+		_stats._parsedPackets += profile->_packets + profile->_packetsRev;
+		_stats._parsedBytes += profile->_bytes + profile->_bytesRev;
+
 		return profile;
 	}
 

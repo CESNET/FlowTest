@@ -55,6 +55,11 @@ struct FlowProfileStats {
 	uint64_t _parsed = 0;
 	/** Skipped profile records e.g. due to unsupported L4 protocol */
 	uint64_t _skipped = 0;
+
+	/** Sum of packets in successfully parsed records */
+	uint64_t _parsedPackets = 0;
+	/** Sum of bytes in successfully parsed records */
+	uint64_t _parsedBytes = 0;
 };
 
 /**
