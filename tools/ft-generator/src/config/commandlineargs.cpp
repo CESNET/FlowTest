@@ -19,6 +19,9 @@ namespace config {
 
 void CommandLineArgs::Parse(int argc, char** argv)
 {
+	enum longOptsValues {
+		OPT_SKIP_UNKNOWN = 256, // Value that cannot collide with chars
+	};
 	const option longOpts[]
 		= {{"output", required_argument, nullptr, 'o'},
 		   {"profiles", required_argument, nullptr, 'p'},
@@ -26,6 +29,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		   {"report", required_argument, nullptr, 'r'},
 		   {"verbose", no_argument, nullptr, 'v'},
 		   {"help", no_argument, nullptr, 'h'},
+		   {"skip-unknown", no_argument, nullptr, OPT_SKIP_UNKNOWN},
 		   {nullptr, 0, nullptr, 0}};
 	const char* shortOpts = ":o:p:c:r:vh";
 
@@ -33,7 +37,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 	optind = 0;
 	opterr = 0; // Handle printing error messages ourselves
 
-	char c;
+	int c;
 	while ((c = getopt_long(argc, argv, shortOpts, longOpts, nullptr)) != -1) {
 		switch (c) {
 		case 'o':
@@ -53,6 +57,9 @@ void CommandLineArgs::Parse(int argc, char** argv)
 			break;
 		case 'h':
 			_help = true;
+			break;
+		case OPT_SKIP_UNKNOWN:
+			_skipUnknown = true;
 			break;
 		case '?':
 			throw std::invalid_argument("Unknown option " + std::string(argv[currentIdx]));
@@ -77,6 +84,7 @@ void CommandLineArgs::PrintUsage()
 	std::cerr << "  -r, --report=str    Output CSV file of actually generated flows\n";
 	std::cerr << "  -v, --verbose       Increase verbosity level. Can be used multiple times.\n";
 	std::cerr << "  -h, --help          Show this help message\n";
+	std::cerr << "  --skip-unknown      Skip unknown/unsupported profile records\n";
 }
 
 void CommandLineArgs::CheckValidity()
