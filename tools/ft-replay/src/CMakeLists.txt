@@ -53,6 +53,7 @@ add_executable(ft-replay
 	replicator-core/replicator.cpp
 	replicator-core/packetModifier.hpp
 	replicator-core/packetModifier.cpp
+	dissector/layer.cpp
 )
 
 if (ENABLE_NFB)
