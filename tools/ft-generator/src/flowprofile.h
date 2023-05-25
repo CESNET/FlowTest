@@ -48,6 +48,21 @@ struct FlowProfile {
 };
 
 /**
+ * @brief Structure with statistics about profile records in a file
+ */
+struct FlowProfileStats {
+	/** Successfully parsed profile records */
+	uint64_t _parsed = 0;
+	/** Skipped profile records e.g. due to unsupported L4 protocol */
+	uint64_t _skipped = 0;
+
+	/** Sum of packets in successfully parsed records */
+	uint64_t _parsedPackets = 0;
+	/** Sum of bytes in successfully parsed records */
+	uint64_t _parsedBytes = 0;
+};
+
+/**
  * @brief An interface of a flow profile provider
  */
 class FlowProfileProvider {
@@ -69,10 +84,11 @@ public:
 	 * @brief Construct a new Flow Profile Reader object
 	 *
 	 * @param filename  The filename
+	 * @param skipUnknown Skip/ignore records with unknown/unsupported protocols
 	 *
 	 * @throws std::runtime_error  When the provided file couldn't be read or has invalid header
 	 */
-	explicit FlowProfileReader(const std::string& filename);
+	explicit FlowProfileReader(const std::string& filename, bool skipUnknown = false);
 
 	/**
 	 * @brief Provide flow profiles to the supplied vector
@@ -109,9 +125,15 @@ private:
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("FlowProfileReader");
 	unsigned int _headerComponentsNum = 0;
 
+	bool _skipUnknown;
+	FlowProfileStats _stats;
+
 	std::optional<std::string> ReadLine();
 	void ReadHeader();
+
+	std::optional<FlowProfile> ParseProfile(const std::string& line);
 	std::optional<FlowProfile> ReadProfile();
+
 	[[noreturn]] void ThrowParseError(const std::string& value, const std::string& errorMessage);
 };
 

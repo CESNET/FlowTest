@@ -117,9 +117,10 @@ std::string FlowProfile::ToString() const
 	return ss.str();
 }
 
-FlowProfileReader::FlowProfileReader(const std::string& filename)
+FlowProfileReader::FlowProfileReader(const std::string& filename, bool skipUnknown)
 	: _filename(filename)
 	, _ifs(filename)
+	, _skipUnknown(skipUnknown)
 {
 	if (!_ifs) {
 		throw std::runtime_error("failed to open file \"" + filename + "\"");
@@ -133,25 +134,47 @@ void FlowProfileReader::Provide(std::vector<FlowProfile>& profiles)
 	while (auto profile = ReadProfile()) {
 		profiles.emplace_back(*profile);
 	}
+
+	_logger->info(
+		"{} profile records loaded ({} records skipped)",
+		_stats._parsed,
+		_stats._skipped);
+	_logger->info(
+		"Profile summary: {} packets, {} bytes",
+		_stats._parsedPackets,
+		_stats._parsedBytes);
 }
 
 /**
- * @brief Parse and return the next FlowProfile if available
- *
- * Invalid lines are skipped and an error message is printed
- *
- * @return The FlowProfile if there is any left, else std::nullopt
+ * @brief Get the next profile record from the file.
+ * @return Profile or std::nullopt (no more records)
  */
 std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 {
-	FlowProfile profile;
+	while (std::optional<std::string> line = ReadLine()) {
+		auto profile = ParseProfile(*line);
+		if (!profile) {
+			continue;
+		}
 
-	auto maybeLine = ReadLine();
-	if (!maybeLine) {
-		return std::nullopt;
+		_stats._parsed++;
+		_stats._parsedPackets += profile->_packets + profile->_packetsRev;
+		_stats._parsedBytes += profile->_bytes + profile->_bytesRev;
+
+		return profile;
 	}
 
-	const std::string& line = *maybeLine;
+	return std::nullopt;
+}
+
+/**
+ * @brief Parse a line and return the corresponding profile record.
+ * @param line Line to parse.
+ * @return Profile if valid. std::nullopt if line should be ignored.
+ */
+std::optional<FlowProfile> FlowProfileReader::ParseProfile(const std::string& line)
+{
+	FlowProfile profile;
 
 	std::vector<std::string> pieces = StringSplit(line, ",");
 	if (pieces.size() != _headerComponentsNum) {
@@ -169,7 +192,6 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	profile._startTime = Timeval::FromMilliseconds(*startTime);
 
 	std::optional<int64_t> endTime = ParseValue<int64_t>(pieces[_order[EndTime]]);
-	;
 	if (!endTime) {
 		ThrowParseError(line, "bad END_TIME");
 	}
@@ -191,6 +213,11 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 	}
 	std::optional<L4Protocol> l4Proto = GetL4Protocol(*l4ProtoNum);
 	if (!l4Proto) {
+		if (_skipUnknown) {
+			_stats._skipped++;
+			return std::nullopt;
+		}
+
 		ThrowParseError(line, "bad L4_PROTO - unknown protocol");
 	}
 	profile._l4Proto = *l4Proto;
@@ -298,20 +325,23 @@ std::optional<FlowProfile> FlowProfileReader::ReadProfile()
 std::optional<std::string> FlowProfileReader::ReadLine()
 {
 	std::string line;
-	if (!std::getline(_ifs, line)) {
-		if (!_ifs.eof()) {
-			throw std::runtime_error("failed to read file");
+
+	while (std::getline(_ifs, line)) {
+		_lineNum++;
+
+		line = StringStrip(line);
+		if (line.empty() || line[0] == '#') {
+			continue;
 		}
+
+		return line;
+	}
+
+	if (_ifs.eof()) {
 		return std::nullopt;
 	}
-	_lineNum++;
 
-	line = StringStrip(line);
-	if (line.empty() || line[0] == '#') {
-		return ReadLine();
-	}
-
-	return line;
+	throw std::runtime_error("failed to read file");
 }
 
 /**

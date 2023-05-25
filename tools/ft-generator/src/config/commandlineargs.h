@@ -72,6 +72,11 @@ public:
 	bool IsHelp() const { return _help; }
 
 	/**
+	 * @brief Whether unsupported profile records should be skipped/ignored.
+	 */
+	bool ShouldSkipUnknown() const { return _skipUnknown; };
+
+	/**
 	 * @brief Print the usage message
 	 *
 	 */
@@ -84,6 +89,7 @@ private:
 	std::optional<std::string> _reportFile;
 	int _verbosity = 0;
 	bool _help = false;
+	bool _skipUnknown = false;
 
 	/**
 	 * @brief Check validity of the arguments
