@@ -4,9 +4,17 @@ Flowtest generator (further only *generator*) is a tool for generating network
 traffic based on a provided network profile.
 
 Network profile is an **anonymous list of flow records**. The generator
-replicates the flows described by the network profile and attempts to match
+recreates the flows described by the network profile and attempts to match
 their characteristics as closely as possible. The generated traffic is saved in
-the form of pcap files.
+the form of PCAP files.
+
+The generator supports the generation of flow packets with the following protocols:
+* L2: VLAN, MPLS
+* L3: IPv4, IPv6
+* L4: TCP, UDP, ICMP, ICMPv6
+
+Other protocols are not currently supported. If the input profile file contains
+unsupported protocols, the unsupported entries can be skipped (see [Usage](#usage)).
 
 ## Table of Contents
 
@@ -87,12 +95,13 @@ For example: `./ft-generator -p profiles.csv -o output.pcap`
 
 Arguments:
 ```
-  --profiles, -p FILE  The flow profiles file in csv format (required)
-  --output, -o FILE    The output pcap file (required)
-  --config, -c FILE    The yaml config file
-  --report, -r FILE    The report of the generated flows in csv format
+  --profiles, -p FILE  The flow profiles file in CSV format (required)
+  --output, -o FILE    The output PCAP file (required)
+  --config, -c FILE    The YAML config file
+  --report, -r FILE    The report of the generated flows in CSV format
   --verbose, -v        Verbosity level, specify multiple times for more verbose logging
   --help, -h           Show this help message
+  --skip-unknown       Skip unknown/unsupported profile records
 ```
 
 ## Configuration
@@ -118,7 +127,7 @@ where each variant consists of an object in the following format:
   a floating point number 0.0 - 1.0 or a percentage 0% - 100% _(default = 0%)_
 * `min_packet_size_to_fragment` - the minimum size of a packet in bytes for a
   packet to be considered for fragmentation _(default = 512)_
-* `ip_range` - possible ranges of IP addresses that can be choosen from when
+* `ip_range` - possible ranges of IP addresses that can be chosen from when
   generating an address presented in the form of an IP address with a prefix
   length, e.g. `10.0.0.0/8` in case of IPv4 or `ffff::/16` in case of IPv6, can
   be a single value or a list of values _(default = all addresses)_
@@ -128,7 +137,7 @@ fragmentation to contain more bytes and packets than specified in the profiles
 file*
 
 ### MAC
-* `mac_range` - possible ranges of MAC addresses that can be choosen from when
+* `mac_range` - possible ranges of MAC addresses that can be chosen from when
   generating an address presented in the form of an MAC address with a prefix
   length, e.g. `ab:cd:00:00:00:00/16`, can be a single value or a list of values
   _(default = all addresses)_
@@ -163,7 +172,7 @@ mac:
   mac_range: aa:aa:aa:00:00:00/24
 ```
 
-Explaination:
+Explanation:
 
 The encapsulation section defines two possible encapsulation scenarios. The
 first defined encapsulation variant is using two VLAN layers, one with ID 10 and
@@ -178,7 +187,7 @@ The IPv4 section defines the probability that any given packet of at least the
 specified minimum size may be fragmented on the IPv4 layer. In this case any
 packet of size of at least 512 bytes has a 20% chance of being fragmented. The
 IP range configuration defines the ranges of IP addresses that the generated IP
-addresses can be choosen from.
+addresses can be chosen from.
 
 The IPv6 and MAC section defines the range of addresses the generated addresses
-can be choosen from, as in the case of the IPv4 section.
+can be chosen from, as in the case of the IPv4 section.
