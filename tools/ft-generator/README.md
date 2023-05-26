@@ -8,6 +8,14 @@ recreates the flows described by the network profile and attempts to match
 their characteristics as closely as possible. The generated traffic is saved in
 the form of PCAP files.
 
+The generator supports the generation of flow packets with the following protocols:
+* L2: VLAN, MPLS
+* L3: IPv4, IPv6
+* L4: TCP, UDP, ICMP, ICMPv6
+
+Other protocols are not currently supported. If the input profile file contains
+unsupported protocols, the unsupported entries can be skipped (see [Usage](#usage)).
+
 ## Table of Contents
 
 * [Input Format](#input-format)
@@ -93,6 +101,7 @@ Arguments:
   --report, -r FILE    The report of the generated flows in CSV format
   --verbose, -v        Verbosity level, specify multiple times for more verbose logging
   --help, -h           Show this help message
+  --skip-unknown       Skip unknown/unsupported profile records
 ```
 
 ## Configuration
