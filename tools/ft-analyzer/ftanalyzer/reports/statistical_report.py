@@ -94,19 +94,14 @@ class StatisticalReport:
             if not test.is_passing():
                 test_str = f"{self.ERR_CLR}"
 
-            if isinstance(test.segment, SMSubnetSegment):
-                src_str = test.segment.source or "ANY"
-                dest_str = test.segment.dest or "ANY"
-                sign = "<->" if test.segment.bidir else "->"
-                test_str += f"{src_str} {sign} {dest_str}\t"
-
-            if isinstance(test.segment, SMTimeSegment):
-                src_str = test.segment.start or "ANY"
-                dest_str = test.segment.end or "ANY"
-                test_str += f"{src_str} -> {dest_str}\t"
+            if test.segment is None:
+                test_str += "ALL DATA"
+            else:
+                test_str += str(test.segment)
 
             test_str += (
-                f"{test.metric.key.value}\t{test.diff:.4f}/" f"{test.metric.diff:.4f}\t({test.value}/{test.reference})"
+                f"\t{test.metric.key.value}\t{test.diff:.4f}/"
+                f"{test.metric.diff:.4f}\t({test.value}/{test.reference})"
             )
             if not test.is_passing():
                 test_str += f"{self.RST_CLR}"

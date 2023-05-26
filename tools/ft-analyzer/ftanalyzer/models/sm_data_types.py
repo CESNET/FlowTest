@@ -54,7 +54,19 @@ class SMSubnetSegment:
         bool
             True if equal, False otherwise.
         """
-        return self.source == other.source and self.dest == other.dest and self.bidir == other.bidir
+
+        return (
+            isinstance(self, type(other))
+            and self.source == other.source
+            and self.dest == other.dest
+            and self.bidir == other.bidir
+        )
+
+    def __str__(self) -> str:
+        src_str = self.source or "ANY"
+        dest_str = self.dest or "ANY"
+        sign = "<->" if self.bidir else "->"
+        return f"{src_str} {sign} {dest_str}"
 
 
 @dataclass
@@ -92,7 +104,14 @@ class SMTimeSegment:
         bool
             True if equal, False otherwise.
         """
-        return self.start == other.start and self.end == other.end
+
+        return isinstance(self, type(other)) and self.start == other.start and self.end == other.end
+
+    def __str__(self) -> str:
+        src_str = self.start or "ANY"
+        dest_str = self.end or "ANY"
+
+        return f"{src_str} -> {dest_str}"
 
 
 @dataclass
