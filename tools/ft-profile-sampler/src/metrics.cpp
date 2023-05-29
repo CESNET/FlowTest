@@ -12,7 +12,11 @@
 
 #define REL_DIFF(val, ref) fabs(val - ref) * 100 / ref
 
-Metrics::Metrics(const std::vector<Biflow>& data, std::optional<const std::vector<bool>> filter)
+Metrics::Metrics(
+	const std::vector<Biflow>& data,
+	double protoThreshold,
+	double portThreshold,
+	std::optional<const std::vector<bool>> filter)
 {
 	std::array<uint64_t, UINT8_MAX + 1> allProtos {};
 	std::array<uint64_t, UINT16_MAX + 1> allPorts {};
@@ -93,7 +97,7 @@ Metrics::Metrics(const std::vector<Biflow>& data, std::optional<const std::vecto
 
 	for (uint8_t p : protoMap) {
 		auto representation = static_cast<double>(allProtos[p]) / static_cast<double>(biflowsCnt);
-		if (representation < REPRESENTATION_THRESHOLD) {
+		if (representation < protoThreshold) {
 			break;
 		}
 		protos.emplace(p, representation);
@@ -102,7 +106,7 @@ Metrics::Metrics(const std::vector<Biflow>& data, std::optional<const std::vecto
 	for (uint16_t p : portMap) {
 		auto representation
 			= static_cast<double>(allPorts[p]) / (2 * static_cast<double>(biflowsCnt));
-		if (representation < REPRESENTATION_THRESHOLD) {
+		if (representation < portThreshold) {
 			break;
 		}
 		ports.emplace(p, representation);

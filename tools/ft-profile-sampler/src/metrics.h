@@ -96,12 +96,21 @@ struct MetricsDiff {
  * @brief Structure containing key metrics of profile or profile sample.
  */
 struct Metrics {
-	/** Ports and protocols which relative representation in the profile is lower than this
-		threshold are not considered. */
-	static constexpr auto REPRESENTATION_THRESHOLD {0.005};
-
+	/**
+	 * @brief Compute metrics from the provided biflows.
+	 * @param data list of biflows
+	 * @param protoThreshold threshold for proportional representation of protocols to be included
+	 * in metrics
+	 * @param portThreshold threshold for proportional representation of ports to be included in
+	 * metrics
+	 * @param filter compute the profile only from the specified biflow subset (optional)
+	 */
+	Metrics(
+		const std::vector<Biflow>& data,
+		double protoThreshold,
+		double portThreshold,
+		std::optional<const std::vector<bool>> filter);
 	Metrics() = default;
-	Metrics(const std::vector<Biflow>& data, std::optional<const std::vector<bool>> filter);
 	Metrics(const Metrics&) = delete;
 	Metrics(Metrics&&) = default;
 	Metrics& operator=(const Metrics&) = delete;

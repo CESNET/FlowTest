@@ -15,41 +15,6 @@
 #include <utility>
 
 /**
- * @brief Configuration object for the evolution process.
- */
-struct EvolutionConfig {
-	/**
-	 * @brief Default init, seed is created from the current time.
-	 */
-	EvolutionConfig()
-		: seed(time(nullptr))
-	{
-	}
-	friend std::ostream& operator<<(std::ostream& os, const EvolutionConfig& cfg);
-
-	/** Seed to be used for the RNG in the evolution. */
-	uint64_t seed;
-	/** Maximum number of generations the evolution runs. */
-	uint32_t generations {500};
-	/** Number of individuals in every generation. */
-	uint32_t population {16};
-	/** Maximum acceptable deviation of individual metrics. */
-	double deviation {0.5};
-	/** Minimum relative size of the wanted profile sample. */
-	double minSampleSize {};
-	/** Maximum relative size of the wanted profile sample. */
-	double maxSampleSize {};
-	/** Relative number of mutating genes (beginning). */
-	double mutationHigh {0.005};
-	/** Relative number of mutating genes (end). */
-	double mutationLow {0.0002};
-	/** Fitness value to switch between low and high mutation. */
-	double mutationCtrl {80};
-	/** Print debug messages. */
-	bool verbose {true};
-};
-
-/**
  * @brief Structure representing an individual solution in the population.
  */
 struct Individual {
