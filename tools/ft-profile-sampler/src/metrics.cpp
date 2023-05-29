@@ -24,8 +24,6 @@ Metrics::Metrics(const std::vector<Biflow>& data, std::optional<const std::vecto
 	uint64_t sizeLess512 = 0;
 	uint64_t sizeLess1024 = 0;
 	uint64_t sizeOther = 0;
-	uint64_t packetsCnt = 0;
-	uint64_t bytesCnt = 0;
 	uint64_t biflowsCnt = 0;
 
 	protoMap.reserve(UINT8_MAX + 1);

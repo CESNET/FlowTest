@@ -114,6 +114,10 @@ struct Metrics {
 	 */
 	[[nodiscard]] MetricsDiff Diff(const Metrics& ref) const;
 
+	/** Number of packets in the profile (or sample). */
+	uint64_t packetsCnt {};
+	/** Number of bytes in the profile (or sample). */
+	uint64_t bytesCnt {};
 	/** Average packet length in a biflow distribution. */
 	PacketSizeDistribution pktSizes;
 	/** IPv4 representation. */
