@@ -19,10 +19,10 @@ import invoke
 from src.generator.ft_generator import FtGenerator, FtGeneratorConfig
 from src.generator.interface import (
     GeneratorException,
+    GeneratorStats,
     MbpsSpeed,
     MultiplierSpeed,
     PcapPlayer,
-    PcapPlayerStats,
     PpsSpeed,
     ReplaySpeed,
     TopSpeed,
@@ -235,14 +235,14 @@ class TcpReplay(PcapPlayer):
             self._host.get_storage().pull(report, path.dirname(report_path))
             shutil.move(path.join(path.dirname(report_path), path.basename(report)), report_path)
 
-    def stats(self) -> PcapPlayerStats:
+    def stats(self) -> GeneratorStats:
         """Get stats based on process from ``start`` method.
 
         This method will block if tcpreplay was started in asynchronous mode.
 
         Returns
         -------
-        PcapPlayerStats
+        GeneratorStats
             Class containing statistics of sent packets and bytes.
         """
 
@@ -252,7 +252,7 @@ class TcpReplay(PcapPlayer):
 
         pkts = int(re.findall(r"(\d+) packets", process.stdout)[0])
         bts = int(re.findall(r"(\d+) bytes", process.stdout)[0])
-        return PcapPlayerStats(pkts, bts)
+        return GeneratorStats(pkts, bts)
 
     def stop(self):
         """Stop current execution of tcpreplay.

@@ -75,7 +75,7 @@ class TopSpeed(ReplaySpeed):
 
 
 @dataclass(frozen=True)
-class PcapPlayerStats:
+class GeneratorStats:
     """Class holding statistics of replay.
 
     Attributes
@@ -196,12 +196,12 @@ class PcapPlayer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def stats(self) -> PcapPlayerStats:
+    def stats(self) -> GeneratorStats:
         """Get stats of last generator run.
 
         Returns
         -------
-        PcapPlayerStats
+        GeneratorStats
             Class containing statistics of sent packets and bytes.
         """
 
