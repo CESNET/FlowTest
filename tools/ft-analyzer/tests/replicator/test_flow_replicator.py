@@ -129,3 +129,35 @@ def test_bad_config():
 
     with pytest.raises(FlowReplicatorException):
         FlowReplicator(config)
+
+
+def test_loop_only():
+    """Test with replication unit that is not active in all loops."""
+
+    config = {
+        "units": [
+            {"srcip": "addConstant(10)", "loopOnly": [0, 1]},
+            {"dstip": "addConstant(256)"},
+        ],
+        "loop": {"dstip": "addOffset(30)"},
+    }
+    replicator = FlowReplicator(config)
+    replicator.replicate(os.path.join(SOURCE_PATH, "basic.csv"), TMP_CSV, loops=3)
+
+    assert filecmp.cmp(TMP_CSV, os.path.join(REF_PATH, "basic_loop_only.csv"))
+
+
+def test_ignore_loop():
+    """Test of ignoring (skipping) loop. Unsupported modifiers may be used."""
+
+    config = {
+        "units": [
+            {"srcip": "addCounter(10,2)", "loopOnly": [0]},
+            {"dstip": "addConstant(256)"},
+        ],
+        "loop": {"dstip": "addOffset(30)"},
+    }
+    replicator = FlowReplicator(config, ignore_loops=[0])
+    replicator.replicate(os.path.join(SOURCE_PATH, "basic.csv"), TMP_CSV, loops=3)
+
+    assert filecmp.cmp(TMP_CSV, os.path.join(REF_PATH, "basic_ignore_loop.csv"))
