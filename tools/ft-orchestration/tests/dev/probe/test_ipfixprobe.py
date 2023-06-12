@@ -14,11 +14,9 @@ import time
 from collections import namedtuple
 
 import docker
-import invoke
 import pytest
+from lbr_testsuite.executable import Daemon, LocalExecutor, RemoteExecutor, Tool
 from src.config.common import InterfaceCfg
-from src.host.host import Host
-from src.host.storage import RemoteStorage
 from src.probe.interface import ProbeException
 from src.probe.ipfixprobe import IpfixprobeDpdk, IpfixprobeNdp, IpfixprobeRaw
 from src.probe.probe_target import ProbeTarget
@@ -26,79 +24,57 @@ from src.probe.probe_target import ProbeTarget
 DockerContainer = namedtuple("DockerContainer", ["ip", "host", "context"])
 
 
-# pylint: disable=too-few-public-methods
-# pylint: disable=abstract-method
-class FakeRunner(invoke.Runner):
-    """Dummy invoke runner object for IpfixprobeHostStub."""
-
-    def __init__(self) -> None:
-        super().__init__(None)
-
-    @property
-    def process_is_finished(self):
-        """Used when cmd running async. Always finished."""
-
-        return True
-
-
-class FakePromise(invoke.Promise):
-    """Dummy invoke promise object for IpfixprobeHostStub."""
-
-    # pylint: disable=super-init-not-called
-    def __init__(self, result: invoke.runners.Result) -> None:
-        self._result = result
-
-    def join(self):
-        """Used when cmd running async. Return invoke result."""
-
-        return self._result
-
-    @property
-    def runner(self):
-        """Used when cmd running async. Fake runner object."""
-
-        return FakeRunner()
-
-
-class IpfixprobeHostStub(Host):
+class ExecutorStub(LocalExecutor):
     """Object acts like Host. Used to checking last ran command."""
 
-    def __init__(self, host="localhost"):  # pylint: disable=super-init-not-called
+    def __init__(self):  # pylint: disable=super-init-not-called
         """Init fake host."""
 
-        self._connection = None
-        self._storage = None
-        self._host = host
-
-        if host == "localhost":
-            self._local = True
-        else:
-            self._local = False
-
         self.last_command = ""
+        self._process = None
+        self._running = False
 
     # pylint: disable=unused-argument
-    def run(
-        self,
-        command,
-        asynchronous=False,
-        check_rc=True,
-        timeout=None,
-        path_replacement=True,
-    ):
+    def run(self, cmd, netns=None, sudo=False, **options):
         """Run a command."""
 
-        self.last_command = command
-        if asynchronous:
-            return FakePromise(invoke.runners.Result())
-        return invoke.runners.Result()
+        if sudo:
+            if isinstance(cmd, str):
+                cmd = "sudo " + cmd
+            elif isinstance(cmd, list):
+                cmd = ["sudo"] + cmd
+            elif isinstance(cmd, tuple):
+                cmd = ("sudo",) + cmd
+
+        self.last_command = cmd
+        self._process = True
+        self._running = True
+
+    def wait_or_kill(self, timeout=None):
+        self._running = False
+        return "", ""
+
+    def get_termination_status(self):
+        return {
+            "rc": 0,
+            "cmd": self.last_command,
+        }
+
+    def is_running(self):
+        return self._running
+
+    def wait(self):
+        pass
+
+    def terminate(self):
+        pass
 
 
 @pytest.fixture(scope="class", name="fake_host")
 def fixture_fake_host():
     """Create fake host object."""
 
-    return IpfixprobeHostStub()
+    return ExecutorStub()
 
 
 def run_docker_container(image: str, bind_ssh=True) -> DockerContainer:
@@ -132,7 +108,7 @@ def run_docker_container(image: str, bind_ssh=True) -> DockerContainer:
     )
     time.sleep(5)
     ip_ = container.exec_run("hostname -I").output.decode(encoding="ascii").strip()
-    host_ = Host("127.0.0.1", RemoteStorage("127.0.0.1", user="test"), user="test") if bind_ssh else None
+    host_ = RemoteExecutor("127.0.0.1", user="test") if bind_ssh else None
 
     return DockerContainer(ip_, host_, container)
 
@@ -141,7 +117,7 @@ def run_docker_container(image: str, bind_ssh=True) -> DockerContainer:
 def fixture_docker_ipfixprobe(request):
     """Run docker container with installed ipfixprobe. Connect with SSH."""
 
-    container = run_docker_container("thesablecz/ipfixprobe")
+    container = run_docker_container("ipfixprobe-ol9")
 
     def stop_container():
         container.context.stop()
@@ -191,10 +167,7 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        regex = (
-            'ipfixprobe -i "raw;ifc=eno1" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
-            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
-        )
+        regex = 'ipfixprobe -i "raw;ifc=eno1" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
         assert re.search(regex, fake_host.last_command)
 
     @staticmethod
@@ -223,7 +196,7 @@ class TestWithFakeHost:
 
         regex = (
             'ipfixprobe -i "raw;ifc=eno1" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
-            ' -p "basicplus" -p "dns" -p "http" -p "tls" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
+            ' -p "basicplus" -p "dns" -p "http" -p "tls"'
         )
         assert re.search(regex, fake_host.last_command)
 
@@ -240,10 +213,7 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        regex = (
-            'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
-            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
-        )
+        regex = 'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
         assert re.search(regex, fake_host.last_command)
 
         probe = IpfixprobeRaw(
@@ -261,7 +231,6 @@ class TestWithFakeHost:
         regex = (
             'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -i "raw;ifc=eno2;f=242;b=2048;p=64"'
             ' -i "raw;ifc=eno3;f=242;b=2048;p=64" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
-            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
         )
         assert re.search(regex, fake_host.last_command)
 
@@ -288,7 +257,6 @@ class TestWithFakeHost:
         regex = (
             'ipfixprobe -i "dpdk;p=0;q=4;b=128;m=4096;e=-c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0"'
             ' -i "dpdk" -i "dpdk" -i "dpdk" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
-            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
         )
         assert re.search(regex, fake_host.last_command)
 
@@ -312,10 +280,7 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        regex = (
-            'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739" '
-            "|& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
-        )
+        regex = 'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
         assert re.search(regex, fake_host.last_command)
 
         probe = IpfixprobeNdp(
@@ -330,15 +295,15 @@ class TestWithFakeHost:
 
         regex = (
             'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -i "ndp;dev=/dev/nfb0:1" -i "ndp;dev=/dev/nfb0:2"'
-            ' -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
+            ' -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
         )
         assert re.search(regex, fake_host.last_command)
 
 
-def get_ipfixprobe_pid(host):
+def get_ipfixprobe_pid():
     """Get pid of running ipfixprobe instance."""
 
-    ps_aux = host.run("ps aux | grep -i '[i]pfixprobe'").stdout
+    ps_aux = Tool("ps aux | grep -i '[i]pfixprobe'", executor=RemoteExecutor("127.0.0.1", user="test")).run()[0]
     return int(ps_aux.split()[1])
 
 
@@ -396,18 +361,20 @@ class TestWithDockerIpfixprobe:
     def test_kill_ipfixprobe(docker_ipfixprobe):
         """Test killing ipfixprobe instance before start."""
 
-        docker_ipfixprobe.host.run(
-            'sudo ipfixprobe -i "raw;ifc=eth0" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"', asynchronous=True
-        )
+        Daemon(
+            'sudo ipfixprobe -i "raw;ifc=eth0" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"',
+            executor=RemoteExecutor("127.0.0.1", user="test"),
+            failure_verbosity="silent",
+        ).start()
         time.sleep(2)
-        old_pid = get_ipfixprobe_pid(docker_ipfixprobe.host)
+        old_pid = get_ipfixprobe_pid()
 
         probe = IpfixprobeRaw(
             docker_ipfixprobe.host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("eth0", 10)], False, True
         )
 
         probe.start()
-        new_pid = get_ipfixprobe_pid(docker_ipfixprobe.host)
+        new_pid = get_ipfixprobe_pid()
         time.sleep(30)
         probe.stop()
 
@@ -415,6 +382,7 @@ class TestWithDockerIpfixprobe:
 
 
 @pytest.mark.dev_docker
+# pylint: disable=too-few-public-methods
 class TestWithDockerSsh:
     """Group of tests which use ssh docker container."""
 
@@ -427,7 +395,7 @@ class TestWithDockerSsh:
                 docker_ssh.host,
                 ProbeTarget("127.0.0.1", 4739, "tcp"),
                 [],
-                [InterfaceCfg("eth0", 10), False],
+                [InterfaceCfg("eth0", 10)],
                 False,
                 True,
             )
