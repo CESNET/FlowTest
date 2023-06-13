@@ -27,6 +27,7 @@ class GeneratorCfg(YAMLWizard):
     type: str
     interfaces: List[InterfaceCfg]
     authentication: str
+    connector: Optional[dict] = None
     ansible_playbook_role: Optional[str] = None
 
     def check(self, authentications: Dict[str, AuthenticationCfg]) -> None:
