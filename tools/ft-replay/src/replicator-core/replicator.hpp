@@ -15,6 +15,7 @@
 
 #include "strategyFactory.hpp"
 
+#include <functional>
 #include <string>
 
 namespace replay {
@@ -70,11 +71,14 @@ public:
 	void SetReplicationLoopId(uint64_t replicationLoopId) noexcept;
 
 private:
+	void UpdateAvailableReplicationUnits();
+
 	size_t _maxBurstSize;
 	uint64_t _replicationLoopId;
 
 	std::unique_ptr<PacketBuffer[]> _packetBuffers;
 	std::vector<ReplicationUnit> _replicationUnits;
+	std::vector<ReplicationUnit*> _loopAvailableReplicationUnits;
 	OutputQueue* _outputQueue;
 };
 
