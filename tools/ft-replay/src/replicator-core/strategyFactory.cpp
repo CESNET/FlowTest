@@ -11,6 +11,7 @@
 #include "ipAddress.hpp"
 #include "macAddress.hpp"
 
+#include <algorithm>
 #include <memory>
 
 namespace replay {
@@ -27,7 +28,7 @@ ModifierStrategies StrategyFactory::Create(
 
 template <>
 ModifierStrategies::UnitIpStrategy
-StrategyFactory::CreateConcreteUnitStrategy(const std::string& strategy)
+StrategyFactory::CreateConcreteUnitStrategy(const ConfigParser::Scalar& strategy)
 {
 	std::smatch match;
 
@@ -40,12 +41,13 @@ StrategyFactory::CreateConcreteUnitStrategy(const std::string& strategy)
 	if (std::regex_search(strategy, match, std::regex("^None$"))) {
 		return std::make_unique<UnitNoneDefault<IpAddressView>>();
 	}
-	throw std::runtime_error("Invalid strategy description: '" + strategy + "'");
+	_logger->error("Invalid strategy description: '" + strategy + "'");
+	throw std::runtime_error("StrategyFactory::CreateConcreteUnitStrategy() has failed");
 }
 
 template <>
 ModifierStrategies::UnitMacStrategy
-StrategyFactory::CreateConcreteUnitStrategy(const std::string& strategy)
+StrategyFactory::CreateConcreteUnitStrategy(const ConfigParser::Scalar& strategy)
 {
 	std::smatch match;
 
@@ -58,11 +60,12 @@ StrategyFactory::CreateConcreteUnitStrategy(const std::string& strategy)
 	if (std::regex_search(strategy, match, std::regex("^None$"))) {
 		return std::make_unique<UnitNoneDefault<MacAddress>>();
 	}
-	throw std::runtime_error("Invalid strategy description: '" + strategy + "'");
+	_logger->error("Invalid strategy description: '" + strategy + "'");
+	throw std::runtime_error("StrategyFactory::CreateConcreteUnitStrategy() has failed");
 }
 
 ModifierStrategies::LoopIpStrategy
-StrategyFactory::CreateConcreteLoopStrategy(const std::string& strategy)
+StrategyFactory::CreateConcreteLoopStrategy(const ConfigParser::Scalar& strategy)
 {
 	std::smatch match;
 
@@ -72,25 +75,29 @@ StrategyFactory::CreateConcreteLoopStrategy(const std::string& strategy)
 	if (std::regex_search(strategy, match, std::regex("^None$"))) {
 		return std::make_unique<LoopNoneDefault>();
 	}
-	throw std::runtime_error("Invalid strategy description: '" + strategy + "'");
+	_logger->error("Invalid strategy description: '" + strategy + "'");
+	throw std::runtime_error("StrategyFactory::CreateConcreteLoopStrategy() has failed");
 }
 
 void StrategyFactory::CreateLoopStrategy(
 	const ConfigParser::StrategyDescription& loopStrategyDescription)
 {
 	for (const auto& [key, strategy] : loopStrategyDescription) {
-		CreateLoopStrategyByKey(key, strategy);
+		CreateLoopScalarStrategyByKey(key, std::get<ConfigParser::Scalar>(strategy));
 	}
 }
 
-void StrategyFactory::CreateLoopStrategyByKey(const std::string& key, const std::string& strategy)
+void StrategyFactory::CreateLoopScalarStrategyByKey(
+	const ConfigParser::Key& key,
+	const ConfigParser::Scalar& strategy)
 {
 	if (key == "srcip") {
 		_replicatorStrategies.loopSrcIp = CreateConcreteLoopStrategy(strategy);
 	} else if (key == "dstip") {
 		_replicatorStrategies.loopDstIp = CreateConcreteLoopStrategy(strategy);
 	} else {
-		throw std::runtime_error("Invalid loop key name: '" + key + "'");
+		_logger->error("Invalid loop key name: '" + key + "'");
+		throw std::runtime_error("StrategyFactory::CreateLoopScalarStrategyByKey() has failed");
 	}
 }
 
@@ -102,7 +109,20 @@ void StrategyFactory::CreateUnitStrategy(
 	}
 }
 
-void StrategyFactory::CreateUnitStrategyByKey(const std::string& key, const std::string& strategy)
+void StrategyFactory::CreateUnitStrategyByKey(
+	const ConfigParser::Key& key,
+	const ConfigParser::Value& strategy)
+{
+	if (std::holds_alternative<ConfigParser::Scalar>(strategy)) {
+		CreateUnitScalarStrategyByKey(key, std::get<ConfigParser::Scalar>(strategy));
+	} else if (std::holds_alternative<ConfigParser::Sequence>(strategy)) {
+		CreateUnitSequenceStrategyByKey(key, std::get<ConfigParser::Sequence>(strategy));
+	}
+}
+
+void StrategyFactory::CreateUnitScalarStrategyByKey(
+	const ConfigParser::Key& key,
+	const ConfigParser::Scalar& strategy)
 {
 	if (key == "srcip") {
 		_replicatorStrategies.unitSrcIp = CreateConcreteUnitStrategy<IpAddressView>(strategy);
@@ -112,9 +132,74 @@ void StrategyFactory::CreateUnitStrategyByKey(const std::string& key, const std:
 		_replicatorStrategies.unitSrcMac = CreateConcreteUnitStrategy<MacAddress>(strategy);
 	} else if (key == "dstmac") {
 		_replicatorStrategies.unitDstMac = CreateConcreteUnitStrategy<MacAddress>(strategy);
+	} else if (key == "loopOnly") {
+		_replicatorStrategies.loopOnly = CreateUnitLoopOnlyStrategy(strategy);
 	} else {
-		throw std::runtime_error("Invalid units key name: '" + key + "'");
+		_logger->error("Invalid units key name: '" + key + "'");
+		throw std::runtime_error("StrategyFactory::CreateUnitScalarStrategyByKey() has failed");
 	}
+}
+
+void StrategyFactory::CreateUnitSequenceStrategyByKey(
+	const ConfigParser::Key& key,
+	const ConfigParser::Sequence& strategy)
+{
+	if (key == "loopOnly") {
+		if (strategy.empty()) {
+			// if sequence is empty add value uint64_t::max() as "disable" value
+			std::string maxValueAsDisabled = std::to_string(std::numeric_limits<uint64_t>::max());
+			_replicatorStrategies.loopOnly = CreateUnitLoopOnlyStrategy({maxValueAsDisabled});
+		} else {
+			_replicatorStrategies.loopOnly = CreateUnitLoopOnlyStrategy(strategy);
+		}
+	} else {
+		_logger->error("Invalid units key name: '" + key + "'");
+		throw std::runtime_error("StrategyFactory::CreateUnitSequenceStrategyByKey() has failed");
+	}
+}
+
+std::vector<uint64_t>
+StrategyFactory::CreateUnitLoopOnlyStrategy(const ConfigParser::Scalar& strategy)
+{
+	if (strategy == "All") {
+		return {};
+	} else {
+		return CreateUnitLoopOnlyStrategy(ConfigParser::Sequence {strategy});
+	}
+}
+
+std::vector<uint64_t>
+StrategyFactory::CreateUnitLoopOnlyStrategy(const ConfigParser::Sequence& strategy)
+{
+	std::vector<uint64_t> loopOnly;
+	for (const auto& value : strategy) {
+		size_t dashPosition = value.find('-');
+		if (dashPosition != std::string::npos) {
+			std::string startStr = value.substr(0, dashPosition);
+			std::string endStr = value.substr(dashPosition + 1);
+
+			uint64_t start = std::stoull(startStr);
+			uint64_t end = std::stoull(endStr);
+
+			if (start > end) {
+				_logger->error("Invalid LoopOnly value (rangeStart > rangeEnd)");
+				throw std::runtime_error(
+					"StrategyFactory::CreateUnitLoopOnlyStrategy() has failed");
+			}
+
+			for (uint64_t i = start; i <= end; ++i) {
+				loopOnly.emplace_back(i);
+			}
+		} else {
+			uint64_t num = std::stoull(value);
+			loopOnly.emplace_back(num);
+		}
+	}
+
+	std::sort(loopOnly.begin(), loopOnly.end());
+	loopOnly.erase(std::unique(loopOnly.begin(), loopOnly.end()), loopOnly.end());
+
+	return loopOnly;
 }
 
 } // namespace replay

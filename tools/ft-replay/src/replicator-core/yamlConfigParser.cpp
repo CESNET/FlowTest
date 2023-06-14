@@ -111,9 +111,19 @@ YamlConfigParser::ParseDictionary(const YamlNode& node, const std::string& nodeN
 
 ConfigParser::KeyValue YamlConfigParser::ParseKeyValue(const YamlIterator& keyValueIterator)
 {
-	return std::make_pair(
-		keyValueIterator.first.as<std::string>(),
-		keyValueIterator.second.as<std::string>());
+	switch (keyValueIterator.second.Type()) {
+	case YAML::NodeType::Scalar:
+		return std::make_pair(
+			keyValueIterator.first.as<Key>(),
+			keyValueIterator.second.as<Scalar>());
+	case YAML::NodeType::Sequence:
+		return std::make_pair(
+			keyValueIterator.first.as<Key>(),
+			keyValueIterator.second.as<Sequence>());
+	default:
+		_logger->error("Invalid node type. Only scalar and sequence types are supported.");
+		throw std::runtime_error("YamlConfigParser::ParseYamlIteratorByType() has failed");
+	}
 }
 
 } // namespace replay
