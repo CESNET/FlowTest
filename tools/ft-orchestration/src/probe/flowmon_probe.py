@@ -378,6 +378,8 @@ class FlowmonProbe(ProbeInterface):
     def start(self):
         """Start flowmonexp5 process"""
 
+        # remove logs from previous run
+        self._host.run(f"rm -f {FLOWMONEXP_LOG}/*.log")
         logging.getLogger().info("Starting exporter on %s", self._interface)
         cmd = f"{FLOWMONEXP_BIN} {self._probe_json_conf}"
         check_running_cmd = f"ps aux | grep -Ei '[f]lowmonexp5.*{self._interface}'"
