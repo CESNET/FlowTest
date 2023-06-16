@@ -321,7 +321,7 @@ class FlowmonProbe(ProbeInterface):
                 }
             )
 
-    def _prepare_logs(self) -> List[str]:
+    def _prepare_logs(self) -> List[Path]:
         """Prepare list of log files to download.
 
         Returns
