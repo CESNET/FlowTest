@@ -124,13 +124,16 @@ class FlowReplicator:
         "BYTES": "sum",
     }
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict, ignore_loops: Optional[list[int]] = None) -> None:
         """Init flow replicator. Parse config dict.
 
         Parameters
         ----------
         config : dict
             Configuration in form of dict, the same as ft-replay configuration.
+        ignore_loops : list[int], optional
+            Do not replicate flows in loops with indices.
+            Replication units that are active only in these loops may contain unsupported modifiers (addCounter).
 
         Raises
         ------
@@ -138,6 +141,7 @@ class FlowReplicator:
             When bad config format or unsupported replication modifier is used.
         """
 
+        self._ignore_loops = [] if ignore_loops is None else ignore_loops
         self._config = self._normalize_config(config)
         self._flows = None
         self._inactive_timeout = None
@@ -284,6 +288,8 @@ class FlowReplicator:
 
         res = pd.DataFrame()
         for loop_n in range(loops):
+            if loop_n in self._ignore_loops:
+                continue
             loop_flows = self._process_single_loop(loop_n, loop_length)
             res = pd.concat([res, loop_flows], axis=0)
 
