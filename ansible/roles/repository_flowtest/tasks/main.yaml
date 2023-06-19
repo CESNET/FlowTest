@@ -1,0 +1,10 @@
+---
+- name: FlowTest repository is installed
+  ansible.builtin.yum_repository:
+    name: flowtest
+    description: Flowtest repository
+    baseurl: "https://www.liberouter.org/repo/flowtest/$releasever/"
+    skip_if_unavailable: yes
+    gpgcheck: no
+    repo_gpgcheck: no
+    enabled: yes
