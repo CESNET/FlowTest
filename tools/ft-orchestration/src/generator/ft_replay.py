@@ -18,8 +18,15 @@ from os import path
 from pathlib import Path
 from typing import Iterable, Optional, Union
 
-import invoke
 import yaml
+from lbr_testsuite.executable import (
+    AsyncTool,
+    ExecutableProcessError,
+    Executor,
+    Rsync,
+    Tool,
+)
+from src.common.tool_is_installed import assert_tool_is_installed
 from src.common.typed_dataclass import typed_dataclass
 from src.generator.ft_generator import FtGenerator, FtGeneratorConfig
 from src.generator.interface import (
@@ -32,7 +39,6 @@ from src.generator.interface import (
     Replicator,
     TopSpeed,
 )
-from src.host.host import Host
 
 
 @typed_dataclass
@@ -171,7 +177,7 @@ class FtReplay(Replicator):
 
     def __init__(
         self,
-        host: Host,
+        executor: Executor,
         add_vlan: Optional[int] = None,
         verbose: bool = False,
         biflow_export: bool = False,
@@ -183,8 +189,8 @@ class FtReplay(Replicator):
 
         Parameters
         ----------
-        host : Host
-            Host class with established connection.
+        executor: Executor
+            Executor for command execution.
         add_vlan : int, optional
             If specified, vlan header with given tag will be added to replayed packets.
         verbose : bool, optional
@@ -208,7 +214,7 @@ class FtReplay(Replicator):
             When ft-replay binary missing on host.
         """
 
-        self._host = host
+        self._executor = executor
         self._vlan = add_vlan
         self._verbose = verbose
         self._output_plugin = FtReplayOutputPluginSettings(**kwargs)
@@ -216,6 +222,7 @@ class FtReplay(Replicator):
         self._dst_mac = None
         self._process = None
         self._mtu = mtu
+        self._rsync = Rsync(executor, data_dir=cache_path)
 
         self._replication_units = []
         self._srcip_offset = None
@@ -224,21 +231,13 @@ class FtReplay(Replicator):
         self._work_dir = tempfile.mkdtemp()
         self._config_file = path.join(self._work_dir, "config.yaml")
 
-        self._ft_generator = FtGenerator(host, cache_path, biflow_export, verbose)
+        self._ft_generator = FtGenerator(executor, cache_path, biflow_export, verbose)
 
-        res = host.run("command -v ft-replay", check_rc=False)
-        if res.exited != 0:
-            logging.getLogger().error("ft-replay is missing")
-            raise RuntimeError("Unable to locate or execute ft-replay binary")
         # use absolute binary path when run via sudo, needed if ft-replay was installed with cmake
-        self._bin = res.stdout.strip()
+        self._bin = assert_tool_is_installed("ft-replay", executor)
 
-        if self._host.is_local():
-            self._log_file = path.join(tempfile.mkdtemp(), "ft-replay.log")
-            self._generator_log_file = path.join(tempfile.mkdtemp(), "ft-generator.log")
-        else:
-            self._log_file = path.join(self._host.get_storage().get_remote_directory(), "ft-replay.log")
-            self._generator_log_file = path.join(self._host.get_storage().get_remote_directory(), "ft-generator.log")
+        self._log_file = path.join(self._work_dir, "ft-replay.log")
+        self._generator_log_file = path.join(self._work_dir, "ft-generator.log")
 
     def add_interface(self, ifc_name: str, dst_mac: Optional[str] = None) -> None:
         """Add interface on which traffic will be replayed.
@@ -343,9 +342,6 @@ class FtReplay(Replicator):
         pcap_path: str,
         speed: ReplaySpeed = MultiplierSpeed(1.0),
         loop_count: int = 1,
-        asynchronous: bool = False,
-        check_rc: bool = True,
-        timeout: Optional[float] = None,
         remote_pcap: bool = False,
     ) -> None:
         """Start ft-replay with given command line options.
@@ -355,21 +351,14 @@ class FtReplay(Replicator):
         Parameters
         ----------
         pcap_path : str
-            Path to pcap file to replay. Path to PCAP file must be local path.
-            Method will synchronize pcap file on remote machine.
+            Path to pcap file to replay. When the remote_pcap parameter
+            is True, the path is assumed to be remote. Otherwise is path
+            local and method will synchronize pcap file on remote machine.
         speed : ReplaySpeed, optional
             Argument to modify packets replay speed.
         loop_count : int, optional
             Packets from pcap will be replayed loop_count times.
-            Zero or negative value means infinite loop and must be started asynchronous.
-        asynchronous : bool, optional
-            If True, start ft-replay in asynchronous (non-blocking) mode.
-        check_rc : bool, optional
-            If True, raise ``invoke.exceptions.UnexpectedExit`` when
-            return code is nonzero. If False, do not raise any exception.
-        timeout : float, optional
-            Raise ``CommandTimedOut`` if command doesn't finish within
-            specified timeout (in seconds).
+            Zero or negative value means infinite loop.
         remote_pcap: bool, optional
             True if PCAP file (pcap_path) is stored on remote machine
             and no synchronization is required.
@@ -381,7 +370,8 @@ class FtReplay(Replicator):
         """
 
         if self._process is not None:
-            self.stop()
+            if self._process.is_running():
+                self.stop()
 
         if not self._interface:
             logging.getLogger().error("no output interface was specified")
@@ -390,55 +380,33 @@ class FtReplay(Replicator):
         # negative values mean infinite loop
         loop_count = max(loop_count, 0)
 
-        if loop_count == 0 and not asynchronous:
-            logging.getLogger().error("ft-replay can not be started synchronous in infinite loop")
-            raise GeneratorException("ft-replay can not be started synchronous in infinite loop")
-
         self._save_config()
 
-        # this section will be simplified with Executables
-        if not self._host.is_local():
-            self._host.get_storage().push(self._config_file)
-            config_file = path.join(self._host.get_storage().get_remote_directory(), path.basename(self._config_file))
-        else:
-            config_file = self._config_file
-
-        cmd_args = ["-c", config_file]
+        cmd_args = ["-c", self._rsync.push_path(self._config_file)]
         cmd_args += ["-l", str(loop_count)]
         cmd_args += [self._get_speed_arg(speed)]
         if self._vlan:
             cmd_args += ["-v", str(self._vlan)]
         cmd_args += ["-o", self._output_plugin.get_cmd_args(self._interface, self._mtu)]
+
+        pcap_path = pcap_path if remote_pcap else self._rsync.push_path(pcap_path)
         cmd_args += ["-i", pcap_path]
 
         if self._output_plugin.output_plugin in ["raw", "xdp"]:
-            self._host.run(f"sudo ip link set dev {self._interface} up")
-            self._host.run(f"sudo ip link set dev {self._interface} mtu {self._mtu}")
+            Tool(f"ip link set dev {self._interface} up", executor=self._executor, sudo=True).run()
+            Tool(f"ip link set dev {self._interface} mtu {self._mtu}", executor=self._executor, sudo=True).run()
 
-        logging.getLogger().info("Traffic transmission started.")
-        start = time.time()
-        res = self._process = self._host.run(
-            f"(set -o pipefail; sudo {self._bin} {' '.join(cmd_args)} |& tee -i {self._log_file})",
-            asynchronous,
-            check_rc,
-            timeout=timeout,
-            path_replacement=not remote_pcap,
+        self._process = AsyncTool(
+            f"{self._bin} {' '.join(cmd_args)}",
+            sudo=True,
+            executor=self._executor,
         )
-        end = time.time()
+        self._process.set_outputs(self._log_file)
 
-        if not asynchronous:
-            logging.getLogger().info("Traffic sent by ft-replay in %.2f seconds.", (end - start))
-            logging.getLogger().info("Ft-replay output:")
-            logging.getLogger().info(res.stdout)
-        else:
-            runner = self._process.runner
-            if runner.process_is_finished:
-                res = self._process.join()
-                if res.failed:
-                    # If pty is true, stderr is redirected to stdout
-                    err = res.stdout if runner.opts["pty"] else res.stderr
-                    logging.getLogger().error("ft-replay return code: %d, error: %s", res.return_code, err)
-                    raise GeneratorException("ft-replay startup error")
+        try:
+            self._process.run()
+        except ExecutableProcessError as err:
+            raise GeneratorException("ft-replay startup error") from err
 
     def start_profile(
         self,
@@ -447,9 +415,6 @@ class FtReplay(Replicator):
         speed: ReplaySpeed = MultiplierSpeed(1.0),
         loop_count: int = 1,
         generator_config: Optional[FtGeneratorConfig] = None,
-        asynchronous: bool = False,
-        check_rc: bool = True,
-        timeout: Optional[float] = None,
     ) -> None:
         """Start network traffic replaying from given profile.
 
@@ -468,14 +433,6 @@ class FtReplay(Replicator):
             Zero or negative value means infinite loop and must be started asynchronous.
         generator_config : FtGeneratorConfig, optional
             Configuration of PCAP generation from profile. Passed to ft-generator.
-        asynchronous : bool, optional
-            If True, start tcpreplay in asynchronous (non-blocking) mode.
-        check_rc : bool, optional
-            If True, raise ``invoke.exceptions.UnexpectedExit`` when
-            return code is nonzero. If False, do not raise any exception.
-        timeout : float, optional
-            Raise ``CommandTimedOut`` if command doesn't finish within
-            specified timeout (in seconds).
 
         Raises
         ------
@@ -489,19 +446,19 @@ class FtReplay(Replicator):
         end = time.time()
         logging.getLogger().info("PCAP generated in %.2f seconds.", (end - start))
 
-        self.start(pcap, speed, loop_count, asynchronous, check_rc, timeout, remote_pcap=True)
+        self.start(pcap, speed, loop_count, remote_pcap=True)
 
-        if self._host.is_local():
-            shutil.copy(report, report_path)
-        else:
-            self._host.get_storage().pull(report, path.dirname(report_path))
-            shutil.move(path.join(path.dirname(report_path), path.basename(report)), report_path)
+        report = self._rsync.pull_path(report, self._work_dir)
+        shutil.copy(report, report_path)
 
-    def stop(self) -> None:
+    def stop(self, timeout=None) -> None:
         """Stop current execution of ft-replay.
 
-        If ft-replay was started in synchronous mode, do nothing.
-        Otherwise stop the process.
+        Parameters
+        ----------
+        timeout : float, optional
+            Kill process if it doesn't finish within
+            specified timeout (in seconds).
 
         Raises
         ------
@@ -512,24 +469,10 @@ class FtReplay(Replicator):
         if self._process is None:
             return
 
-        if not isinstance(self._process, invoke.runners.Promise) or not self._process.runner.opts["asynchronous"]:
-            self._process = None
-            return
-
-        self._host.stop(self._process)
-        res = self._host.wait_until_finished(self._process)
-        if not isinstance(res, invoke.Result):
-            raise TypeError("Host method wait_until_finished returned non result object.")
-        runner = self._process.runner
-
-        if res.failed:
-            # If pty is true, stderr is redirected to stdout
-            # Since stdout could be filled with normal output, print only last 1 line
-            err = runner.stdout[-1] if runner.opts["pty"] else runner.stderr
-            logging.getLogger().error("ft-replay runtime error: %s, error: %s", res.return_code, err)
-            raise GeneratorException("ft-replay runtime error")
-
-        self._process = None
+        try:
+            self._process.wait_or_kill(timeout)
+        except ExecutableProcessError as err:
+            raise GeneratorException("ft-replay runtime error") from err
 
     def download_logs(self, directory: str) -> None:
         """Download logs generated by ft-replay.
@@ -542,16 +485,10 @@ class FtReplay(Replicator):
 
         log_files = [self._log_file, self._generator_log_file]
 
-        if self._host.is_local():
-            Path(directory).mkdir(parents=True, exist_ok=True)
-            for file in log_files:
+        Path(directory).mkdir(parents=True, exist_ok=True)
+        for file in log_files:
+            if Path(file).exists():
                 shutil.copy(file, directory)
-        else:
-            for file in log_files:
-                try:
-                    self._host.get_storage().pull(file, directory)
-                except RuntimeError as err:
-                    logging.getLogger().warning("%s", err)
 
         if self._verbose:
             shutil.copy(self._config_file, directory)
@@ -565,15 +502,14 @@ class FtReplay(Replicator):
             Class containing statistics of sent packets and bytes.
         """
 
-        process = self._process
-        if not hasattr(process, "stdout"):
-            process = self._host.wait_until_finished(process)
+        self._process.wait_or_kill()
+        output = Path(self._log_file).read_text(encoding="utf-8")
 
-        pkts = int(re.findall(r"(\d+) packets", process.stdout)[0])
-        bts = int(re.findall(r"(\d+) bytes", process.stdout)[0])
+        pkts = int(re.findall(r"(\d+) packets", output)[-1])
+        bts = int(re.findall(r"(\d+) bytes", output)[-1])
 
-        start_time = int(re.findall(r"Start time:.*\[ms since epoch: (\d+)\]", process.stdout)[0])
-        end_time = int(re.findall(r"End time:.*\[ms since epoch: (\d+)\]", process.stdout)[0])
+        start_time = int(re.findall(r"Start time:.*\[ms since epoch: (\d+)\]", output)[0])
+        end_time = int(re.findall(r"End time:.*\[ms since epoch: (\d+)\]", output)[0])
 
         return GeneratorStats(pkts, bts, start_time, end_time)
 
