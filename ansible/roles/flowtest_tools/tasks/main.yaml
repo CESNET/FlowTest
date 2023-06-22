@@ -1,0 +1,5 @@
+---
+- name: FlowTest tools are installed
+  ansible.builtin.dnf:
+    name: flowtest
+    state: latest

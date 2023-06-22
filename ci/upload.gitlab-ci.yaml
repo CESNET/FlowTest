@@ -15,3 +15,19 @@ upload python packages:
           cat out.txt | grep "File name has already been taken"
       fi
   only: ['main']
+
+upload rpm package:
+  stage: upload
+  tags: [ci-shell]
+  needs: ["rpmbuild [Oracle Linux 8]", "rpmbuild [Oracle Linux 9]"]
+  script:
+    - |
+        umask 0002
+        mkdir -p $CI_REPO_PATH/8
+        mkdir -p $CI_REPO_PATH/9
+        rsync -ur --chmod=g+w --delete ol8/RPMS/x86_64/* $CI_REPO_PATH/8
+        rsync -ur --chmod=g+w --delete ol9/RPMS/x86_64/* $CI_REPO_PATH/9
+        find $CI_REPO_PATH -mindepth 1 -maxdepth 2 -type d -exec createrepo --update '{}' \;
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "main" && $CI_REPO_PATH
