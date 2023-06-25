@@ -33,6 +33,7 @@ def pytest_addhooks(pluginmanager: pytest.PytestPluginManager):
         "src.topology.common",
         "src.topology.pcap_player",
         "tests.validation.test_validation",
+        "tests.simulation.test_simulation_original",
     ]
     for plugin in plugins:
         if not pluginmanager.hasplugin(plugin):
