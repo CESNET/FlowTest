@@ -73,17 +73,17 @@ class BuilderBase(ABC):
 
         raise NotImplementedError
 
-    def get_instance_type(self) -> type:
+    def get_instance_type(self) -> str:
         """Get type of constructed object.
 
         Returns
         -------
-        type
+        str
             Type of instance to build.
         """
 
         assert self._class is not None
-        return self._class
+        return self._class.__name__
 
     def close_connection(self) -> None:
         """Release resources, SSH connection if remote is used.
