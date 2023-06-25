@@ -28,7 +28,12 @@ def pytest_addhooks(pluginmanager: pytest.PytestPluginManager):
     e.g.: when pytest was started from tools/ft-orchestration.
     """
 
-    plugins = ["src.topology.common", "src.topology.pcap_player", "tests.validation.test_validation"]
+    plugins = [
+        "src.common.fixtures",
+        "src.topology.common",
+        "src.topology.pcap_player",
+        "tests.validation.test_validation",
+    ]
     for plugin in plugins:
         if not pluginmanager.hasplugin(plugin):
             pluginmanager.import_plugin(plugin)
