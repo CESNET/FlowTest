@@ -7,8 +7,11 @@ SPDX-License-Identifier: BSD-3-Clause
 File contains data structures which are used for statistical model tests.
 """
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Union
+
+from dataclass_wizard import YAMLWizard
 
 
 class SMException(Exception):
@@ -24,7 +27,7 @@ class SMMetricType(Enum):
 
 
 @dataclass
-class SMSubnetSegment:
+class SMSubnetSegment(YAMLWizard):
     """Describe subnets which will be used to filter flows before computing metrics in a statistical model.
 
     Attributes
@@ -70,7 +73,7 @@ class SMSubnetSegment:
 
 
 @dataclass
-class SMTimeSegment:
+class SMTimeSegment(YAMLWizard):
     """Describe time interval which will be used to filter flows before computing metrics in a statistical model.
     Both start and end times are expected to be in the UTC time zone.
 
@@ -88,8 +91,8 @@ class SMTimeSegment:
         End time is not considered if None is set.
     """
 
-    start: Optional["datetime"] = None
-    end: Optional["datetime"] = None
+    start: Optional[datetime] = None
+    end: Optional[datetime] = None
 
     def __eq__(self, other: "SMTimeSegment") -> bool:
         """Compare start and end times of both segments.
@@ -115,7 +118,7 @@ class SMTimeSegment:
 
 
 @dataclass
-class SMMetric:
+class SMMetric(YAMLWizard):
     """Describe metric and its acceptable relative difference to evaluate data in the statistical model.
 
     Attributes
@@ -143,7 +146,7 @@ class SMMetric:
 
 
 @dataclass
-class SMRule:
+class SMRule(YAMLWizard):
     """Rule to be applied to a statistical model to evaluate it. Consists of metrics and an optional segment to filter
     desirable data before applying the metrics.
 
