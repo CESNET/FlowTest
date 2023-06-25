@@ -1,0 +1,29 @@
+name: simple test
+description: simple test
+marks: [sm-exact]
+requirements:
+  speed: 10
+profile: profiles/test.csv
+mtu: 1500
+sampling: 0.1
+pps: 800000
+generator:
+  encapsulation: []
+  ipv4:
+    fragmentation_probability: 0%
+  mac:
+    mac_range: "94:00:00:00:00:00/40"
+probe:
+  protocols: []
+  active_timeout: 300
+  inactive_timeout: 30
+  connectors:
+    - type: FlowmonProbe
+      input_plugin: rawnetcap
+analysis:
+  - key: PACKETS
+    diff: 0.0
+  - key: BYTES
+    diff: 0.0
+  - key: FLOWS
+    diff: 0.1
