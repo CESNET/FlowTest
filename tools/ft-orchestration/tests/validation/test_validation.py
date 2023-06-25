@@ -39,7 +39,7 @@ from scapy.utils import rdpcap
 from src.collector.collector_builder import CollectorBuilder
 from src.collector.interface import CollectorInterface
 from src.collector.mapper import CollectorOutputMapper
-from src.common.get_project_root import get_project_root
+from src.common.utils import get_project_root
 from src.generator.generator_builder import GeneratorBuilder
 from src.generator.interface import PcapPlayer, PpsSpeed
 from src.probe.interface import ProbeInterface
