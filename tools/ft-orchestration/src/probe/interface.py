@@ -85,3 +85,15 @@ class ProbeInterface(ABC):
             Path to a local directory where logs should be stored.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def get_timeouts(self) -> tuple[int, int]:
+        """Get active and inactive timeouts of the probe (in seconds).
+
+        Returns
+        -------
+        tuple
+            active_timeout, inactive_timeout
+        """
+
+        raise NotImplementedError

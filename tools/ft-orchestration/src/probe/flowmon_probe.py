@@ -442,3 +442,14 @@ class FlowmonProbe(ProbeInterface):
                 storage.pull(log_file, directory)
             except RuntimeError as err:
                 logging.getLogger().warning("%s", err)
+
+    def get_timeouts(self) -> tuple[int, int]:
+        """Get active and inactive timeouts of the probe (in seconds).
+
+        Returns
+        -------
+        tuple
+            active_timeout, inactive_timeout
+        """
+
+        return self._settings["ACTIVE-TIMEOUT"], self._settings["INACTIVE-TIMEOUT"]
