@@ -12,7 +12,7 @@ in case a replicator (ft-replay) was used as a generator during testing.
 import ipaddress
 import re
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -45,10 +45,13 @@ class ReplicatorUnit:
         Source IP modifier. If None, no changes during replication.
     dstip : IpAddConstant, optional
         Destination IP modifier. If None, no changes during replication.
+    loop_only : Iterable or None, optional
+        Apply replication unit only in loops that match given index(es).
     """
 
     srcip: Optional[IpAddConstant]
     dstip: Optional[IpAddConstant]
+    loop_only: Optional[Iterable] = None
 
 
 @dataclass
@@ -124,13 +127,16 @@ class FlowReplicator:
         "BYTES": "sum",
     }
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict, ignore_loops: Optional[list[int]] = None) -> None:
         """Init flow replicator. Parse config dict.
 
         Parameters
         ----------
         config : dict
             Configuration in form of dict, the same as ft-replay configuration.
+        ignore_loops : list[int], optional
+            Do not replicate flows in loops with indices.
+            Replication units that are active only in these loops may contain unsupported modifiers (addCounter).
 
         Raises
         ------
@@ -138,6 +144,7 @@ class FlowReplicator:
             When bad config format or unsupported replication modifier is used.
         """
 
+        self._ignore_loops = [] if ignore_loops is None else ignore_loops
         self._config = self._normalize_config(config)
         self._flows = None
         self._inactive_timeout = None
@@ -255,7 +262,17 @@ class FlowReplicator:
 
         units = []
         for unit in config.get("units", []):
-            units.append(ReplicatorUnit(self._parse_config_item("srcip", unit), self._parse_config_item("dstip", unit)))
+            loop_only = unit.get("loopOnly", [])
+            loop_only = {} if loop_only == "All" else set(loop_only)
+            if len(loop_only) > 0 and loop_only.issubset(set(self._ignore_loops)):
+                continue
+            units.append(
+                ReplicatorUnit(
+                    self._parse_config_item("srcip", unit),
+                    self._parse_config_item("dstip", unit),
+                    loop_only,
+                )
+            )
 
         loop_config = config.get("loop", {})
         loop = ReplicatorUnit(
@@ -284,6 +301,8 @@ class FlowReplicator:
 
         res = pd.DataFrame()
         for loop_n in range(loops):
+            if loop_n in self._ignore_loops:
+                continue
             loop_flows = self._process_single_loop(loop_n, loop_length)
             res = pd.concat([res, loop_flows], axis=0)
 
@@ -319,7 +338,11 @@ class FlowReplicator:
         flows["SRC_IP"] = flows["SRC_IP"] + srcip_offset
         flows["DST_IP"] = flows["DST_IP"] + dstip_offset
 
-        res = [self._process_replication_unit(unit, flows) for unit in self._config.units]
+        res = [
+            self._process_replication_unit(unit, flows)
+            for unit in self._config.units
+            if len(unit.loop_only) == 0 or loop_n in unit.loop_only
+        ]
         res = pd.concat(res, axis=0)
 
         # merge replicated flows with the same key within one loop
