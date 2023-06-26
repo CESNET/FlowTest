@@ -33,8 +33,8 @@ void PrintUsage()
 				 "(mandatory)\n";
 	std::cerr << "  --metrics, -m FILE        Path to a file where metrics of the result should be "
 				 "written (mandatory)\n";
-	std::cerr << "  --deviation, -d VALUE     Acceptable deviation (%) of each key metric "
-				 "from the original profile metric (default: 0.5)\n";
+	std::cerr << "  --deviation, -d VALUE     Acceptable deviation (0 - 1) of each key metric "
+				 "from the original profile metric (default: 0.005)\n";
 	std::cerr << "  --seed, -s VALUE          Seed for the random number generator to reproduce "
 				 "specific run\n";
 	std::cerr << "  --generations, -g VALUE   Number of generations (default: 500)\n";

@@ -163,6 +163,7 @@ void MetricsDiff::ComputeFitness()
 
 bool MetricsDiff::IsAcceptable(double deviation) const
 {
+	deviation *= 100;
 	if (pktsBtsRatio > deviation || bflsPktsRatio > deviation || bflsBtsRatio > deviation
 		|| ipv4 > deviation || ipv6 > deviation) {
 		return false;

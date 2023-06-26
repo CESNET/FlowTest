@@ -61,8 +61,8 @@ struct EvolutionConfig {
 	uint32_t generations {500};
 	/** Number of individuals in every generation. */
 	uint32_t population {16};
-	/** Maximum acceptable deviation of individual metrics. */
-	double deviation {0.5};
+	/** Maximum acceptable deviation of individual metrics (0 - 1). */
+	double deviation {0.005};
 	/** Minimum relative size of the wanted profile sample. */
 	double minSampleSize {};
 	/** Maximum relative size of the wanted profile sample. */
