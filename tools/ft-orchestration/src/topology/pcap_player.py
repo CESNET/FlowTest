@@ -16,7 +16,11 @@ from src.collector.collector_builder import CollectorBuilder
 from src.config.config import Config
 from src.generator.generator_builder import GeneratorBuilder
 from src.probe.probe_builder import ProbeBuilder
-from src.topology.common import Option, parse_generator_option
+from src.topology.common import (
+    Option,
+    check_time_synchronization,
+    parse_generator_option,
+)
 
 
 def pytest_addoption(parser: pytest.Parser):
@@ -112,6 +116,8 @@ def topology_pcap_player(
         cmd_connector_args=generator_option.arguments,
     )
     teardown_builders.append(generator_builder)
+
+    check_time_synchronization(collector_builder, probe_builder, generator_builder)
 
     return Topology(device=probe_builder, generator=generator_builder, analyzer=collector_builder)
 

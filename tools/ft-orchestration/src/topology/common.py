@@ -11,10 +11,12 @@ from collections import namedtuple
 from typing import Optional
 
 import pytest
+from src.common.builder_base import BuilderBase
 from src.config.config import Config
 
 DEFAULT_EXPORT_PROTOCOL = "tcp"
 DEFAULT_EXPORT_PORT = 4739
+MAX_HOST_TIMESTAMPS_DIFF = 500
 
 Option = namedtuple("Option", ["alias", "arguments"])
 
@@ -200,3 +202,23 @@ def parse_generator_option(option: str) -> Optional[Option]:
             parsed.arguments["orig-mac"] = False
         return parsed
     return None
+
+
+def check_time_synchronization(*args: list[BuilderBase]) -> None:
+    """Check the time differences between the machines running collector, probe and generator.
+
+    Parameters
+    ----------
+    args : list[BuilderBase]
+        Builders to check for time differences.
+    """
+
+    assert len(args) == 3
+
+    for builder in args:
+        builder.host_timestamp_async()
+    timestamps = [builder.host_timestamp_result() for builder in args]
+
+    assert (
+        max(timestamps) - min(timestamps) <= MAX_HOST_TIMESTAMPS_DIFF
+    ), f"Timestamps from remote hosts differ by more than {MAX_HOST_TIMESTAMPS_DIFF}ms."
