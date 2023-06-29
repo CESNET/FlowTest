@@ -14,6 +14,7 @@
 #include <regex>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace replay {
@@ -23,8 +24,12 @@ namespace replay {
  */
 class ConfigParser {
 public:
-	using KeyValue = std::pair<std::string, std::string>;
-	using Dictionary = std::map<std::string, std::string>;
+	using Key = std::string;
+	using Scalar = std::string;
+	using Sequence = std::vector<std::string>;
+	using Value = std::variant<Scalar, Sequence>;
+	using KeyValue = std::pair<Key, Value>;
+	using Dictionary = std::map<Key, Value>;
 	using StrategyDescription = Dictionary;
 
 	/**
@@ -65,14 +70,19 @@ private:
 	void ValidateUnitsStrategyDescription();
 	void ValidateLoopStrategyDescription();
 
-	bool IsIpKey(const std::string& key);
-	bool IsMacKey(const std::string& key);
+	bool IsIpKey(const Key& key);
+	bool IsMacKey(const Key& key);
+	bool IsLoopOnlyKey(const Key& key);
+
+	void AssertScalarType(const Value& value) const;
 
 	std::vector<std::regex> CreateLoopIpValidationRegex() const;
 	std::vector<std::regex> CreateUnitIpValidationRegex() const;
 	std::vector<std::regex> CreateUnitMacValidationRegex() const;
+	std::vector<std::regex> CreateUnitLoopOnlyValidationRegex() const;
 
-	void MatchStrategyRegex(const std::string& strategy, const std::vector<std::regex>& regexes);
+	void MatchRegex(const Value& valueToMatch, const std::vector<std::regex>& regexes);
+	void MatchScalarRegex(const Scalar& valueToMatch, const std::vector<std::regex>& regexes);
 
 	std::vector<StrategyDescription> _unitsStrategyDescription;
 	StrategyDescription _loopStrategyDescription;

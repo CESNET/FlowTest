@@ -32,13 +32,18 @@ void ConfigParser::ValidateUnitsStrategyDescription()
 {
 	auto unitIpValidationRegex = CreateUnitIpValidationRegex();
 	auto unitMacValidationRegex = CreateUnitMacValidationRegex();
+	auto unitLoopOnlyValidationRegex = CreateUnitLoopOnlyValidationRegex();
 
 	for (auto& unitStrategyDescription : _unitsStrategyDescription) {
 		for (auto& [key, value] : unitStrategyDescription) {
 			if (IsIpKey(key)) {
-				MatchStrategyRegex(value, unitIpValidationRegex);
+				AssertScalarType(value);
+				MatchRegex(value, unitIpValidationRegex);
 			} else if (IsMacKey(key)) {
-				MatchStrategyRegex(value, unitMacValidationRegex);
+				AssertScalarType(value);
+				MatchRegex(value, unitMacValidationRegex);
+			} else if (IsLoopOnlyKey(key)) {
+				MatchRegex(value, unitLoopOnlyValidationRegex);
 			} else {
 				_logger->error("Invalid Key name: " + key);
 				throw std::runtime_error(
@@ -55,7 +60,8 @@ void ConfigParser::ValidateLoopStrategyDescription()
 
 	for (auto& [key, value] : _loopStrategyDescription) {
 		if (IsIpKey(key)) {
-			MatchStrategyRegex(value, loopIpValidationRegex);
+			AssertScalarType(value);
+			MatchRegex(value, loopIpValidationRegex);
 		} else {
 			_logger->error("Invalid Key name: " + key);
 			throw std::runtime_error("ConfigParser::ValidateLoopStrategyDescription() has failed");
@@ -63,14 +69,27 @@ void ConfigParser::ValidateLoopStrategyDescription()
 	}
 }
 
-bool ConfigParser::IsIpKey(const std::string& key)
+bool ConfigParser::IsIpKey(const Key& key)
 {
 	return key == "srcip" || key == "dstip";
 }
 
-bool ConfigParser::IsMacKey(const std::string& key)
+bool ConfigParser::IsMacKey(const Key& key)
 {
 	return key == "srcmac" || key == "dstmac";
+}
+
+bool ConfigParser::IsLoopOnlyKey(const Key& key)
+{
+	return key == "loopOnly";
+}
+
+void ConfigParser::AssertScalarType(const Value& value) const
+{
+	if (!std::holds_alternative<Scalar>(value)) {
+		_logger->error("Invalid entry type (scalar value expected)");
+		throw std::runtime_error("ConfigParser::AssertScalarType() has failed");
+	}
 }
 
 std::vector<std::regex> ConfigParser::CreateLoopIpValidationRegex() const
@@ -91,20 +110,39 @@ std::vector<std::regex> ConfigParser::CreateUnitMacValidationRegex() const
 	return {std::regex("^None$"), std::regex("^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$")};
 }
 
-void ConfigParser::MatchStrategyRegex(
-	const std::string& strategy,
+std::vector<std::regex> ConfigParser::CreateUnitLoopOnlyValidationRegex() const
+{
+	return {std::regex("^(\\d+(?:-\\d+)?)|(All)$")};
+}
+
+void ConfigParser::MatchRegex(const Value& valueToMatch, const std::vector<std::regex>& regexes)
+{
+	if (std::holds_alternative<Scalar>(valueToMatch)) {
+		MatchScalarRegex(std::get<Scalar>(valueToMatch), regexes);
+	} else if (std::holds_alternative<Sequence>(valueToMatch)) {
+		for (const auto& scalarValue : std::get<Sequence>(valueToMatch)) {
+			MatchScalarRegex(scalarValue, regexes);
+		}
+	} else {
+		_logger->error("Invalid variant alternative");
+		throw std::runtime_error("ConfigParser::MatchRegex() has failed");
+	}
+}
+
+void ConfigParser::MatchScalarRegex(
+	const Scalar& valueToMatch,
 	const std::vector<std::regex>& regexes)
 {
 	bool match = false;
 	for (auto& regex : regexes) {
-		if (std::regex_match(strategy, regex)) {
+		if (std::regex_match(valueToMatch, regex)) {
 			match = true;
 			break;
 		}
 	}
 	if (!match) {
-		_logger->error("Invalid Strategy description: " + strategy);
-		throw std::runtime_error("ConfigParser::MatchStrategyRegex() has failed");
+		_logger->error("Invalid description: '" + valueToMatch + "'");
+		throw std::runtime_error("ConfigParser::MatchScalarRegex() has failed");
 	}
 }
 

@@ -11,6 +11,7 @@
 #include "ipAddress.hpp"
 #include "macAddress.hpp"
 
+#include <algorithm>
 #include <netinet/if_ether.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
@@ -20,6 +21,16 @@ namespace replay {
 PacketModifier::PacketModifier(ModifierStrategies modifierStrategies)
 	: _strategy(std::move(modifierStrategies))
 {
+	std::sort(_strategy.loopOnly.begin(), _strategy.loopOnly.end());
+}
+
+bool PacketModifier::IsEnabledThisLoop(size_t loopId) noexcept
+{
+	if (_strategy.loopOnly.empty()) {
+		return true;
+	}
+
+	return std::binary_search(_strategy.loopOnly.begin(), _strategy.loopOnly.end(), loopId);
 }
 
 void PacketModifier::Modify(std::byte* ptr, const PacketInfo& pktInfo, size_t loopId)

@@ -12,6 +12,7 @@
 #include "macAddress.hpp"
 
 #include <memory>
+#include <vector>
 
 namespace replay {
 
@@ -184,6 +185,7 @@ struct ModifierStrategies {
 	LoopIpStrategy loopDstIp = std::make_unique<LoopNoneDefault>();
 	UnitMacStrategy unitSrcMac = std::make_unique<UnitNoneDefault<MacAddress>>();
 	UnitMacStrategy unitDstMac = std::make_unique<UnitNoneDefault<MacAddress>>();
+	std::vector<uint64_t> loopOnly = {};
 };
 
 } // namespace replay

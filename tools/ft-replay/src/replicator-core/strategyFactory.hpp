@@ -7,10 +7,12 @@
  */
 
 #include "configParser.hpp"
+#include "logger.h"
 #include "strategy.hpp"
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #pragma once
 
@@ -35,13 +37,26 @@ public:
 private:
 	void CreateLoopStrategy(const ConfigParser::StrategyDescription& loopStrategyDesciption);
 	void CreateUnitStrategy(const ConfigParser::StrategyDescription& unitStrategyDesciption);
-	void CreateLoopStrategyByKey(const std::string& key, const std::string& strategy);
-	void CreateUnitStrategyByKey(const std::string& key, const std::string& strategy);
+	void CreateLoopScalarStrategyByKey(
+		const ConfigParser::Key& key,
+		const ConfigParser::Scalar& strategy);
+	void CreateUnitStrategyByKey(const ConfigParser::Key& key, const ConfigParser::Value& strategy);
+	void CreateUnitScalarStrategyByKey(
+		const ConfigParser::Key& key,
+		const ConfigParser::Scalar& strategy);
+	void CreateUnitSequenceStrategyByKey(
+		const ConfigParser::Key& key,
+		const ConfigParser::Sequence& strategy);
 
 	template <typename T>
-	std::unique_ptr<UnitStrategy<T>> CreateConcreteUnitStrategy(const std::string& strategy);
-	std::unique_ptr<LoopStrategy> CreateConcreteLoopStrategy(const std::string& strategy);
+	std::unique_ptr<UnitStrategy<T>>
+	CreateConcreteUnitStrategy(const ConfigParser::Scalar& strategy);
+	std::unique_ptr<LoopStrategy> CreateConcreteLoopStrategy(const ConfigParser::Scalar& strategy);
+	std::vector<uint64_t> CreateUnitLoopOnlyStrategy(const ConfigParser::Sequence& strategy);
+	std::vector<uint64_t> CreateUnitLoopOnlyStrategy(const ConfigParser::Scalar& strategy);
 	ModifierStrategies _replicatorStrategies;
+
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("StrategyFactory");
 };
 
 } // namespace replay

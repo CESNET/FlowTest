@@ -34,7 +34,9 @@ Replicator::Replicator(const ConfigParser* configParser, OutputQueue* outputQueu
 		}
 	}
 
-	_replicationLoopId = 0;
+	_loopAvailableReplicationUnits.reserve(_replicationUnits.size());
+	SetReplicationLoopId(0);
+
 	_maxBurstSize = outputQueue->GetMaxBurstSize();
 	_packetBuffers = std::make_unique<PacketBuffer[]>(_maxBurstSize);
 }
@@ -42,22 +44,35 @@ Replicator::Replicator(const ConfigParser* configParser, OutputQueue* outputQueu
 void Replicator::SetReplicationLoopId(uint64_t replicationLoopId) noexcept
 {
 	_replicationLoopId = replicationLoopId;
+	UpdateAvailableReplicationUnits();
+}
+
+void Replicator::UpdateAvailableReplicationUnits()
+{
+	_loopAvailableReplicationUnits.clear();
+	for (auto& replicationUnit : _replicationUnits) {
+		if (replicationUnit.packetModifier.IsEnabledThisLoop(_replicationLoopId)) {
+			_loopAvailableReplicationUnits.emplace_back(&replicationUnit);
+		}
+	}
 }
 
 void Replicator::Replicate(PacketQueue::iterator begin, PacketQueue::iterator end)
 {
-	uint32_t maxPacketID = _replicationUnits.size() * std::distance(begin, end);
+	size_t availReplicationUnits = _loopAvailableReplicationUnits.size();
+
+	uint32_t maxPacketID = availReplicationUnits * std::distance(begin, end);
 	uint32_t packetID = 0;
 
 	/**
-	 * Iterate over all replication packets {_replicationUnits.size() * (end - begin)
+	 * Iterate over all replication packets {availReplicationUnits * (end - begin)
 	 */
 	while (packetID != maxPacketID) {
 		size_t burstSize = std::min(maxPacketID - packetID, (uint32_t) _maxBurstSize);
 
 		// fill buffers with requested length
 		for (uint32_t idx = 0; idx < burstSize; idx++) {
-			uint32_t packetQueueID = (idx + packetID) / _replicationUnits.size();
+			uint32_t packetQueueID = (idx + packetID) / availReplicationUnits;
 			_packetBuffers[idx]._len = (*(begin + packetQueueID))->dataLen;
 		}
 
@@ -66,16 +81,16 @@ void Replicator::Replicate(PacketQueue::iterator begin, PacketQueue::iterator en
 
 		// copy raw packet to output queue buffer
 		for (size_t idx = 0; idx < burstSize; idx++) {
-			uint32_t packetQueueID = (idx + packetID) / _replicationUnits.size();
+			uint32_t packetQueueID = (idx + packetID) / availReplicationUnits;
 			std::byte* data = (*(begin + packetQueueID))->data.get();
 			std::copy(data, data + _packetBuffers[idx]._len, _packetBuffers[idx]._data);
 		}
 
 		// modify packet with replication unit modifier strategies
 		for (uint32_t idx = 0; idx < burstSize; idx++) {
-			uint32_t replicationUnitID = (idx + packetID) % _replicationUnits.size();
-			uint32_t packetQueueID = (idx + packetID) / _replicationUnits.size();
-			_replicationUnits[replicationUnitID].packetModifier.Modify(
+			uint32_t replicationUnitID = (idx + packetID) % availReplicationUnits;
+			uint32_t packetQueueID = (idx + packetID) / availReplicationUnits;
+			_loopAvailableReplicationUnits[replicationUnitID]->packetModifier.Modify(
 				_packetBuffers[idx]._data,
 				(*(begin + packetQueueID))->info,
 				_replicationLoopId);
