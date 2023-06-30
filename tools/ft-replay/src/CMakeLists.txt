@@ -31,6 +31,8 @@ add_executable(ft-replay
 	pcapFile.hpp
 	rateLimiter.hpp
 	rateLimiter.cpp
+	countDownLatch.hpp
+	countDownLatch.cpp
 	replicator-core/configParser.hpp
 	replicator-core/configParser.cpp
 	replicator-core/configParserFactory.hpp

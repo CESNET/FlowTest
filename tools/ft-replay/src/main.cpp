@@ -7,6 +7,7 @@
  */
 
 #include "config.hpp"
+#include "countDownLatch.hpp"
 #include "logger.h"
 #include "outputPlugin.hpp"
 #include "outputPluginFactory.hpp"
@@ -30,9 +31,13 @@ using namespace replay;
 void ReplicationThread(
 	Replicator replicator,
 	std::unique_ptr<PacketQueue> packetQueue,
+	CountDownLatch* workersLatch,
 	size_t loopCount)
 {
 	size_t currentLoop = 0;
+
+	workersLatch->ArriveAndWait();
+
 	while (currentLoop != loopCount) {
 		// TODO time wait
 		// TODO synchronization
@@ -82,6 +87,9 @@ void ReplicatorExecutor(const Config& config)
 	while ((rawPacket = packetProvider.Next())) {
 		packetQueueProvider.InsertPacket(builder.Build(rawPacket));
 	}
+
+	CountDownLatch workersLatch(queueCount);
+
 	for (size_t queueId = 0; queueId < queueCount; queueId++) {
 		auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
 		auto packetQueueRatio = packetQueueProvider.GetPacketQueueRatioById(queueId);
@@ -94,6 +102,7 @@ void ReplicatorExecutor(const Config& config)
 			ReplicationThread,
 			std::move(replicator),
 			std::move(packetQueue),
+			&workersLatch,
 			config.GetLoopsCount());
 		threads.emplace_back(std::move(worker));
 	}
