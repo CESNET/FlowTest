@@ -44,6 +44,9 @@ private:
 	uint16_t _portSrc;
 	uint16_t _portDst;
 
+	bool _shouldPlanConnHandshake = true;
+	bool _shouldPlanTermHandshake = true;
+
 	void PlanConnectionHandshake(FlowPlanHelper& planner);
 	void PlanTerminationHandshake(FlowPlanHelper& planner);
 	void PlanData(FlowPlanHelper& planner);

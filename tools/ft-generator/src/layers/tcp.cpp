@@ -17,6 +17,8 @@
 
 namespace generator {
 
+constexpr uint64_t CONN_HANDSHAKE_FWD_PKTS = 2;
+constexpr uint64_t CONN_HANDSHAKE_REV_PKTS = 1;
 constexpr uint64_t TERM_HANDSHAKE_FWD_PKTS = 2;
 constexpr uint64_t TERM_HANDSHAKE_REV_PKTS = 2;
 
@@ -153,8 +155,15 @@ void Tcp::PlanData(FlowPlanHelper& planner)
 	std::uniform_real_distribution<> dist(0.0, 1.0);
 
 	while (true) {
-		bool fwdAvail = planner.FwdPktsRemaining() > TERM_HANDSHAKE_FWD_PKTS;
-		bool revAvail = planner.RevPktsRemaining() > TERM_HANDSHAKE_REV_PKTS;
+		bool fwdAvail;
+		bool revAvail;
+		if (_shouldPlanTermHandshake) {
+			fwdAvail = planner.FwdPktsRemaining() > TERM_HANDSHAKE_FWD_PKTS;
+			revAvail = planner.RevPktsRemaining() > TERM_HANDSHAKE_REV_PKTS;
+		} else {
+			fwdAvail = planner.FwdPktsRemaining() > 0;
+			revAvail = planner.RevPktsRemaining() > 0;
+		}
 		if (!fwdAvail && !revAvail) {
 			break;
 		}
@@ -201,9 +210,22 @@ void Tcp::PlanFlow(Flow& flow)
 {
 	FlowPlanHelper planner(flow);
 
-	PlanConnectionHandshake(planner);
+	// Do we have enough packets to generate valid handshakes?
+	_shouldPlanConnHandshake = true;
+	_shouldPlanTermHandshake = true;
+	if (planner.FwdPktsRemaining() < CONN_HANDSHAKE_FWD_PKTS + TERM_HANDSHAKE_FWD_PKTS
+		|| planner.RevPktsRemaining() < CONN_HANDSHAKE_REV_PKTS + TERM_HANDSHAKE_REV_PKTS) {
+		_shouldPlanConnHandshake = false;
+		_shouldPlanTermHandshake = false;
+	}
+
+	if (_shouldPlanConnHandshake) {
+		PlanConnectionHandshake(planner);
+	}
 	PlanData(planner);
-	PlanTerminationHandshake(planner);
+	if (_shouldPlanTermHandshake) {
+		PlanTerminationHandshake(planner);
+	}
 }
 
 void Tcp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
