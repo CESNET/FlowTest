@@ -10,29 +10,60 @@
 #include "outputPluginStatsPrinter.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <iomanip>
 #include <numeric>
 #include <sstream>
 
 namespace replay {
 
-void OutputPluginStatsPrinter::PrintStats(OutputPlugin* outputPlugin)
+OutputPluginStatsPrinter::OutputPluginStatsPrinter(OutputPlugin* outputPlugin)
+{
+	SumarizeOutputQueuesStats(outputPlugin);
+	FormatStats();
+}
+
+void OutputPluginStatsPrinter::SumarizeOutputQueuesStats(OutputPlugin* outputPlugin)
 {
 	auto outputQueuesStats = GatherOutputQueueStats(outputPlugin);
-	OutputQueueStats statsSum = SumarizeOutputQueuesStats(outputQueuesStats);
 
-	auto transmissionDuration = TimespecToDuration(statsSum.transmitEndTime)
-		- TimespecToDuration(statsSum.transmitStartTime);
+	auto outputQueuesStatsSum = [](OutputQueueStats sum, const OutputQueueStats& queueStats) {
+		sum.transmittedPackets += queueStats.transmittedPackets;
+		sum.transmittedBytes += queueStats.transmittedBytes;
+		sum.failedPackets += queueStats.failedPackets;
+		sum.upscaledPackets += queueStats.upscaledPackets;
+		return sum;
+	};
 
-	_logger->info(
-		"Actual: {} packets ({} bytes) sent in {} seconds",
-		statsSum.transmittedPackets,
-		statsSum.transmittedBytes,
-		FormatTime(transmissionDuration));
-	_logger->info("Output plugin statistics:");
-	_logger->info("    Successful packets:  {}", statsSum.transmittedPackets);
-	_logger->info("    Failed packets:      {}", statsSum.failedPackets);
-	_logger->info("    Upscaled packets:    {}", statsSum.upscaledPackets);
+	_outputQueueStats = std::accumulate(
+		outputQueuesStats.begin(),
+		outputQueuesStats.end(),
+		OutputQueueStats(),
+		outputQueuesStatsSum);
+
+	auto outputQueuesStatsTimeMin = [](const OutputQueueStats& a, const OutputQueueStats& b) {
+		TimeConverter timeConverter;
+		return timeConverter.TimespecToDuration<msec>(a.transmitStartTime)
+			< timeConverter.TimespecToDuration<msec>(b.transmitStartTime);
+	};
+
+	auto transmitStartTimeIterator = std::min_element(
+		outputQueuesStats.begin(),
+		outputQueuesStats.end(),
+		outputQueuesStatsTimeMin);
+	_outputQueueStats.transmitStartTime = transmitStartTimeIterator->transmitStartTime;
+
+	auto outputQueuesStatsTimeMax = [](const OutputQueueStats& a, const OutputQueueStats& b) {
+		TimeConverter timeConverter;
+		return timeConverter.TimespecToDuration<msec>(a.transmitEndTime)
+			< timeConverter.TimespecToDuration<msec>(b.transmitEndTime);
+	};
+
+	auto transmitEndTimeIterator = std::max_element(
+		outputQueuesStats.begin(),
+		outputQueuesStats.end(),
+		outputQueuesStatsTimeMax);
+	_outputQueueStats.transmitEndTime = transmitEndTimeIterator->transmitEndTime;
 }
 
 std::vector<OutputQueueStats>
@@ -46,67 +77,69 @@ OutputPluginStatsPrinter::GatherOutputQueueStats(OutputPlugin* outputPlugin)
 	return outputQueuesStats;
 }
 
-OutputQueueStats OutputPluginStatsPrinter::SumarizeOutputQueuesStats(
-	const std::vector<OutputQueueStats>& outputQueuesStats)
+void OutputPluginStatsPrinter::FormatStats()
 {
-	OutputQueueStats statsSum;
-	auto outputQueuesStatsSum = [](OutputQueueStats sum, const OutputQueueStats& queueStats) {
-		sum.transmittedPackets += queueStats.transmittedPackets;
-		sum.transmittedBytes += queueStats.transmittedBytes;
-		sum.failedPackets += queueStats.failedPackets;
-		sum.upscaledPackets += queueStats.upscaledPackets;
-		return sum;
-	};
-
-	statsSum = std::accumulate(
-		outputQueuesStats.begin(),
-		outputQueuesStats.end(),
-		OutputQueueStats(),
-		outputQueuesStatsSum);
-
-	auto outputQueuesStatsTimeMin = [this](const OutputQueueStats& a, const OutputQueueStats& b) {
-		return TimespecToDuration(a.transmitStartTime) < TimespecToDuration(b.transmitStartTime);
-	};
-
-	auto transmitStartTimeIterator = std::min_element(
-		outputQueuesStats.begin(),
-		outputQueuesStats.end(),
-		outputQueuesStatsTimeMin);
-	statsSum.transmitStartTime = transmitStartTimeIterator->transmitStartTime;
-
-	auto outputQueuesStatsTimeMax = [this](const OutputQueueStats& a, const OutputQueueStats& b) {
-		return TimespecToDuration(a.transmitEndTime) > TimespecToDuration(b.transmitEndTime);
-	};
-
-	auto transmitEndTimeIterator = std::max_element(
-		outputQueuesStats.begin(),
-		outputQueuesStats.end(),
-		outputQueuesStatsTimeMax);
-	statsSum.transmitEndTime = transmitEndTimeIterator->transmitEndTime;
-
-	return statsSum;
+	_formattedDuration = FormatTransmissionDuration();
+	_formattedStartTime = FormatTransmissionTime(_outputQueueStats.transmitStartTime);
+	_formattedEndTime = FormatTransmissionTime(_outputQueueStats.transmitEndTime);
 }
 
-std::chrono::milliseconds OutputPluginStatsPrinter::TimespecToDuration(timespec ts)
+std::string OutputPluginStatsPrinter::FormatTransmissionDuration()
 {
-	auto duration = std::chrono::seconds {ts.tv_sec} + std::chrono::nanoseconds {ts.tv_nsec};
-	return std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-}
+	auto durationTime = GetTransmissionDuration();
 
-std::string OutputPluginStatsPrinter::FormatTime(std::chrono::milliseconds milliseconds)
-{
 	using namespace std::chrono_literals;
 	static constexpr uint64_t MillisecInSec = std::chrono::milliseconds(1s).count();
 	std::stringstream result;
 
-	const auto partSec = milliseconds.count() / MillisecInSec;
-	const auto partMsec = milliseconds.count() % MillisecInSec;
+	const auto partSec = durationTime.count() / MillisecInSec;
+	const auto partMsec = durationTime.count() % MillisecInSec;
 
 	result << partSec;
 	result << ".";
 	result << std::setfill('0') << std::setw(3) << std::to_string(partMsec);
 
 	return result.str();
+}
+
+OutputPluginStatsPrinter::msec OutputPluginStatsPrinter::GetTransmissionDuration()
+{
+	TimeConverter timeConverter;
+
+	auto startTime = timeConverter.TimespecToDuration<msec>(_outputQueueStats.transmitStartTime);
+	auto endTime = timeConverter.TimespecToDuration<msec>(_outputQueueStats.transmitEndTime);
+
+	return endTime - startTime;
+}
+
+std::string OutputPluginStatsPrinter::FormatTransmissionTime(const timespec& transmissionTime)
+{
+	TimeConverter timeConverter;
+
+	auto transmissionEpochTime = timeConverter.SystemTimeToEpochTime<msec>(transmissionTime);
+	time_t transmissionEpochSeconds
+		= std::chrono::duration_cast<std::chrono::seconds>(transmissionEpochTime).count();
+
+	std::ostringstream formattedTime;
+	formattedTime << std::put_time(std::localtime(&transmissionEpochSeconds), "%Y-%m-%d %H:%M:%S");
+	formattedTime << " [ms since epoch: " + std::to_string(transmissionEpochTime.count()) + "]";
+
+	return formattedTime.str();
+}
+
+void OutputPluginStatsPrinter::PrintStats()
+{
+	_logger->info(
+		"Actual: {} packets ({} bytes) sent in {} seconds",
+		_outputQueueStats.transmittedPackets,
+		_outputQueueStats.transmittedBytes,
+		_formattedDuration);
+	_logger->info("Start time:\t" + _formattedStartTime);
+	_logger->info("End time:\t" + _formattedEndTime);
+	_logger->info("Output plugin statistics:");
+	_logger->info("    Successful packets:  {}", _outputQueueStats.transmittedPackets);
+	_logger->info("    Failed packets:      {}", _outputQueueStats.failedPackets);
+	_logger->info("    Upscaled packets:    {}", _outputQueueStats.upscaledPackets);
 }
 
 } // namespace replay

@@ -11,44 +11,47 @@
 #include "logger.h"
 #include "outputPlugin.hpp"
 #include "outputQueue.hpp"
+#include "timeConverter.hpp"
 
 #include <chrono>
+#include <ctime>
 #include <string>
 #include <vector>
 
 namespace replay {
 
 /**
- * @brief Class for printing statistics of an OutputPlugin.
- *
- * The OutputPluginStatsPrinter class provides functionality to gather and print statistics related
- * to an OutputPlugin. It gathers statistics from the OutputQueueStats of each output queue and
- * summarizes them. The gathered statistics include the number of transmitted packets, transmitted
- * bytes, failed packets, upscaled packets, and transmission time. The class utilizes a logger to
- * output the statistics in a formatted manner.
+ * @brief Prints statistics related to an output plugin.
  */
 class OutputPluginStatsPrinter {
 public:
 	/**
-	 * @brief Prints the statistics of an OutputPlugin.
-	 *
-	 * This function prints the statistics of the given OutputPlugin. It gathers the output queue
-	 * statistics using the GatherOutputQueueStats function, summarizes the statistics using
-	 * SumarizeOutputQueuesStats, calculates the transmission duration, and formats the output using
-	 * the logger.
-	 *
-	 * @param outputPlugin Pointer to the OutputPlugin for which statistics are to be printed.
+	 * @brief Constructs an OutputPluginStatsPrinter object.
+	 * @param outputPlugin Pointer to the output plugin for which statistics will be printed.
 	 */
-	void PrintStats(OutputPlugin* outputPlugin);
+	OutputPluginStatsPrinter(OutputPlugin* outputPlugin);
+
+	/**
+	 * @brief Prints the gathered statistics.
+	 */
+	void PrintStats();
 
 private:
+	using msec = std::chrono::milliseconds;
+
 	std::vector<OutputQueueStats> GatherOutputQueueStats(OutputPlugin* outputPlugin);
+	void SumarizeOutputQueuesStats(OutputPlugin* outputPlugin);
 
-	OutputQueueStats
-	SumarizeOutputQueuesStats(const std::vector<OutputQueueStats>& outputQueuesStats);
+	void FormatStats();
+	std::string FormatTransmissionDuration();
+	msec GetTransmissionDuration();
+	std::string FormatTransmissionTime(const timespec& transmissionTime);
 
-	std::chrono::milliseconds TimespecToDuration(timespec ts);
-	std::string FormatTime(std::chrono::milliseconds milliseconds);
+	OutputQueueStats _outputQueueStats;
+
+	std::string _formattedDuration;
+	std::string _formattedStartTime;
+	std::string _formattedEndTime;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("OutputPluginStatsPrinter");
 };
