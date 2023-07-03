@@ -33,6 +33,7 @@ add_executable(ft-replay
 	rateLimiter.cpp
 	countDownLatch.hpp
 	countDownLatch.cpp
+	timeConverter.hpp
 	replicator-core/configParser.hpp
 	replicator-core/configParser.cpp
 	replicator-core/configParserFactory.hpp
