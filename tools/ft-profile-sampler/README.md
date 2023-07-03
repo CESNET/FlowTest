@@ -77,7 +77,8 @@ Arguments:
   -m FILE, --metrics FILE
                         path to a file where metrics of the result should be (mandatory)
   -d VALUE, --deviation VALUE
-                        acceptable deviation (%) of each key metric from the original profile metric (default: 0.5)
+                        acceptable deviation of each key metric from the original profile metric
+                        (must be between 0 and 1, default: 0.005)
   -s VALUE, --seed VALUE
                         seed for the random number generator to reproduce specific run
   -g VALUE, --generations VALUE
@@ -85,4 +86,10 @@ Arguments:
   -p VALUE, --population VALUE
                         population size (default: 16)
   -q, --quiet           do not print any runtime information
+  -t, --port-limit VALUE
+                        Omit ports which proportional representation in the profile is less than
+                        a threshold when calculating fitness (must be between 0 and 1, default: 0.005).
+  -r, --proto-limit VALUE
+                        Omit protocols which proportional representation in the profile is less than
+                        a threshold when calculating fitness (default: 0.005).
 ```

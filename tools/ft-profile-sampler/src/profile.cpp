@@ -14,7 +14,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-Profile::Profile(std::string_view path)
+Profile::Profile(const EvolutionConfig& cfg, std::string_view path)
+	: _cfg(cfg)
 {
 	// Open the file and obtain a file descriptor
 	int fd = open(path.data(), O_RDONLY);
@@ -57,7 +58,7 @@ Profile::Profile(std::string_view path)
 	munmap(data, fileStat.st_size);
 	close(fd);
 
-	_metrics = Metrics(_rows, {});
+	_metrics = Metrics(_rows, _cfg.protoThreshold, _cfg.portThreshold, {});
 }
 
 void Profile::ParseProfileFile(const char* start, const char* end)
@@ -95,7 +96,7 @@ std::vector<Biflow> Profile::GetFlowSubset(const std::vector<bool>& genotype) co
 
 std::pair<Metrics, MetricsDiff> Profile::GetGenotypeMetrics(const std::vector<bool>& genotype) const
 {
-	auto metrics = Metrics(_rows, genotype);
+	auto metrics = Metrics(_rows, 0, 0, genotype);
 	auto diff = metrics.Diff(_metrics);
 	return {std::move(metrics), std::move(diff)};
 }

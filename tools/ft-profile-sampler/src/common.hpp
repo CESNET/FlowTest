@@ -41,3 +41,44 @@ void FromString(std::string_view str, T& value)
 			"'" + valueStr + "' is not a valid number due to unexpected characters");
 	}
 }
+
+/**
+ * @brief Configuration object for the evolution process.
+ */
+struct EvolutionConfig {
+	/**
+	 * @brief Default init, seed is created from the current time.
+	 */
+	EvolutionConfig()
+		: seed(time(nullptr))
+	{
+	}
+	friend std::ostream& operator<<(std::ostream& os, const EvolutionConfig& cfg);
+
+	/** Seed to be used for the RNG in the evolution. */
+	uint64_t seed;
+	/** Maximum number of generations the evolution runs. */
+	uint32_t generations {500};
+	/** Number of individuals in every generation. */
+	uint32_t population {16};
+	/** Maximum acceptable deviation of individual metrics (0 - 1). */
+	double deviation {0.005};
+	/** Minimum relative size of the wanted profile sample (0 - 1). */
+	double minSampleSize {};
+	/** Maximum relative size of the wanted profile sample (0 - 1). */
+	double maxSampleSize {};
+	/** Relative number of mutating genes (beginning) (0 - 1). */
+	double mutationHigh {0.005};
+	/** Relative number of mutating genes (end) (0 - 1). */
+	double mutationLow {0.0002};
+	/** Omit protocols which proportional representation in the profile is less than a threshold.
+	 * (0 - 1) */
+	double protoThreshold {0.005};
+	/** Omit ports which proportional representation in the profile is less than a threshold.
+	 * (0 - 1) */
+	double portThreshold {0.005};
+	/** Fitness value to switch between low and high mutation. */
+	double mutationCtrl {80};
+	/** Print debug messages. */
+	bool verbose {true};
+};

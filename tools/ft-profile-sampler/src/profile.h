@@ -24,7 +24,7 @@ public:
 	 * @brief Initialize the profile from the input CSV file containing biflow records.
 	 * @param path path to the profile file.
 	 */
-	explicit Profile(std::string_view path);
+	Profile(const EvolutionConfig& cfg, std::string_view path);
 
 	/**
 	 * @brief Get number of biflow records in the profile.
@@ -63,6 +63,8 @@ private:
 	 */
 	void ParseProfileFile(const char* start, const char* end);
 
+	/** Evolution configuration. */
+	EvolutionConfig _cfg;
 	/** Biflow records in the original profile. */
 	std::vector<Biflow> _rows;
 	/** Metrics object of the original profile. */

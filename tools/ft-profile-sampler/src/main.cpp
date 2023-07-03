@@ -33,12 +33,18 @@ void PrintUsage()
 				 "(mandatory)\n";
 	std::cerr << "  --metrics, -m FILE        Path to a file where metrics of the result should be "
 				 "written (mandatory)\n";
-	std::cerr << "  --deviation, -d VALUE     Acceptable deviation (%) of each key metric "
-				 "from the original profile metric (default: 0.5)\n";
+	std::cerr << "  --deviation, -d VALUE     Acceptable deviation (0 - 1) of each key metric "
+				 "from the original profile metric (default: 0.005)\n";
 	std::cerr << "  --seed, -s VALUE          Seed for the random number generator to reproduce "
 				 "specific run\n";
 	std::cerr << "  --generations, -g VALUE   Number of generations (default: 500)\n";
 	std::cerr << "  --population, -p VALUE    Population size (default: 16)\n";
+	std::cerr
+		<< "  --port-limit, -t VALUE    Omit ports which proportional representation "
+		   "in the profile is less than a threshold when calculating fitness (default: 0.005).\n";
+	std::cerr
+		<< "  --proto-limit, -r VALUE   Omit protocols which proportional representation "
+		   "in the profile is less than a threshold when calculating fitness (default: 0.005).\n";
 	std::cerr << "  --quiet, -q               Do not print any runtime information\n";
 	std::cerr << "  --help, -h                Show this help message\n";
 }
@@ -56,11 +62,13 @@ int main(int argc, char* argv[])
 		   {"seed", required_argument, nullptr, 's'},
 		   {"generations", required_argument, nullptr, 'g'},
 		   {"population", required_argument, nullptr, 'p'},
+		   {"port-limit", required_argument, nullptr, 't'},
+		   {"proto-limit", required_argument, nullptr, 'r'},
 		   {"quiet", no_argument, nullptr, 'q'},
 		   {"help", no_argument, nullptr, 'h'},
 		   {nullptr, 0, nullptr, 0}};
 
-	const char* shortOpts = "u:l:d:i:o:m:s:g:p:qh";
+	const char* shortOpts = "u:t:r:l:d:i:o:m:s:g:p:qh";
 
 	EvolutionConfig cfg;
 	optind = 0;
@@ -100,6 +108,12 @@ int main(int argc, char* argv[])
 			case 'p':
 				FromString(optarg, cfg.population);
 				break;
+			case 'r':
+				FromString(optarg, cfg.protoThreshold);
+				break;
+			case 't':
+				FromString(optarg, cfg.portThreshold);
+				break;
 			case 'q':
 				cfg.verbose = false;
 				break;
@@ -129,12 +143,24 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	if (cfg.protoThreshold < 0 or cfg.protoThreshold > 1) {
+		cerr << "Protocol proportional representation limit sample size must be between 0 and 1."
+			 << endl;
+		exit(1);
+	}
+
+	if (cfg.portThreshold < 0 or cfg.portThreshold > 1) {
+		cerr << "Protocol proportional representation limit sample size must be between 0 and 1."
+			 << endl;
+		exit(1);
+	}
+
 	try {
 		if (cfg.verbose) {
 			cout << "Loading profile ..." << endl;
 		}
 
-		auto profile = make_shared<Profile>(profilePath);
+		auto profile = make_shared<Profile>(cfg, profilePath);
 		auto evolution = Evolution(cfg, profile);
 		if (cfg.verbose) {
 			cout << "Creating initial population ..." << endl;

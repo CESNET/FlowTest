@@ -300,6 +300,8 @@ void Evolution::DumpSolution(std::string_view solutionPath, std::string_view met
 	metricsFile << _cfg;
 
 	metricsFile << std::fixed << std::setprecision(6);
+	metricsFile << "PACKETS: " << best.metrics.packetsCnt << "\n";
+	metricsFile << "BYTES: " << best.metrics.bytesCnt << "\n";
 	metricsFile << "FITNESS: " << best.diff.fitness << "\n\n";
 
 	metricsFile << "METRIC\t\tORIGINAL\tSOLUTION\tDIFF (%)\n";
