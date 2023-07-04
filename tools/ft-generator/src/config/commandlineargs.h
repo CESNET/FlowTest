@@ -77,6 +77,11 @@ public:
 	bool ShouldSkipUnknown() const { return _skipUnknown; };
 
 	/**
+	 * @brief Whether disk space check should be ignored.
+	 */
+	bool ShouldNotCheckDiskSpace() const { return _noDiskSpaceCheck; };
+
+	/**
 	 * @brief Print the usage message
 	 *
 	 */
@@ -90,6 +95,7 @@ private:
 	int _verbosity = 0;
 	bool _help = false;
 	bool _skipUnknown = false;
+	bool _noDiskSpaceCheck = false;
 
 	/**
 	 * @brief Check validity of the arguments

@@ -7,18 +7,43 @@
  */
 #include "generator.h"
 
+#include <filesystem>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
 namespace generator {
+
+template <typename T>
+static std::string ToHumanSize(T value)
+{
+	static const std::vector<std::string> Suffixes {"B", "kB", "MB", "GB", "TB", "PB"};
+
+	double adjValue = value;
+	size_t i = 0;
+	while (i < Suffixes.size() - 1 && adjValue > 1000.0) {
+		adjValue /= 1000.0;
+		i++;
+	}
+
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << adjValue << " " << Suffixes[i];
+	return ss.str();
+}
 
 Generator::Generator(
 	FlowProfileProvider& profilesProvider,
 	TrafficMeter& trafficMeter,
-	const config::Config& config)
+	const config::Config& config,
+	const config::CommandLineArgs& args)
 	: _trafficMeter(trafficMeter)
 	, _config(config)
 	, _addressGenerators(
 		  config.GetIPv4().GetIpRange(),
 		  config.GetIPv6().GetIpRange(),
 		  config.GetMac().GetMacRange())
+	, _args(args)
 {
 	profilesProvider.Provide(_profiles);
 
@@ -27,6 +52,7 @@ Generator::Generator(
 	};
 	std::sort(_profiles.begin(), _profiles.end(), compare);
 
+	// Adjust profile timestamps to start from zero
 	if (!_profiles.empty()) {
 		Timeval minTime = _profiles[0]._startTime;
 		for (auto& profile : _profiles) {
@@ -38,6 +64,32 @@ Generator::Generator(
 			assert(profile._endTime >= Timeval(0, 0));
 		}
 	}
+
+	if (!args.ShouldNotCheckDiskSpace()) {
+		CheckEnoughDiskSpace();
+	}
+}
+
+void Generator::CheckEnoughDiskSpace()
+{
+	auto availableDiskSpace = std::filesystem::space(_args.GetOutputFile()).free;
+
+	uint64_t expectedDiskSize = 0;
+	for (const auto& profile : _profiles) {
+		expectedDiskSize += profile.ExpectedSizeOnDisk();
+	}
+
+	if (expectedDiskSize > availableDiskSpace) {
+		throw std::runtime_error(
+			"Not enough free disk space in the target location (estimated PCAP size: "
+			+ ToHumanSize(expectedDiskSize)
+			+ ", free disk space: " + ToHumanSize(availableDiskSpace)
+			+ "). Run with --no-diskspace-check to proceed anyway.");
+	}
+
+	_logger->info(
+		"INFO: Estimated size of generated PCAP: " + ToHumanSize(expectedDiskSize)
+		+ " (free disk space: " + ToHumanSize(availableDiskSpace) + ")");
 }
 
 std::optional<GeneratorPacket> Generator::GenerateNextPacket()

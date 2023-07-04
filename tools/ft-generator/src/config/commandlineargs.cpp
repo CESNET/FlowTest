@@ -21,6 +21,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 {
 	enum longOptsValues {
 		OPT_SKIP_UNKNOWN = 256, // Value that cannot collide with chars
+		OPT_NO_DISKSPACE_CHECK,
 	};
 	const option longOpts[]
 		= {{"output", required_argument, nullptr, 'o'},
@@ -30,6 +31,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		   {"verbose", no_argument, nullptr, 'v'},
 		   {"help", no_argument, nullptr, 'h'},
 		   {"skip-unknown", no_argument, nullptr, OPT_SKIP_UNKNOWN},
+		   {"no-diskspace-check", no_argument, nullptr, OPT_NO_DISKSPACE_CHECK},
 		   {nullptr, 0, nullptr, 0}};
 	const char* shortOpts = ":o:p:c:r:vh";
 
@@ -61,6 +63,9 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		case OPT_SKIP_UNKNOWN:
 			_skipUnknown = true;
 			break;
+		case OPT_NO_DISKSPACE_CHECK:
+			_noDiskSpaceCheck = true;
+			break;
 		case '?':
 			throw std::invalid_argument("Unknown option " + std::string(argv[currentIdx]));
 		case ':':
@@ -77,14 +82,16 @@ void CommandLineArgs::Parse(int argc, char** argv)
 
 void CommandLineArgs::PrintUsage()
 {
-	std::cerr << "Usage: ./ft-generator [options] -p <profiles file> -o <pcap file>\n";
-	std::cerr << "  -c, --config=str    Optional configuration of generation process (YAML file)\n";
-	std::cerr << "  -p, --profiles=str  Input CSV file with flow profiles\n";
-	std::cerr << "  -o, --output=str    Output PCAP file with generated packets\n";
-	std::cerr << "  -r, --report=str    Output CSV file of actually generated flows\n";
-	std::cerr << "  -v, --verbose       Increase verbosity level. Can be used multiple times.\n";
-	std::cerr << "  -h, --help          Show this help message\n";
-	std::cerr << "  --skip-unknown      Skip unknown/unsupported profile records\n";
+	std::cerr << "Usage: ./ft-generator   [options] -p <profiles file> -o <pcap file>\n";
+	std::cerr
+		<< "  -c, --config=str      Optional configuration of generation process (YAML file)\n";
+	std::cerr << "  -p, --profiles=str    Input CSV file with flow profiles\n";
+	std::cerr << "  -o, --output=str      Output PCAP file with generated packets\n";
+	std::cerr << "  -r, --report=str      Output CSV file of actually generated flows\n";
+	std::cerr << "  -v, --verbose         Increase verbosity level. Can be used multiple times.\n";
+	std::cerr << "  -h, --help            Show this help message\n";
+	std::cerr << "  --skip-unknown        Skip unknown/unsupported profile records\n";
+	std::cerr << "  --no-diskspace-check  Do not check available disk space before generating\n";
 }
 
 void CommandLineArgs::CheckValidity()

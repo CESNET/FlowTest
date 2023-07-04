@@ -9,10 +9,12 @@
 #pragma once
 
 #include "calendar.h"
+#include "config/commandlineargs.h"
 #include "config/config.h"
 #include "flow.h"
 #include "flowprofile.h"
 #include "generators/addressgenerators.h"
+#include "logger.h"
 #include "timeval.h"
 #include "trafficmeter.h"
 
@@ -46,11 +48,13 @@ public:
 	 * @param profilesProvider  The flow profiles provider
 	 * @param trafficMeter      The traffic meter
 	 * @param config            The configuration
+	 * @param args              The command line args
 	 */
 	Generator(
 		FlowProfileProvider& profilesProvider,
 		TrafficMeter& trafficMeter,
-		const config::Config& config);
+		const config::Config& config,
+		const config::CommandLineArgs& args);
 
 	/**
 	 * @brief Generate the next packet
@@ -63,6 +67,7 @@ public:
 	std::optional<GeneratorPacket> GenerateNextPacket();
 
 private:
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("Generator"); //< The logger
 	std::vector<FlowProfile> _profiles; //< The flow profiles
 	std::size_t _nextProfileIdx = 0; //< The index of the next flow profile to use to create a flow
 	Calendar _calendar; //< The calendar of active flows
@@ -71,7 +76,9 @@ private:
 	TrafficMeter& _trafficMeter; //< Traffic statistics
 	const config::Config& _config; //< The configuration
 	AddressGenerators _addressGenerators; //< The address generators
+	const config::CommandLineArgs& _args; //< The command line args
 
+	void CheckEnoughDiskSpace();
 	std::unique_ptr<Flow> GetNextFlow();
 	std::unique_ptr<Flow> MakeNextFlow();
 };
