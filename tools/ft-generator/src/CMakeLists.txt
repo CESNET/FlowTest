@@ -51,6 +51,7 @@ target_link_libraries(ft-generator
 	pcapplusplus::pcap
 	common
 	yaml-cpp
+	stdc++fs
 )
 
 install(TARGETS ft-generator DESTINATION ${INSTALL_DIR_BIN})
