@@ -45,6 +45,8 @@ struct FlowProfile {
 	std::optional<IPAddress> _dstIp;
 
 	std::string ToString() const;
+
+	uint64_t ExpectedSizeOnDisk() const;
 };
 
 /**

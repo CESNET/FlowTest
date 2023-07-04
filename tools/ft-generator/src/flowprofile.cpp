@@ -9,6 +9,9 @@
 #include "flowprofile.h"
 #include "config/common.h"
 
+#include <pcap/pcap.h>
+#include <pcapplusplus/EthLayer.h>
+
 #include <cctype>
 #include <iostream>
 #include <limits>
@@ -16,6 +19,10 @@
 #include <unordered_map>
 
 namespace generator {
+
+// We expect the size of the generated flow to differ by at most this coefficient compared to the
+// specified profile. This is used to calculate expected size of the generated flow on disk.
+static constexpr double MAX_EXPECTED_SIZE_DEVIATION_COEF = 1.1;
 
 using config::ParseValue;
 using config::StringSplit;
@@ -115,6 +122,27 @@ std::string FlowProfile::ToString() const
 	   << "packetsRev=" << _packetsRev << ", "
 	   << "bytesRev=" << _bytesRev << ")";
 	return ss.str();
+}
+
+/**
+ * @brief The expected size the generated flow will occupy on disk
+ *
+ * This includes the total number of bytes in each direction as well as the PCAP
+ * packet header (as the packet will be saved into a PCAP file) + ethernet
+ * header length (not accounted for in the flow profile) for each packet.
+ *
+ * The size is slightly overestimated to account for additional necessary
+ * packets that might be injected into the flow. This is controlled by the
+ * MAX_EXPECTED_SIZE_DEVIATION_COEF constant.
+ */
+uint64_t FlowProfile::ExpectedSizeOnDisk() const
+{
+	uint64_t totalPktCount = _packets + _packetsRev;
+	uint64_t extraPerPacket = sizeof(pcap_pkthdr) + sizeof(pcpp::ether_header);
+	uint64_t totalByteCount = _bytes + _bytesRev;
+
+	return uint64_t(totalByteCount * MAX_EXPECTED_SIZE_DEVIATION_COEF)
+		+ totalPktCount * extraPerPacket;
 }
 
 FlowProfileReader::FlowProfileReader(const std::string& filename, bool skipUnknown)
