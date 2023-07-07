@@ -27,8 +27,6 @@ from typing import List, Optional
 # pylint: disable=no-name-in-module
 import pytest
 import pytest_html
-import yaml
-from _pytest.mark import ParameterSet
 from ftanalyzer.fields import FieldDatabase
 from ftanalyzer.models import ValidationModel
 from ftanalyzer.normalizer import Normalizer
@@ -39,7 +37,8 @@ from scapy.utils import rdpcap
 from src.collector.collector_builder import CollectorBuilder
 from src.collector.interface import CollectorInterface
 from src.collector.mapper import CollectorOutputMapper
-from src.common.utils import get_project_root
+from src.common.utils import collect_scenarios, download_logs, get_project_root
+from src.config.scenario import ValidationScenario
 from src.generator.generator_builder import GeneratorBuilder
 from src.generator.interface import PcapPlayer, PpsSpeed
 from src.probe.interface import ProbeInterface
@@ -50,7 +49,6 @@ VALIDATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/validation")
 PCAP_DIR = os.path.join(PROJECT_ROOT, "pcap")
 MAPPER_CONF = os.path.join(PROJECT_ROOT, "conf/ipfixcol2/mapping.yaml")
 FIELD_DATABASE_CONF = os.path.join(PROJECT_ROOT, "conf/fields.yml")
-LOGS_DIR = os.path.join(os.getcwd(), "logs/validation")
 
 WARN_CLR = "\033[33m"
 RST_CLR = "\033[0m"
@@ -236,28 +234,6 @@ def pytest_runtest_makereport(item: pytest.Item) -> None:
             report.extra = extra
 
 
-def collect_validation_tests() -> list[ParameterSet]:
-    """Collect validation tests.
-
-    Returns
-    -------
-    list
-        Collected tests.
-    """
-
-    files = os.listdir(VALIDATION_TESTS_DIR)
-    files = [f for f in files if ".yml" in f]
-
-    tests = []
-    for file in files:
-        with open(f"{VALIDATION_TESTS_DIR}/{file}", "r", encoding="utf-8") as test_file:
-            validation_test = yaml.safe_load(test_file)
-            marks = [getattr(pytest.mark, prot) for prot in validation_test["test"]["required_protocols"]]
-            tests.append(pytest.param(validation_test, file, marks=marks, id=file))
-
-    return tests
-
-
 def receive_flows(collector: CollectorInterface) -> List[dict]:
     """Receive flows from collector and remap items according to mapping configuration.
 
@@ -281,12 +257,12 @@ def receive_flows(collector: CollectorInterface) -> List[dict]:
     return flows
 
 
-def validate_flows(validation_test: dict, probe: ProbeInterface, received_flows: List[dict]) -> ValidationReport:
+def validate_flows(scenario: ValidationScenario, probe: ProbeInterface, received_flows: List[dict]) -> ValidationReport:
     """Validate received flows with reference flows.
 
     Parameters
     ----------
-    validation_test: dict
+    scenario: ValidationScenario
         Test configuration.
     probe: ProbeInterface
         Probe object.
@@ -299,13 +275,13 @@ def validate_flows(validation_test: dict, probe: ProbeInterface, received_flows:
         Validation report.
     """
 
-    ref_flows = validation_test.get("flows", None)
+    ref_flows = scenario.flows
     supported_fields = probe.supported_fields()
     special_fields = probe.get_special_fields()
 
     fdb = FieldDatabase(FIELD_DATABASE_CONF)
     norm = Normalizer(fdb)
-    key = validation_test.get("key", fdb.get_key_formats()[0])
+    key = scenario.key or fdb.get_key_formats()[0]
     norm.set_key_fmt(key)
 
     try:
@@ -353,23 +329,23 @@ def check_generator_stats(generator_instance: PcapPlayer, pcap_file: str, vlan: 
     assert stats.bytes == expected_bytes
 
 
-def check_required_fields(test: dict, report: ValidationReport):
+def check_required_fields(at_least_one: list[str], report: ValidationReport):
     """Check that at least one of the fields marked as required has been checked.
 
     Parameters
     ----------
-    test: dict
-        Test definition from yaml.
+    at_least_one: list[str]
+        List of fields, at least one of which must be checked.
     report: ValidationReport
         Report with stats of checked fields.
     """
 
-    if not "at_least_one" in test:
+    if not at_least_one:
         return
-    required = test["at_least_one"]
+
     found = False
 
-    for field in required:
+    for field in at_least_one:
         if field in report.fields_stats and (
             report.fields_stats[field].ok > 0
             or report.fields_stats[field].error > 0
@@ -380,10 +356,10 @@ def check_required_fields(test: dict, report: ValidationReport):
 
     if not found:
         print(
-            f"{WARN_CLR}None of the required fields have been checked (at least one of: {required}).\n"
+            f"{WARN_CLR}None of the required fields have been checked (at least one of: {at_least_one}).\n"
             f"Test will be skipped...{RST_CLR}"
         )
-        pytest.skip(f"None of the required fields have been checked (at least one of: {required}).")
+        pytest.skip(f"None of the required fields have been checked (at least one of: {at_least_one}).")
 
 
 def stop_components(probe: ProbeInterface, collector: CollectorInterface):
@@ -404,47 +380,11 @@ def stop_components(probe: ProbeInterface, collector: CollectorInterface):
     collector.stop()
 
 
-def download_logs(probe: ProbeInterface, collector: CollectorInterface, generator: PcapPlayer, test_name: str):
-    """Download logs from component instances and save for further analysis.
-
-    Parameters
-    ----------
-    probe: ProbeInterface
-        Probe instance.
-    collector: CollectorInterface
-        Collector instance.
-    generator: PcapPlayer
-        Generator instance.
-    test_name: str
-        Test name used for log directory naming.
-    """
-
-    # for rsync to work correctly, the path must not contain the character ;
-    test_name = test_name.replace(";", "_")
-    logs_path = os.path.join(LOGS_DIR, test_name)
-    test_validation.logs_path = logs_path
-
-    if probe:
-        logs_dir = os.path.join(logs_path, "probe")
-        os.makedirs(logs_dir, exist_ok=True)
-        probe.download_logs(logs_dir)
-
-    if collector:
-        logs_dir = os.path.join(logs_path, "collector")
-        os.makedirs(logs_dir, exist_ok=True)
-        collector.download_logs(logs_dir)
-
-    if generator:
-        logs_dir = os.path.join(logs_path, "generator")
-        os.makedirs(logs_dir, exist_ok=True)
-        generator.download_logs(logs_dir)
-
-
 select_topologies(["pcap_player"])
 
 
 @pytest.fixture(name="xfail_by_probe")
-def fixture_xfail_by_probe(request: pytest.FixtureRequest, test_filename: str, device: ProbeBuilder):
+def fixture_xfail_by_probe(request: pytest.FixtureRequest, scenario_filename: str, device: ProbeBuilder):
     """The fixture_xfail_by_probe function is a pytest fixture that marks
     the test as xfail if it's in the whitelist. Whitelist must be
     associated in probe static configuration.
@@ -462,21 +402,23 @@ def fixture_xfail_by_probe(request: pytest.FixtureRequest, test_filename: str, d
     whitelist = device.get_tests_whitelist()
     if whitelist:
         validation_whitelist = whitelist.get_items("validation")
-        if test_filename in validation_whitelist:
-            request.applymarker(pytest.mark.xfail(run=True, reason=validation_whitelist[test_filename] or ""))
+        if scenario_filename in validation_whitelist:
+            request.applymarker(pytest.mark.xfail(run=True, reason=validation_whitelist[scenario_filename] or ""))
 
 
 @pytest.mark.validation
-@pytest.mark.parametrize("test, test_filename", collect_validation_tests())
+@pytest.mark.parametrize("scenario, scenario_filename", collect_scenarios(VALIDATION_TESTS_DIR, ValidationScenario))
 # pylint: disable=too-many-locals
 # pylint: disable=unused-argument
 def test_validation(
     request: pytest.FixtureRequest,
-    test: dict,
+    scenario: ValidationScenario,
     generator: GeneratorBuilder,
     device: ProbeBuilder,
     analyzer: CollectorBuilder,
+    log_dir: str,
     xfail_by_probe,
+    check_requirements,
 ):
     """Execute validation tests."""
 
@@ -490,18 +432,14 @@ def test_validation(
     probe_instance, collector_instance, generator_instance = (None, None, None)
 
     def finalizer_download_logs():
-        download_logs(probe_instance, collector_instance, generator_instance, request.node.name)
+        download_logs(log_dir, collector=collector_instance, generator=generator_instance, probe=probe_instance)
 
     request.addfinalizer(cleanup)
     request.addfinalizer(finalizer_download_logs)
 
-    test_validation.test_name = test["test"].get("name", "")
-    test_validation.test_description = test["test"].get("description", "No description provided.")
-    test_validation.logs_path = None
-
-    # every validation test uses only 1 pcap
-    pcap_file = test["test"]["pcaps"][0]
-    required_protocols = test["test"]["required_protocols"]
+    test_validation.test_name = scenario.name
+    test_validation.test_description = scenario.description
+    test_validation.logs_path = log_dir
 
     logging.info("\t- Starting collector...")
     collector_instance = analyzer.get()
@@ -509,20 +447,20 @@ def test_validation(
     collector_instance.start()
 
     logging.info("\t- Starting probe...")
-    probe_instance = device.get(required_protocols)
+    probe_instance = device.get(**scenario.probe.get_args(device.get_instance_type()))
     objects_to_cleanup.append(probe_instance)
     probe_instance.start()
 
     logging.info("\t- Sending packets via generator to probe...")
     generator_instance = generator.get()
-    generator_instance.start(os.path.join(PCAP_DIR, pcap_file), PpsSpeed(10))
+    generator_instance.start(os.path.join(PCAP_DIR, scenario.pcap), PpsSpeed(10))
     time.sleep(0.1)
 
-    check_generator_stats(generator_instance, pcap_file, generator.get_vlan())
+    check_generator_stats(generator_instance, scenario.pcap, generator.get_vlan())
     stop_components(probe_instance, collector_instance)
 
     received_flows = receive_flows(collector_instance)
-    report = validate_flows(test, probe_instance, received_flows)
+    report = validate_flows(scenario, probe_instance, received_flows)
 
     print("")
     report.print_results()
@@ -535,4 +473,4 @@ def test_validation(
     if not report.is_passing():
         assert False, f"Validation of test {request.node.name} failed"
 
-    check_required_fields(test, report)
+    check_required_fields(scenario.at_least_one, report)
