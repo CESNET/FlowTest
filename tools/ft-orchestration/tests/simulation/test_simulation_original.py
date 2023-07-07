@@ -38,6 +38,7 @@ def validate(metrics: list[SMMetric], flows_file: str, ref_file: str, timeouts: 
 @pytest.mark.simulation
 @pytest.mark.parametrize("scenario, scenario_filename", collect_scenarios(SIMULATION_TESTS_DIR, SimulationScenario))
 # pylint: disable=too-many-locals
+# pylint: disable=unused-argument
 def test_simulation_original(
     request: pytest.FixtureRequest,
     generator: GeneratorBuilder,
@@ -46,6 +47,7 @@ def test_simulation_original(
     scenario: SimulationScenario,
     log_dir: str,
     tmp_dir: str,
+    check_requirements,
 ):
     """TODO"""
     probe_instance, collector_instance, generator_instance = (None, None, None)

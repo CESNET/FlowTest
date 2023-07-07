@@ -12,6 +12,9 @@ import os
 import tempfile
 
 import pytest
+from src.config.scenario import SimulationScenario
+from src.generator.generator_builder import GeneratorBuilder
+from src.probe.probe_builder import ProbeBuilder
 
 # pylint: disable=global-statement
 # store the pytest start time globally
@@ -73,3 +76,38 @@ def tmp_dir() -> str:
 
     with tempfile.TemporaryDirectory() as tmp:
         yield tmp
+
+
+@pytest.fixture(scope="function")
+def check_requirements(scenario: SimulationScenario, device: ProbeBuilder, generator: GeneratorBuilder) -> None:
+    """Fixture to check requirements given by the test scenario.
+    Interface speed is checked on generator and probe. The protocols supported by the probe are also checked.
+
+    Parameters
+    ----------
+    scenario : SimulationScenario
+        Test scenario dataclass.
+    device : ProbeBuilder
+        Probe builder to gather interfaces speed and supported protocols.
+    generator : GeneratorBuilder
+        Generator builder used to gather interfaces speed.
+    """
+
+    if scenario.requirements.speed is not None:
+        if not all(ifc.speed >= scenario.requirements.speed for ifc in device.get_enabled_interfaces()):
+            pytest.skip(
+                "Some of the enabled PROBE interfaces do not meet speed requirement defined by test scenario "
+                f"({scenario.requirements.speed} Gbps)."
+            )
+        if not all(ifc.speed >= scenario.requirements.speed for ifc in generator.get_enabled_interfaces()):
+            pytest.skip(
+                "Some of the enabled GENERATOR interfaces do not meet speed requirement defined by test scenario "
+                f"({scenario.requirements.speed} Gbps)."
+            )
+
+    if scenario.requirements.protocols and len(scenario.requirements.protocols) > 0:
+        if not set(scenario.requirements.protocols).issubset(set(device.get_supported_protocols())):
+            pytest.skip(
+                "Probe does not support all of the protocols required by test scenario "
+                f"({', '.join(scenario.requirements.protocols)})."
+            )
