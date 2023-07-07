@@ -9,4 +9,4 @@
       speed: 10
       mac: 00:00:00:00:00:00
   authentication: cesnet-general
-  tags: [ http, tls, dns, trill ]
+  protocols: [ http, tls, dns, trill ]

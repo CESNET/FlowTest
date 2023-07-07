@@ -11,7 +11,7 @@
       speed: 10
       mac: 01:01:01:01:01:01
   authentication: cesnet-general
-  tags: [ http, tls, dns, trill ]
+  protocols: [ http, tls, dns, trill ]
   ansible-playbook-role: probe-ipfixprobe
 
 - alias: flowmonexp-10G
@@ -25,6 +25,6 @@
       speed: 10
       mac: 01:01:01:01:01:01
   authentication: flowmon-probes
-  tags: [ http, tls, dns, vxlan, gre ]
+  protocols: [ http, tls, dns, vxlan, gre ]
   connector:
     input-plugin-type: [ dpdk, rawnetcap ]
