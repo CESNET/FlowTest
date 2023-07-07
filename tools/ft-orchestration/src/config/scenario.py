@@ -97,3 +97,15 @@ class SimulationScenario(ScenarioCfg):
 
     probe: Optional[ProbeCfg] = ProbeCfg()
     generator: Optional[FtGeneratorConfig] = FtGeneratorConfig()
+
+
+@dataclass
+class ValidationScenario(ScenarioCfg):
+    """Validation testing scenario configuration."""
+
+    pcap: str = required_field()
+    flows: list[dict] = required_field()
+
+    key: Optional[list[str]] = None
+    at_least_one: Optional[list[str]] = None
+    probe: Optional[ProbeCfg] = ProbeCfg()
