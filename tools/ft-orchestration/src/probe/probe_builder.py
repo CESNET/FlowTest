@@ -73,6 +73,8 @@ class ProbeBuilder(BuilderBase, Device):
         else:
             self._whitelist = None
 
+        self._protocols = probe_cfg.protocols
+
         # cmd additional arguments has higher priority, update arguments from config
         self._connector_args.update(cmd_connector_args)
 
@@ -118,6 +120,17 @@ class ProbeBuilder(BuilderBase, Device):
         """
 
         return self._whitelist
+
+    def get_supported_protocols(self) -> list[str]:
+        """Get list of protocols (plugins) supported by probe. From static configuration.
+
+        Returns
+        -------
+        list[str]
+            List of protocol names.
+        """
+
+        return self._protocols
 
     @staticmethod
     def _load_interfaces(probe_cfg: ProbeCfg, enabled_interfaces: List[str]) -> List[InterfaceCfg]:
