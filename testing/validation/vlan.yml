@@ -1,19 +1,21 @@
-test:
-  name: VLAN Single
-  pcaps: ["ICMP_across_dot1q.pcap"]
-  required_protocols: ["vlan"]
-  description: Check that VLAN header is correctly parsed and skipped.
-
+name: VLAN Single
+description: Check that VLAN header is correctly parsed and skipped.
+requirements:
+  protocols: [vlan]
+marks: [vlan]
+pcap: ICMP_across_dot1q.pcap
+probe:
+  protocols: [vlan]
 key: [src_ip, dst_ip, protocol]
-at_least_one: ["vlan_id"]
+at_least_one: [vlan_id]
 
 flows:
-  - src_ip:      "192.168.123.2"
-    dst_ip:      "192.168.123.1"
-    ip_version:  4
-    protocol:    1
-    bytes:       500
-    bytes@rev:   400
-    packets:     5
+  - src_ip: 192.168.123.2
+    dst_ip: 192.168.123.1
+    ip_version: 4
+    protocol: 1
+    bytes: 500
+    bytes@rev: 400
+    packets: 5
     packets@rev: 4
-    vlan_id:     123
+    vlan_id: 123

@@ -1,21 +1,23 @@
-test:
-  name: HTTP Error 400
-  pcaps: ["http_400.pcap"]
-  required_protocols: ["http"]
-  description: Check that HTTP 400 error response code is parsed properly.
-
-at_least_one: ["http_status_code", "http_content_type"]
+name: HTTP Error 400
+description: Check that HTTP 400 error response code is parsed properly.
+requirements:
+  protocols: [http]
+marks: [http]
+pcap: http_400.pcap
+probe:
+  protocols: [http]
+at_least_one: [http_status_code, http_content_type]
 
 flows:
-  - src_ip:      "192.168.1.36"
-    dst_ip:      "192.168.1.25"
-    ip_version:  4
-    protocol:    6
-    bytes:       518
-    bytes@rev:   996
-    packets:     7
+  - src_ip: 192.168.1.36
+    dst_ip: 192.168.1.25
+    ip_version: 4
+    protocol: 6
+    bytes: 518
+    bytes@rev: 996
+    packets: 7
     packets@rev: 5
-    src_port:    55020
-    dst_port:    8080
-    http_status_code:  400
-    http_content_type: ["text/html", "text/html;charset=utf-8"]
+    src_port: 55020
+    dst_port: 8080
+    http_status_code: 400
+    http_content_type: [text/html, text/html;charset=utf-8]

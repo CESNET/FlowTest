@@ -1,24 +1,24 @@
-test:
-  name: TCP Traffic
-  pcaps: ["tls12.pcap"]
-  required_protocols: ["tcp"]
-  description: Check that TCP Flags and TCP Options are properly parsed from TCP header.
-
-at_least_one: ["tcp_flags", "tcp_flags@rev", "tcp_options", "tcp_options@rev", "tcp_syn_size"]
+name: TCP Traffic
+description: Check that TCP Flags and TCP Options are properly parsed from TCP header.
+marks: [tcp]
+pcap: tls12.pcap
+probe:
+  protocols: [tcp]
+at_least_one: [tcp_flags, tcp_flags@rev, tcp_options, tcp_options@rev, tcp_syn_size]
 
 flows:
-  - src_ip:          "10.100.50.48"
-    dst_ip:          "10.100.50.139"
-    ip_version:      4
-    protocol:        6
-    bytes:           3218
-    bytes@rev:       3798
-    packets:         15
-    packets@rev:     11
-    src_port:        46588
-    dst_port:        7001
-    tcp_flags:       0x1f
-    tcp_flags@rev:   0x1b
-    tcp_options:     0x78
+  - src_ip: 10.100.50.48
+    dst_ip: 10.100.50.139
+    ip_version: 4
+    protocol: 6
+    bytes: 3218
+    bytes@rev: 3798
+    packets: 15
+    packets@rev: 11
+    src_port: 46588
+    dst_port: 7001
+    tcp_flags: 0x1f
+    tcp_flags@rev: 0x1b
+    tcp_options: 0x78
     tcp_options@rev: 0x7c
-    tcp_syn_size:    52
+    tcp_syn_size: 52

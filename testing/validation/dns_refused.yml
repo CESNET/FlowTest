@@ -1,29 +1,31 @@
-test:
-  name: DNS Refused
-  pcaps: ["dns_refused.pcap"]
-  required_protocols: ["dns"]
-  description: Check that DNS response code Refused is parsed properly.
-
-at_least_one: ["dns_id", "dns_flags", "dns_req_query_type", "dns_req_query_class", "dns_req_query_name",
-              "dns_resp_rcode"]
+name: DNS Refused
+description: Check that DNS response code Refused is parsed properly.
+requirements:
+  protocols: [dns]
+marks: [dns]
+pcap: dns_refused.pcap
+probe:
+  protocols: [dns]
+at_least_one: [dns_id, dns_flags, dns_req_query_type, dns_req_query_class, dns_req_query_name,
+  dns_resp_rcode]
 
 flows:
-  - src_ip:      "192.168.97.51"
-    dst_ip:      "192.168.221.236"
-    ip_version:  4
-    protocol:    17
-    bytes:       67
-    bytes@rev:   67
-    packets:     1
+  - src_ip: 192.168.97.51
+    dst_ip: 192.168.221.236
+    ip_version: 4
+    protocol: 17
+    bytes: 67
+    bytes@rev: 67
+    packets: 1
     packets@rev: 1
-    src_port:    54710
-    dst_port:    53
-    dns_id:      35371
+    src_port: 54710
+    dst_port: 53
+    dns_id: 35371
     _forward:
-      dns_flags:           0x0000
-      dns_req_query_type:  28
+      dns_flags: 0x0000
+      dns_req_query_type: 28
       dns_req_query_class: 1
-      dns_req_query_name:  "egebil.com"
+      dns_req_query_name: egebil.com
     _reverse:
-      dns_flags:           0x8005
-      dns_resp_rcode:      5
+      dns_flags: 0x8005
+      dns_resp_rcode: 5

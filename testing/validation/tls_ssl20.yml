@@ -1,28 +1,30 @@
-test:
-  name: SSL 2.0 Traffic
-  pcaps: ["ssl-v2.pcap"]
-  required_protocols: ["tls"]
-  description: Check that SSL v2.0 is properly parsed.
-
-at_least_one: ["tls_server_version", "tls_cipher_suite", "tls_client_version", "tls_ja3", "tls_subject_cn",
-              "tls_validity_not_before", "tls_validity_not_after", "tls_public_key_alg"]
+name: SSL 2.0 Traffic
+description: Check that SSL v2.0 is properly parsed.
+requirements:
+  protocols: [tls]
+marks: [tls]
+pcap: ssl-v2.pcap
+probe:
+  protocols: [tls]
+at_least_one: [tls_server_version, tls_cipher_suite, tls_client_version, tls_ja3,
+  tls_subject_cn, tls_validity_not_before, tls_validity_not_after, tls_public_key_alg]
 
 flows:
-  - src_ip:                  "10.10.1.89"
-    dst_ip:                  "10.10.3.1"
-    ip_version:              4
-    protocol:                6
-    bytes:                   1022
-    bytes@rev:               1890
-    packets:                 13
-    packets@rev:             11
-    src_port:                49288
-    dst_port:                443
-    tls_server_version:      0x0002
-    tls_cipher_suite:        0x0700c0
-    tls_client_version:      0x0002
-    tls_subject_cn:          "stan.musecurity.com"
+  - src_ip: 10.10.1.89
+    dst_ip: 10.10.3.1
+    ip_version: 4
+    protocol: 6
+    bytes: 1022
+    bytes@rev: 1890
+    packets: 13
+    packets@rev: 11
+    src_port: 49288
+    dst_port: 443
+    tls_server_version: 0x0002
+    tls_cipher_suite: 0x0700c0
+    tls_client_version: 0x0002
+    tls_subject_cn: stan.musecurity.com
     tls_validity_not_before: 1118100538
-    tls_validity_not_after:  1382916538
-    tls_public_key_alg:      "rsaEncryption"
-    tls_ja3:                 "0xe76a0619f4cf744ab2b9ea0ac9b8d5a4"
+    tls_validity_not_after: 1382916538
+    tls_public_key_alg: rsaEncryption
+    tls_ja3: '0xe76a0619f4cf744ab2b9ea0ac9b8d5a4'

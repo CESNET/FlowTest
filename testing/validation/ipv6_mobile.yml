@@ -1,17 +1,17 @@
-test:
-  name: IPv6 Option Mobile IPv6
-  pcaps: ["ipv6-mobile.pcap"]
-  required_protocols: ["ipv6"]
-  description: Check that packets with IPv6 header option Mobile IPv6 are parsed properly.
-
+name: IPv6 Option Mobile IPv6
+description: Check that packets with IPv6 header option Mobile IPv6 are parsed properly.
+marks: [ipv6]
+pcap: ipv6-mobile.pcap
+probe:
+  protocols: [ipv6]
 key: [src_ip, dst_ip, protocol]
 
 flows:
-  - src_ip:        "6ea1:86f8:169:115f:76a0:c016:3074:6f95"
-    dst_ip:        "2d8e:be9b:c3f:83bd:32a1:b5dd:aac6:353e"
-    ip_version:    6
-    protocol:      59
-    bytes:         72
-    packets:       1
-    tos:           0x88
-    ttl:           150
+  - src_ip: 6ea1:86f8:169:115f:76a0:c016:3074:6f95
+    dst_ip: 2d8e:be9b:c3f:83bd:32a1:b5dd:aac6:353e
+    ip_version: 6
+    protocol: 59
+    bytes: 72
+    packets: 1
+    tos: 0x88
+    ttl: 150

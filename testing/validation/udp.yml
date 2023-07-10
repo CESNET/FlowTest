@@ -1,17 +1,18 @@
-test:
-  name: UDP Traffic
-  pcaps: ["dns_mx.pcap"]
-  required_protocols: []
-  description: Check that UDP header is properly parsed.
+name: UDP Traffic
+description: Check that UDP header is properly parsed.
+marks: [udp]
+pcap: dns_mx.pcap
+probe:
+  protocols: []
 
 flows:
-  - src_ip:          "192.168.170.8"
-    dst_ip:          "192.168.170.20"
-    ip_version:      4
-    protocol:        17
-    bytes:           56
-    bytes@rev:       284
-    packets:         1
-    packets@rev:     1
-    src_port:        32795
-    dst_port:        53
+  - src_ip: 192.168.170.8
+    dst_ip: 192.168.170.20
+    ip_version: 4
+    protocol: 17
+    bytes: 56
+    bytes@rev: 284
+    packets: 1
+    packets@rev: 1
+    src_port: 32795
+    dst_port: 53

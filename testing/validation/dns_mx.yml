@@ -1,67 +1,70 @@
-test:
-  name: DNS MX Request
-  pcaps: ["dns_mx.pcap"]
-  required_protocols: ["dns"]
-  description: Check that at least one of the MX servers are present in DNS response to type MX request is present in the flow.
-
-at_least_one: ["dns_id", "dns_flags", "dns_req_query_type", "dns_req_query_class", "dns_req_query_name",
-              "dns_resp_rcode", "dns_resp_rr.name", "dns_resp_rr.type", "dns_resp_rr.class", "dns_resp_rr.ttl",
-              "dns_resp_rr.data", "dns_resp_rr.flowmon_data"]
+name: DNS MX Request
+description: Check that at least one of the MX servers are present in DNS response
+  to type MX request is present in the flow.
+requirements:
+  protocols: [dns]
+marks: [dns]
+pcap: dns_mx.pcap
+probe:
+  protocols: [dns]
+at_least_one: [dns_id, dns_flags, dns_req_query_type, dns_req_query_class, dns_req_query_name,
+  dns_resp_rcode, dns_resp_rr.name, dns_resp_rr.type, dns_resp_rr.class, dns_resp_rr.ttl,
+  dns_resp_rr.data, dns_resp_rr.flowmon_data]
 
 flows:
-  - src_ip:      "192.168.170.8"
-    dst_ip:      "192.168.170.20"
-    ip_version:  4
-    protocol:    17
-    bytes:       56
-    bytes@rev:   284
-    packets:     1
+  - src_ip: 192.168.170.8
+    dst_ip: 192.168.170.20
+    ip_version: 4
+    protocol: 17
+    bytes: 56
+    bytes@rev: 284
+    packets: 1
     packets@rev: 1
-    src_port:    32795
-    dst_port:    53
-    dns_id:      63343
+    src_port: 32795
+    dst_port: 53
+    dns_id: 63343
     _forward:
-      dns_flags:           0x0100
-      dns_req_query_type:  15
+      dns_flags: 0x0100
+      dns_req_query_type: 15
       dns_req_query_class: 1
-      dns_req_query_name:  "google.com"
+      dns_req_query_name: google.com
     _reverse:
-      dns_flags:           0x8180
-      dns_resp_rcode:      0
+      dns_flags: 0x8180
+      dns_resp_rcode: 0
       dns_resp_rr:
-        - name:            "google.com"
-          type:            15
-          class:           1
-          ttl:             552
-          data:            "40 smtp4.google.com"
-          flowmon_data:    "0x0028736D7470342E676F6F676C652E636F6D"
-        - name:            "google.com"
-          type:            15
-          class:           1
-          ttl:             552
-          data:            "10 smtp5.google.com"
-          flowmon_data:    "0x000A736D7470352E676F6F676C652E636F6D"
-        - name:            "google.com"
-          type:            15
-          class:           1
-          ttl:             552
-          data:            "10 smtp6.google.com"
-          flowmon_data:    "0x000A736D7470652E676F6F676C652E636F6D"
-        - name:            "google.com"
-          type:            15
-          class:           1
-          ttl:             552
-          data:            "10 smtp1.google.com"
-          flowmon_data:    "0x000A736D7470312E676F6F676C652E636F6D"
-        - name:            "google.com"
-          type:            15
-          class:           1
-          ttl:             552
-          data:            "10 smtp2.google.com"
-          flowmon_data:    "0x000A736D7470322E676F6F676C652E636F6D"
-        - name:            "google.com"
-          type:            15
-          class:           1
-          ttl:             552
-          data:            "40 smtp3.google.com"
-          flowmon_data:    "0x0028736D7470332E676F6F676C652E636F6D"
+        - name: google.com
+          type: 15
+          class: 1
+          ttl: 552
+          data: 40 smtp4.google.com
+          flowmon_data: '0x0028736D7470342E676F6F676C652E636F6D'
+        - name: google.com
+          type: 15
+          class: 1
+          ttl: 552
+          data: 10 smtp5.google.com
+          flowmon_data: '0x000A736D7470352E676F6F676C652E636F6D'
+        - name: google.com
+          type: 15
+          class: 1
+          ttl: 552
+          data: 10 smtp6.google.com
+          flowmon_data: '0x000A736D7470652E676F6F676C652E636F6D'
+        - name: google.com
+          type: 15
+          class: 1
+          ttl: 552
+          data: 10 smtp1.google.com
+          flowmon_data: '0x000A736D7470312E676F6F676C652E636F6D'
+        - name: google.com
+          type: 15
+          class: 1
+          ttl: 552
+          data: 10 smtp2.google.com
+          flowmon_data: '0x000A736D7470322E676F6F676C652E636F6D'
+        - name: google.com
+          type: 15
+          class: 1
+          ttl: 552
+          data: 40 smtp3.google.com
+          flowmon_data: '0x0028736D7470332E676F6F676C652E636F6D'

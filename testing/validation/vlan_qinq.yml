@@ -1,20 +1,22 @@
-test:
-  name: VLAN QinQ
-  pcaps: ["802.1Q_tunneling.pcap"]
-  required_protocols: ["vlan"]
-  description: Check that both VLAN headers are correctly parsed and skipped.
-
+name: VLAN QinQ
+description: Check that both VLAN headers are correctly parsed and skipped.
+requirements:
+  protocols: [vlan]
+marks: [vlan]
+pcap: 802.1Q_tunneling.pcap
+probe:
+  protocols: [vlan]
 key: [src_ip, dst_ip, protocol]
-at_least_one: ["vlan_id", "vlan_id_inner"]
+at_least_one: [vlan_id, vlan_id_inner]
 
 flows:
-  - src_ip:        "10.118.10.1"
-    dst_ip:        "10.118.10.2"
-    ip_version:    4
-    protocol:      1
-    bytes:         500
-    bytes@rev:     500
-    packets:       5
-    packets@rev:   5
-    vlan_id:       118
+  - src_ip: 10.118.10.1
+    dst_ip: 10.118.10.2
+    ip_version: 4
+    protocol: 1
+    bytes: 500
+    bytes@rev: 500
+    packets: 5
+    packets@rev: 5
+    vlan_id: 118
     vlan_id_inner: 10

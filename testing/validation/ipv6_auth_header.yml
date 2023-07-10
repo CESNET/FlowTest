@@ -1,17 +1,18 @@
-test:
-  name: IPv6 Option Authentication Header
-  pcaps: ["ipv6-auth-header.pcap"]
-  required_protocols: ["ipv6"]
-  description: Check that packets with IPv6 header option Authentication Header are parsed properly.
-
+name: IPv6 Option Authentication Header
+description: Check that packets with IPv6 header option Authentication Header are
+  parsed properly.
+marks: [ipv6]
+pcap: ipv6-auth-header.pcap
+probe:
+  protocols: [ipv6]
 key: [src_ip, dst_ip, protocol]
 
 flows:
-  - src_ip:         "fe80::21e:7aff:fe79:3f10"
-    dst_ip:         "ff02::5"
-    ip_version:     6
-    protocol:       89
-    bytes:          108
-    packets:        1
-    tos:            0xe0
-    ttl:            1
+  - src_ip: fe80::21e:7aff:fe79:3f10
+    dst_ip: ff02::5
+    ip_version: 6
+    protocol: 89
+    bytes: 108
+    packets: 1
+    tos: 0xe0
+    ttl: 1

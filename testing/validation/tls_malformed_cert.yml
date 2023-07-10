@@ -1,23 +1,25 @@
-test:
-  name: TLS Malformed Certificate
-  pcaps: ["tls_malformed_cert.pcap"]
-  required_protocols: ["tls"]
-  description: Check that TLS traffic with a malformed certificate is properly parsed.
-
-at_least_one: ["tls_server_version", "tls_cipher_suite", "tls_client_version", "tls_ja3"]
+name: TLS Malformed Certificate
+description: Check that TLS traffic with a malformed certificate is properly parsed.
+requirements:
+  protocols: [tls]
+marks: [tls]
+pcap: tls_malformed_cert.pcap
+probe:
+  protocols: [tls]
+at_least_one: [tls_server_version, tls_cipher_suite, tls_client_version, tls_ja3]
 
 flows:
-  - src_ip:      "192.168.1.25"
-    dst_ip:      "192.168.1.44"
-    ip_version:  4
-    protocol:    6
-    bytes:       352
-    bytes@rev:   6762
-    packets:     3
+  - src_ip: 192.168.1.25
+    dst_ip: 192.168.1.44
+    ip_version: 4
+    protocol: 6
+    bytes: 352
+    bytes@rev: 6762
+    packets: 3
     packets@rev: 7
-    src_port:    60002
-    dst_port:    8443
-    tls_server_version:      0x0303
-    tls_cipher_suite:        0xc030
-    tls_client_version:      0x0303
-    tls_ja3:     "0xfbe7e189e37a07ee33706f86bc746344"
+    src_port: 60002
+    dst_port: 8443
+    tls_server_version: 0x0303
+    tls_cipher_suite: 0xc030
+    tls_client_version: 0x0303
+    tls_ja3: '0xfbe7e189e37a07ee33706f86bc746344'

@@ -1,25 +1,28 @@
-test:
-  name: HTTP Invalid Method
-  pcaps: ["http_invalid_method.pcap"]
-  required_protocols: ["http"]
-  description: Check that packets with invalid HTTP method are parsed properly.
-
-at_least_one: ["http_host", "http_method", "http_url", "http_status_code", "http_agent", "http_content_type"]
+name: HTTP Invalid Method
+description: Check that packets with invalid HTTP method are parsed properly.
+requirements:
+  protocols: [http]
+marks: [http]
+pcap: http_invalid_method.pcap
+probe:
+  protocols: [http]
+at_least_one: [http_host, http_method, http_url, http_status_code, http_agent, http_content_type]
 
 flows:
-  - src_ip:      "192.168.1.36"
-    dst_ip:      "192.168.1.25"
-    ip_version:  4
-    protocol:    6
-    bytes:       520
-    bytes@rev:   980
-    packets:     7
+  - src_ip: 192.168.1.36
+    dst_ip: 192.168.1.25
+    ip_version: 4
+    protocol: 6
+    bytes: 520
+    bytes@rev: 980
+    packets: 7
     packets@rev: 5
-    src_port:    55022
-    dst_port:    8080
-    http_host:         "192.168.1.25:8000"
-    http_url:          "/"
-    http_method:       "INVALIDMETHOD"
-    http_status_code:  501
-    http_agent:        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"
-    http_content_type: ["text/html", "text/html;charset=utf-8"]
+    src_port: 55022
+    dst_port: 8080
+    http_host: 192.168.1.25:8000
+    http_url: /
+    http_method: INVALIDMETHOD
+    http_status_code: 501
+    http_agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)
+      Chrome/98.0.4758.102 Safari/537.36
+    http_content_type: [text/html, text/html;charset=utf-8]

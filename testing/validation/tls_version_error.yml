@@ -1,22 +1,25 @@
-test:
-  name: TLS Version Error
-  pcaps: ["tls_version_error.pcap"]
-  required_protocols: ["tls"]
-  description: Check that TLS communication resulting in a version error is properly parsed.
-
-at_least_one: ["tls_server_version", "tls_client_version", "tls_ja3"]
+name: TLS Version Error
+description: Check that TLS communication resulting in a version error is properly
+  parsed.
+requirements:
+  protocols: [tls]
+marks: [tls]
+pcap: tls_version_error.pcap
+probe:
+  protocols: [tls]
+at_least_one: [tls_server_version, tls_client_version, tls_ja3]
 
 flows:
-  - src_ip:      "192.168.1.29"
-    dst_ip:      "192.168.1.25"
-    ip_version:  4
-    protocol:    6
-    bytes:       535
-    bytes@rev:   275
-    packets:     6
+  - src_ip: 192.168.1.29
+    dst_ip: 192.168.1.25
+    ip_version: 4
+    protocol: 6
+    bytes: 535
+    bytes@rev: 275
+    packets: 6
     packets@rev: 5
-    src_port:    44282
-    dst_port:    8443
-    tls_server_version:      0x0303
-    tls_client_version:      0x0304
-    tls_ja3:                 "0xea217b0edcd93778471552ba0b796f81"
+    src_port: 44282
+    dst_port: 8443
+    tls_server_version: 0x0303
+    tls_client_version: 0x0304
+    tls_ja3: '0xea217b0edcd93778471552ba0b796f81'

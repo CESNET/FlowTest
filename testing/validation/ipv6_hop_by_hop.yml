@@ -1,21 +1,23 @@
-test:
-  name: IPv6 Option Hop-by-Hop
-  pcaps: ["ipv6-hop-by-hop.pcap"]
-  required_protocols: ["ipv6", "icmpv6"]
-  description: Check that packets with IPv6 header option Hop-by-Hop are parsed properly.
-
+name: IPv6 Option Hop-by-Hop
+description: Check that packets with IPv6 header option Hop-by-Hop are parsed properly.
+requirements:
+  protocols: [icmpv6]
+marks: [ipv6, icmpv6]
+pcap: ipv6-hop-by-hop.pcap
+probe:
+  protocols: [ipv6, icmpv6]
 key: [src_ip, dst_ip, protocol]
-at_least_one: ["icmp_type", "icmp_code", "icmp_type_code"]
+at_least_one: [icmp_type, icmp_code, icmp_type_code]
 
 flows:
-  - src_ip:            "fe80::a6cf:65f:272a:9453"
-    dst_ip:            "ff02::a129:5423:7adf:769b"
-    ip_version:        6
-    protocol:          58
-    bytes:             192
-    packets:           2
-    tos:               0x00
-    ttl:               1
-    icmp_type:         143
-    icmp_code:         0
-    icmp_type_code:    36608
+  - src_ip: fe80::a6cf:65f:272a:9453
+    dst_ip: ff02::a129:5423:7adf:769b
+    ip_version: 6
+    protocol: 58
+    bytes: 192
+    packets: 2
+    tos: 0x00
+    ttl: 1
+    icmp_type: 143
+    icmp_code: 0
+    icmp_type_code: 36608
