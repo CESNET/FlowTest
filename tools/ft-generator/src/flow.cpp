@@ -23,9 +23,9 @@
 #include "layers/vlan.h"
 #include "packet.h"
 #include "packetflowspan.h"
+#include "packetsizegenerator.h"
 #include "randomgenerator.h"
 #include "timeval.h"
-#include "valuegenerator.h"
 
 #include <pcapplusplus/EthLayer.h>
 #include <pcapplusplus/IPv4Layer.h>
@@ -412,8 +412,8 @@ void Flow::PlanPacketsTimestamps()
 
 void Flow::PlanPacketsSizes()
 {
-	ValueGenerator fwdGen(_fwdPackets, _fwdBytes, PACKET_SIZE_PROBABILITIES);
-	ValueGenerator revGen(_revPackets, _revBytes, PACKET_SIZE_PROBABILITIES);
+	PacketSizeGenerator fwdGen(_fwdPackets, _fwdBytes, PACKET_SIZE_PROBABILITIES);
+	PacketSizeGenerator revGen(_revPackets, _revBytes, PACKET_SIZE_PROBABILITIES);
 
 	for (auto& packet : _packets) {
 		if (packet._isFinished) {

@@ -41,7 +41,7 @@ add_executable(ft-generator
 	randomgenerator.cpp
 	timeval.cpp
 	trafficmeter.cpp
-	valuegenerator.cpp
+	packetsizegenerator.cpp
 )
 
 target_link_libraries(ft-generator

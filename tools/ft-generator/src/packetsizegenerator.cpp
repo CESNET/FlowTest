@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "valuegenerator.h"
+#include "packetsizegenerator.h"
 #include "randomgenerator.h"
 
 #include <algorithm>
@@ -35,7 +35,7 @@ static constexpr int SAVE_VALUES_EVERY_STEP_THRESHOLD = 2000;
 // distribution.
 static constexpr double DIFF_RATIO_FALLBACK_TO_UNIFORM = 0.2;
 
-ValueGenerator::ValueGenerator(
+PacketSizeGenerator::PacketSizeGenerator(
 	uint64_t count,
 	uint64_t desiredSum,
 	const std::vector<IntervalInfo>& intervals)
@@ -49,7 +49,7 @@ ValueGenerator::ValueGenerator(
 	Generate();
 }
 
-void ValueGenerator::Generate()
+void PacketSizeGenerator::Generate()
 {
 	uint64_t valuesSum = 0;
 	_values.resize(_count);
@@ -149,14 +149,14 @@ void ValueGenerator::Generate()
 	}
 }
 
-uint64_t ValueGenerator::GetValue()
+uint64_t PacketSizeGenerator::GetValue()
 {
 	uint64_t value = _values.back();
 	_values.pop_back();
 	return value;
 }
 
-uint64_t ValueGenerator::GetValueExact(uint64_t value)
+uint64_t PacketSizeGenerator::GetValueExact(uint64_t value)
 {
 	size_t start;
 	size_t end;
@@ -186,7 +186,7 @@ uint64_t ValueGenerator::GetValueExact(uint64_t value)
 	return chosenValue;
 }
 
-void ValueGenerator::PostIntervalUpdate()
+void PacketSizeGenerator::PostIntervalUpdate()
 {
 	_intervalProbSum = std::accumulate(
 		_intervals.begin(),
@@ -195,7 +195,7 @@ void ValueGenerator::PostIntervalUpdate()
 		[](double sum, const auto& inter) { return sum += inter._probability; });
 }
 
-uint64_t ValueGenerator::GenerateRandomValue()
+uint64_t PacketSizeGenerator::GenerateRandomValue()
 {
 	double probSum = 0.0f;
 	double genVal = RandomGenerator::GetInstance().RandomDouble(0.0, _intervalProbSum);
@@ -210,7 +210,7 @@ uint64_t ValueGenerator::GenerateRandomValue()
 	return value;
 }
 
-void ValueGenerator::GenerateUniformly()
+void PacketSizeGenerator::GenerateUniformly()
 {
 	std::fill(_values.begin(), _values.end(), _desiredSum / _values.size());
 }

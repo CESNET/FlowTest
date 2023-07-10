@@ -32,16 +32,19 @@ struct IntervalInfo {
  * @brief Value generator class
  *
  */
-class ValueGenerator {
+class PacketSizeGenerator {
 public:
 	/**
-	 * @brief Construct a new Value Generator object
+	 * @brief Construct a new Packet Size Generator object
 	 *
 	 * @param count       The total number of generated values
 	 * @param desiredSum  The desired number of bytes the values should add up to
 	 * @param intervals   The intervals to generate the values from
 	 */
-	ValueGenerator(uint64_t count, uint64_t desiredSum, const std::vector<IntervalInfo>& intervals);
+	PacketSizeGenerator(
+		uint64_t count,
+		uint64_t desiredSum,
+		const std::vector<IntervalInfo>& intervals);
 
 	/**
 	 * @brief Get a random value from the generated values
@@ -67,7 +70,7 @@ private:
 	double _intervalProbSum;
 	bool _saveBestValuesEveryStep = false;
 
-	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("ValueGenerator");
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketSizeGenerator");
 
 	void Generate();
 	void PostIntervalUpdate();
