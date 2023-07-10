@@ -97,16 +97,16 @@ class ProbeBuilder(BuilderBase, Device):
 
         return self._class(self._host, self._target, protocols, self._interfaces, **{**self._connector_args, **kwargs})
 
-    def get_mac_addresses(self) -> List[str]:
-        """Get list of hardware addresses of enabled interfaces.
+    def get_enabled_interfaces(self) -> List[InterfaceCfg]:
+        """Get list of enabled interfaces.
 
         Returns
         -------
-        List[str]
-            Hardware addresses of enabled interfaces.
+        List[InterfaceCfg]
+            Enabled interfaces.
         """
 
-        return [ifc.mac for ifc in self._interfaces]
+        return self._interfaces
 
     def get_tests_whitelist(self) -> Optional[WhitelistCfg]:
         """Get whitelist with expected failure tests.
