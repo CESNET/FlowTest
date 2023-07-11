@@ -47,6 +47,15 @@ Generator::Generator(
 {
 	profilesProvider.Provide(_profiles);
 
+	PrepareProfiles();
+
+	if (!args.ShouldNotCheckDiskSpace()) {
+		CheckEnoughDiskSpace();
+	}
+}
+
+void Generator::PrepareProfiles()
+{
 	auto compare = [](const FlowProfile& lhs, const FlowProfile& rhs) -> bool {
 		return lhs._startTime < rhs._startTime;
 	};
@@ -63,10 +72,6 @@ Generator::Generator(
 			assert(profile._startTime >= Timeval(0, 0));
 			assert(profile._endTime >= Timeval(0, 0));
 		}
-	}
-
-	if (!args.ShouldNotCheckDiskSpace()) {
-		CheckEnoughDiskSpace();
 	}
 }
 

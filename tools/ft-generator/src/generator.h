@@ -78,6 +78,7 @@ private:
 	AddressGenerators _addressGenerators; //< The address generators
 	const config::CommandLineArgs& _args; //< The command line args
 
+	void PrepareProfiles();
 	void CheckEnoughDiskSpace();
 	std::unique_ptr<Flow> GetNextFlow();
 	std::unique_ptr<Flow> MakeNextFlow();
