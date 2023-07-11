@@ -383,29 +383,6 @@ def stop_components(probe: ProbeInterface, collector: CollectorInterface):
 select_topologies(["pcap_player"])
 
 
-@pytest.fixture(name="xfail_by_probe")
-def fixture_xfail_by_probe(request: pytest.FixtureRequest, scenario_filename: str, device: ProbeBuilder):
-    """The fixture_xfail_by_probe function is a pytest fixture that marks
-    the test as xfail if it's in the whitelist. Whitelist must be
-    associated in probe static configuration.
-
-    Parameters
-    ----------
-    request: pytest.FixtureRequest
-        Request from pytest.
-    test_filename: str
-        Get the name of the test file.
-    device: ProbeBuilder
-        Get the whitelist for the device.
-    """
-
-    whitelist = device.get_tests_whitelist()
-    if whitelist:
-        validation_whitelist = whitelist.get_items("validation")
-        if scenario_filename in validation_whitelist:
-            request.applymarker(pytest.mark.xfail(run=True, reason=validation_whitelist[scenario_filename] or ""))
-
-
 @pytest.mark.validation
 @pytest.mark.parametrize("scenario, scenario_filename", collect_scenarios(VALIDATION_TESTS_DIR, ValidationScenario))
 # pylint: disable=too-many-locals

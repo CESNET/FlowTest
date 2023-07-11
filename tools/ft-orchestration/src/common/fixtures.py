@@ -111,3 +111,29 @@ def check_requirements(scenario: SimulationScenario, device: ProbeBuilder, gener
                 "Probe does not support all of the protocols required by test scenario "
                 f"({', '.join(scenario.requirements.protocols)})."
             )
+
+
+@pytest.fixture(name="xfail_by_probe")
+def fixture_xfail_by_probe(request: pytest.FixtureRequest, scenario_filename: str, device: ProbeBuilder):
+    """The fixture_xfail_by_probe function is a pytest fixture that marks
+    the test as xfail if it's in the whitelist. Whitelist must be
+    associated in probe static configuration.
+
+    Parameters
+    ----------
+    request: pytest.FixtureRequest
+        Request from pytest.
+    scenario_filename: str
+        Get the name of the test file.
+    device: ProbeBuilder
+        Get the whitelist for the device.
+    """
+
+    whitelist = device.get_tests_whitelist()
+    if whitelist:
+        for mark in request.node.iter_markers():
+            if mark.name == "parametrize":
+                continue
+            whitelist_segment = whitelist.get_items(mark.name)
+            if whitelist_segment and scenario_filename in whitelist_segment:
+                request.applymarker(pytest.mark.xfail(run=True, reason=whitelist_segment[scenario_filename] or ""))
