@@ -8,6 +8,7 @@ Base class for probe, generator and collector builder. Used by topology for cons
 """
 
 
+import datetime
 import logging
 import os
 import pkgutil
@@ -49,6 +50,7 @@ class BuilderBase(ABC):
         self._host = None
         self._storage = None
         self._class = None
+        self._timestamp_process = None
 
     @abstractmethod
     def get(self, **kwargs):
@@ -92,6 +94,35 @@ class BuilderBase(ABC):
             self._host.close()
         if self._storage:
             self._storage.close()
+
+    def host_timestamp_async(self) -> None:
+        """Start command for retrieving time on (remote) host."""
+
+        self._timestamp_process = self._host.run("date +%s%3N", asynchronous=True)
+
+    def host_timestamp_result(self) -> int:
+        """Wait for timestamp command and return timestamp on (remote) host.
+        Method 'host_timestamp_async' must be called before.
+
+        Returns
+        -------
+        int
+            Timestamp in ms format (ms since epoch).
+        """
+
+        assert self._timestamp_process is not None
+
+        timestamp_str = self._host.wait_until_finished(self._timestamp_process).stdout
+        timestamp = int(timestamp_str.strip())
+        timestamp_datetime = datetime.datetime.fromtimestamp(timestamp / 1000.0, tz=datetime.timezone.utc)
+
+        logging.getLogger().info(
+            "Timestamp on host '%s': %d (%s)",
+            self._host.get_host(),
+            timestamp,
+            timestamp_datetime.isoformat(sep=" ", timespec="milliseconds"),
+        )
+        return timestamp
 
     def _prepare_env(self, object_cfg: Union[ProbeCfg, GeneratorCfg, CollectorCfg]) -> None:
         """Connect to host and prepare environment with ansible playbook.
