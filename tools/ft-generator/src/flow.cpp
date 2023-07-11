@@ -27,6 +27,7 @@
 #include "timeval.h"
 #include "valuegenerator.h"
 
+#include <pcapplusplus/EthLayer.h>
 #include <pcapplusplus/IPv4Layer.h>
 #include <pcapplusplus/IPv6Layer.h>
 #include <pcapplusplus/IcmpLayer.h>
@@ -39,11 +40,13 @@
 #include <iostream>
 #include <numeric>
 #include <random>
+#include <stdexcept>
 #include <variant>
 #include <vector>
 
 namespace generator {
 
+static constexpr int ETHER_HDR_SIZE = sizeof(pcpp::ether_header);
 static constexpr int ICMP_HDR_SIZE = sizeof(pcpp::icmphdr);
 static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
 static constexpr int IPV4_HDR_SIZE = sizeof(pcpp::iphdr);
@@ -53,13 +56,25 @@ static constexpr int ICMP_UNREACH_PKT_SIZE = ICMP_HDR_SIZE + IPV4_HDR_SIZE + UDP
 // Unreachable ICMPv6 message includes 4 reserved bytes after the header
 static constexpr int ICMPV6_UNREACH_PKT_SIZE = ICMPV6_HDR_SIZE + 4 + IPV6_HDR_SIZE + UDP_HDR_SIZE;
 
-const static std::vector<IntervalInfo> PACKET_SIZE_PROBABILITIES {
-	{64, 79, 0.2824},
-	{80, 159, 0.073},
-	{160, 319, 0.0115},
-	{320, 639, 0.012},
-	{640, 1279, 0.0092},
-	{1280, 1500, 0.6119}};
+static std::vector<IntervalInfo> AdjustPacketSizesToL3(std::vector<IntervalInfo> intervals)
+{
+	for (IntervalInfo& interval : intervals) {
+		if (interval._from < ETHER_HDR_SIZE || interval._to < ETHER_HDR_SIZE) {
+			throw std::invalid_argument("value must be at least the size of an L2 header");
+		}
+		interval._from -= ETHER_HDR_SIZE;
+		interval._to -= ETHER_HDR_SIZE;
+	}
+	return intervals;
+}
+
+const static std::vector<IntervalInfo> PACKET_SIZE_PROBABILITIES = AdjustPacketSizesToL3(
+	{{64, 79, 0.2824},
+	 {80, 159, 0.073},
+	 {160, 319, 0.0115},
+	 {320, 639, 0.012},
+	 {640, 1279, 0.0092},
+	 {1280, 1500, 0.6119}});
 
 static std::vector<config::EncapsulationLayer>
 ChooseEncaps(const std::vector<config::EncapsulationVariant>& variants)
