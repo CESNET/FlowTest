@@ -102,9 +102,6 @@ static std::string L4ProtocolToString(L4Protocol protocol)
 	return "<invalid>";
 }
 
-/**
- * Get a string representation of a FlowProfile
- */
 std::string FlowProfile::ToString() const
 {
 	std::stringstream ss;
@@ -124,17 +121,6 @@ std::string FlowProfile::ToString() const
 	return ss.str();
 }
 
-/**
- * @brief The expected size the generated flow will occupy on disk
- *
- * This includes the total number of bytes in each direction as well as the PCAP
- * packet header (as the packet will be saved into a PCAP file) + ethernet
- * header length (not accounted for in the flow profile) for each packet.
- *
- * The size is slightly overestimated to account for additional necessary
- * packets that might be injected into the flow. This is controlled by the
- * MAX_EXPECTED_SIZE_DEVIATION_COEF constant.
- */
 uint64_t FlowProfile::ExpectedSizeOnDisk() const
 {
 	uint64_t totalPktCount = _packets + _packetsRev;
