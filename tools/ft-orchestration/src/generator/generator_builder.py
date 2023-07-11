@@ -9,13 +9,13 @@ Builder for creating a generator instance based on a static configuration.
 
 import logging
 from os import path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from lbr_testsuite.topology.generator import Generator
 from src.common.builder_base import BuilderBase, BuilderError
 from src.config.common import InterfaceCfg
 from src.config.config import Config
-from src.generator.interface import PcapPlayer
+from src.generator.interface import PcapPlayer, Replicator
 
 GENERATOR_IMPORT_PATH = path.dirname(path.realpath(__file__))
 
@@ -32,6 +32,7 @@ class GeneratorBuilder(BuilderBase, Generator):
         add_vlan: Optional[int] = None,
         edit_dst_mac: bool = True,
         cmd_connector_args: Dict[str, Any] = frozenset(),
+        replicator: bool = False,
     ) -> None:
         """Create generator instance from static configuration by alias identifier.
 
@@ -49,6 +50,8 @@ class GeneratorBuilder(BuilderBase, Generator):
             If true, destination mac address will be edited in packets.
         cmd_connector_args : Dict[str, Any], optional
             Additional settings passed to connector.
+        replicator : bool
+            True when replicator capabilities are required.
 
         Raises
         ------
@@ -78,15 +81,16 @@ class GeneratorBuilder(BuilderBase, Generator):
             logging.getLogger().error("Number of generator interfaces should match number of probe interfaces.")
             raise BuilderError("Number of generator interfaces should match number of probe interfaces.")
 
-        self._class = self._find_class(GENERATOR_IMPORT_PATH, generator_cfg.type, PcapPlayer)
+        interface = Replicator if replicator else PcapPlayer
+        self._class = self._find_class(GENERATOR_IMPORT_PATH, generator_cfg.type, interface)
 
     # pylint: disable=arguments-differ
-    def get(self) -> PcapPlayer:
+    def get(self) -> Union[PcapPlayer, Replicator]:
         """Create instance of generator by alias.
 
         Returns
         -------
-        PcapPlayer
+        PcapPlayer or Replicator
             New generator instance.
         """
 
