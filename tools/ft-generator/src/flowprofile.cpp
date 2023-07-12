@@ -9,6 +9,9 @@
 #include "flowprofile.h"
 #include "config/common.h"
 
+#include <pcap/pcap.h>
+#include <pcapplusplus/EthLayer.h>
+
 #include <cctype>
 #include <iostream>
 #include <limits>
@@ -16,6 +19,10 @@
 #include <unordered_map>
 
 namespace generator {
+
+// We expect the size of the generated flow to differ by at most this coefficient compared to the
+// specified profile. This is used to calculate expected size of the generated flow on disk.
+static constexpr double MAX_EXPECTED_SIZE_DEVIATION_COEF = 1.1;
 
 using config::ParseValue;
 using config::StringSplit;
@@ -95,9 +102,6 @@ static std::string L4ProtocolToString(L4Protocol protocol)
 	return "<invalid>";
 }
 
-/**
- * Get a string representation of a FlowProfile
- */
 std::string FlowProfile::ToString() const
 {
 	std::stringstream ss;
@@ -115,6 +119,16 @@ std::string FlowProfile::ToString() const
 	   << "packetsRev=" << _packetsRev << ", "
 	   << "bytesRev=" << _bytesRev << ")";
 	return ss.str();
+}
+
+uint64_t FlowProfile::ExpectedSizeOnDisk() const
+{
+	uint64_t totalPktCount = _packets + _packetsRev;
+	uint64_t extraPerPacket = sizeof(pcap_pkthdr) + sizeof(pcpp::ether_header);
+	uint64_t totalByteCount = _bytes + _bytesRev;
+
+	return uint64_t(totalByteCount * MAX_EXPECTED_SIZE_DEVIATION_COEF)
+		+ totalPktCount * extraPerPacket;
 }
 
 FlowProfileReader::FlowProfileReader(const std::string& filename, bool skipUnknown)

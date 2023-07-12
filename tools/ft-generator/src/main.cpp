@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 		TrafficMeter trafficMeter;
 		FlowProfileReader profileReader(args.GetProfilesFile(), args.ShouldSkipUnknown());
 		PcapWriter pcapWriter(args.GetOutputFile());
-		Generator generator(profileReader, trafficMeter, config);
+		Generator generator(profileReader, trafficMeter, config, args);
 
 		while (auto packet = generator.GenerateNextPacket()) {
 			logger->debug("Generating packet");

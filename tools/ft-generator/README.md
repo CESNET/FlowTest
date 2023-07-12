@@ -95,13 +95,14 @@ For example: `./ft-generator -p profiles.csv -o output.pcap`
 
 Arguments:
 ```
-  --profiles, -p FILE  The flow profiles file in CSV format (required)
-  --output, -o FILE    The output PCAP file (required)
-  --config, -c FILE    The YAML config file
-  --report, -r FILE    The report of the generated flows in CSV format
-  --verbose, -v        Verbosity level, specify multiple times for more verbose logging
-  --help, -h           Show this help message
-  --skip-unknown       Skip unknown/unsupported profile records
+  --profiles, -p FILE   The flow profiles file in CSV format (required)
+  --output, -o FILE     The output PCAP file (required)
+  --config, -c FILE     The YAML config file
+  --report, -r FILE     The report of the generated flows in CSV format
+  --verbose, -v         Verbosity level, specify multiple times for more verbose logging
+  --help, -h            Show this help message
+  --skip-unknown        Skip unknown/unsupported profile records
+  --no-diskspace-check  Do not check available disk space before generating
 ```
 
 ## Configuration
