@@ -9,6 +9,7 @@ Functions with different purpose which can be utilized in testing scenarios.
 
 import logging
 import os
+from typing import Optional
 
 import pytest
 from dataclass_wizard.errors import MissingFields, ParseError
@@ -48,7 +49,7 @@ def download_logs(dest: str, **kwargs) -> None:
         device.download_logs(logs_dir)
 
 
-def collect_scenarios(path: str, target: ScenarioCfg) -> list["ParameterSet"]:
+def collect_scenarios(path: str, target: ScenarioCfg, name: Optional[str] = None) -> list["ParameterSet"]:
     """
     Collect all scenario files in the provided directory.
     The function provides created configuration object and name of the respective scenario file.
@@ -60,13 +61,17 @@ def collect_scenarios(path: str, target: ScenarioCfg) -> list["ParameterSet"]:
         Path to a directory where test are situated.
     target: ScenarioCfg
         Configuration class which inherits from ScenarioCfg class.
+    name: str, None
+        Name of the current test type to be collected. Used to determine
+        if a scenario should be excluded from this test (based on the 'exclude'
+        list in the scenario configuration). If None, no scenario will be excluded.
 
     Returns
     -------
     list
         List of ParameterSet objects to parametrize pytest test case.
-
     """
+
     if not os.path.isdir(path):
         logging.getLogger().error("Path %s is not a directory", path)
         return []
@@ -84,7 +89,12 @@ def collect_scenarios(path: str, target: ScenarioCfg) -> list["ParameterSet"]:
         try:
             test = target.from_yaml_file(abspath)
             test.check()
-            marks = [getattr(pytest.mark, mark) for mark in test.marks]
+            marks = []
+            if name is not None:
+                if name in test.exclude:
+                    continue
+                marks.append(getattr(pytest.mark, name))
+            marks += [getattr(pytest.mark, mark) for mark in test.marks]
             tests.append(pytest.param(test, file, marks=marks, id=file))
         except OSError as err:
             logging.getLogger().error("Error reading scenario file: %s, error: %s", abspath, err)

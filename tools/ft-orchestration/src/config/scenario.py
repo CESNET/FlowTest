@@ -76,6 +76,7 @@ class ScenarioCfg(YAMLWizard):
     name: str = required_field()
     description: str = required_field()
     marks: list[str] = required_field()
+    exclude: list[str] = field(default_factory=list)
     requirements: Requirements = Requirements()
 
     def check(self) -> None:
