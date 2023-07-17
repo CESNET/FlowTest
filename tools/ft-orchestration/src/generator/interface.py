@@ -84,10 +84,16 @@ class GeneratorStats:
         Sent packets.
     bytes : int
         Sent bytes.
+    start_time : int
+        Timestamp of traffic sending start (milliseconds since epoch).
+    end_time : int
+        Timestamp of traffic sending end (milliseconds since epoch).
     """
 
     packets: int
     bytes: int
+    start_time: int
+    end_time: int
 
 
 class PcapPlayer(ABC):

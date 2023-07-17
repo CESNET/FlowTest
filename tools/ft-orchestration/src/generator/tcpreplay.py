@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 Module implements TcpReplay class representing tcpreplay tool.
 """
 
+import datetime
 import logging
 import re
 import shutil
@@ -163,6 +164,7 @@ class TcpReplay(PcapPlayer):
         cmd_options += [f"--intf1={self._interface}"]
         if self._verbose:
             cmd_options += ["-v"]
+        cmd_options += ["--stats=0"]
 
         self._host.run(f"sudo ip link set dev {self._interface} up")
         self._host.run(f"sudo ip link set dev {self._interface} mtu {self._mtu}")
@@ -250,9 +252,18 @@ class TcpReplay(PcapPlayer):
         if not hasattr(process, "stdout"):
             process = self._host.wait_until_finished(process)
 
-        pkts = int(re.findall(r"(\d+) packets", process.stdout)[0])
-        bts = int(re.findall(r"(\d+) bytes", process.stdout)[0])
-        return GeneratorStats(pkts, bts)
+        pkts = int(re.findall(r"(\d+) packets", process.stdout)[-1])
+        bts = int(re.findall(r"(\d+) bytes", process.stdout)[-1])
+
+        start_time = re.findall(r"Test start: (.*) ...", process.stdout)[0].strip()
+        start_time = datetime.datetime.fromisoformat(start_time)
+        start_time = int(start_time.timestamp() * 1000)
+
+        end_time = re.findall(r"Test complete: (.*)", process.stdout)[0].strip()
+        end_time = datetime.datetime.fromisoformat(end_time)
+        end_time = int(end_time.timestamp() * 1000)
+
+        return GeneratorStats(pkts, bts, start_time, end_time)
 
     def stop(self):
         """Stop current execution of tcpreplay.

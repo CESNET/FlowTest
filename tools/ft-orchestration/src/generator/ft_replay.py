@@ -536,7 +536,11 @@ class FtReplay(Replicator):
 
         pkts = int(re.findall(r"(\d+) packets", process.stdout)[0])
         bts = int(re.findall(r"(\d+) bytes", process.stdout)[0])
-        return GeneratorStats(pkts, bts)
+
+        start_time = int(re.findall(r"Start time:.*\[ms since epoch: (\d+)\]", process.stdout)[0])
+        end_time = int(re.findall(r"End time:.*\[ms since epoch: (\d+)\]", process.stdout)[0])
+
+        return GeneratorStats(pkts, bts, start_time, end_time)
 
     def _save_config(self) -> None:
         """Prepare and save replicator configuration.
