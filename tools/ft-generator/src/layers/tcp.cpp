@@ -9,16 +9,32 @@
 
 #include "tcp.h"
 #include "../packetflowspan.h"
+#include "ipv4.h"
+#include "ipv6.h"
 
 #include <arpa/inet.h>
+#include <pcapplusplus/EthLayer.h>
+#include <pcapplusplus/IPv4Layer.h>
+#include <pcapplusplus/IPv6Layer.h>
 #include <pcapplusplus/TcpLayer.h>
 
 #include <random>
 
 namespace generator {
 
+constexpr uint64_t TCP_HDR_LEN = sizeof(pcpp::tcphdr);
+constexpr uint64_t CONN_HANDSHAKE_FWD_PKTS = 2;
+constexpr uint64_t CONN_HANDSHAKE_REV_PKTS = 1;
 constexpr uint64_t TERM_HANDSHAKE_FWD_PKTS = 2;
 constexpr uint64_t TERM_HANDSHAKE_REV_PKTS = 2;
+constexpr uint64_t CONN_HANDSHAKE_FWD_BYTES = CONN_HANDSHAKE_FWD_PKTS * TCP_HDR_LEN;
+constexpr uint64_t CONN_HANDSHAKE_REV_BYTES = CONN_HANDSHAKE_REV_PKTS * TCP_HDR_LEN;
+constexpr uint64_t TERM_HANDSHAKE_FWD_BYTES = TERM_HANDSHAKE_FWD_PKTS * TCP_HDR_LEN;
+constexpr uint64_t TERM_HANDSHAKE_REV_BYTES = TERM_HANDSHAKE_REV_PKTS * TCP_HDR_LEN;
+
+// Max size of a generated packet
+constexpr uint64_t MAX_PACKET_SIZE
+	= 1500; // NOTE: Get this from configuration when it is implemented
 
 constexpr uint16_t TCP_WINDOW_SIZE
 	= 64512; // NOTE: Make this configurable and actually check that we ACK soon enough
@@ -153,8 +169,15 @@ void Tcp::PlanData(FlowPlanHelper& planner)
 	std::uniform_real_distribution<> dist(0.0, 1.0);
 
 	while (true) {
-		bool fwdAvail = planner.FwdPktsRemaining() > TERM_HANDSHAKE_FWD_PKTS;
-		bool revAvail = planner.RevPktsRemaining() > TERM_HANDSHAKE_REV_PKTS;
+		bool fwdAvail;
+		bool revAvail;
+		if (_shouldPlanTermHandshake) {
+			fwdAvail = planner.FwdPktsRemaining() > TERM_HANDSHAKE_FWD_PKTS;
+			revAvail = planner.RevPktsRemaining() > TERM_HANDSHAKE_REV_PKTS;
+		} else {
+			fwdAvail = planner.FwdPktsRemaining() > 0;
+			revAvail = planner.RevPktsRemaining() > 0;
+		}
 		if (!fwdAvail && !revAvail) {
 			break;
 		}
@@ -201,9 +224,17 @@ void Tcp::PlanFlow(Flow& flow)
 {
 	FlowPlanHelper planner(flow);
 
-	PlanConnectionHandshake(planner);
+	DetermineIfHandshakesShouldBePlanned(planner);
+
+	if (_shouldPlanConnHandshake) {
+		PlanConnectionHandshake(planner);
+	}
+
 	PlanData(planner);
-	PlanTerminationHandshake(planner);
+
+	if (_shouldPlanTermHandshake) {
+		PlanTerminationHandshake(planner);
+	}
 }
 
 void Tcp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
@@ -256,6 +287,83 @@ void Tcp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 	}
 
 	packet.addLayer(tcpLayer, true);
+}
+
+/**
+ * @brief The maximum number of bytes per packet, including the TCP header
+ */
+uint64_t Tcp::CalcMaxBytesPerPkt()
+{
+	int64_t maxBytesPerPkt = MAX_PACKET_SIZE;
+
+	maxBytesPerPkt -= sizeof(pcpp::ether_header);
+
+	auto* prevLayer = GetPrevLayer();
+	assert(prevLayer != nullptr);
+	if (prevLayer && prevLayer->Is<IPv4>()) {
+		maxBytesPerPkt -= sizeof(pcpp::iphdr);
+	} else if (prevLayer && prevLayer->Is<IPv6>()) {
+		maxBytesPerPkt -= sizeof(pcpp::ip6_hdr);
+	}
+
+	assert(maxBytesPerPkt > 0);
+	return std::max<int64_t>(0, maxBytesPerPkt);
+}
+
+void Tcp::DetermineIfHandshakesShouldBePlanned(FlowPlanHelper& planner)
+{
+	// Do we have enough packets to generate valid handshakes?
+	_shouldPlanConnHandshake = true;
+	_shouldPlanTermHandshake = true;
+
+	if (planner.FwdPktsRemaining() < CONN_HANDSHAKE_FWD_PKTS + TERM_HANDSHAKE_FWD_PKTS
+		|| planner.RevPktsRemaining() < CONN_HANDSHAKE_REV_PKTS + TERM_HANDSHAKE_REV_PKTS
+		|| planner.FwdBytesRemaining() < CONN_HANDSHAKE_FWD_BYTES + TERM_HANDSHAKE_FWD_BYTES
+		|| planner.RevBytesRemaining() < CONN_HANDSHAKE_REV_BYTES + TERM_HANDSHAKE_REV_BYTES) {
+		// Not enough bytes or packets in atleast one of the directions for a complete handshake
+		_shouldPlanConnHandshake = false;
+		_shouldPlanTermHandshake = false;
+		return;
+	}
+
+	// Remaining values after handshake
+	uint64_t fwdPktsRemaining
+		= planner.FwdPktsRemaining() - CONN_HANDSHAKE_FWD_PKTS - TERM_HANDSHAKE_FWD_PKTS;
+	uint64_t fwdBytesRemaining
+		= planner.FwdBytesRemaining() - CONN_HANDSHAKE_FWD_BYTES - TERM_HANDSHAKE_FWD_BYTES;
+	uint64_t revPktsRemaining
+		= planner.RevPktsRemaining() - CONN_HANDSHAKE_REV_PKTS - TERM_HANDSHAKE_REV_PKTS;
+	uint64_t revBytesRemaining
+		= planner.RevBytesRemaining() - CONN_HANDSHAKE_REV_BYTES - TERM_HANDSHAKE_REV_BYTES;
+
+	if ((fwdPktsRemaining == 0 && fwdBytesRemaining > 0)
+		|| (revPktsRemaining == 0 && revBytesRemaining > 0)) {
+		// Payload cannot be placed when using handshake
+		_shouldPlanConnHandshake = false;
+		_shouldPlanTermHandshake = false;
+		return;
+	}
+
+	// Average bytes per packet with handshake
+	uint64_t fwdBpp = fwdPktsRemaining == 0 ? 0 : fwdBytesRemaining / fwdPktsRemaining;
+	uint64_t revBpp = revPktsRemaining == 0 ? 0 : revBytesRemaining / revPktsRemaining;
+
+	// Average bytes per packet without handshake
+	uint64_t fwdBppAlt = planner.FwdPktsRemaining() == 0
+		? 0
+		: planner.FwdBytesRemaining() / planner.FwdPktsRemaining();
+	uint64_t revBppAlt = planner.RevPktsRemaining() == 0
+		? 0
+		: planner.RevBytesRemaining() / planner.RevPktsRemaining();
+
+	// Is the handshake the difference between being able to generate the desired size or not?
+	uint64_t maxBytesPerPkt = CalcMaxBytesPerPkt();
+	if ((fwdBpp > maxBytesPerPkt && fwdBppAlt <= maxBytesPerPkt)
+		|| (revBpp > maxBytesPerPkt && revBppAlt <= maxBytesPerPkt)) {
+		// It is, skip the handshake
+		_shouldPlanConnHandshake = false;
+		_shouldPlanTermHandshake = false;
+	}
 }
 
 } // namespace generator

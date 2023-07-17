@@ -109,12 +109,29 @@ public:
 	virtual void PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& plan);
 
 	/**
+	 * @brief Get the Previous Layer in the flow layer stack
+	 *
+	 * @return The layer or nullptr if this is the first layer,
+	 *         or the layer is not associated with a flow
+	 */
+	Layer* GetPrevLayer() const;
+
+	/**
 	 * @brief Get the Next Layer in the flow layer stack
 	 *
 	 * @return The layer or nullptr if this is the last layer,
 	 *         or the layer is not associated with a flow
 	 */
 	Layer* GetNextLayer() const;
+
+	/**
+	 * @brief Check if the layer _is of_ or _derives from_ the specified type
+	 */
+	template <typename T>
+	bool Is() const
+	{
+		return dynamic_cast<const T*>(this) != nullptr;
+	}
 
 	/**
 	 * @brief The destructor

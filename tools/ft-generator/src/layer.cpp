@@ -18,6 +18,14 @@ void Layer::AddedToFlow(Flow* flow, size_t layerNumber)
 	_layerNumber = layerNumber;
 }
 
+Layer* Layer::GetPrevLayer() const
+{
+	if (!_flow || _layerNumber == 0) {
+		return nullptr;
+	}
+	return _flow->_layerStack[_layerNumber - 1].get();
+}
+
 Layer* Layer::GetNextLayer() const
 {
 	if (!_flow || _layerNumber >= _flow->_layerStack.size() - 1) {
