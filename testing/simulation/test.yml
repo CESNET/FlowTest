@@ -1,6 +1,6 @@
 name: simple test
 description: simple test
-marks: [sm-exact]
+marks: [simple_test, nightly]
 requirements:
   speed: 10
 profile: profiles/test.csv

@@ -36,7 +36,9 @@ def validate(metrics: list[SMMetric], flows_file: str, ref_file: str, timeouts: 
 
 
 @pytest.mark.simulation
-@pytest.mark.parametrize("scenario, scenario_filename", collect_scenarios(SIMULATION_TESTS_DIR, SimulationScenario))
+@pytest.mark.parametrize(
+    "scenario, scenario_filename", collect_scenarios(SIMULATION_TESTS_DIR, SimulationScenario, name="sm_original")
+)
 # pylint: disable=too-many-locals
 # pylint: disable=unused-argument
 def test_simulation_original(
