@@ -160,8 +160,14 @@ class _ReplicationUnit:
         res["dstip"] = str(self.dstip)
         res["srcmac"] = str(self.srcmac)
         res["dstmac"] = str(self.dstmac)
-        # loopOnly is not implemented by ft-replay yet
-        # res["loopOnly"] = str(self.loop_only)
+
+        if self.loop_only is None:
+            res["loopOnly"] = "All"
+        elif isinstance(self.loop_only, int):
+            res["loopOnly"] = self.loop_only
+        else:
+            res["loopOnly"] = list(self.loop_only)
+
         return res
 
 
