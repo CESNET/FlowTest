@@ -3,6 +3,9 @@ Author(s): Jan Sobol <sobol@cesnet.cz>
 
 Copyright: (C) 2023 CESNET, z.s.p.o.
 SPDX-License-Identifier: BSD-3-Clause
+
+Basic simulation scenario which replays profile with original size, speed and other metadata.
+Statistical model is used for evaluation of the test.
 """
 
 import logging
@@ -13,6 +16,7 @@ import time
 import pytest
 from ftanalyzer.models.sm_data_types import SMMetric, SMRule
 from ftanalyzer.models.statistical_model import StatisticalModel
+from ftanalyzer.reports.statistical_report import StatisticalReport
 from lbr_testsuite.topology.topology import select_topologies
 from src.collector.collector_builder import CollectorBuilder
 from src.common.utils import collect_scenarios, download_logs, get_project_root
@@ -27,10 +31,31 @@ SIMULATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/simulation")
 select_topologies(["pcap_player"])
 
 
-def validate(metrics: list[SMMetric], flows_file: str, ref_file: str, timeouts: tuple[int, int], start_time: int):
-    """TODO"""
-    model = StatisticalModel(flows_file, ref_file, timeouts, start_time)
+def validate(
+    metrics: list[SMMetric], flows_file: str, ref_file: str, timeouts: tuple[int, int], start_time: int
+) -> StatisticalReport:
+    """Perform statistical model evaluation of the test scenario with provided metrics.
 
+    Parameters
+    ----------
+    metrics : list
+        Metrics for statistical evaluation.
+    flows_file: str
+        Path to a file with flows from collector.
+    ref_file: str
+        Path to a file with reference flows.
+    timeouts: tuple
+        Active and inactive timeout which used during flow creation process on a probe.
+    start_time: int
+        Timestamp of the first packet.
+
+    Returns
+    -------
+    StatisticalReport
+        Evaluation report.
+    """
+
+    model = StatisticalModel(flows_file, ref_file, timeouts, start_time)
     logging.getLogger().info("performing statistical model evaluation")
     return model.validate([SMRule(metrics=metrics)])
 
@@ -50,8 +75,33 @@ def test_simulation_original(
     log_dir: str,
     tmp_dir: str,
     check_requirements,
-):
-    """TODO"""
+) -> None:
+    """
+    Basic simulation scenario which replays profile with original size, speed and other metadata.
+    Statistical model is used for evaluation of the test.
+
+    Parameters
+    ----------
+    request : pytest.FixtureRequest
+        Pytest request object.
+    generator: GeneratorBuilder
+        Traffic generator builder.
+    device: ProbeBuilder
+        Tested probe builder.
+    analyzer: CollectorBuilder
+        Collector builder.
+    scenario: SimulationScenario
+        Scenario configration.
+    log_dir: str
+        Directory for storing logs.
+    tmp_dir: str
+        Temporary directory which can be used for the duration of the testing scenario.
+        Removed after the scenario test is concluded.
+    check_requirements: fixture
+        Function which automatically checks whether the scenario can be started
+        with selected generator / probe configuration.
+    """
+
     probe_instance, collector_instance, generator_instance = (None, None, None)
     objects_to_cleanup = []
 
