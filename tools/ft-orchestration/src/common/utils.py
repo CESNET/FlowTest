@@ -14,6 +14,7 @@ from typing import Optional
 import pytest
 from dataclass_wizard.errors import MissingFields, ParseError
 from src.config.scenario import ScenarioCfg, ScenarioCfgException
+from yaml.scanner import ScannerError
 
 
 def get_project_root() -> str:
@@ -96,9 +97,18 @@ def collect_scenarios(path: str, target: ScenarioCfg, name: Optional[str] = None
                 marks.append(getattr(pytest.mark, name))
             marks += [getattr(pytest.mark, mark) for mark in test.marks]
             tests.append(pytest.param(test, file, marks=marks, id=file))
-        except OSError as err:
-            logging.getLogger().error("Error reading scenario file: %s, error: %s", abspath, err)
-        except (TypeError, AttributeError, ParseError, MissingFields, ScenarioCfgException) as err:
-            logging.getLogger().error("Parsing error of scenario file: %s, error: %s", abspath, err)
+        except (
+            OSError,
+            TypeError,
+            AttributeError,
+            ParseError,
+            MissingFields,
+            ScenarioCfgException,
+            ScannerError,
+        ) as err:
+            logging.getLogger().error("Loading test scenario from file: %s, error: %s", abspath, err)
+            # We cannot mark test as failed at this point, therefore use skip.
+            marks = pytest.mark.skip(reason=f"ERROR: {err}, file: {abspath}")
+            tests.append(pytest.param(None, file, marks=marks, id=file))
 
     return tests
