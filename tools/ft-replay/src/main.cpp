@@ -111,8 +111,8 @@ void ReplicatorExecutor(const Config& config)
 		thread.join();
 	}
 
-	OutputPluginStatsPrinter outputPluginStatsPrinter;
-	outputPluginStatsPrinter.PrintStats(outputPlugin.get());
+	OutputPluginStatsPrinter outputPluginStatsPrinter(outputPlugin.get());
+	outputPluginStatsPrinter.PrintStats();
 }
 
 int main(int argc, char** argv)
