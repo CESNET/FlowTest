@@ -43,6 +43,7 @@ add_executable(ft-generator
 	trafficmeter.cpp
 	packetsizegenerator.cpp
 	packetsizegeneratorslow.cpp
+	packetsizegeneratorfast.cpp
 )
 
 target_link_libraries(ft-generator
@@ -53,6 +54,7 @@ target_link_libraries(ft-generator
 	common
 	yaml-cpp
 	stdc++fs
+	glpk::glpk
 )
 
 install(TARGETS ft-generator DESTINATION ${INSTALL_DIR_BIN})
