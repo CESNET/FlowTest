@@ -1,15 +1,18 @@
 /**
  * @file
  * @author Michal Sedlak <sedlakm@cesnet.cz>
- * @brief Packet size value generator
+ * @brief Packet size value generator (slow variant) implementation file
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "packetsizegenerator.h"
+#include "packetsizegeneratorslow.h"
 #include "randomgenerator.h"
 
+#include <algorithm>
+#include <cassert>
 #include <numeric>
+#include <random>
 
 namespace generator {
 
@@ -55,7 +58,7 @@ GenerateRandomValue(const std::vector<IntervalInfo>& intervals, double intervalP
 	return value;
 }
 
-PacketSizeGenerator::PacketSizeGenerator(
+PacketSizeGeneratorSlow::PacketSizeGeneratorSlow(
 	const std::vector<IntervalInfo>& intervals,
 	uint64_t numPkts,
 	uint64_t numBytes)
@@ -65,14 +68,14 @@ PacketSizeGenerator::PacketSizeGenerator(
 {
 }
 
-void PacketSizeGenerator::PlanRemaining()
+void PacketSizeGeneratorSlow::PlanRemaining()
 {
 	uint64_t remPkts = _numPkts >= _assignedPkts ? _numPkts - _assignedPkts : 0;
 	uint64_t remBytes = _numBytes >= _assignedBytes ? _numBytes - _assignedBytes : 0;
 	Generate(remPkts, remBytes);
 }
 
-void PacketSizeGenerator::Generate(uint64_t desiredPkts, uint64_t desiredBytes)
+void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredBytes)
 {
 	auto intervals = _intervals;
 
@@ -176,7 +179,7 @@ void PacketSizeGenerator::Generate(uint64_t desiredPkts, uint64_t desiredBytes)
 	}
 }
 
-uint64_t PacketSizeGenerator::GetValue()
+uint64_t PacketSizeGeneratorSlow::GetValue()
 {
 	uint64_t value;
 	if (!_values.empty()) {
@@ -193,7 +196,7 @@ uint64_t PacketSizeGenerator::GetValue()
 	return value;
 }
 
-uint64_t PacketSizeGenerator::GetValueExact(uint64_t value)
+uint64_t PacketSizeGeneratorSlow::GetValueExact(uint64_t value)
 {
 	if (_values.size() == 0) {
 		_assignedPkts++;
@@ -233,7 +236,7 @@ uint64_t PacketSizeGenerator::GetValueExact(uint64_t value)
 	return chosenValue;
 }
 
-void PacketSizeGenerator::PrintReport()
+void PacketSizeGeneratorSlow::PrintReport()
 {
 	double dBytes = _numBytes == 0
 		? 0.0

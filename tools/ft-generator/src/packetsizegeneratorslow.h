@@ -1,7 +1,7 @@
 /**
  * @file
  * @author Michal Sedlak <sedlakm@cesnet.cz>
- * @brief Packet size value generator
+ * @brief Packet size value generator (slow variant) header file
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,25 +9,19 @@
 #pragma once
 
 #include "logger.h"
+#include "packetsizegenerator.h"
+
+#include <cstdint>
 #include <memory>
 #include <vector>
 
 namespace generator {
 
 /**
- * @brief Definition of a probability interval
- */
-struct IntervalInfo {
-	uint64_t _from; //< Left bound of the interval
-	uint64_t _to; //< Right bound of the interval
-	float _probability; //< Probability of choosing this interval
-};
-
-/**
  * @brief Value generator class
  *
  */
-class PacketSizeGenerator {
+class PacketSizeGeneratorSlow : public PacketSizeGenerator {
 public:
 	/**
 	 * @brief Construct a new Packet Size Generator object
@@ -40,7 +34,7 @@ public:
 	 * This is not exact, the values provided are mere targets that we will try to approach. We will
 	 * likely not reach exactly the specified values, but we will try to do the best we can.
 	 */
-	PacketSizeGenerator(
+	PacketSizeGeneratorSlow(
 		const std::vector<IntervalInfo>& intervals,
 		uint64_t numPkts,
 		uint64_t numBytes);
@@ -48,7 +42,7 @@ public:
 	/**
 	 * @brief The destructor
 	 */
-	~PacketSizeGenerator() = default;
+	~PacketSizeGeneratorSlow() = default;
 
 	/**
 	 * @brief Get an exact value
@@ -56,24 +50,24 @@ public:
 	 * @param value  The required value
 	 * @return The value
 	 */
-	uint64_t GetValueExact(uint64_t value);
+	uint64_t GetValueExact(uint64_t value) override;
 
 	/**
 	 * @brief Get a random value from the generated values
 	 *
 	 * @return A value
 	 */
-	uint64_t GetValue();
+	uint64_t GetValue() override;
 
 	/**
 	 * @brief Plan the remaining number of bytes and packets
 	 */
-	void PlanRemaining();
+	void PlanRemaining() override;
 
 	/**
 	 * @brief Log statistics about generated values
 	 */
-	void PrintReport();
+	void PrintReport() override;
 
 private:
 	std::vector<IntervalInfo> _intervals;
@@ -85,7 +79,7 @@ private:
 
 	std::vector<uint64_t> _values;
 
-	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketSizeGenerator");
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketSizeGeneratorSlow");
 
 	void Generate(uint64_t desiredPkts, uint64_t desiredBytes);
 };

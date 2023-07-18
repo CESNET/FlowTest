@@ -412,30 +412,30 @@ void Flow::PlanPacketsTimestamps()
 
 void Flow::PlanPacketsSizes()
 {
-	PacketSizeGenerator fwdGen(PACKET_SIZE_PROBABILITIES, _fwdPackets, _fwdBytes);
-	PacketSizeGenerator revGen(PACKET_SIZE_PROBABILITIES, _revPackets, _revBytes);
+	auto fwdGen = PacketSizeGenerator::Construct(PACKET_SIZE_PROBABILITIES, _fwdPackets, _fwdBytes);
+	auto revGen = PacketSizeGenerator::Construct(PACKET_SIZE_PROBABILITIES, _revPackets, _revBytes);
 
 	for (auto& packet : _packets) {
 		if (packet._isFinished) {
 			auto& generator = packet._direction == Direction::Forward ? fwdGen : revGen;
-			generator.GetValueExact(packet._size);
+			generator->GetValueExact(packet._size);
 		}
 	}
 
-	fwdGen.PlanRemaining();
-	revGen.PlanRemaining();
+	fwdGen->PlanRemaining();
+	revGen->PlanRemaining();
 
 	for (auto& packet : _packets) {
 		if (!packet._isFinished) {
 			auto& generator = packet._direction == Direction::Forward ? fwdGen : revGen;
 			packet._size = std::max(
 				packet._size,
-				generator.GetValue()); // NOTE: Add the option to GetValue to choose minimum size?
+				generator->GetValue()); // NOTE: Add the option to GetValue to choose minimum size?
 		}
 	}
 
-	fwdGen.PrintReport();
-	revGen.PrintReport();
+	fwdGen->PrintReport();
+	revGen->PrintReport();
 }
 
 } // namespace generator
