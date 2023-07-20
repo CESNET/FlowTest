@@ -124,6 +124,36 @@ public:
 	 */
 	void Limit(uint64_t tokensToProcess) noexcept;
 
+	/**
+	 * @brief Get the number of available tokens for processing.
+	 *
+	 * This function calculates the number of tokens that are available for processing,
+	 * considering the minimal required tokens (@p minimalRequiredTokens). It ensures that
+	 * the future processing rate does not exceed the token rate limit set by the user.
+	 *
+	 * If the number of available tokens is less than @p minimalRequiredTokens, the function
+	 * will wait until the required tokens are available in the bucket before returning.
+	 *
+	 * @param[in] minimalRequiredTokens The minimal number of tokens required for processing.
+	 * @return The number of available tokens for processing (>= minimalRequiredTokens).
+	 */
+	uint64_t GetAvailableTokens(uint64_t minimalRequiredTokens) noexcept;
+
+	/**
+	 * @brief Set the number of processed tokens.
+	 *
+	 * This function is used to notify the rate limiter that a certain number of tokens
+	 * (@p processedTokens) have been processed. It updates the number of tokens in the bucket
+	 * accordingly.
+	 *
+	 * @param[in] processedTokens The number of tokens that have been processed.
+	 *
+	 * @note This function should be called after processing the tokens to update the
+	 * rate limiter's state. The `GetAvailableTokens()` function should be called before processing
+	 * tokens to ensure rate limiting is applied correctly.
+	 */
+	void SetProcessedTokens(uint64_t processedTokens) noexcept;
+
 private:
 	void Reset() noexcept;
 	void InitStartTime() noexcept;
