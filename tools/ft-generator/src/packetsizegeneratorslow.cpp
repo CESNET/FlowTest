@@ -66,6 +66,7 @@ PacketSizeGeneratorSlow::PacketSizeGeneratorSlow(
 	, _numPkts(numPkts)
 	, _numBytes(numBytes)
 {
+	assert(!_intervals.empty());
 }
 
 void PacketSizeGeneratorSlow::PlanRemaining()

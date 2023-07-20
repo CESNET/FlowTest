@@ -212,6 +212,7 @@ PacketSizeGeneratorFast::PacketSizeGeneratorFast(
 	, _availCount(intervals.size(), 0)
 	, _assignedCount(intervals.size(), 0)
 {
+	assert(!_intervals.empty());
 }
 
 uint64_t PacketSizeGeneratorFast::GetValueExact(uint64_t value)
