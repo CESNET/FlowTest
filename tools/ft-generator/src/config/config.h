@@ -13,6 +13,7 @@
 #include "ipv4.h"
 #include "ipv6.h"
 #include "mac.h"
+#include "packetsizeprobabilities.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -69,6 +70,14 @@ public:
 	const Encapsulation& GetEncapsulation() const { return _encapsulation; }
 
 	/**
+	 * @brief Get the packet size probabilities
+	 */
+	const PacketSizeProbabilities& GetPacketSizeProbabilities() const
+	{
+		return _packetSizeProbabilities;
+	}
+
+	/**
 	 * @brief Load a configuration from a yaml file
 	 *
 	 * @param configFilename  Path to the yaml file
@@ -81,6 +90,7 @@ private:
 	IPv6 _ipv6;
 	Mac _mac;
 	Encapsulation _encapsulation;
+	PacketSizeProbabilities _packetSizeProbabilities;
 };
 
 } // namespace config
