@@ -7,6 +7,7 @@
  */
 #include "generator.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
@@ -14,6 +15,9 @@
 #include <string>
 
 namespace generator {
+
+// Progress is logged after at most this many seconds
+static constexpr int PROGRESS_TIMEOUT_SECS = 10;
 
 template <typename T>
 static std::string ToHumanSize(T value)
@@ -46,6 +50,7 @@ Generator::Generator(
 	, _args(args)
 {
 	profilesProvider.Provide(_profiles);
+	_stats._numAllFlows = _profiles.size();
 
 	PrepareProfiles();
 
@@ -110,7 +115,7 @@ std::optional<GeneratorPacket> Generator::GenerateNextPacket()
 	if (!flow->IsFinished()) {
 		_calendar.Push(std::move(flow));
 	} else {
-		_trafficMeter.CloseFlow(flow->GetId());
+		OnFlowClosed(*flow.get());
 	}
 
 	GeneratorPacket result;
@@ -143,8 +148,40 @@ std::unique_ptr<Flow> Generator::MakeNextFlow()
 	_nextProfileIdx++;
 	std::unique_ptr<Flow> flow
 		= std::make_unique<Flow>(_nextFlowId++, profile, _addressGenerators, _config);
-	_trafficMeter.OpenFlow(flow->GetId(), profile);
+	OnFlowOpened(*flow.get(), profile);
 	return flow;
+}
+
+void Generator::OnFlowOpened(const Flow& flow, const FlowProfile& profile)
+{
+	_trafficMeter.OpenFlow(flow.GetId(), profile);
+	_stats._numOpenFlows++;
+}
+
+void Generator::OnFlowClosed(const Flow& flow)
+{
+	_trafficMeter.CloseFlow(flow.GetId());
+
+	_stats._numOpenFlows--;
+	_stats._numClosedFlows++;
+
+	auto elapsedSecs = std::time(nullptr) - _stats._prevProgressTime;
+	auto percent = int(double(_stats._numClosedFlows) / _stats._numAllFlows * 100.0);
+
+	_logger->debug(
+		"Flow Stats: {} total, {} open, {} closed ({}%)",
+		_stats._numAllFlows,
+		_stats._numOpenFlows,
+		_stats._numClosedFlows,
+		percent);
+
+	if (elapsedSecs > PROGRESS_TIMEOUT_SECS || percent - _stats._prevProgressPercent >= 10) {
+		_logger->info(
+			"{:.0f}% complete",
+			std::round(_stats._numClosedFlows / double(_stats._numAllFlows) * 100.0));
+		_stats._prevProgressTime = std::time(nullptr);
+		_stats._prevProgressPercent = percent;
+	}
 }
 
 } // namespace generator
