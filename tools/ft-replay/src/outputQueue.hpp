@@ -61,26 +61,7 @@ struct OutputQueueStats {
  */
 class OutputQueue {
 public:
-	/**
-	 * @brief Construct a new Output Queue object
-	 *
-	 * Initializes rate limiter to the default state.
-	 */
-	OutputQueue();
-
-	/**
-	 * @brief Set the rate limiter.
-	 *
-	 * This function sets the rate limiter configuration for the output queue. The rate limiter can
-	 * be configured with a specified rate limit, which can be either in packets per second
-	 * (RateLimitPps) or megabits per second (RateLimitMbps). The rate limit configuration is passed
-	 * as a parameter of type Config::RateLimit.
-	 *
-	 * @param rateLimitConfig The rate limiter configuration to set.
-	 *
-	 * @throws std::logic_error If the rate limit config type is not implemented.
-	 */
-	void SetRateLimiter(Config::RateLimit rateLimitConfig);
+	OutputQueue() = default;
 
 	/**
 	 * @brief Get the statistics of the Output Queue.
@@ -127,25 +108,9 @@ public:
 	virtual ~OutputQueue() = default;
 
 protected:
-	/**
-	 * @brief Apply rate limiting.
-	 *
-	 * This function applies rate limiting by calculating the number of tokens required to send the
-	 * specified number of packets or total length of packets, based on the rate limiting type set
-	 * by the `SetRateLimiter` function. It then calls the `Limit` function of the `RateLimiter`
-	 * object `_rateLimiter` to limit the sending rate.
-	 *
-	 * @param[in] packetsCount The number of packets to be sent.
-	 * @param[in] sumOfPacketsLength The total length of all packets to be sent.
-	 */
-	void RateLimit(uint64_t packetsCount, uint64_t sumOfPacketsLength);
-
 	OutputQueueStats _outputQueueStats;
 
 private:
-	Config::RateLimit _rateLimitType;
-	RateLimiter _rateLimiter;
-
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("OutputQueue");
 };
 

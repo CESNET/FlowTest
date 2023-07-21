@@ -209,8 +209,6 @@ void NfbQueue::SendBurst(const PacketBuffer* burst)
 {
 	(void) burst;
 
-	RateLimit(_lastBurstSize, _lastBurstTotalPacketLen);
-
 	ndp_tx_burst_put(_txQueue.get());
 	_isBufferInUse = false;
 
