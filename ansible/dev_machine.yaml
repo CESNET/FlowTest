@@ -1,6 +1,5 @@
 ---
-- hosts: localhost
-  connection: local
+- hosts: all
   become: yes
   roles:
     - role: python_upgrade
