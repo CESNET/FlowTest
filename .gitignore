@@ -9,3 +9,6 @@ build/
 
 # Compiled Python Files
 *.pyc
+
+# Clangd cache files
+.clang/
