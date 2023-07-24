@@ -33,9 +33,7 @@
     state: latest
 
 - name: Python pipenv is installed (over pip)
-  ansible.builtin.pip:
-    name: pipenv
-    executable: /usr/bin/pip3
+  ansible.builtin.command: pip3 install pipenv
 
 - name: Static analysis tools are installed
   ansible.builtin.dnf:
