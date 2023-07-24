@@ -9,6 +9,7 @@
 #pragma once
 
 #include "packet.hpp"
+#include "timeDuration.hpp"
 
 #include <memory>
 #include <utility>
@@ -71,12 +72,26 @@ public:
 	 */
 	QueueDistribution GetPacketQueueRatioById(uint8_t queueId) const;
 
+	/**
+	 * @brief Get the time duration of packets in the PacketQueueProvider.
+	 *
+	 * This function returns the time duration of packets stored in the PacketQueueProvider.
+	 *
+	 * @note If no packets have been processed yet or if the internal TimeDuration object
+	 * has not been updated with any timestamps, this function will return 0.
+	 *
+	 * @return The time duration of packets in nanoseconds.
+	 */
+	uint64_t GetPacketsTimeDuration() const noexcept;
+
 private:
 	uint8_t GetPacketQueueId(const Packet& packet);
 	void UpdateQueueDistribution(QueueDistribution& queueDistribution, size_t packetLength);
 
 	std::vector<QueueDistribution> _queuesDistribution;
 	std::vector<std::unique_ptr<PacketQueue>> _packetQueues;
+	TimeDuration _timeDuration;
+
 	size_t _queueCount;
 };
 
