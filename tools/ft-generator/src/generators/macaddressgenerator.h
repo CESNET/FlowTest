@@ -6,6 +6,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#pragma once
+
 #include "prefixedgenerator.h"
 
 #include <pcapplusplus/MacAddress.h>
@@ -37,6 +39,7 @@ public:
 
 private:
 	PrefixedGenerator _gen;
+	uint8_t _prefixLen;
 };
 
 } // namespace generator
