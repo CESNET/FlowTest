@@ -39,6 +39,7 @@ public:
 
 private:
 	PrefixedGenerator _gen;
+	uint8_t _prefixLen;
 };
 
 } // namespace generator

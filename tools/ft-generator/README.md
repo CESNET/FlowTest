@@ -140,8 +140,9 @@ file*
 ### MAC
 * `mac_range` - possible ranges of MAC addresses that can be chosen from when
   generating an address presented in the form of an MAC address with a prefix
-  length, e.g. `ab:cd:00:00:00:00/16`, can be a single value or a list of values
-  _(default = all addresses)_
+  length, e.g. `ab:cd:00:00:00:00/16`, can be a single value or a list of values.
+  MAC addresses with LSB of the first octet set to 1, which denotes a group MAC
+  address, are automatically skipped. _(default = all addresses)_
 
 ## Example configuration
 
