@@ -9,6 +9,7 @@
 #include "macaddressgenerator.h"
 
 #include "common.h"
+#include "logger.h"
 
 namespace generator {
 
@@ -21,6 +22,21 @@ MacAddressGenerator::MacAddressGenerator(
 {
 	if (prefixLen > 0 && !baseAddr.isValid()) {
 		throw std::invalid_argument("invalid MacAddressGenerator base address");
+	}
+
+	if (prefixLen >= 8 && baseAddr.getRawData()[0] & 1) {
+		uint8_t newMacData[6];
+		baseAddr.copyTo(newMacData);
+		newMacData[0] &= ~uint8_t(1);
+		MacAddress newMac(newMacData);
+
+		auto logger = ft::LoggerGet("MacAddressGenerator");
+		logger->warn(
+			"MAC address prefix {} will lead to invalid mac addresses being generated. LSB of the "
+			"first octet must be 0 for non-group addresses (802.3-2002 3.2.3b). Consider {} "
+			"instead.",
+			baseAddr.toString(),
+			newMac.toString());
 	}
 }
 
