@@ -102,11 +102,11 @@ void IcmpEcho::Build(PcppPacket& packet, Packet::layerParams& params, Packet& pl
 	plan._size = 0;
 
 	if (plan._direction == Direction::Forward) {
-		icmpLayer->setEchoRequestData(_id, _seqFwd, 0, &_data[0], _data.size());
+		icmpLayer->setEchoRequestData(_id, _seqFwd, 0, _data.data(), _data.size());
 		_seqFwd++;
 
 	} else if (plan._direction == Direction::Reverse) {
-		icmpLayer->setEchoReplyData(_id, _seqRev, 0, &_data[0], _data.size());
+		icmpLayer->setEchoReplyData(_id, _seqRev, 0, _data.data(), _data.size());
 		_seqRev++;
 	}
 
