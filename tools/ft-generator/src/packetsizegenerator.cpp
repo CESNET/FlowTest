@@ -9,8 +9,7 @@
 #include "packetsizegenerator.h"
 #include "randomgenerator.h"
 
-#include <algorithm>
-#include <cassert>
+#include <numeric>
 
 namespace generator {
 
@@ -27,119 +26,147 @@ static constexpr double MIN_DIFF = 50;
 // The maximum distance to look when finding a suitable value when choosing an exact value
 static constexpr int GET_EXACT_MAX_DISTANCE = 1000;
 
-// The maximum number of generated sizes in which to keep track of the best generated values every
-// step. For larger counts, this could be a very expensive operation.
-static constexpr int SAVE_VALUES_EVERY_STEP_THRESHOLD = 2000;
-
 // If the generated sum differs by the desired sum by this much percent, fallback to uniform
 // distribution.
 static constexpr double DIFF_RATIO_FALLBACK_TO_UNIFORM = 0.2;
 
-PacketSizeGenerator::PacketSizeGenerator(
-	uint64_t count,
-	uint64_t desiredSum,
-	const std::vector<IntervalInfo>& intervals)
-	: _count(count)
-	, _desiredSum(desiredSum)
-	, _intervals(intervals)
+static double SumProbabilities(const std::vector<IntervalInfo>& intervals)
 {
-	_saveBestValuesEveryStep = (_count < SAVE_VALUES_EVERY_STEP_THRESHOLD);
-
-	PostIntervalUpdate();
-	Generate();
+	return std::accumulate(
+		intervals.begin(),
+		intervals.end(),
+		0.0,
+		[](double sum, const auto& inter) { return sum += inter._probability; });
 }
 
-void PacketSizeGenerator::Generate()
+static uint64_t
+GenerateRandomValue(const std::vector<IntervalInfo>& intervals, double intervalProbSum)
 {
-	uint64_t valuesSum = 0;
-	_values.resize(_count);
+	double probSum = 0.0f;
+	double genVal = RandomGenerator::GetInstance().RandomDouble(0.0, intervalProbSum);
+	uint64_t value = 0;
+	for (const auto& inter : intervals) {
+		probSum += inter._probability;
+		if (genVal <= probSum) {
+			value = RandomGenerator::GetInstance().RandomUInt(inter._from, inter._to);
+			break;
+		}
+	}
+	return value;
+}
 
-	if (_desiredSum == 0) {
+PacketSizeGenerator::PacketSizeGenerator(
+	const std::vector<IntervalInfo>& intervals,
+	uint64_t numPkts,
+	uint64_t numBytes)
+	: _intervals(intervals)
+	, _numPkts(numPkts)
+	, _numBytes(numBytes)
+{
+}
+
+void PacketSizeGenerator::PlanRemaining()
+{
+	uint64_t remPkts = _numPkts >= _assignedPkts ? _numPkts - _assignedPkts : 0;
+	uint64_t remBytes = _numBytes >= _assignedBytes ? _numBytes - _assignedBytes : 0;
+	Generate(remPkts, remBytes);
+}
+
+void PacketSizeGenerator::Generate(uint64_t desiredPkts, uint64_t desiredBytes)
+{
+	auto intervals = _intervals;
+
+	double probSum = SumProbabilities(intervals);
+	uint64_t valuesSum = 0;
+	_values.resize(desiredPkts);
+
+	if (desiredPkts == 0 || desiredBytes == 0) {
 		return;
 	}
 
-	if (_count == 1) {
-		_values[0] = _desiredSum;
+	if (desiredPkts == 1) {
+		_values[0] = desiredBytes;
 		return;
 	}
 
 	for (auto& value : _values) {
-		value = GenerateRandomValue();
+		value = GenerateRandomValue(intervals, probSum);
 		valuesSum += value;
 	}
 
-	double maxDiff = std::max<uint64_t>(MAX_DIFF_RATIO * _desiredSum, MIN_DIFF);
-	uint64_t targetMin = maxDiff < _desiredSum ? _desiredSum - maxDiff : 0;
-	uint64_t targetMax = _desiredSum + maxDiff;
+	double maxDiff = std::max<uint64_t>(MAX_DIFF_RATIO * desiredBytes, MIN_DIFF);
+	uint64_t targetMin = maxDiff < desiredBytes ? desiredBytes - maxDiff : 0;
+	uint64_t targetMax = desiredBytes + maxDiff;
 
-	_logger->trace("VALUES sum={} desired={}", valuesSum, _desiredSum);
+	_logger->trace("VALUES sum={} desired={}", valuesSum, desiredBytes);
 	for (auto value : _values) {
 		_logger->trace(value);
 	}
 
 	int numAttempts = MAX_ATTEMPTS;
-	uint64_t bestDiff = valuesSum > _desiredSum ? valuesSum - _desiredSum : _desiredSum - valuesSum;
+	uint64_t bestDiff
+		= valuesSum > desiredBytes ? valuesSum - desiredBytes : desiredBytes - valuesSum;
 	std::vector<uint64_t> bestValues = _values;
 	while ((valuesSum < targetMin || valuesSum > targetMax) && numAttempts > 0) {
 		numAttempts--;
 
-		uint64_t avgValue = valuesSum / _count;
-		std::vector<IntervalInfo> origIntervals = _intervals;
+		uint64_t avgValue = valuesSum / desiredPkts;
+		std::vector<IntervalInfo> origIntervals = intervals;
 		if (valuesSum < targetMin) {
-			for (auto& inter : _intervals) {
+			for (auto& inter : intervals) {
 				uint64_t interAvg = inter._from / 2 + inter._to / 2;
 				if (interAvg < avgValue) {
 					inter._probability = 0.0;
 				}
 			}
 		} else {
-			for (auto& inter : _intervals) {
+			for (auto& inter : intervals) {
 				uint64_t interAvg = inter._from / 2 + inter._to / 2;
 				if (interAvg < avgValue) {
 					inter._probability = 0.0;
 				}
 			}
 		}
-		PostIntervalUpdate();
+		probSum = SumProbabilities(intervals);
 
 		for (auto& value : _values) {
-			uint64_t newValue = GenerateRandomValue();
+			uint64_t newValue = GenerateRandomValue(intervals, probSum);
 			valuesSum = valuesSum - value + newValue;
 			value = newValue;
 
 			if (valuesSum >= targetMin && valuesSum <= targetMax) {
 				break;
 			}
-			if (_saveBestValuesEveryStep) {
-				uint64_t diff
-					= valuesSum > _desiredSum ? valuesSum - _desiredSum : _desiredSum - valuesSum;
-				if (diff < bestDiff) {
-					bestValues = _values;
-					bestDiff = diff;
-				}
+
+			uint64_t diff
+				= valuesSum > desiredBytes ? valuesSum - desiredBytes : desiredBytes - valuesSum;
+			if (diff < bestDiff) {
+				bestValues = _values;
+				bestDiff = diff;
 			}
 		}
 
-		_logger->trace("VALUES sum={} desired={}", valuesSum, _desiredSum);
+		_logger->trace("VALUES sum={} desired={}", valuesSum, desiredBytes);
 		for (auto value : _values) {
 			_logger->trace(value);
 		}
 
-		_intervals = origIntervals;
-		PostIntervalUpdate();
+		intervals = origIntervals;
 
-		uint64_t diff = valuesSum > _desiredSum ? valuesSum - _desiredSum : _desiredSum - valuesSum;
+		uint64_t diff
+			= valuesSum > desiredBytes ? valuesSum - desiredBytes : desiredBytes - valuesSum;
 		if (diff < bestDiff) {
 			bestValues = _values;
 			bestDiff = diff;
 		}
 	}
 
-	double finalDiffRatio = double(bestDiff) / double(_desiredSum);
-	_logger->trace("Final diff: {}, ratio: {}, desired: {}", bestDiff, finalDiffRatio, _desiredSum);
+	double finalDiffRatio = double(bestDiff) / double(desiredBytes);
+	_logger
+		->trace("Final diff: {}, ratio: {}, desired: {}", bestDiff, finalDiffRatio, desiredBytes);
 
 	if (finalDiffRatio > DIFF_RATIO_FALLBACK_TO_UNIFORM) {
-		GenerateUniformly();
+		std::fill(_values.begin(), _values.end(), desiredBytes / desiredBytes);
 		_logger->info(
 			"Generated values difference too large {}, fallback to uniform distribution",
 			finalDiffRatio);
@@ -151,13 +178,29 @@ void PacketSizeGenerator::Generate()
 
 uint64_t PacketSizeGenerator::GetValue()
 {
-	uint64_t value = _values.back();
-	_values.pop_back();
+	uint64_t value;
+	if (!_values.empty()) {
+		value = _values.back();
+		_values.pop_back();
+	} else {
+		// No more values left, generate one randomly
+		value = GenerateRandomValue(_intervals, SumProbabilities(_intervals));
+	}
+
+	_assignedPkts++;
+	_assignedBytes += value;
+
 	return value;
 }
 
 uint64_t PacketSizeGenerator::GetValueExact(uint64_t value)
 {
+	if (_values.size() == 0) {
+		_assignedPkts++;
+		_assignedBytes += value;
+		return value;
+	}
+
 	size_t start;
 	size_t end;
 	if (_values.size() <= GET_EXACT_MAX_DISTANCE) {
@@ -183,36 +226,32 @@ uint64_t PacketSizeGenerator::GetValueExact(uint64_t value)
 
 	uint64_t chosenValue = _values.back();
 	_values.pop_back();
+
+	_assignedPkts++;
+	_assignedBytes += value;
+
 	return chosenValue;
 }
 
-void PacketSizeGenerator::PostIntervalUpdate()
+void PacketSizeGenerator::PrintReport()
 {
-	_intervalProbSum = std::accumulate(
-		_intervals.begin(),
-		_intervals.end(),
-		0.0,
-		[](double sum, const auto& inter) { return sum += inter._probability; });
-}
+	double dBytes = _numBytes == 0
+		? 0.0
+		: std::abs(int64_t(_numBytes) - int64_t(_assignedBytes)) / double(_numBytes);
 
-uint64_t PacketSizeGenerator::GenerateRandomValue()
-{
-	double probSum = 0.0f;
-	double genVal = RandomGenerator::GetInstance().RandomDouble(0.0, _intervalProbSum);
-	uint64_t value = 0;
-	for (const auto& inter : _intervals) {
-		probSum += inter._probability;
-		if (genVal <= probSum) {
-			value = RandomGenerator::GetInstance().RandomUInt(inter._from, inter._to);
-			break;
-		}
-	}
-	return value;
-}
+	double dPkts = _numPkts == 0
+		? 0.0
+		: std::abs(int64_t(_numPkts) - int64_t(_assignedPkts)) / double(_numPkts);
 
-void PacketSizeGenerator::GenerateUniformly()
-{
-	std::fill(_values.begin(), _values.end(), _desiredSum / _values.size());
+	_logger->debug(
+		"[Bytes] target={} actual={} (diff={:.2f}%)  [Pkts] target={} actual={} "
+		"(diff={:.2f}%)",
+		_numBytes,
+		_assignedBytes,
+		dBytes * 100.0,
+		_numPkts,
+		_assignedPkts,
+		dPkts * 100.0);
 }
 
 } // namespace generator

@@ -13,6 +13,7 @@
 #include "flowprofile.h"
 #include "generators/addressgenerators.h"
 #include "packet.h"
+#include "packetsizegenerator.h"
 #include "pcpppacket.h"
 #include "timeval.h"
 

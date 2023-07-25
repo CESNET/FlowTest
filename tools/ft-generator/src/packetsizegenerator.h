@@ -9,18 +9,13 @@
 #pragma once
 
 #include "logger.h"
-
-#include <algorithm>
-#include <iostream>
 #include <memory>
-#include <random>
 #include <vector>
 
 namespace generator {
 
 /**
- * @brief Definition of an interval
- *
+ * @brief Definition of a probability interval
  */
 struct IntervalInfo {
 	uint64_t _from; //< Left bound of the interval
@@ -37,21 +32,23 @@ public:
 	/**
 	 * @brief Construct a new Packet Size Generator object
 	 *
-	 * @param count       The total number of generated values
-	 * @param desiredSum  The desired number of bytes the values should add up to
-	 * @param intervals   The intervals to generate the values from
+	 * @param intervals   The intervals to generate the values from. The interval ranges must be
+	 * continous!
+	 * @param numPkts     The target number of packets
+	 * @param numBytes    The target number of bytes
+	 *
+	 * This is not exact, the values provided are mere targets that we will try to approach. We will
+	 * likely not reach exactly the specified values, but we will try to do the best we can.
 	 */
 	PacketSizeGenerator(
-		uint64_t count,
-		uint64_t desiredSum,
-		const std::vector<IntervalInfo>& intervals);
+		const std::vector<IntervalInfo>& intervals,
+		uint64_t numPkts,
+		uint64_t numBytes);
 
 	/**
-	 * @brief Get a random value from the generated values
-	 *
-	 * @return A value
+	 * @brief The destructor
 	 */
-	uint64_t GetValue();
+	~PacketSizeGenerator() = default;
 
 	/**
 	 * @brief Get an exact value
@@ -61,21 +58,36 @@ public:
 	 */
 	uint64_t GetValueExact(uint64_t value);
 
-private:
-	std::vector<uint64_t> _values;
+	/**
+	 * @brief Get a random value from the generated values
+	 *
+	 * @return A value
+	 */
+	uint64_t GetValue();
 
-	uint64_t _count;
-	uint64_t _desiredSum;
+	/**
+	 * @brief Plan the remaining number of bytes and packets
+	 */
+	void PlanRemaining();
+
+	/**
+	 * @brief Log statistics about generated values
+	 */
+	void PrintReport();
+
+private:
 	std::vector<IntervalInfo> _intervals;
-	double _intervalProbSum;
-	bool _saveBestValuesEveryStep = false;
+	uint64_t _numPkts;
+	uint64_t _numBytes;
+
+	uint64_t _assignedPkts = 0;
+	uint64_t _assignedBytes = 0;
+
+	std::vector<uint64_t> _values;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketSizeGenerator");
 
-	void Generate();
-	void PostIntervalUpdate();
-	uint64_t GenerateRandomValue();
-	void GenerateUniformly();
+	void Generate(uint64_t desiredPkts, uint64_t desiredBytes);
 };
 
 } // namespace generator

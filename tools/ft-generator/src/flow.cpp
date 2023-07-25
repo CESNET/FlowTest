@@ -412,8 +412,8 @@ void Flow::PlanPacketsTimestamps()
 
 void Flow::PlanPacketsSizes()
 {
-	PacketSizeGenerator fwdGen(_fwdPackets, _fwdBytes, PACKET_SIZE_PROBABILITIES);
-	PacketSizeGenerator revGen(_revPackets, _revBytes, PACKET_SIZE_PROBABILITIES);
+	PacketSizeGenerator fwdGen(PACKET_SIZE_PROBABILITIES, _fwdPackets, _fwdBytes);
+	PacketSizeGenerator revGen(PACKET_SIZE_PROBABILITIES, _revPackets, _revBytes);
 
 	for (auto& packet : _packets) {
 		if (packet._isFinished) {
@@ -421,6 +421,9 @@ void Flow::PlanPacketsSizes()
 			generator.GetValueExact(packet._size);
 		}
 	}
+
+	fwdGen.PlanRemaining();
+	revGen.PlanRemaining();
 
 	for (auto& packet : _packets) {
 		if (!packet._isFinished) {
@@ -430,6 +433,9 @@ void Flow::PlanPacketsSizes()
 				generator.GetValue()); // NOTE: Add the option to GetValue to choose minimum size?
 		}
 	}
+
+	fwdGen.PrintReport();
+	revGen.PrintReport();
 }
 
 } // namespace generator
