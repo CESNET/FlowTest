@@ -19,7 +19,7 @@ namespace generator {
 struct IntervalInfo {
 	uint64_t _from; //< Left bound of the interval
 	uint64_t _to; //< Right bound of the interval
-	float _probability; //< Probability of choosing this interval
+	double _probability; //< Probability of choosing this interval
 };
 
 /**
