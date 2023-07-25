@@ -123,10 +123,10 @@ void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredByt
 					inter._probability = 0.0;
 				}
 			}
-		} else {
+		} else if (valuesSum > targetMax) {
 			for (auto& inter : intervals) {
 				uint64_t interAvg = inter._from / 2 + inter._to / 2;
-				if (interAvg < avgValue) {
+				if (interAvg > avgValue) {
 					inter._probability = 0.0;
 				}
 			}
