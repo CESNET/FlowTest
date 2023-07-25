@@ -23,7 +23,7 @@
 #include "layers/vlan.h"
 #include "packet.h"
 #include "packetflowspan.h"
-#include "packetsizegenerator.h"
+#include "packetsizegeneratorslow.h"
 #include "randomgenerator.h"
 #include "timeval.h"
 
