@@ -20,6 +20,12 @@
       - glpk-devel
     state: latest
 
+- name: kernel-headers are updated
+  ansible.builtin.dnf:
+    name: kernel-headers
+    state: latest
+    disable_excludes: all
+
 - name: libbpf library is installed
   ansible.builtin.dnf:
     name:

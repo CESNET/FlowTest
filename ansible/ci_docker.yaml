@@ -5,5 +5,7 @@
   roles:
     - role: python_upgrade
       when: ansible_distribution_major_version | int == 8
-    - dev_tools
-    - dev_dependencies
+    - common_tools
+    - cpp_dependencies
+    - cpp_development
+    - python_tools
