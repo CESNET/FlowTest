@@ -1,0 +1,8 @@
+---
+- hosts: all
+  become: yes
+  roles:
+    - role: python_upgrade
+      when: ansible_distribution_major_version | int == 8
+    - common_tools
+    - python_tools
