@@ -25,7 +25,7 @@ struct Individual {
 	{
 	}
 	Individual(const Individual&) = delete;
-	Individual(Individual&&) = default;
+	Individual(Individual&&) noexcept = default;
 	Individual& operator=(const Individual&) = delete;
 	Individual& operator=(Individual&&) = default;
 
