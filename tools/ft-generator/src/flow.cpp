@@ -23,9 +23,9 @@
 #include "layers/vlan.h"
 #include "packet.h"
 #include "packetflowspan.h"
+#include "packetsizegeneratorslow.h"
 #include "randomgenerator.h"
 #include "timeval.h"
-#include "valuegenerator.h"
 
 #include <pcapplusplus/EthLayer.h>
 #include <pcapplusplus/IPv4Layer.h>
@@ -412,24 +412,30 @@ void Flow::PlanPacketsTimestamps()
 
 void Flow::PlanPacketsSizes()
 {
-	ValueGenerator fwdGen(_fwdPackets, _fwdBytes, PACKET_SIZE_PROBABILITIES);
-	ValueGenerator revGen(_revPackets, _revBytes, PACKET_SIZE_PROBABILITIES);
+	auto fwdGen = PacketSizeGenerator::Construct(PACKET_SIZE_PROBABILITIES, _fwdPackets, _fwdBytes);
+	auto revGen = PacketSizeGenerator::Construct(PACKET_SIZE_PROBABILITIES, _revPackets, _revBytes);
 
 	for (auto& packet : _packets) {
 		if (packet._isFinished) {
 			auto& generator = packet._direction == Direction::Forward ? fwdGen : revGen;
-			generator.GetValueExact(packet._size);
+			generator->GetValueExact(packet._size);
 		}
 	}
+
+	fwdGen->PlanRemaining();
+	revGen->PlanRemaining();
 
 	for (auto& packet : _packets) {
 		if (!packet._isFinished) {
 			auto& generator = packet._direction == Direction::Forward ? fwdGen : revGen;
 			packet._size = std::max(
 				packet._size,
-				generator.GetValue()); // NOTE: Add the option to GetValue to choose minimum size?
+				generator->GetValue()); // NOTE: Add the option to GetValue to choose minimum size?
 		}
 	}
+
+	fwdGen->PrintReport();
+	revGen->PrintReport();
 }
 
 } // namespace generator

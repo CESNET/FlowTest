@@ -13,6 +13,13 @@
       - xxhash-devel
     state: latest
 
+- name: glpk library is installed
+  ansible.builtin.dnf:
+    name:
+      - glpk
+      - glpk-devel
+    state: latest
+
 - name: libbpf library is installed
   ansible.builtin.dnf:
     name:
