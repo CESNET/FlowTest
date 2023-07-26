@@ -114,6 +114,8 @@ private:
 	uint64_t _id;
 	std::vector<std::unique_ptr<Layer>> _layerStack;
 
+	const config::Config& _config; //< Reference to the generator configuration
+
 	/**
 	 * @brief Add new protocol layer.
 	 *

@@ -13,14 +13,7 @@ namespace config {
 
 Config::Config(const YAML::Node& node)
 {
-	CheckAllowedKeys(
-		node,
-		{
-			"ipv4",
-			"ipv6",
-			"mac",
-			"encapsulation",
-		});
+	CheckAllowedKeys(node, {"ipv4", "ipv6", "mac", "encapsulation", "packet_size_probabilities"});
 
 	if (node["ipv4"].IsDefined()) {
 		_ipv4 = IPv4(node["ipv4"]);
@@ -36,6 +29,10 @@ Config::Config(const YAML::Node& node)
 
 	if (node["encapsulation"].IsDefined()) {
 		_encapsulation = Encapsulation(node["encapsulation"]);
+	}
+
+	if (node["packet_size_probabilities"].IsDefined()) {
+		_packetSizeProbabilities = PacketSizeProbabilities(node["packet_size_probabilities"]);
 	}
 }
 

@@ -7,6 +7,7 @@ set(FT_GENERATOR_SOURCES
 	config/ipv4.cpp
 	config/ipv6.cpp
 	config/mac.cpp
+	config/packetsizeprobabilities.cpp
 	flow.cpp
 	flowplanhelper.cpp
 	flowprofile.cpp

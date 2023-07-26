@@ -144,6 +144,26 @@ file*
   MAC addresses with LSB of the first octet set to 1, which denotes a group MAC
   address, are automatically skipped. _(default = all addresses)_
 
+### Packet size probabilities
+* A map of values, where key is a definition of an interval in the form of
+`<lower bound>-<upper bound>`, e.g. `100-200`, and value is a probability of
+choosing a value from that interval in the form of a floating point number 0.0
+- 1.0 or a percentage 0% - 100%. Both bounds of the interval are inclusive. If
+the total sum of probabilities doesn't add up to 1.0 it will be automatically
+normalized.
+
+_default:_
+```yaml
+packet_size_probabilities:
+  63-79: 0.2824
+  80-159: 0.073
+  160-319: 0.0115
+  320-639: 0.012
+  640-1279: 0.0092
+  1280-1500: 0.6119
+```
+
+
 ## Example configuration
 
 ```yaml
@@ -172,6 +192,14 @@ ipv6:
 
 mac:
   mac_range: aa:aa:aa:00:00:00/24
+
+packet_size_probabilities:
+  63-79: 0.2824
+  80-159: 0.073
+  160-319: 0.0115
+  320-639: 0.012
+  640-1279: 0.0092
+  1280-1500: 0.6119
 ```
 
 Explanation:
@@ -193,3 +221,7 @@ addresses can be chosen from.
 
 The IPv6 and MAC section defines the range of addresses the generated addresses
 can be chosen from, as in the case of the IPv4 section.
+
+The packet size probability section defines the possible sizes of generated
+packets. The chance of generating a packet with a size between 63 and 79
+inclusive is 28.24%, between 80 and 159 inclusive 7.3%, etc..
