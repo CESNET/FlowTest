@@ -55,7 +55,7 @@ struct PacketSizeDistribution {
 struct MetricsDiff {
 	MetricsDiff() = default;
 	MetricsDiff(const MetricsDiff&) = delete;
-	MetricsDiff(MetricsDiff&&) = default;
+	MetricsDiff(MetricsDiff&&) noexcept = default;
 	MetricsDiff& operator=(const MetricsDiff&) = delete;
 	MetricsDiff& operator=(MetricsDiff&&) = default;
 
@@ -112,7 +112,7 @@ struct Metrics {
 		std::optional<const std::vector<bool>> filter);
 	Metrics() = default;
 	Metrics(const Metrics&) = delete;
-	Metrics(Metrics&&) = default;
+	Metrics(Metrics&&) noexcept = default;
 	Metrics& operator=(const Metrics&) = delete;
 	Metrics& operator=(Metrics&&) = default;
 
