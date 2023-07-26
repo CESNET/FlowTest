@@ -1,4 +1,4 @@
-add_executable(ft-generator
+set(FT_GENERATOR_SOURCES
 	calendar.cpp
 	config/commandlineargs.cpp
 	config/common.cpp
@@ -32,7 +32,6 @@ add_executable(ft-generator
 	layers/tcp.cpp
 	layers/udp.cpp
 	layers/vlan.cpp
-	main.cpp
 	packet.cpp
 	packetflowspan.cpp
 	pcapwriter.cpp
@@ -46,8 +45,7 @@ add_executable(ft-generator
 	packetsizegeneratorfast.cpp
 )
 
-target_link_libraries(ft-generator
-	PRIVATE
+set(FT_GENERATOR_LIBS
 	pcapplusplus::common
 	pcapplusplus::packet
 	pcapplusplus::pcap
@@ -56,5 +54,15 @@ target_link_libraries(ft-generator
 	stdc++fs
 	glpk::glpk
 )
+
+add_executable(ft-generator ${FT_GENERATOR_SOURCES} main.cpp)
+target_link_libraries(ft-generator PRIVATE ${FT_GENERATOR_LIBS})
+
+set(FT_GENERATOR_TEST_SOURCES
+)
+
+add_executable(ft-generator-test ${FT_GENERATOR_SOURCES} ${FT_GENERATOR_TEST_SOURCES} tests/main.cpp)
+target_include_directories(ft-generator-test PRIVATE ${DOCTEST_INCLUDE_DIR})
+target_link_libraries(ft-generator-test PRIVATE ${FT_GENERATOR_LIBS})
 
 install(TARGETS ft-generator DESTINATION ${INSTALL_DIR_BIN})
