@@ -215,7 +215,7 @@ PacketSizeGeneratorFast::PacketSizeGeneratorFast(
 	assert(!_intervals.empty());
 }
 
-uint64_t PacketSizeGeneratorFast::GetValueExact(uint64_t value)
+void PacketSizeGeneratorFast::GetValueExact(uint64_t value)
 {
 	_logger->trace("GetValueExact({})", value);
 
@@ -249,7 +249,6 @@ uint64_t PacketSizeGeneratorFast::GetValueExact(uint64_t value)
 	_assignedCount[idx]++;
 	_assignedPkts++;
 	_assignedBytes += value;
-	return value;
 }
 
 void PacketSizeGeneratorFast::PlanRemaining()

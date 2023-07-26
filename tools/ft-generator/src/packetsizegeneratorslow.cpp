@@ -197,12 +197,12 @@ uint64_t PacketSizeGeneratorSlow::GetValue()
 	return value;
 }
 
-uint64_t PacketSizeGeneratorSlow::GetValueExact(uint64_t value)
+void PacketSizeGeneratorSlow::GetValueExact(uint64_t value)
 {
 	if (_values.size() == 0) {
 		_assignedPkts++;
 		_assignedBytes += value;
-		return value;
+		return;
 	}
 
 	size_t start;
@@ -226,15 +226,12 @@ uint64_t PacketSizeGeneratorSlow::GetValueExact(uint64_t value)
 		}
 	}
 
+	// Remove the chosen value
 	std::swap(_values[closest], _values[_values.size() - 1]);
-
-	uint64_t chosenValue = _values.back();
 	_values.pop_back();
 
 	_assignedPkts++;
 	_assignedBytes += value;
-
-	return chosenValue;
 }
 
 void PacketSizeGeneratorSlow::PrintReport()

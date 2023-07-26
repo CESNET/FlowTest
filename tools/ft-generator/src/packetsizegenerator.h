@@ -56,12 +56,11 @@ public:
 	virtual ~PacketSizeGenerator() = default;
 
 	/**
-	 * @brief Get an exact value
+	 * @brief Take an exact value
 	 *
 	 * @param value  The required value
-	 * @return The value
 	 */
-	virtual uint64_t GetValueExact(uint64_t value) = 0;
+	virtual void GetValueExact(uint64_t value) = 0;
 
 	/**
 	 * @brief Plan the remaining number of bytes and packets

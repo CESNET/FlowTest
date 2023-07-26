@@ -45,12 +45,11 @@ public:
 	~PacketSizeGeneratorSlow() = default;
 
 	/**
-	 * @brief Get an exact value
+	 * @brief Take an exact value
 	 *
 	 * @param value  The required value
-	 * @return The value
 	 */
-	uint64_t GetValueExact(uint64_t value) override;
+	void GetValueExact(uint64_t value) override;
 
 	/**
 	 * @brief Get a random value from the generated values
