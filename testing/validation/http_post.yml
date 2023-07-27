@@ -1,27 +1,29 @@
-test:
-  name: HTTP Post Method
-  pcaps: ["http_post.pcap"]
-  required_protocols: ["http"]
-  description: Check that HTTP Post method is properly parsed from HTTP request.
-
-at_least_one: ["http_host", "http_method", "http_method_id", "http_url", "http_status_code", "http_agent",
-              "http_content_type"]
+name: HTTP Post Method
+description: Check that HTTP Post method is properly parsed from HTTP request.
+requirements:
+  protocols: [http]
+marks: [http]
+pcap: http_post.pcap
+probe:
+  protocols: [http]
+at_least_one: [http_host, http_method, http_method_id, http_url, http_status_code,
+  http_agent, http_content_type]
 
 flows:
-  - src_ip:      "192.168.158.139"
-    dst_ip:      "162.159.241.165"
-    ip_version:  4
-    protocol:    6
-    bytes:       429
-    bytes@rev:   2033
-    packets:     6
+  - src_ip: 192.168.158.139
+    dst_ip: 162.159.241.165
+    ip_version: 4
+    protocol: 6
+    bytes: 429
+    bytes@rev: 2033
+    packets: 6
     packets@rev: 6
-    src_port:    4769
-    dst_port:    80
-    http_host:         "ask.wireshark.org"
-    http_url:          "/"
-    http_method:       "POST"
-    http_method_id:    2
-    http_status_code:  403
-    http_agent:        "curl/7.26.0"
-    http_content_type: "text/html"
+    src_port: 4769
+    dst_port: 80
+    http_host: ask.wireshark.org
+    http_url: /
+    http_method: POST
+    http_method_id: 2
+    http_status_code: 403
+    http_agent: curl/7.26.0
+    http_content_type: text/html

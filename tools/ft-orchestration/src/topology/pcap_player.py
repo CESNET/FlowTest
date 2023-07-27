@@ -110,7 +110,7 @@ def topology_pcap_player(
     generator_builder = GeneratorBuilder(
         config,
         generator_option.alias,
-        probe_builder.get_mac_addresses(),
+        [ifc.mac for ifc in probe_builder.get_enabled_interfaces()],
         add_vlan=generator_option.arguments.pop("vlan"),
         edit_dst_mac=not generator_option.arguments.pop("orig-mac"),
         cmd_connector_args=generator_option.arguments,

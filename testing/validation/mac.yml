@@ -1,21 +1,23 @@
-test:
-  name: MAC Addresses
-  pcaps: ["tls12.pcap"]
-  required_protocols: ["eth"]
-  description: Check that MAC addresses are correctly parsed.
-
-at_least_one: ["src_mac", "dst_mac"]
+name: MAC Addresses
+description: Check that MAC addresses are correctly parsed.
+requirements:
+  protocols: [eth]
+marks: [eth]
+pcap: tls12.pcap
+probe:
+  protocols: [eth]
+at_least_one: [src_mac, dst_mac]
 
 flows:
-  - src_ip:      "10.100.50.48"
-    dst_ip:      "10.100.50.139"
-    ip_version:  4
-    protocol:    6
-    bytes:       3218
-    bytes@rev:   3798
-    packets:     15
+  - src_ip: 10.100.50.48
+    dst_ip: 10.100.50.139
+    ip_version: 4
+    protocol: 6
+    bytes: 3218
+    bytes@rev: 3798
+    packets: 15
     packets@rev: 11
-    src_port:    46588
-    dst_port:    7001
-    src_mac:     "00:50:56:bf:fb:74"
-    dst_mac:     "00:50:56:bf:c3:9e"
+    src_port: 46588
+    dst_port: 7001
+    src_mac: 00:50:56:bf:fb:74
+    dst_mac: 00:50:56:bf:c3:9e

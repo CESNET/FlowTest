@@ -1,21 +1,23 @@
-test:
-  name: IPv6 Option Routing Header
-  pcaps: ["ipv6-routing-header.pcap"]
-  required_protocols: ["ipv6"]
-  description: Check that packets with IPv6 header option Routing Header are parsed properly.
+name: IPv6 Option Routing Header
+description: Check that packets with IPv6 header option Routing Header are parsed
+  properly.
+marks: [ipv6]
+pcap: ipv6-routing-header.pcap
+probe:
+  protocols: [ipv6]
 
 flows:
-  - src_ip:         "fc00:2:0:2::1"
-    dst_ip:         "fc00:2:0:1::1"
-    ip_version:     6
-    protocol:       6
-    bytes:          533
-    bytes@rev:      767
-    packets:        6
-    packets@rev:    4
-    tos:            0x00
-    tos@rev:        0x00
-    ttl:            64
-    ttl@rev:        63
-    src_port:       43424
-    dst_port:       8080
+  - src_ip: fc00:2:0:2::1
+    dst_ip: fc00:2:0:1::1
+    ip_version: 6
+    protocol: 6
+    bytes: 533
+    bytes@rev: 767
+    packets: 6
+    packets@rev: 4
+    tos: 0x00
+    tos@rev: 0x00
+    ttl: 64
+    ttl@rev: 63
+    src_port: 43424
+    dst_port: 8080

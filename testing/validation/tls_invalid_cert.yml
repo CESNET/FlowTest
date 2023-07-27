@@ -1,23 +1,26 @@
-test:
-  name: TLS Invalid Certificate
-  pcaps: ["tls_invalid_cert.pcap"]
-  required_protocols: ["tls"]
-  description: Check that TLS communication resulting in invalid certificate error is properly parsed.
-
-at_least_one: ["tls_server_version", "tls_cipher_suite", "tls_client_version", "tls_ja3"]
+name: TLS Invalid Certificate
+description: Check that TLS communication resulting in invalid certificate error is
+  properly parsed.
+requirements:
+  protocols: [tls]
+marks: [tls]
+pcap: tls_invalid_cert.pcap
+probe:
+  protocols: [tls]
+at_least_one: [tls_server_version, tls_cipher_suite, tls_client_version, tls_ja3]
 
 flows:
-  - src_ip:      "192.168.1.29"
-    dst_ip:      "192.168.1.25"
-    ip_version:  4
-    protocol:    6
-    bytes:       919
-    bytes@rev:   1561
-    packets:     7
+  - src_ip: 192.168.1.29
+    dst_ip: 192.168.1.25
+    ip_version: 4
+    protocol: 6
+    bytes: 919
+    bytes@rev: 1561
+    packets: 7
     packets@rev: 4
-    src_port:    44300
-    dst_port:    8443
-    tls_server_version:      0x0304
-    tls_cipher_suite:        0x1302
-    tls_client_version:      0xeaea
-    tls_ja3:     "0xbcfedf9f1709891a892b5bb1571df55c"
+    src_port: 44300
+    dst_port: 8443
+    tls_server_version: 0x0304
+    tls_cipher_suite: 0x1302
+    tls_client_version: 0xeaea
+    tls_ja3: '0xbcfedf9f1709891a892b5bb1571df55c'

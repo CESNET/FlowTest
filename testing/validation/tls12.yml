@@ -1,31 +1,34 @@
-test:
-  name: TLS 1.2 Traffic
-  pcaps: ["tls12_alpn.pcap"]
-  required_protocols: ["tls"]
-  description: Check that TLS 1.2 is properly parsed.
-
-at_least_one: ["tls_server_version", "tls_cipher_suite", "tls_alpn", "tls_sni", "tls_client_version", "tls_issuer_cn",
-              "tls_ja3", "tls_subject_cn", "tls_validity_not_before", "tls_validity_not_after", "tls_public_key_alg"]
+name: TLS 1.2 Traffic
+description: Check that TLS 1.2 is properly parsed.
+requirements:
+  protocols: [tls]
+marks: [tls]
+pcap: tls12_alpn.pcap
+probe:
+  protocols: [tls]
+at_least_one: [tls_server_version, tls_cipher_suite, tls_alpn, tls_sni, tls_client_version,
+  tls_issuer_cn, tls_ja3, tls_subject_cn, tls_validity_not_before, tls_validity_not_after,
+  tls_public_key_alg]
 
 flows:
-  - src_ip:                  "10.100.50.30"
-    dst_ip:                  "77.75.77.222"
-    ip_version:              4
-    protocol:                6
-    bytes:                   1726
-    bytes@rev:               6358
-    packets:                 23
-    packets@rev:             16
-    src_port:                46766
-    dst_port:                443
-    tls_server_version:      0x0303
-    tls_cipher_suite:        0xcca8
-    tls_alpn:                "h2"
-    tls_sni:                 "seznam.cz"
-    tls_client_version:      0x0303
-    tls_issuer_cn:           "R3"
-    tls_subject_cn:          "www.seznam.cz"
+  - src_ip: 10.100.50.30
+    dst_ip: 77.75.77.222
+    ip_version: 4
+    protocol: 6
+    bytes: 1726
+    bytes@rev: 6358
+    packets: 23
+    packets@rev: 16
+    src_port: 46766
+    dst_port: 443
+    tls_server_version: 0x0303
+    tls_cipher_suite: 0xcca8
+    tls_alpn: h2
+    tls_sni: seznam.cz
+    tls_client_version: 0x0303
+    tls_issuer_cn: R3
+    tls_subject_cn: www.seznam.cz
     tls_validity_not_before: 1680498180
-    tls_validity_not_after:  1688274179
-    tls_public_key_alg:      "rsaEncryption"
-    tls_ja3:                 "0x7f9ee38af4d6bfadb75f00b209febe07"
+    tls_validity_not_after: 1688274179
+    tls_public_key_alg: rsaEncryption
+    tls_ja3: '0x7f9ee38af4d6bfadb75f00b209febe07'

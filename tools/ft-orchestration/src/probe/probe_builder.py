@@ -73,19 +73,23 @@ class ProbeBuilder(BuilderBase, Device):
         else:
             self._whitelist = None
 
+        self._protocols = probe_cfg.protocols
+
         # cmd additional arguments has higher priority, update arguments from config
         self._connector_args.update(cmd_connector_args)
 
         self._class = self._find_class(PROBE_IMPORT_PATH, probe_cfg.type, ProbeInterface)
 
     # pylint: disable=arguments-differ
-    def get(self, required_protocols: List[str]) -> ProbeInterface:
+    def get(self, protocols: list[str], **kwargs) -> ProbeInterface:
         """Create probe instance from static configuration by alias identifier.
 
         Parameters
         ----------
-        required_protocols : List[str]
+        protocols : list[str]
             List of the networking protocols which the probe should parse and export.
+        kwargs: dict
+            Custom arguments passed to the init function of the probe
 
         Returns
         -------
@@ -93,18 +97,18 @@ class ProbeBuilder(BuilderBase, Device):
             New probe instance.
         """
 
-        return self._class(self._host, self._target, required_protocols, self._interfaces, **self._connector_args)
+        return self._class(self._host, self._target, protocols, self._interfaces, **{**self._connector_args, **kwargs})
 
-    def get_mac_addresses(self) -> List[str]:
-        """Get list of hardware addresses of enabled interfaces.
+    def get_enabled_interfaces(self) -> List[InterfaceCfg]:
+        """Get list of enabled interfaces.
 
         Returns
         -------
-        List[str]
-            Hardware addresses of enabled interfaces.
+        List[InterfaceCfg]
+            Enabled interfaces.
         """
 
-        return [ifc.mac for ifc in self._interfaces]
+        return self._interfaces
 
     def get_tests_whitelist(self) -> Optional[WhitelistCfg]:
         """Get whitelist with expected failure tests.
@@ -116,6 +120,17 @@ class ProbeBuilder(BuilderBase, Device):
         """
 
         return self._whitelist
+
+    def get_supported_protocols(self) -> list[str]:
+        """Get list of protocols (plugins) supported by probe. From static configuration.
+
+        Returns
+        -------
+        list[str]
+            List of protocol names.
+        """
+
+        return self._protocols
 
     @staticmethod
     def _load_interfaces(probe_cfg: ProbeCfg, enabled_interfaces: List[str]) -> List[InterfaceCfg]:

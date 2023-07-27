@@ -1,25 +1,28 @@
-test:
-  name: HTTP Error 401
-  pcaps: ["http_401.pcap"]
-  required_protocols: ["http"]
-  description: Check that HTTP 401 error response code is parsed properly.
-
-at_least_one: ["http_host", "http_method_id", "http_url", "http_method", "http_status_code", "http_agent"]
+name: HTTP Error 401
+description: Check that HTTP 401 error response code is parsed properly.
+requirements:
+  protocols: [http]
+marks: [http]
+pcap: http_401.pcap
+probe:
+  protocols: [http]
+at_least_one: [http_host, http_method_id, http_url, http_method, http_status_code,
+  http_agent]
 
 flows:
-  - src_ip:      "202.254.1.2"
-    dst_ip:      "6.0.0.1"
-    ip_version:  4
-    protocol:    6
-    bytes:       2374
-    bytes@rev:   457
-    packets:     8
+  - src_ip: 202.254.1.2
+    dst_ip: 6.0.0.1
+    ip_version: 4
+    protocol: 6
+    bytes: 2374
+    bytes@rev: 457
+    packets: 8
     packets@rev: 6
-    src_port:    43281
-    dst_port:    80
-    http_host:         "acs1.broadband-forum.org"
-    http_method_id:    2
-    http_url:          "/"
-    http_method:       "POST"
-    http_status_code:  401
-    http_agent:        "MikroTik"
+    src_port: 43281
+    dst_port: 80
+    http_host: acs1.broadband-forum.org
+    http_method_id: 2
+    http_url: /
+    http_method: POST
+    http_status_code: 401
+    http_agent: MikroTik

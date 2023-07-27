@@ -28,7 +28,7 @@ class ProbeCfg(YAMLWizard):
     type: str
     interfaces: List[InterfaceCfg]
     authentication: str
-    tags: List[str]
+    protocols: List[str]
     connector: Optional[dict] = None
     ansible_playbook_role: Optional[str] = None
     tests_whitelist: Optional[str] = None

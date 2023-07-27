@@ -1,19 +1,22 @@
-test:
-  name: GRE Tunnel
-  pcaps: ["gre.pcap"]
-  required_protocols: ["gre"]
-  description: Parse GRE tunnel and check whether IP fields contain information from the inner IP header.
-
+name: GRE Tunnel
+description: Parse GRE tunnel and check whether IP fields contain information from
+  the inner IP header.
+requirements:
+  protocols: [gre]
+marks: [gre]
+pcap: gre.pcap
+probe:
+  protocols: [gre]
 key: [src_ip, dst_ip, protocol]
 
 flows:
-  - src_ip:            "1.1.1.1"
-    dst_ip:            "2.2.2.2"
-    ip_version:        4
-    protocol:          1
-    bytes:             500
-    bytes@rev:         500
-    bytes_outer:       620
-    bytes_outer@rev:   620
-    packets:           5
-    packets@rev:       5
+  - src_ip: 1.1.1.1
+    dst_ip: 2.2.2.2
+    ip_version: 4
+    protocol: 1
+    bytes: 500
+    bytes@rev: 500
+    bytes_outer: 620
+    bytes_outer@rev: 620
+    packets: 5
+    packets@rev: 5

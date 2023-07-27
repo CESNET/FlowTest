@@ -271,7 +271,7 @@ def test_probes(create_config) -> None:
                     speed: 10
                     mac: 01:01:01:01:01:01
             authentication: cesnet-general
-            tags: [ http, tls, dns, trill ]
+            protocols: [ http, tls, dns, trill ]
             ansible-playbook-role: probe-ipfixprobe
 
         - alias: flowmonexp-10G
@@ -285,7 +285,7 @@ def test_probes(create_config) -> None:
                     speed: 10
                     mac: 01:01:01:01:01:01
             authentication: flowmon-probes
-            tags: [ http, tls, dns, vxlan, gre ]
+            protocols: [ http, tls, dns, vxlan, gre ]
             connector:
                 input-plugin-type: [ dpdk, rawnetcap ]
     """
@@ -305,7 +305,7 @@ def test_probes(create_config) -> None:
         InterfaceCfg(name="eth3", speed=10, mac="01:01:01:01:01:01"),
     ]
     assert probe_1.authentication == "cesnet-general"
-    assert probe_1.tags == ["http", "tls", "dns", "trill"]
+    assert probe_1.protocols == ["http", "tls", "dns", "trill"]
     assert probe_1.connector is None
     assert probe_1.ansible_playbook_role == "probe-ipfixprobe"
 
@@ -317,7 +317,7 @@ def test_probes(create_config) -> None:
         InterfaceCfg(name="eth3", speed=10, mac="01:01:01:01:01:01"),
     ]
     assert probe_2.authentication == "flowmon-probes"
-    assert probe_2.tags == ["http", "tls", "dns", "vxlan", "gre"]
+    assert probe_2.protocols == ["http", "tls", "dns", "vxlan", "gre"]
     assert probe_2.connector == {"input-plugin-type": ["dpdk", "rawnetcap"]}
     assert probe_2.ansible_playbook_role is None
 

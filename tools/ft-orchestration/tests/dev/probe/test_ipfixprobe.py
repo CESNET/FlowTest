@@ -191,7 +191,10 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        regex = 'ipfixprobe -i "raw;ifc=eno1" -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
+        regex = (
+            'ipfixprobe -i "raw;ifc=eno1" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
+            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
+        )
         assert re.search(regex, fake_host.last_command)
 
     @staticmethod
@@ -219,7 +222,7 @@ class TestWithFakeHost:
         probe.stop()
 
         regex = (
-            'ipfixprobe -i "raw;ifc=eno1" -o "ipfix;h=127.0.0.1;p=4739"'
+            'ipfixprobe -i "raw;ifc=eno1" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
             ' -p "basicplus" -p "dns" -p "http" -p "tls" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
         )
         assert re.search(regex, fake_host.last_command)
@@ -238,7 +241,7 @@ class TestWithFakeHost:
         probe.stop()
 
         regex = (
-            'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -o "ipfix;h=127.0.0.1;p=4739"'
+            'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
             " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
         )
         assert re.search(regex, fake_host.last_command)
@@ -257,7 +260,7 @@ class TestWithFakeHost:
 
         regex = (
             'ipfixprobe -i "raw;ifc=eno1;f=242;b=2048;p=64" -i "raw;ifc=eno2;f=242;b=2048;p=64"'
-            ' -i "raw;ifc=eno3;f=242;b=2048;p=64" -o "ipfix;h=127.0.0.1;p=4739"'
+            ' -i "raw;ifc=eno3;f=242;b=2048;p=64" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
             " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
         )
         assert re.search(regex, fake_host.last_command)
@@ -284,7 +287,8 @@ class TestWithFakeHost:
 
         regex = (
             'ipfixprobe -i "dpdk;p=0;q=4;b=128;m=4096;e=-c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0"'
-            ' -i "dpdk" -i "dpdk" -i "dpdk" -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
+            ' -i "dpdk" -i "dpdk" -i "dpdk" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
+            " |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
         )
         assert re.search(regex, fake_host.last_command)
 
@@ -309,7 +313,7 @@ class TestWithFakeHost:
         probe.stop()
 
         regex = (
-            'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -o "ipfix;h=127.0.0.1;p=4739" '
+            'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739" '
             "|& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log"
         )
         assert re.search(regex, fake_host.last_command)
@@ -326,7 +330,7 @@ class TestWithFakeHost:
 
         regex = (
             'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -i "ndp;dev=/dev/nfb0:1" -i "ndp;dev=/dev/nfb0:2"'
-            ' -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
+            ' -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739" |& tee -i /tmp/[0-0a-zA-Z]+/ipfixprobe.log'
         )
         assert re.search(regex, fake_host.last_command)
 
@@ -392,7 +396,9 @@ class TestWithDockerIpfixprobe:
     def test_kill_ipfixprobe(docker_ipfixprobe):
         """Test killing ipfixprobe instance before start."""
 
-        docker_ipfixprobe.host.run('sudo ipfixprobe -i "raw;ifc=eth0" -o "ipfix;h=127.0.0.1;p=4739"', asynchronous=True)
+        docker_ipfixprobe.host.run(
+            'sudo ipfixprobe -i "raw;ifc=eth0" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"', asynchronous=True
+        )
         time.sleep(2)
         old_pid = get_ipfixprobe_pid(docker_ipfixprobe.host)
 

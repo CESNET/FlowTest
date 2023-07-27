@@ -1,21 +1,22 @@
-test:
-  name: IPv4 Traffic
-  pcaps: ["tls12.pcap"]
-  required_protocols: ["ipv4"]
-  description: Check that regular IPv4 header is parsed properly.
+name: IPv4 Traffic
+description: Check that regular IPv4 header is parsed properly.
+marks: [ipv4]
+pcap: tls12.pcap
+probe:
+  protocols: [ipv4]
 
 flows:
-  - src_ip:      "10.100.50.48"
-    dst_ip:      "10.100.50.139"
-    ip_version:  4
-    protocol:    6
-    bytes:       3218
-    bytes@rev:   3798
-    packets:     15
+  - src_ip: 10.100.50.48
+    dst_ip: 10.100.50.139
+    ip_version: 4
+    protocol: 6
+    bytes: 3218
+    bytes@rev: 3798
+    packets: 15
     packets@rev: 11
-    src_port:    46588
-    dst_port:    7001
-    tos:         0x00
-    tos@rev:     0x00
-    ttl:         64
-    ttl@rev:     64
+    src_port: 46588
+    dst_port: 7001
+    tos: 0x00
+    tos@rev: 0x00
+    ttl: 64
+    ttl@rev: 64

@@ -1,20 +1,22 @@
-test:
-  name: MPLS (Single Label)
-  pcaps: ["mpls-vpn-transport-vpn-labels.pcap"]
-  required_protocols: ["mpls"]
-  description: Check that MPLS header is correctly parsed and skipped.
-
+name: MPLS (Single Label)
+description: Check that MPLS header is correctly parsed and skipped.
+requirements:
+  protocols: [mpls]
+marks: [mpls]
+pcap: mpls-vpn-transport-vpn-labels.pcap
+probe:
+  protocols: [mpls]
 key: [src_ip, dst_ip, protocol]
-at_least_one: ["mpls_label_1", "mpls_label_1@rev"]
+at_least_one: [mpls_label_1, mpls_label_1@rev]
 
 flows:
-  - src_ip:           "1.1.1.1"
-    dst_ip:           "5.5.5.5"
-    ip_version:       4
-    protocol:         1
-    bytes:            500
-    bytes@rev:        500
-    packets:          5
-    packets@rev:      5
-    mpls_label_1:     272
+  - src_ip: 1.1.1.1
+    dst_ip: 5.5.5.5
+    ip_version: 4
+    protocol: 1
+    bytes: 500
+    bytes@rev: 500
+    packets: 5
+    packets@rev: 5
+    mpls_label_1: 272
     mpls_label_1@rev: 305

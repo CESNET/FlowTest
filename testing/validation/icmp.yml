@@ -1,24 +1,27 @@
-test:
-  name: ICMPv4 Traffic
-  pcaps: ["icmp.pcap"]
-  required_protocols: ["icmp"]
-  description: Check that ICMPv4 is properly parsed.
-
+name: ICMPv4 Traffic
+description: Check that ICMPv4 is properly parsed.
+requirements:
+  protocols: [icmp]
+marks: [icmp]
+pcap: icmp.pcap
+probe:
+  protocols: [icmp]
 key: [src_ip, dst_ip, protocol]
-at_least_one: [icmp_type, icmp_type@rev, icmp_code, icmp_code@rev, icmp_type_code, icmp_type_code@rev]
+at_least_one: [icmp_type, icmp_type@rev, icmp_code, icmp_code@rev, icmp_type_code,
+  icmp_type_code@rev]
 
 flows:
-  - src_ip:             "192.168.158.139"
-    dst_ip:             "174.137.42.77"
-    ip_version:         4
-    protocol:           1
-    bytes:              240
-    bytes@rev:          240
-    packets:            4
-    packets@rev:        4
-    icmp_type:          8
-    icmp_type@rev:      0
-    icmp_code:          0
-    icmp_code@rev:      0
-    icmp_type_code:     2048
+  - src_ip: 192.168.158.139
+    dst_ip: 174.137.42.77
+    ip_version: 4
+    protocol: 1
+    bytes: 240
+    bytes@rev: 240
+    packets: 4
+    packets@rev: 4
+    icmp_type: 8
+    icmp_type@rev: 0
+    icmp_code: 0
+    icmp_code@rev: 0
+    icmp_type_code: 2048
     icmp_type_code@rev: 0

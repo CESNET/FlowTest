@@ -1,24 +1,26 @@
-test:
-  name: HTTP CR LF in Header
-  pcaps: ["http_crlf_in_header.pcap"]
-  required_protocols: ["http"]
-  description: Check that packets with CR LF in HTTP header are parsed properly.
-
-at_least_one: ["http_method", "http_method_id", "http_url", "http_status_code", "http_content_type"]
+name: HTTP CR LF in Header
+description: Check that packets with CR LF in HTTP header are parsed properly.
+requirements:
+  protocols: [http]
+marks: [http]
+pcap: http_crlf_in_header.pcap
+probe:
+  protocols: [http]
+at_least_one: [http_method, http_method_id, http_url, http_status_code, http_content_type]
 
 flows:
-  - src_ip:      "192.168.1.36"
-    dst_ip:      "192.168.1.25"
-    ip_version:  4
-    protocol:    6
-    bytes:       480
-    bytes@rev:   405
-    packets:     6
+  - src_ip: 192.168.1.36
+    dst_ip: 192.168.1.25
+    ip_version: 4
+    protocol: 6
+    bytes: 480
+    bytes@rev: 405
+    packets: 6
     packets@rev: 4
-    src_port:    55028
-    dst_port:    8080
-    http_url:          "/"
-    http_method:       "GET"
-    http_method_id:    1
-    http_status_code:  200
-    http_content_type: "text/html"
+    src_port: 55028
+    dst_port: 8080
+    http_url: /
+    http_method: GET
+    http_method_id: 1
+    http_status_code: 200
+    http_content_type: text/html

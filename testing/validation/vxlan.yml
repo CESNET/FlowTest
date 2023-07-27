@@ -1,24 +1,26 @@
-# Check that information from inner Ethernet and IP headers are exported
-test:
-  name: VXLAN Tunnel
-  pcaps: ["vxlan.pcap"]
-  required_protocols: ["eth", "vxlan"]
-  description: Parse VXLAN tunnel and check whether MAC resp. IP fields contain information from the inner ethernet resp. IP header.
-
+name: VXLAN Tunnel
+description: Parse VXLAN tunnel and check whether MAC resp. IP fields contain information
+  from the inner ethernet resp. IP header.
+requirements:
+  protocols: [eth, vxlan]
+marks: [eth, vxlan]
+pcap: vxlan.pcap
+probe:
+  protocols: [eth, vxlan]
 key: [src_ip, dst_ip, protocol]
-at_least_one: ["vxlan_id"]
+at_least_one: [vxlan_id]
 
 flows:
-  - src_ip:           "10.0.0.1"
-    dst_ip:           "10.0.0.2"
-    ip_version:        4
-    protocol:          1
-    bytes:             336
-    bytes@rev:         336
-    bytes_outer:       536
-    bytes_outer@rev:   536
-    packets:           4
-    packets@rev:       4
-    src_mac:           "ba:09:2b:6e:f8:be"
-    dst_mac:           "4a:7f:01:3b:a2:71"
-    vxlan_id:          123
+  - src_ip: 10.0.0.1
+    dst_ip: 10.0.0.2
+    ip_version: 4
+    protocol: 1
+    bytes: 336
+    bytes@rev: 336
+    bytes_outer: 536
+    bytes_outer@rev: 536
+    packets: 4
+    packets@rev: 4
+    src_mac: ba:09:2b:6e:f8:be
+    dst_mac: 4a:7f:01:3b:a2:71
+    vxlan_id: 123

@@ -1,17 +1,17 @@
-test:
-  name: IPv6 with ESP
-  pcaps: ["ipv6-esp.pcap"]
-  required_protocols: ["ipv6"]
-  description: Check that probes identify ESP header correctly after IPv6 header.
-
+name: IPv6 with ESP
+description: Check that probes identify ESP header correctly after IPv6 header.
+marks: [ipv6]
+pcap: ipv6-esp.pcap
+probe:
+  protocols: [ipv6]
 key: [src_ip, dst_ip, protocol]
 
 flows:
-  - src_ip:         "2001:470:e5bf:1001:8519:2d1f:c57d:fc4f"
-    dst_ip:         "2001:470:e5bf:dead:7db0:921:a2e9:1c21"
-    ip_version:     6
-    protocol:       50
-    bytes:          48
-    packets:        1
-    tos:            0x00
-    ttl:            63
+  - src_ip: 2001:470:e5bf:1001:8519:2d1f:c57d:fc4f
+    dst_ip: 2001:470:e5bf:dead:7db0:921:a2e9:1c21
+    ip_version: 6
+    protocol: 50
+    bytes: 48
+    packets: 1
+    tos: 0x00
+    ttl: 63

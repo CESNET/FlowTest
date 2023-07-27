@@ -132,8 +132,8 @@ class IpfixprobeSettings(ABC):
     # flow cache settings
     cache_size: Optional[int] = None
     cache_line_size: Optional[int] = None
-    active_timeout: Optional[int] = None
-    inactive_timeout: Optional[int] = None
+    active_timeout: int = 300
+    inactive_timeout: int = 30
 
     # output plugin (ipfix) settings
     mtu_size: Optional[int] = None
@@ -294,6 +294,7 @@ class IpfixprobeStats:
         return self.__repr__()
 
 
+# pylint: disable=too-many-instance-attributes
 class Ipfixprobe(ProbeInterface, ABC):
     """Class for invoking and managing ipfixprobe process on host.
 
@@ -358,6 +359,7 @@ class Ipfixprobe(ProbeInterface, ABC):
         self._verbose = verbose
         self._enabled_plugins = []
         self._last_run_stats = None
+        self._timeouts = (settings.active_timeout, settings.inactive_timeout)
 
         self._check_binary()
         self._cmd = self._prepare_cmd(target, protocols, settings)
@@ -492,6 +494,17 @@ class Ipfixprobe(ProbeInterface, ABC):
         """
 
         return self._last_run_stats
+
+    def get_timeouts(self) -> tuple[int, int]:
+        """Get active and inactive timeouts of the probe (in seconds).
+
+        Returns
+        -------
+        tuple
+            active_timeout, inactive_timeout
+        """
+
+        return self._timeouts
 
     def _check_binary(self) -> None:
         """Check ipfixprobe installed on host.
