@@ -171,7 +171,7 @@ void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredByt
 
 	if (finalDiffRatio > DIFF_RATIO_FALLBACK_TO_UNIFORM) {
 		std::fill(_values.begin(), _values.end(), desiredBytes / desiredBytes);
-		_logger->info(
+		_logger->debug(
 			"Generated values difference too large {}, fallback to uniform distribution",
 			finalDiffRatio);
 	} else {

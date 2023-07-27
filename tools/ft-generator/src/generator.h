@@ -78,10 +78,21 @@ private:
 	AddressGenerators _addressGenerators; //< The address generators
 	const config::CommandLineArgs& _args; //< The command line args
 
+	struct {
+		std::size_t _numOpenFlows = 0; //< Number of open flows
+		std::size_t _numClosedFlows
+			= 0; //< Number of closed flows, i.e. flows fully generated so far
+		std::size_t _numAllFlows = 0; //< Total number of flows to generate
+		std::time_t _prevProgressTime = 0; //< Time when progress was last logged
+		int _prevProgressPercent = 0; //< Last progress percent printed
+	} _stats;
+
 	void PrepareProfiles();
 	void CheckEnoughDiskSpace();
 	std::unique_ptr<Flow> GetNextFlow();
 	std::unique_ptr<Flow> MakeNextFlow();
+	void OnFlowOpened(const Flow& flow, const FlowProfile& profile);
+	void OnFlowClosed(const Flow& flow);
 };
 
 } // namespace generator
