@@ -59,6 +59,7 @@ add_executable(ft-generator ${FT_GENERATOR_SOURCES} main.cpp)
 target_link_libraries(ft-generator PRIVATE ${FT_GENERATOR_LIBS})
 
 set(FT_GENERATOR_TEST_SOURCES
+	tests/macaddressgenerator.cpp
 	tests/lfsr.cpp
 )
 
