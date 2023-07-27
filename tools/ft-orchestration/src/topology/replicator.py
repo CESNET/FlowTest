@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 Implementation of topology with replicator (probably ft-replay), probe and collector.
 """
 
+from copy import deepcopy
 from typing import Optional
 
 import pytest
@@ -89,6 +90,12 @@ def topology_replicator(
 
     generator_option = parse_generator_option(option_replicator)
     assert generator_option, "Generator cmd argument is required."
+
+    probe_option, collector_option, generator_option = (
+        deepcopy(probe_option),
+        deepcopy(collector_option),
+        deepcopy(generator_option),
+    )
 
     collector_builder = CollectorBuilder(
         config,
