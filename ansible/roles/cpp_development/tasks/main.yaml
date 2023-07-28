@@ -1,0 +1,22 @@
+---
+- name: Make/CMake/rpmbuild is installed
+  ansible.builtin.dnf:
+    name:
+      - cmake
+      - make
+      - rpm-build
+    state: latest
+
+- name: GCC is installed
+  ansible.builtin.dnf:
+    name:
+      - gcc
+      - gcc-c++
+    state: latest
+
+- name: Static analysis tools are installed
+  ansible.builtin.dnf:
+    name:
+      - cppcheck
+      - clang-tools-extra
+    state: latest

@@ -86,6 +86,7 @@ ansible-playbook \
 	${verbosity} \
 	-b --become-user "${become}" ${ask_become_pass} \
 	-e ansible_remote_tmp="${tmp_dir}" \
+	-i localhost, \
 	"${playbook}"
 
 ansible_rc=$?

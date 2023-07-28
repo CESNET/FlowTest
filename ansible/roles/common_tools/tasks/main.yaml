@@ -1,0 +1,10 @@
+---
+- name: Sudo is installed
+  ansible.builtin.dnf:
+    name: sudo
+    state: latest
+
+- name: Git is installed
+  ansible.builtin.dnf:
+    name: git
+    state: latest
