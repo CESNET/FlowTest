@@ -16,9 +16,10 @@ FetchContent_Declare(
 # Make sure that subproject accepts predefined build options without warnings.
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-# Library does not compile with -Werror that we use in release builds
-string(REPLACE "-Werror" "" CMAKE_CXX_FLAGS_RELEASE_YAMLCPP "${CMAKE_CXX_FLAGS_RELEASE}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE_YAMLCPP}")
+# Library does not compile with -Werror that we use in some builds
+string(REPLACE "-Werror " " " CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ")
+string(REPLACE "-Werror " " " CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ")
+string(REPLACE "-Werror " " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
 set(YAML_CPP_BUILD_TESTS OFF)
 set(YAML_CPP_BUILD_TOOLS OFF)
 set(YAML_CPP_INSTALL OFF)

@@ -1,5 +1,5 @@
 # Define default build type and supported options.
-set(DEFAULT_BUILD_TYPE "Debug")
+set(DEFAULT_BUILD_TYPE "Release")
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 	message(STATUS
