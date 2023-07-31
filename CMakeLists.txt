@@ -11,6 +11,7 @@ project(flowtest VERSION ${VERSION})
 
 include(cmake/build_type.cmake)
 include(cmake/installation.cmake)
+include(cmake/doctest-extras/doctest.cmake)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
