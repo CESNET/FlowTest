@@ -240,10 +240,12 @@ void Tcp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::End1) {
 		tcpHdr->finFlag = 1;
+		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::End2) {
 		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::End3) {
 		tcpHdr->finFlag = 1;
+		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::End4) {
 		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::Data) {
