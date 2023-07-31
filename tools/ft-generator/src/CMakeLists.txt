@@ -13,7 +13,6 @@ set(FT_GENERATOR_SOURCES
 	flowprofile.cpp
 	generator.cpp
 	generators/addressgenerators.cpp
-	generators/common.cpp
 	generators/ipv4addressgenerator.cpp
 	generators/ipv6addressgenerator.cpp
 	generators/lfsr.cpp
@@ -60,6 +59,8 @@ add_executable(ft-generator ${FT_GENERATOR_SOURCES} main.cpp)
 target_link_libraries(ft-generator PRIVATE ${FT_GENERATOR_LIBS})
 
 set(FT_GENERATOR_TEST_SOURCES
+	tests/macaddressgenerator.cpp
+	tests/lfsr.cpp
 )
 
 add_executable(ft-generator-test ${FT_GENERATOR_SOURCES} ${FT_GENERATOR_TEST_SOURCES} tests/main.cpp)

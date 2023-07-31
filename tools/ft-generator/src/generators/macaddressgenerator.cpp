@@ -8,16 +8,14 @@
 
 #include "macaddressgenerator.h"
 
-#include "common.h"
 #include "logger.h"
 
 namespace generator {
 
-MacAddressGenerator::MacAddressGenerator(
-	MacAddress baseAddr,
-	uint8_t prefixLen,
-	const std::bitset<128>& seed)
-	: _gen(PrefixedGenerator(BytesToBitset(baseAddr.getRawData(), 6), prefixLen, 48, seed))
+MacAddressGenerator::MacAddressGenerator(MacAddress baseAddr, uint8_t prefixLen)
+	: _gen(PrefixedGenerator(
+		std::vector<uint8_t>(baseAddr.getRawData(), baseAddr.getRawData() + 6),
+		prefixLen))
 	, _prefixLen(prefixLen)
 {
 	if (prefixLen > 0 && !baseAddr.isValid()) {
@@ -45,9 +43,7 @@ MacAddress MacAddressGenerator::Generate()
 	MacAddress mac;
 
 	while (true) {
-		uint8_t bytes[6];
-		BitsetToBytes(_gen.Generate(), bytes, 6);
-		mac = MacAddress(bytes);
+		mac = MacAddress(_gen.Generate().data());
 
 		/**
 		 * LSB=0 in the first octet denotes a group address.

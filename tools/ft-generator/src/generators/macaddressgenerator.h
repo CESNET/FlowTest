@@ -26,9 +26,8 @@ public:
 	 *
 	 * @param baseAddr   The base address to generate the addresses from, respectively the prefix
 	 * @param prefixLen  The prefix length
-	 * @param seed       The seed
 	 */
-	MacAddressGenerator(MacAddress baseAddr, uint8_t prefixLen, const std::bitset<128>& seed);
+	MacAddressGenerator(MacAddress baseAddr, uint8_t prefixLen);
 
 	/**
 	 * @brief Generate a Mac address
