@@ -67,4 +67,8 @@ add_executable(ft-generator-test ${FT_GENERATOR_SOURCES} ${FT_GENERATOR_TEST_SOU
 target_include_directories(ft-generator-test PRIVATE ${DOCTEST_INCLUDE_DIR})
 target_link_libraries(ft-generator-test PRIVATE ${FT_GENERATOR_LIBS})
 
+doctest_discover_tests(ft-generator-test
+	ADD_LABELS 1
+	TEST_PREFIX "ft-generator:")
+
 install(TARGETS ft-generator DESTINATION ${INSTALL_DIR_BIN})
