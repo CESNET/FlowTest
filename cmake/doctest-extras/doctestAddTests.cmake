@@ -60,6 +60,7 @@ foreach(line ${output})
 	endif()
 	set(test ${line})
 	set(labels "")
+	set(testsuiteprefix "")
 	if(${add_labels})
 		# get test suite that test belongs to
 		execute_process(
@@ -82,6 +83,7 @@ foreach(line ${output})
 				continue()
 			endif()
 			list(APPEND labels ${labelline})
+			string(APPEND testsuiteprefix "${labelline}: ")
 		endforeach()
 	endif()
 
@@ -96,7 +98,7 @@ foreach(line ${output})
 	string(REPLACE "," "\\," test_name ${test})
 	# ...and add to script
 	add_command(add_test
-		"${prefix}${test}${suffix}"
+		"${prefix}${testsuiteprefix}${test}${suffix}"
 		${TEST_EXECUTOR}
 		"${TEST_EXECUTABLE}"
 		"--test-case=${test_name}"
@@ -104,14 +106,14 @@ foreach(line ${output})
 		${extra_args}
 	)
 	add_command(set_tests_properties
-		"${prefix}${test}${suffix}"
+		"${prefix}${testsuiteprefix}${test}${suffix}"
 		PROPERTIES
 		WORKING_DIRECTORY "${TEST_WORKING_DIR}"
 		${properties}
 		LABELS ${labels}
 	)
 	unset(labels)
-	list(APPEND tests "${prefix}${test}${suffix}")
+	list(APPEND tests "${prefix}${testsuiteprefix}${test}${suffix}")
 endforeach()
 
 # Create a list of all discovered tests, which users may use to e.g. set
