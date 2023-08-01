@@ -43,6 +43,7 @@ set(FT_GENERATOR_SOURCES
 	packetsizegenerator.cpp
 	packetsizegeneratorslow.cpp
 	packetsizegeneratorfast.cpp
+	normalizedflowidentifier.cpp
 )
 
 set(FT_GENERATOR_LIBS
