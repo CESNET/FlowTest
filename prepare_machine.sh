@@ -103,6 +103,7 @@ then
 	rm -rf ${venv_dir}
 	python3 -m venv ${verbosity} --prompt flowtest ${venv_dir}
 	. ${venv_dir}/bin/activate
+	python3 -m pip install pipenv
 	pipenv install ${verbosity} --dev
 
 	echo "To activate new python virtualenv run:"
