@@ -5,10 +5,13 @@ set(VERSION_MINOR 1)
 set(VERSION_PATCH 0)
 set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
+# Enable generation of test files for CTest
+enable_testing()
 project(flowtest VERSION ${VERSION})
 
 include(cmake/build_type.cmake)
 include(cmake/installation.cmake)
+include(cmake/doctest-extras/doctest.cmake)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
