@@ -222,8 +222,8 @@ class FtGeneratorCache:
         csv_path = path.join(self._cache_dir, record.csv_filename)
 
         if (
-            self._host.run(f"test -f {pcap_path}", check_rc=False).exited == 0
-            and self._host.run(f"test -f {csv_path}", check_rc=False).exited == 0
+            self._host.run(f"test -f {pcap_path}", check_rc=False, path_replacement=False).exited == 0
+            and self._host.run(f"test -f {csv_path}", check_rc=False, path_replacement=False).exited == 0
             and self._compute_hash_on_host(pcap_path) == record.pcap_hash
             and self._compute_hash_on_host(csv_path) == record.csv_hash
         ):
@@ -297,7 +297,9 @@ class FtGeneratorCache:
         if self._host.is_local():
             index_exist = path.exists(self._index_path)
         else:
-            index_exist = self._host.run(f"test -f {self._index_path}", check_rc=False).exited == 0
+            index_exist = (
+                self._host.run(f"test -f {self._index_path}", check_rc=False, path_replacement=False).exited == 0
+            )
             if index_exist:
                 self._host.get_storage().pull(self._index_path, self._local_workdir)
 
@@ -371,7 +373,7 @@ class FtGeneratorCache:
         """
 
         try:
-            return self._host.run(f"md5sum {file_path}").stdout.split()[0]
+            return self._host.run(f"md5sum {file_path}", path_replacement=False).stdout.split()[0]
         except invoke.exceptions.UnexpectedExit as err:
             raise FtGeneratorException(f"Cannot compute hash for file in PCAP cache: '{file_path}'.") from err
 
