@@ -385,7 +385,15 @@ class FtReplay(Replicator):
             raise GeneratorException("ft-replay can not be started synchronous in infinite loop")
 
         self._save_config()
-        cmd_args = ["-c", self._config_file]
+
+        # this section will be simplified with Executables
+        if not self._host.is_local():
+            self._host.get_storage().push(self._config_file)
+            config_file = path.join(self._host.get_storage().get_remote_directory(), path.basename(self._config_file))
+        else:
+            config_file = self._config_file
+
+        cmd_args = ["-c", config_file]
         cmd_args += ["-l", str(loop_count)]
         cmd_args += [self._get_speed_arg(speed)]
         if self._vlan:
