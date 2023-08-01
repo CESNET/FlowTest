@@ -42,7 +42,6 @@ constexpr uint16_t TCP_WINDOW_SIZE
 enum class TcpPacketKind : uint64_t {
 	Unknown,
 	Data,
-	Ack,
 	Start1, // SYN ->
 	Start2, // <- SYN ACK
 	Start3, // ACK ->
@@ -160,9 +159,6 @@ void Tcp::PlanTerminationHandshake(FlowPlanHelper& planner)
 
 void Tcp::PlanData(FlowPlanHelper& planner)
 {
-	bool fwdNeedsAck = false;
-	bool revNeedsAck = false;
-
 	double fwdPktChance = double(planner.FwdPktsRemaining()) / double(planner.PktsRemaining());
 	std::random_device rd;
 	std::mt19937 eng(rd());
@@ -193,24 +189,10 @@ void Tcp::PlanData(FlowPlanHelper& planner)
 		Packet* pkt = planner.NextPacket();
 
 		if (dir == Direction::Forward) {
-			if (fwdNeedsAck) {
-				params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Ack);
-				pkt->_isFinished = true;
-				fwdNeedsAck = false;
-			} else {
-				params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Data);
-				revNeedsAck = true;
-			}
+			params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Data);
 			planner._assignedFwdPkts++;
 		} else {
-			if (revNeedsAck) {
-				params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Ack);
-				pkt->_isFinished = true;
-				revNeedsAck = false;
-			} else {
-				params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Data);
-				fwdNeedsAck = true;
-			}
+			params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Data);
 			planner._assignedRevPkts++;
 		}
 
@@ -258,13 +240,15 @@ void Tcp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::End1) {
 		tcpHdr->finFlag = 1;
+		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::End2) {
 		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::End3) {
 		tcpHdr->finFlag = 1;
+		tcpHdr->ackFlag = 1;
 	} else if (kind == TcpPacketKind::End4) {
 		tcpHdr->ackFlag = 1;
-	} else if (kind == TcpPacketKind::Ack) {
+	} else if (kind == TcpPacketKind::Data) {
 		tcpHdr->ackFlag = 1;
 	}
 
