@@ -336,6 +336,7 @@ class FtReplay(Replicator):
         asynchronous: bool = False,
         check_rc: bool = True,
         timeout: Optional[float] = None,
+        remote_pcap: bool = False,
     ) -> None:
         """Start ft-replay with given command line options.
 
@@ -359,6 +360,9 @@ class FtReplay(Replicator):
         timeout : float, optional
             Raise ``CommandTimedOut`` if command doesn't finish within
             specified timeout (in seconds).
+        remote_pcap: bool, optional
+            True if PCAP file (pcap_path) is stored on remote machine
+            and no synchronization is required.
 
         Raises
         ------
@@ -398,6 +402,7 @@ class FtReplay(Replicator):
             asynchronous,
             check_rc,
             timeout=timeout,
+            path_replacement=not remote_pcap,
         )
         end = time.time()
 
@@ -463,7 +468,7 @@ class FtReplay(Replicator):
         end = time.time()
         logging.getLogger().info("Generated traffic from profile ft-generator in %.2f seconds.", (end - start))
 
-        self.start(pcap, speed, loop_count, asynchronous, check_rc, timeout)
+        self.start(pcap, speed, loop_count, asynchronous, check_rc, timeout, remote_pcap=True)
 
         if self._host.is_local():
             shutil.copy(report, report_path)
