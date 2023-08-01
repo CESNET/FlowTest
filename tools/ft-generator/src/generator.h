@@ -24,6 +24,7 @@
 #include <limits>
 #include <memory>
 #include <optional>
+#include <set>
 #include <vector>
 
 namespace generator {
@@ -86,6 +87,8 @@ private:
 		std::time_t _prevProgressTime = 0; //< Time when progress was last logged
 		int _prevProgressPercent = 0; //< Last progress percent printed
 	} _stats;
+
+	std::set<NormalizedFlowIdentifier> _seenFlowIdentifiers;
 
 	void PrepareProfiles();
 	void CheckEnoughDiskSpace();

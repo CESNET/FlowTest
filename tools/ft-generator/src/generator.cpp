@@ -19,6 +19,9 @@ namespace generator {
 // Progress is logged after at most this many seconds
 static constexpr int PROGRESS_TIMEOUT_SECS = 10;
 
+// Number of attempts to try to create a flow with unique addresses before failing
+static constexpr int UNIQUE_FLOW_NUM_ATTEMPTS = 10;
+
 template <typename T>
 static std::string ToHumanSize(T value)
 {
@@ -146,8 +149,31 @@ std::unique_ptr<Flow> Generator::MakeNextFlow()
 {
 	const FlowProfile& profile = _profiles[_nextProfileIdx];
 	_nextProfileIdx++;
-	std::unique_ptr<Flow> flow
-		= std::make_unique<Flow>(_nextFlowId++, profile, _addressGenerators, _config);
+
+	std::unique_ptr<Flow> flow;
+	std::unique_ptr<Flow> tmp;
+
+	// Check for flow collisions, i.e. that the address 5-tuple of the generated flow is unique
+	for (int i = 0; i < UNIQUE_FLOW_NUM_ATTEMPTS; i++) {
+		tmp = std::make_unique<Flow>(_nextFlowId, profile, _addressGenerators, _config);
+		const auto& ident = tmp->GetNormalizedFlowIdentifier();
+		const auto [_, inserted] = _seenFlowIdentifiers.insert(ident);
+		if (inserted) {
+			flow = std::move(tmp);
+			break;
+		}
+
+		_logger->debug("Flow collision detected ({})! (attempt {})", ident.ToString(), i);
+	}
+
+	if (!flow) {
+		throw std::runtime_error(
+			"Flow collision detected (" + tmp->GetNormalizedFlowIdentifier().ToString() + ")! "
+			"Could not create a flow with unique addresses "
+			"(" + std::to_string(UNIQUE_FLOW_NUM_ATTEMPTS) + " attempts). ");
+	}
+
+	_nextFlowId++;
 	OnFlowOpened(*flow.get(), profile);
 	return flow;
 }
