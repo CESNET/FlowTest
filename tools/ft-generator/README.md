@@ -103,6 +103,7 @@ Arguments:
   --help, -h            Show this help message
   --skip-unknown        Skip unknown/unsupported profile records
   --no-diskspace-check  Do not check available disk space before generating
+  --no-collision-check  Do not check for flow collisions caused by address reuse
 ```
 
 ## Configuration

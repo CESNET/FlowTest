@@ -22,6 +22,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 	enum longOptsValues {
 		OPT_SKIP_UNKNOWN = 256, // Value that cannot collide with chars
 		OPT_NO_DISKSPACE_CHECK,
+		OPT_NO_FLOW_COLLISION_CHECK
 	};
 	const option longOpts[]
 		= {{"output", required_argument, nullptr, 'o'},
@@ -32,6 +33,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		   {"help", no_argument, nullptr, 'h'},
 		   {"skip-unknown", no_argument, nullptr, OPT_SKIP_UNKNOWN},
 		   {"no-diskspace-check", no_argument, nullptr, OPT_NO_DISKSPACE_CHECK},
+		   {"no-collision-check", no_argument, nullptr, OPT_NO_FLOW_COLLISION_CHECK},
 		   {nullptr, 0, nullptr, 0}};
 	const char* shortOpts = ":o:p:c:r:vh";
 
@@ -66,6 +68,9 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		case OPT_NO_DISKSPACE_CHECK:
 			_noDiskSpaceCheck = true;
 			break;
+		case OPT_NO_FLOW_COLLISION_CHECK:
+			_noFlowCollisionCheck = true;
+			break;
 		case '?':
 			throw std::invalid_argument("Unknown option " + std::string(argv[currentIdx]));
 		case ':':
@@ -92,6 +97,8 @@ void CommandLineArgs::PrintUsage()
 	std::cerr << "  -h, --help            Show this help message\n";
 	std::cerr << "  --skip-unknown        Skip unknown/unsupported profile records\n";
 	std::cerr << "  --no-diskspace-check  Do not check available disk space before generating\n";
+	std::cerr
+		<< "  --no-collision-check  Do not check for flow collisions caused by address reuse\n";
 }
 
 void CommandLineArgs::CheckValidity()
