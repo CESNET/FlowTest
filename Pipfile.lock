@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2d68e99fc786e6737755a075e659d983e566a8cb4c1f843015a6aff133daaa40"
+            "sha256": "0e2c6f446d80d2b2e25f7d499b3a18dad6295e70b51e5f67109b26257ef16f14"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -20,7 +20,7 @@
             },
             {
                 "name": "flowtest-pypi",
-                "url": "https://__token__:glpat-6-6zsJ4FQVw8gBc2zDxy@gitlab.liberouter.org/api/v4/projects/138/packages/pypi/simple",
+                "url": "https://__token__:glpat-H8Un4m1kPzBoxVDtcu42@gitlab.liberouter.org/api/v4/projects/138/packages/pypi/simple",
                 "verify_ssl": false
             }
         ]
@@ -347,6 +347,14 @@
                 "sha256:e151f7f93de2b1b3fd3f3272dcc7cefd1a69f68ec1c2d8e288ecd9deb36dc5f7"
             ],
             "version": "==1.4.10"
+        },
+        "decorator": {
+            "hashes": [
+                "sha256:637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330",
+                "sha256:b8c3f85900b9dc423225913c5aace94729fe1fa9763b38939a95226f02d37186"
+            ],
+            "markers": "python_version >= '3.5'",
+            "version": "==5.1.1"
         },
         "exceptiongroup": {
             "hashes": [
