@@ -12,6 +12,7 @@
 #include "config/config.h"
 #include "flowprofile.h"
 #include "generators/addressgenerators.h"
+#include "normalizedflowidentifier.h"
 #include "packet.h"
 #include "packetsizegenerator.h"
 #include "pcpppacket.h"
@@ -107,6 +108,13 @@ public:
 	 */
 	bool IsFinished() const;
 
+	/**
+	 * @brief Get a direction-invariant address identifier of the flow
+	 *
+	 * @return The identifier
+	 */
+	NormalizedFlowIdentifier GetNormalizedFlowIdentifier() const;
+
 private:
 	friend class PacketFlowSpan;
 	friend class Layer;
@@ -115,6 +123,12 @@ private:
 	std::vector<std::unique_ptr<Layer>> _layerStack;
 
 	const config::Config& _config; //< Reference to the generator configuration
+
+	pcpp::IPAddress _srcIp;
+	pcpp::IPAddress _dstIp;
+	uint16_t _srcPort = 0;
+	uint16_t _dstPort = 0;
+	L4Protocol _l4Proto;
 
 	/**
 	 * @brief Add new protocol layer.
