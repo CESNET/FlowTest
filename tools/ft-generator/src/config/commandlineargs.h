@@ -82,6 +82,11 @@ public:
 	bool ShouldNotCheckDiskSpace() const { return _noDiskSpaceCheck; };
 
 	/**
+	 * @brief Whether flow collision checks should be performed
+	 */
+	bool ShouldNotCheckFlowCollisions() const { return _noFlowCollisionCheck; };
+
+	/**
 	 * @brief Print the usage message
 	 *
 	 */
@@ -96,6 +101,7 @@ private:
 	bool _help = false;
 	bool _skipUnknown = false;
 	bool _noDiskSpaceCheck = false;
+	bool _noFlowCollisionCheck = false;
 
 	/**
 	 * @brief Check validity of the arguments

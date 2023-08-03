@@ -127,6 +127,9 @@ Flow::Flow(
 		auto fragProb = config.GetIPv4().GetFragmentationProbability();
 		auto minPktSizeToFragment = config.GetIPv4().GetMinPacketSizeToFragment();
 		AddLayer(std::make_unique<IPv4>(ipSrc, ipDst, fragProb, minPktSizeToFragment));
+
+		_srcIp = ipSrc;
+		_dstIp = ipDst;
 	} break;
 
 	case L3Protocol::Ipv6: {
@@ -149,6 +152,9 @@ Flow::Flow(
 		auto fragProb = config.GetIPv6().GetFragmentationProbability();
 		auto minPktSizeToFragment = config.GetIPv6().GetMinPacketSizeToFragment();
 		AddLayer(std::make_unique<IPv6>(ipSrc, ipDst, fragProb, minPktSizeToFragment));
+
+		_srcIp = ipSrc;
+		_dstIp = ipDst;
 	} break;
 	}
 
@@ -160,12 +166,18 @@ Flow::Flow(
 		uint16_t portSrc = profile._srcPort;
 		uint16_t portDst = profile._dstPort;
 		AddLayer(std::make_unique<Tcp>(portSrc, portDst));
+
+		_srcPort = portSrc;
+		_dstPort = portDst;
 	} break;
 
 	case L4Protocol::Udp: {
 		uint16_t portSrc = profile._srcPort;
 		uint16_t portDst = profile._dstPort;
 		AddLayer(std::make_unique<Udp>(portSrc, portDst));
+
+		_srcPort = portSrc;
+		_dstPort = portDst;
 	} break;
 
 	case L4Protocol::Icmp: {
@@ -182,12 +194,18 @@ Flow::Flow(
 		AddLayer(MakeIcmpLayer(profile._l3Proto));
 	} break;
 	}
+	_l4Proto = profile._l4Proto;
 
 	if (profile._l4Proto == L4Protocol::Tcp || profile._l4Proto == L4Protocol::Udp) {
 		AddLayer(std::make_unique<Payload>());
 	}
 
 	Plan();
+}
+
+NormalizedFlowIdentifier Flow::GetNormalizedFlowIdentifier() const
+{
+	return NormalizedFlowIdentifier(_srcIp, _dstIp, _srcPort, _dstPort, _l4Proto);
 }
 
 std::unique_ptr<Layer> Flow::MakeIcmpLayer(L3Protocol l3Proto)

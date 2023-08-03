@@ -45,18 +45,15 @@ static std::optional<L3Protocol> GetL3Protocol(uint8_t value)
 	}
 }
 
-/**
- * Convert a L3Protocol value to a string representation
- */
-static std::string L3ProtocolToString(L3Protocol protocol)
+std::string L3ProtocolToString(L3Protocol protocol)
 {
 	switch (protocol) {
 	case L3Protocol::Unknown:
 		return "Unknown";
 	case L3Protocol::Ipv4:
-		return "Ipv4";
+		return "IPv4";
 	case L3Protocol::Ipv6:
-		return "Ipv6";
+		return "IPv6";
 	}
 
 	return "<invalid>";
@@ -81,22 +78,19 @@ static std::optional<L4Protocol> GetL4Protocol(uint8_t value)
 	}
 }
 
-/**
- * Convert a L4Protocol value to a string representation
- */
-static std::string L4ProtocolToString(L4Protocol protocol)
+std::string L4ProtocolToString(L4Protocol protocol)
 {
 	switch (protocol) {
 	case L4Protocol::Unknown:
 		return "Unknown";
 	case L4Protocol::Icmp:
-		return "Icmp";
+		return "ICMP";
 	case L4Protocol::Udp:
-		return "Udp";
+		return "UDP";
 	case L4Protocol::Tcp:
-		return "Tcp";
+		return "TCP";
 	case L4Protocol::Icmpv6:
-		return "Icmpv6";
+		return "ICMPv6";
 	}
 
 	return "<invalid>";

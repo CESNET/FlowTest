@@ -23,9 +23,25 @@ namespace generator {
 
 using pcpp::IPAddress;
 
+/**
+ * @brief Enumeration of possible L3 protocols
+ */
 enum class L3Protocol : uint8_t { Unknown, Ipv4 = 4, Ipv6 = 6 };
 
+/**
+ * @brief Convert a L3Protocol value to a string representation
+ */
+std::string L3ProtocolToString(L3Protocol protocol);
+
+/**
+ * @brief Enumeration of possible L4 protocols
+ */
 enum class L4Protocol : uint8_t { Unknown, Icmp = 1, Tcp = 6, Udp = 17, Icmpv6 = 58 };
+
+/**
+ * @brief Convert a L4Protocol value to a string representation
+ */
+std::string L4ProtocolToString(L4Protocol protocol);
 
 /**
  * @brief Struct representing a flow profile entry in the input file
