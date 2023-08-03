@@ -45,10 +45,7 @@ static std::optional<L3Protocol> GetL3Protocol(uint8_t value)
 	}
 }
 
-/**
- * Convert a L3Protocol value to a string representation
- */
-static std::string L3ProtocolToString(L3Protocol protocol)
+std::string L3ProtocolToString(L3Protocol protocol)
 {
 	switch (protocol) {
 	case L3Protocol::Unknown:
@@ -81,10 +78,7 @@ static std::optional<L4Protocol> GetL4Protocol(uint8_t value)
 	}
 }
 
-/**
- * Convert a L4Protocol value to a string representation
- */
-static std::string L4ProtocolToString(L4Protocol protocol)
+std::string L4ProtocolToString(L4Protocol protocol)
 {
 	switch (protocol) {
 	case L4Protocol::Unknown:
