@@ -98,7 +98,7 @@ public:
 	void RecordPacket(uint64_t flowId, Timeval time, Direction dir, const PcppPacket& packet);
 
 	/**
-	 * @brief Write out summary of the recorded flows and packets to a csv file
+	 * @brief Write out the information about the recorded flows and packets to a csv file
 	 *
 	 * @param fileName Path to the resulting output file
 	 *
