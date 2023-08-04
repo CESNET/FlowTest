@@ -7,6 +7,7 @@
  */
 
 #include "trafficmeter.h"
+#include "utils.h"
 
 #include <arpa/inet.h>
 #include <pcapplusplus/PayloadLayer.h>
@@ -60,8 +61,16 @@ void TrafficMeter::OpenFlow(uint64_t flowId, const FlowProfile& profile)
 	}
 
 	FlowRecord rec;
+
 	rec._l3Proto = profile._l3Proto;
 	rec._l4Proto = profile._l4Proto;
+
+	rec._desiredFwdPkts = profile._packets;
+	rec._desiredFwdBytes = profile._bytes;
+
+	rec._desiredRevPkts = profile._packetsRev;
+	rec._desiredRevBytes = profile._bytesRev;
+
 	_records.push_back(rec);
 }
 
@@ -263,6 +272,67 @@ void TrafficMeter::WriteReportCsv(const std::string& fileName)
 	}
 
 	csvFile.close();
+}
+
+void TrafficMeter::PrintComparisonStats() const
+{
+	uint64_t desiredPkts = 0;
+	uint64_t desiredBytes = 0;
+	uint64_t recordedPkts = 0;
+	uint64_t recordedBytes = 0;
+
+	double accumPktsDiffRatio = 0.0;
+	double accumBytesDiffRatio = 0.0;
+
+	for (const auto& record : _records) {
+		// Forward direction
+		desiredPkts += record._desiredFwdPkts;
+		desiredBytes += record._desiredFwdBytes;
+
+		recordedPkts += record._fwdPkts;
+		recordedBytes += record._fwdBytes;
+
+		// Reverse direction
+		desiredPkts += record._desiredRevPkts;
+		desiredBytes += record._desiredRevBytes;
+
+		recordedPkts += record._revPkts;
+		recordedBytes += record._revBytes;
+
+		// Both directions
+		accumPktsDiffRatio += DiffRatio(
+			record._desiredFwdPkts + record._desiredRevPkts,
+			record._fwdPkts + record._revPkts);
+		accumBytesDiffRatio += DiffRatio(
+			record._desiredFwdBytes + record._desiredRevBytes,
+			record._fwdBytes + record._revBytes);
+	}
+
+	// one value per record - forward direction and reverse direction are summed together
+	uint64_t valueCount = _records.size();
+
+	// Average difference per flow
+	double avgPktsDiffRatio = SafeDiv<double>(accumPktsDiffRatio, valueCount);
+	double avgBytesDiffRatio = SafeDiv<double>(accumBytesDiffRatio, valueCount);
+
+	// Difference over the total amount
+	double totalPktsDiffRatio = DiffRatio(desiredPkts, recordedPkts);
+	double totalBytesDiffRatio = DiffRatio(desiredBytes, recordedBytes);
+
+	_logger->info(
+		"SUMMARY: Packets - target: {}, generated: {} ({:.2f}% difference total, {:.2f}% average "
+		"difference per flow)",
+		ToMetricUnits(desiredPkts),
+		ToMetricUnits(recordedPkts),
+		totalPktsDiffRatio * 100.0,
+		avgPktsDiffRatio * 100.0);
+	_logger->info(
+		"SUMMARY: Bytes - target: {}, generated: {} ({:.2f}% difference total, {:.2f}% average "
+		"difference per flow)",
+		ToMetricUnits(desiredBytes),
+		ToMetricUnits(recordedBytes),
+		totalBytesDiffRatio * 100.0,
+		avgBytesDiffRatio * 100.0);
 }
 
 } // namespace generator

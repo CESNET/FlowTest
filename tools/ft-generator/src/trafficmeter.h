@@ -50,12 +50,16 @@ struct FlowRecord {
 	uint64_t _fwdPkts = 0;
 	uint64_t _fwdBytes = 0;
 	uint16_t _fwdPort = 0;
+	uint64_t _desiredFwdPkts = 0;
+	uint64_t _desiredFwdBytes = 0;
 
 	MacAddress _revMacAddr;
 	IPAddressVariant _revIpAddr;
 	uint64_t _revPkts = 0;
 	uint64_t _revBytes = 0;
 	uint16_t _revPort = 0;
+	uint64_t _desiredRevPkts = 0;
+	uint64_t _desiredRevBytes = 0;
 };
 
 /**
@@ -105,6 +109,11 @@ public:
 	 * @throws std::runtime_error on failure when writing the output file
 	 */
 	void WriteReportCsv(const std::string& fileName);
+
+	/**
+	 * @brief Print out statistics comparing the recorded data with the profiles
+	 */
+	void PrintComparisonStats() const;
 
 private:
 	std::vector<FlowRecord> _records; //< The flow records
