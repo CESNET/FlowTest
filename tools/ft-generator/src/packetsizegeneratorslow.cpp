@@ -89,7 +89,7 @@ void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredByt
 	}
 
 	if (desiredPkts == 1) {
-		_values[0] = desiredBytes;
+		_values[0] = std::clamp(desiredBytes, _intervals.front()._from, _intervals.back()._to);
 		return;
 	}
 
@@ -170,14 +170,32 @@ void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredByt
 		->trace("Final diff: {}, ratio: {}, desired: {}", bestDiff, finalDiffRatio, desiredBytes);
 
 	if (finalDiffRatio > DIFF_RATIO_FALLBACK_TO_UNIFORM) {
-		std::fill(_values.begin(), _values.end(), desiredBytes / desiredBytes);
+		// The target average if uniform distribution was used constrained to the intervals
+		uint64_t targetAvg = std::clamp(
+			desiredBytes / desiredPkts,
+			_intervals.front()._from,
+			_intervals.back()._to);
+
+		// Does uniform distribution help?
+		uint64_t sum = targetAvg * desiredPkts;
+		uint64_t uniformDiff = sum > desiredBytes ? sum - desiredBytes : desiredBytes - sum;
+		if (uniformDiff < bestDiff) {
+			std::fill(_values.begin(), _values.end(), targetAvg);
+			_logger->debug(
+				"Generated values difference too large {}, fallback to uniform distribution",
+				finalDiffRatio);
+			return;
+		}
+
+		// No it does not, the packet size intervals are insufficient
 		_logger->debug(
-			"Generated values difference too large {}, fallback to uniform distribution",
+			"Generated values difference too large {}, cannot do any better without exceeding the "
+			"specified packet size intervals",
 			finalDiffRatio);
-	} else {
-		_values = std::move(bestValues);
-		std::shuffle(_values.begin(), _values.end(), std::default_random_engine());
 	}
+
+	_values = std::move(bestValues);
+	std::shuffle(_values.begin(), _values.end(), std::default_random_engine());
 }
 
 uint64_t PacketSizeGeneratorSlow::GetValue()
