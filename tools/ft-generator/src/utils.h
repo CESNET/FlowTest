@@ -6,6 +6,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <iomanip>
+#include <sstream>
+#include <string>
+#include <vector>
+
 namespace generator {
 
 /**
@@ -34,6 +39,26 @@ template <typename T>
 double DiffRatio(T desired, T actual)
 {
 	return SafeDiv<double>(AbsDiff(desired, actual), desired);
+}
+
+/**
+ * @brief Format a value as a string with metric units suffix (k, M, G, T, P)
+ */
+template <typename T>
+static std::string ToMetricUnits(T value)
+{
+	static const std::vector<std::string> Suffixes {"", "k", "M", "G", "T", "P"};
+
+	double adjValue = value;
+	size_t i = 0;
+	while (i < Suffixes.size() - 1 && adjValue > 1000.0) {
+		adjValue /= 1000.0;
+		i++;
+	}
+
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << adjValue << " " << Suffixes[i];
+	return ss.str();
 }
 
 } // namespace generator
