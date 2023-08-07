@@ -89,8 +89,6 @@ public:
 	const std::string& GetInputPcapFile() const;
 	/** @brief Get Rate Limiter configuration. */
 	RateLimit GetRateLimit() const;
-	/** @brief Get the pcap replay time multiplier. */
-	float GetReplayTimeMultiplier() const;
 	/** @brief Get the vlan ID. */
 	uint16_t GetVlanID() const;
 	/** @brief Get the number of replicator loops. */
@@ -115,7 +113,6 @@ private:
 	std::string _pcapFile;
 
 	RateLimit _rateLimit;
-	float _replayTimeMultiplier;
 	uint16_t _vlanID;
 	size_t _loopsCount;
 

@@ -62,7 +62,6 @@ void ReplicatorExecutor(const Config& config)
 
 	PacketBuilder builder;
 	builder.SetVlan(config.GetVlanID());
-	builder.SetTimeMultiplier(config.GetReplayTimeMultiplier());
 
 	while ((rawPacket = packetProvider.Next())) {
 		packetQueueProvider.InsertPacket(builder.Build(rawPacket));

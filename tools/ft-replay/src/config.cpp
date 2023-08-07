@@ -41,16 +41,16 @@ void Config::Parse(int argc, char** argv)
 		case 'c':
 			_replicatorConfig = optarg;
 			break;
-		case 'x':
+		case 'x': {
 			CheckExclusiveOption(c);
-			_replayTimeMultiplier = std::atof(optarg);
-			if (!_replayTimeMultiplier) {
+			float timeMultiplier = std::atof(optarg);
+			if (!timeMultiplier) {
 				throw std::runtime_error("Option -x cannot be zero.");
 			}
 			break;
+		}
 		case 't':
 			CheckExclusiveOption(c);
-			_replayTimeMultiplier = 0;
 			break;
 		case 'p':
 			CheckExclusiveOption(c);
@@ -90,7 +90,6 @@ void Config::SetDefaultValues()
 	_pcapFile.clear();
 
 	_rateLimit = std::monostate();
-	_replayTimeMultiplier = 1;
 	_vlanID = 0;
 	_loopsCount = 1;
 	_help = false;
@@ -160,11 +159,6 @@ const std::string& Config::GetInputPcapFile() const
 Config::RateLimit Config::GetRateLimit() const
 {
 	return _rateLimit;
-}
-
-float Config::GetReplayTimeMultiplier() const
-{
-	return _replayTimeMultiplier;
 }
 
 uint16_t Config::GetVlanID() const

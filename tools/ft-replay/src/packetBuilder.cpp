@@ -28,15 +28,10 @@ void PacketBuilder::SetVlan(uint16_t vlanID)
 	_vlanID = vlanID;
 }
 
-void PacketBuilder::SetTimeMultiplier(float timeMultiplier)
-{
-	_timeMultiplier = timeMultiplier;
-}
-
 std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 {
 	Packet packet;
-	packet.timestamp = GetMultipliedTimestamp(rawPacket->timestamp);
+	packet.timestamp = rawPacket->timestamp;
 	packet.dataLen = rawPacket->dataLen;
 	packet.info = GetPacketL3Info(rawPacket);
 	if (_vlanID) {
@@ -47,11 +42,6 @@ std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 		packet.data = GetDataCopy(rawPacket->data, rawPacket->dataLen);
 	}
 	return std::make_unique<Packet>(std::move(packet));
-}
-
-uint64_t PacketBuilder::GetMultipliedTimestamp(uint64_t rawPacketTimestamp) const
-{
-	return rawPacketTimestamp * _timeMultiplier;
 }
 
 PacketInfo PacketBuilder::GetPacketL3Info(const RawPacket* rawPacket) const
