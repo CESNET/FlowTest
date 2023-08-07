@@ -263,9 +263,16 @@ class FlowReplicator:
         units = []
         for unit in config.get("units", []):
             loop_only = unit.get("loopOnly", [])
-            loop_only = {} if loop_only == "All" else set(loop_only)
+            if loop_only == "All":
+                loop_only = {}
+            elif isinstance(loop_only, int):
+                loop_only = {loop_only}
+            else:
+                loop_only = set(loop_only)
+
             if len(loop_only) > 0 and loop_only.issubset(set(self._ignore_loops)):
                 continue
+
             units.append(
                 ReplicatorUnit(
                     self._parse_config_item("srcip", unit),
