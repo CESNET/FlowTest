@@ -83,6 +83,8 @@ int main(int argc, char* argv[])
 			trafficMeter.WriteReportCsv(*reportFile);
 		}
 
+		trafficMeter.PrintComparisonStats();
+
 	} catch (const std::runtime_error& error) {
 		logger->critical(error.what());
 		return EXIT_FAILURE;

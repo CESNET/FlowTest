@@ -5,12 +5,12 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
 #include "generator.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <filesystem>
-#include <iomanip>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -25,18 +25,7 @@ static constexpr int UNIQUE_FLOW_NUM_ATTEMPTS = 10;
 template <typename T>
 static std::string ToHumanSize(T value)
 {
-	static const std::vector<std::string> Suffixes {"B", "kB", "MB", "GB", "TB", "PB"};
-
-	double adjValue = value;
-	size_t i = 0;
-	while (i < Suffixes.size() - 1 && adjValue > 1000.0) {
-		adjValue /= 1000.0;
-		i++;
-	}
-
-	std::stringstream ss;
-	ss << std::fixed << std::setprecision(2) << adjValue << " " << Suffixes[i];
-	return ss.str();
+	return ToMetricUnits(value) + "B";
 }
 
 Generator::Generator(
