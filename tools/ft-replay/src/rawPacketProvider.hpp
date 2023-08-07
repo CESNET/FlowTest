@@ -59,12 +59,14 @@ private:
 	bool IsHeaderValid(const struct pcap_pkthdr* header);
 	void FillRawPacket(const struct pcap_pkthdr* header, const std::byte* pktData);
 	uint64_t CalculateTimestamp(const struct pcap_pkthdr* header);
+	void ValidateTimestampOrder(uint64_t timestamp);
 	uint64_t NormalizeTimestamp(uint64_t timestamp);
 
 	struct RawPacket _packet;
 	std::unique_ptr<pcap_t, decltype(&pcap_close)> _handler {nullptr, &pcap_close};
 
 	bool _normalizeTimestamp;
+	uint64_t _lastSeenTimestamp;
 	std::optional<uint64_t> _referenceTimestamp;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("RawPacketProvider");
