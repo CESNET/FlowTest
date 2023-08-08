@@ -11,6 +11,7 @@
 
 #include "timeval.h"
 
+#include <cassert>
 #include <ctime>
 #include <iostream>
 #include <map>
@@ -32,6 +33,12 @@ enum class Direction {
 	Forward,
 	Reverse,
 };
+
+static inline Direction SwapDirection(Direction dir)
+{
+	assert(dir == Direction::Forward || dir == Direction::Reverse);
+	return dir == Direction::Forward ? Direction::Reverse : Direction::Forward;
+}
 
 /**
  * @brief Class representing the packet planner interface
