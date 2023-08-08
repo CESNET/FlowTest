@@ -34,6 +34,16 @@ T SafeDiv(T a, T b)
 }
 
 /**
+ * @brief Safe subtraction of unsigned values, where what would be an underflow results in a 0
+ */
+template <typename T>
+// Enable only when T is an unsigned integer type
+typename std::enable_if<std::is_unsigned_v<T>, T>::type SafeSub(T a, T b)
+{
+	return a > b ? a - b : 0;
+}
+
+/**
  * @brief Calculate a "difference ratio", i.e. what's the ratio of the difference of two values
  *        compared to the desired value, or in other words, a normalized difference of two values.
  */
