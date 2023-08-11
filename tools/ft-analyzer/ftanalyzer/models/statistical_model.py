@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 """
 import ipaddress
+import logging
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -64,10 +65,10 @@ class StatisticalModel:
     }
 
     AGGREGATE_SPLIT_FLOWS = {
-        "START_TIME": "min",
-        "END_TIME": "max",
-        "PACKETS": "sum",
-        "BYTES": "sum",
+        "START_TIME_y": "min",
+        "END_TIME_y": "max",
+        "PACKETS_y": "sum",
+        "BYTES_y": "sum",
     }
 
     def __init__(
@@ -99,12 +100,14 @@ class StatisticalModel:
         """
 
         try:
+            logging.getLogger().debug("reading file with flows=%s", flows)
             # ports could be empty in flows with protocol like ICMP
             flows = pd.read_csv(flows, engine="pyarrow")
             flows["SRC_PORT"] = flows["SRC_PORT"].fillna(0)
             flows["DST_PORT"] = flows["DST_PORT"].fillna(0)
             self._flows = flows.astype(self.CSV_COLUMN_TYPES)
 
+            logging.getLogger().debug("reading file with references=%s", reference)
             self._ref = pd.read_csv(reference, engine="pyarrow", dtype=self.CSV_COLUMN_TYPES)
         except Exception as err:
             raise SMException("Unable to read file with flows.") from err
@@ -115,7 +118,9 @@ class StatisticalModel:
 
         self._merge_flows(timeouts[0])
         if sort:
+            logging.getLogger().debug("sorting probe flows")
             self._flows = self._flows.sort_values(self.FLOW_KEY).reset_index(drop=True)
+            logging.getLogger().debug("sorting reference flows")
             self._ref = self._ref.sort_values(self.FLOW_KEY).reset_index(drop=True)
 
         self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(ipaddress.ip_address)
@@ -176,22 +181,45 @@ class StatisticalModel:
             Active timeout.
         """
 
+        # find long flows among reference flows
         long_flows = self._ref.loc[(self._ref["END_TIME"] - self._ref["START_TIME"]) > (active_t * 1000)]
-        for _, row in long_flows.iterrows():
-            merge = self._flows.loc[
-                (self._flows["PROTOCOL"] == row["PROTOCOL"])
-                & (self._flows["SRC_IP"] == row["SRC_IP"])
-                & (self._flows["DST_IP"] == row["DST_IP"])
-                & (self._flows["SRC_PORT"] == row["SRC_PORT"])
-                & (self._flows["DST_PORT"] == row["DST_PORT"])
-                & (self._flows["START_TIME"] >= row["START_TIME"])
-                & (self._flows["END_TIME"] <= row["END_TIME"] + self.TIME_EPSILON)
-            ]
-            self._flows.drop(merge.index, axis=0, inplace=True)
-            agg = merge.groupby(self.FLOW_KEY).agg(self.AGGREGATE_SPLIT_FLOWS).reset_index()
-            self._flows = pd.concat([self._flows, agg], axis=0, ignore_index=True)
+        # backup indexes of probe flows
+        flows_with_index = self._flows.reset_index().rename(columns={"index": "index_y"})
+        # perform inner join between long flows and probe flows
+        combined_flows = pd.merge(long_flows, flows_with_index, on=self.FLOW_KEY, how="inner")
+        # filter probe flows which start and end times fit into the frame of their long flow counterpart
+        # thus finding flows which were split by an active timeout
+        # columns with the same name which are not part of the key (PACKETS, BYTES, START_TIME, END_TIME)
+        # are provided with a suffix (_x - columns from "long flows" and _y - columns from "flows_with_index")
+        split_flows = combined_flows[
+            (combined_flows["START_TIME_y"] >= combined_flows["START_TIME_x"])
+            & (combined_flows["END_TIME_y"] <= combined_flows["END_TIME_x"] + self.TIME_EPSILON)
+        ]
+        logging.getLogger().debug("split flows aggregation - matched %d split flows", len(split_flows))
 
-        self._flows.reindex()
+        # aggregate flows split by an active timeout (sum packets and bytes, minimum start time, maximum end time)
+        aggregated_flows = (
+            split_flows.groupby(self.FLOW_KEY + ["START_TIME_x", "END_TIME_x"])
+            .agg(self.AGGREGATE_SPLIT_FLOWS)
+            .reset_index()
+            .rename(
+                columns={
+                    "START_TIME_y": "START_TIME",
+                    "END_TIME_y": "END_TIME",
+                    "PACKETS_y": "PACKETS",
+                    "BYTES_y": "BYTES",
+                }
+            )
+        )
+        aggregated_flows.drop(["START_TIME_x", "END_TIME_x"], axis=1, inplace=True)
+        logging.getLogger().debug(
+            "split flows aggregation - found %d/%d long flows", len(aggregated_flows), len(long_flows)
+        )
+
+        # remove split flows from the probe flows (using original index backup)
+        self._flows.drop(index=split_flows["index_y"].unique(), axis=0, inplace=True)
+        # add aggregated flows to the probe flows
+        self._flows = pd.concat([self._flows, aggregated_flows], axis=0, ignore_index=True)
 
     def _filter_segment(
         self, segment: Optional[Union[SMSubnetSegment, SMTimeSegment]]
