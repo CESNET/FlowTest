@@ -41,7 +41,7 @@ public:
 		} else {
 			Ip6Ptr ip = std::get<Ip6Ptr>(_ipPtr);
 			uint32_t* ipAs32b = reinterpret_cast<uint32_t*>(ip);
-			ipAs32b[3] = htonl(ntohl(ipAs32b[3]) + value);
+			ipAs32b[0] = htonl(ntohl(ipAs32b[0]) + value);
 		}
 		return *this;
 	}
