@@ -8,6 +8,9 @@
 
 #include "config.hpp"
 
+#include <handlers.h>
+
+#include <cassert>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -26,9 +29,15 @@ void Config::Parse(int argc, char** argv)
 	const option* longOptions = GetLongOptions();
 	const char* shortOptions = GetShortOptions();
 
-	char c;
-	while ((c = getopt_long(argc, argv, shortOptions, longOptions, nullptr)) != -1) {
-		switch (c) {
+	int currentIdx = 1;
+	optind = 0;
+	opterr = 0; // Handle printing error messages ourselves
+
+	int opt;
+	while ((opt = getopt_long(argc, argv, shortOptions, longOptions, nullptr)) != -1) {
+		const char* current = argv[currentIdx];
+
+		switch (opt) {
 		case 'c':
 			_replicatorConfig = optarg;
 			break;
@@ -68,8 +77,21 @@ void Config::Parse(int argc, char** argv)
 		case 'h':
 			_help = true;
 			break;
+		case '?':
+			ft::CliHandleInvalidOption(current);
+		case ':':
+			ft::CliHandleMissingArgument(current);
+		default:
+			ft::CliHandleUnimplementedOption(current);
 		}
+
+		currentIdx = optind;
 	}
+
+	if (optind < argc) {
+		ft::CliHandleInvalidOption(argv[optind]);
+	}
+
 	Validate();
 }
 
@@ -104,7 +126,7 @@ const option* Config::GetLongOptions()
 
 const char* Config::GetShortOptions()
 {
-	return "i:o:c:x:p:M:tv:l:h";
+	return ":i:o:c:x:p:M:tv:l:h";
 }
 
 void Config::Validate()
