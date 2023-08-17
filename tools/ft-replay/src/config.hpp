@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <getopt.h>
 #include <optional>
@@ -15,6 +16,8 @@
 #include <variant>
 
 namespace replay {
+
+using namespace std::chrono_literals;
 
 /**
  * @brief Command line arguments parser.
@@ -49,6 +52,25 @@ public:
 	};
 
 	/**
+	 * @brief Represents a rate limit value per unit of time.
+	 *
+	 * This structure is used to specify a rate limit value per unit of time. The `value`
+	 * member variable stores the rate limit value, which represents the maximum allowed
+	 * rate of tokens that can be consumed within one second. In the context of nanoseconds,
+	 * the `NANOSEC_IN_SEC` constant is defined to be 1,000,000,000, indicating that there
+	 * are one billion nanoseconds in a single second (1 ns = 10^-9 s).
+	 * Adjusting the `value` based on this constant allows fine-grained control over the token
+	 * consumption rate. For instance, setting `value` to 2 * NANOSEC_IN_SEC would effectively
+	 * double the rate of token consumption, leading to accelerated processing.
+	 */
+	struct RateLimitTimeUnit {
+		/** The representation of a time unit */
+		static constexpr uint64_t NANOSEC_IN_SEC = std::chrono::nanoseconds(1s).count();
+
+		uint64_t value; /** The rate limit value per unit of time (tokens per second). */
+	};
+
+	/**
 	 * @brief Represents a rate limit value in megabits per second (Mbps).
 	 *
 	 * This structure is used to specify a rate limit value in megabits per second.
@@ -75,11 +97,11 @@ public:
 	 * @brief Represents a rate limit value.
 	 *
 	 * This variant type is used to represent a rate limit value, which can be specified
-	 * either in packets per second (RateLimitPps) or in megabits per second (RateLimitMbps).
-	 * The variant type allows for flexibility in choosing the rate limit representation.
-	 * The `std::monostate` represents the absence of a rate limit.
+	 * either in packets per second (RateLimitPps), megabits per second (RateLimitMbps) or in Time
+	 * Units per second. The variant type allows for flexibility in choosing the rate limit
+	 * representation. The `std::monostate` represents the absence of a rate limit.
 	 */
-	using RateLimit = std::variant<std::monostate, RateLimitPps, RateLimitMbps>;
+	using RateLimit = std::variant<std::monostate, RateLimitPps, RateLimitTimeUnit, RateLimitMbps>;
 
 	/** @brief Get replicator config filename. */
 	const std::string& GetReplicatorConfig() const;
@@ -89,8 +111,6 @@ public:
 	const std::string& GetInputPcapFile() const;
 	/** @brief Get Rate Limiter configuration. */
 	RateLimit GetRateLimit() const;
-	/** @brief Get the pcap replay time multiplier. */
-	float GetReplayTimeMultiplier() const;
 	/** @brief Get the vlan ID. */
 	uint16_t GetVlanID() const;
 	/** @brief Get the number of replicator loops. */
@@ -104,7 +124,6 @@ public:
 private:
 	void SetDefaultValues();
 	void SetRateLimit(RateLimit limit);
-	void CheckExclusiveOption(char option);
 	void Validate();
 
 	const option* GetLongOptions();
@@ -114,12 +133,9 @@ private:
 	std::string _outputPlugin;
 	std::string _pcapFile;
 
-	RateLimit _rateLimit;
-	float _replayTimeMultiplier;
+	std::optional<RateLimit> _rateLimit;
 	uint16_t _vlanID;
 	size_t _loopsCount;
-
-	std::optional<char> _exclusiveOption;
 
 	bool _help;
 };

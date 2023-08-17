@@ -182,8 +182,6 @@ void XdpQueue::SendBurst(const PacketBuffer* burst)
 {
 	(void) burst;
 
-	RateLimit(_lastBurstSize, _lastBurstTotalPacketLen);
-
 	xsk_ring_prod__submit(_socket.GetTx(), _lastBurstSize);
 	_outstandingTx += _lastBurstSize;
 

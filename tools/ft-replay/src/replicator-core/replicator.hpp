@@ -8,15 +8,15 @@
 
 #pragma once
 
+#include "../config.hpp"
 #include "../outputQueue.hpp"
 #include "../packetQueueProvider.hpp"
+#include "../rateLimiter.hpp"
 #include "configParser.hpp"
 #include "packetModifier.hpp"
-
 #include "strategyFactory.hpp"
 
-#include <functional>
-#include <string>
+#include <utility>
 
 namespace replay {
 
@@ -26,7 +26,7 @@ struct ReplicationUnit {
 	 *
 	 * @param modifierStrategies
 	 */
-	ReplicationUnit(ModifierStrategies modifierStrategies)
+	ReplicationUnit(ModifierStrategies modifierStrategies = {})
 		: packetModifier(std::move(modifierStrategies))
 	{
 	}
@@ -38,47 +38,82 @@ struct ReplicationUnit {
 };
 
 /**
- * @brief Replicate packets with replication units.
+ * @class Replicator
+ * @brief The Replicator class replicates packets from a source queue to an output queue based on
+ * strategies and rate limiting configurations.
  */
 class Replicator {
 public:
 	/**
-	 * @brief Construct a new Replicator
-	 *
-	 * @param configParser Replication units configuration. It can be nullptr.
-	 * @param outputQueue Output interface to send the packet
+	 * @brief Constructor for the Replicator class.
+	 * @param packetQueue A unique pointer to the source PacketQueue.
+	 * @param outputQueue A pointer to the OutputQueue where replicated packets will be sent.
+	 * @param loopTimeDuration The duration of a single replication loop in nanoseconds.
 	 */
-	Replicator(const ConfigParser* configParser, OutputQueue* outputQueue);
+	Replicator(
+		std::unique_ptr<PacketQueue> packetQueue,
+		OutputQueue* outputQueue,
+		uint64_t loopTimeDuration);
 
 	/**
-	 * @brief Replicates a given sequence of packets and sends them to the output interface
-	 *
-	 * Each given packet is replicated as many times as the number of replication units.
-	 * Each replicated packet is modified by the packetModifier strategies
-	 *
-	 * @param begin Iterator to the begin of sequence
-	 * @param end Iterator to the end of sequence
+	 * @brief Sets the rate limiter configuration for the Replicator.
+	 * @param rateLimiterConfig The configuration for rate limiting.
 	 */
-	void Replicate(PacketQueue::iterator begin, PacketQueue::iterator end);
+	void SetRateLimiter(const Config::RateLimit& rateLimiterConfig);
 
 	/**
-	 * @brief Set the Replication Loop Id
-	 *
-	 * ID is required for loop packet modifier strategy
-	 *
-	 * @param replicationLoopId Current ID of replication loop
+	 * @brief Sets the replication strategy for the Replicator.
+	 * @details The Replicator can be configured with multiple replication units, each having its
+	 * own strategy. If a ConfigParser is provided, the Replicator sets its replication units
+	 * according to the configurations. If no ConfigParser is provided, a default replication unit
+	 * with a default strategy will be used.
+	 * @param configParser A pointer to the ConfigParser object containing the replication strategy
+	 * configurations.
 	 */
-	void SetReplicationLoopId(uint64_t replicationLoopId) noexcept;
+	void SetReplicatorStrategy(const ConfigParser* configParser);
+
+	/**
+	 * @brief Initiates the replication process for a given replication loop ID.
+	 * @param replicationLoopId The ID of the current replication loop.
+	 * @details This method replicates packets from the source queue to the output queue based on
+	 * the configured replication strategy and rate limiting settings.
+	 */
+	void Replicate(uint64_t replicationLoopId);
 
 private:
-	void UpdateAvailableReplicationUnits();
+	void SetAvailableReplicationUnits(uint64_t replicationLoopId);
+	void SetDefaultReplicatorStrategy();
+	void FillPacketBuffers(uint64_t replicatedPackets, size_t burstSize);
+	uint64_t GetBurstSize(uint64_t replicatedPackets);
+	uint64_t GetNumberOfPacketToReplicate() const noexcept;
+	uint64_t GetMinimumRequiredTokens(uint64_t replicatedPackets);
+	uint64_t GetIndexToPacketQueue(uint64_t replicatedPackets) const noexcept;
+	uint64_t GetReplicationUnitIndex(uint64_t replicatedPackets) const noexcept;
+	void WaitUntilEndOfTheLoop();
+	void CopyPacketsToBuffer(uint64_t replicatedPackets, uint64_t burstSize);
+	void ModifyPackets(uint64_t replicatedPackets, uint64_t burstSize, uint64_t replicationLoopId);
 
-	size_t _maxBurstSize;
-	uint64_t _replicationLoopId;
+	struct BurstInfo {
+		uint64_t burstSize;
+		uint64_t usedTokens;
+	};
+
+	BurstInfo ConvertTokensToBurstSize(
+		uint64_t replicatedPackets,
+		uint64_t maximalPossibleBurstSize,
+		uint64_t availableTokens);
+
+	uint64_t _maxBurstSize;
+	uint64_t _lastPacketTimestamp;
+	uint64_t _loopTimeDuration;
+
+	Config::RateLimit _rateLimiterConfig;
+	RateLimiter _rateLimiter;
 
 	std::unique_ptr<PacketBuffer[]> _packetBuffers;
 	std::vector<ReplicationUnit> _replicationUnits;
 	std::vector<ReplicationUnit*> _loopAvailableReplicationUnits;
+	PacketQueue _packetQueue;
 	OutputQueue* _outputQueue;
 };
 

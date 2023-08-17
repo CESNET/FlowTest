@@ -26,6 +26,7 @@ PacketQueueProvider::PacketQueueProvider(size_t queueCount)
 void PacketQueueProvider::InsertPacket(std::unique_ptr<Packet> packet)
 {
 	uint8_t queueID = GetPacketQueueId(*packet);
+	_timeDuration.Update(packet->timestamp);
 	UpdateQueueDistribution(_queuesDistribution[queueID], packet->dataLen);
 	_packetQueues[queueID]->emplace_back(std::move(packet));
 }
@@ -75,6 +76,11 @@ const std::unique_ptr<PacketQueue> PacketQueueProvider::GetPacketQueueById(uint8
 {
 	assert(queueId < _queueCount);
 	return std::move(_packetQueues[queueId]);
+}
+
+uint64_t PacketQueueProvider::GetPacketsTimeDuration() const noexcept
+{
+	return _timeDuration.GetDuration();
 }
 
 } // namespace replay

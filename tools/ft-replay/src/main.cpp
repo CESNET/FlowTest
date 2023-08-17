@@ -28,27 +28,19 @@
 
 using namespace replay;
 
-void ReplicationThread(
-	Replicator replicator,
-	std::unique_ptr<PacketQueue> packetQueue,
-	CountDownLatch* workersLatch,
-	size_t loopCount)
+void ReplicationThread(Replicator replicator, CountDownLatch* workersLatch, size_t loopCount)
 {
 	size_t currentLoop = 0;
 
 	workersLatch->ArriveAndWait();
 
 	while (currentLoop != loopCount) {
-		// TODO time wait
-		// TODO synchronization
-		replicator.SetReplicationLoopId(currentLoop);
-		replicator.Replicate(packetQueue->begin(), packetQueue->end());
+		replicator.Replicate(currentLoop);
 		currentLoop++;
 	};
 }
 
-void ConfigureOutputQueueRateLimit(
-	OutputQueue* outputQueue,
+Config::RateLimit CreateRateLimiterConfig(
 	PacketQueueProvider::QueueDistribution queueDistribution,
 	Config::RateLimit rateLimit)
 {
@@ -64,7 +56,7 @@ void ConfigureOutputQueueRateLimit(
 		limit.value = max;
 	}
 
-	outputQueue->SetRateLimiter(rateLimit);
+	return rateLimit;
 }
 
 void ReplicatorExecutor(const Config& config)
@@ -82,7 +74,6 @@ void ReplicatorExecutor(const Config& config)
 
 	PacketBuilder builder;
 	builder.SetVlan(config.GetVlanID());
-	builder.SetTimeMultiplier(config.GetReplayTimeMultiplier());
 
 	while ((rawPacket = packetProvider.Next())) {
 		packetQueueProvider.InsertPacket(builder.Build(rawPacket));
@@ -90,18 +81,21 @@ void ReplicatorExecutor(const Config& config)
 
 	CountDownLatch workersLatch(queueCount);
 
+	auto loopTimeDuration = packetQueueProvider.GetPacketsTimeDuration();
+
 	for (size_t queueId = 0; queueId < queueCount; queueId++) {
 		auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
 		auto packetQueueRatio = packetQueueProvider.GetPacketQueueRatioById(queueId);
+		auto rateLimiterConfig = CreateRateLimiterConfig(packetQueueRatio, config.GetRateLimit());
 
 		OutputQueue* outputQueue = outputPlugin->GetQueue(queueId);
-		ConfigureOutputQueueRateLimit(outputQueue, packetQueueRatio, config.GetRateLimit());
-		Replicator replicator(replicatorConfigParser.get(), outputQueue);
+		Replicator replicator(std::move(packetQueue), outputQueue, loopTimeDuration);
+		replicator.SetRateLimiter(rateLimiterConfig);
+		replicator.SetReplicatorStrategy(replicatorConfigParser.get());
 
 		std::thread worker(
 			ReplicationThread,
 			std::move(replicator),
-			std::move(packetQueue),
 			&workersLatch,
 			config.GetLoopsCount());
 		threads.emplace_back(std::move(worker));

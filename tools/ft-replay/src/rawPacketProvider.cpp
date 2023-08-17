@@ -13,8 +13,10 @@
 
 namespace replay {
 
-RawPacketProvider::RawPacketProvider(const std::string& file)
+RawPacketProvider::RawPacketProvider(const std::string& file, bool normalizeTimestamps)
 	: _packet()
+	, _normalizeTimestamp(normalizeTimestamps)
+	, _lastSeenTimestamp(0)
 {
 	OpenFile(file.c_str());
 	CheckDatalink();
@@ -79,7 +81,41 @@ void RawPacketProvider::FillRawPacket(const struct pcap_pkthdr* header, const st
 
 uint64_t RawPacketProvider::CalculateTimestamp(const struct pcap_pkthdr* header)
 {
-	return (header->ts.tv_sec * 1000000ULL + header->ts.tv_usec) * 1000;
+	uint64_t timestamp = (header->ts.tv_sec * 1000000ULL + header->ts.tv_usec) * 1000;
+
+	ValidateTimestampOrder(timestamp);
+
+	if (_normalizeTimestamp) {
+		timestamp = NormalizeTimestamp(timestamp);
+	}
+
+	return timestamp;
+}
+
+void RawPacketProvider::ValidateTimestampOrder(uint64_t timestamp)
+{
+	if (_lastSeenTimestamp > timestamp) {
+		_logger->error("Packet timestamps are not in ascending order!");
+		throw std::runtime_error("RawPacketProvider::ValidateTimestampOrder() has failed");
+	}
+
+	_lastSeenTimestamp = timestamp;
+}
+
+uint64_t RawPacketProvider::NormalizeTimestamp(uint64_t timestamp)
+{
+	if (!_referenceTimestamp.has_value()) {
+		_referenceTimestamp = timestamp;
+		return 0;
+	}
+
+	const uint64_t reference = _referenceTimestamp.value();
+	if (timestamp < reference) {
+		// Timestamp preceding the time of the first packet
+		return 0;
+	}
+
+	return timestamp - reference;
 }
 
 } // namespace replay

@@ -93,7 +93,6 @@ void PcapFileQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 void PcapFileQueue::SendBurst(const PacketBuffer* burst)
 {
 	for (size_t packetId = 0; packetId < _pktsToSend; packetId++) {
-		RateLimit(1, burst[packetId]._len);
 		WritePacket(burst[packetId]._data, burst[packetId]._len);
 		_outputQueueStats.transmittedPackets++;
 		_outputQueueStats.transmittedBytes += burst[packetId]._len;

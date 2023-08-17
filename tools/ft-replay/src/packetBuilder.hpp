@@ -38,25 +38,13 @@ public:
 	 */
 	void SetVlan(uint16_t vlanID);
 
-	/**
-	 * @brief Set the time multiplier value
-	 *
-	 * Timestamp in packet are multiplied by this value
-	 * Default: 0
-	 *
-	 * @param timeMultiplier Value to set
-	 */
-	void SetTimeMultiplier(float timeMultiplier);
-
 private:
-	uint64_t GetMultipliedTimestamp(uint64_t rawPacketTimestamp) const;
 	PacketInfo GetPacketL3Info(const RawPacket* rawPacket) const;
 	void CheckSufficientDataLength(size_t availableLength, size_t requiredLength) const;
 	std::unique_ptr<std::byte[]> GetDataCopy(const std::byte* rawData, uint16_t dataLen);
 	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen);
 
 	uint16_t _vlanID = 0;
-	float _timeMultiplier = 0;
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketBuilder");
 };
 

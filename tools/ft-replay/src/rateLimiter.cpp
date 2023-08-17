@@ -109,6 +109,47 @@ void RateLimiter::Reset() noexcept
 	_isStartTimeInitialized = false;
 }
 
+uint64_t RateLimiter::GetAvailableTokens(uint64_t minimalRequiredTokens) noexcept
+{
+	if (!_tokenslimitPerSecond) {
+		return 0;
+	}
+
+	if (!_isStartTimeInitialized) {
+		InitStartTime();
+	}
+
+	auto currentTimeDelta = GetCurrentTimeDelta();
+	auto expectedOutgouingTime = TokensToTimeDelta(_tokensInBucket + minimalRequiredTokens);
+
+	uint64_t expectedTokensInBucket = 0;
+	// waiting till minimalRequiredTokens are available
+	if (currentTimeDelta < expectedOutgouingTime) {
+		std::this_thread::sleep_for(
+			std::chrono::nanoseconds(expectedOutgouingTime - currentTimeDelta));
+		expectedTokensInBucket = _tokensInBucket + minimalRequiredTokens;
+	} else {
+		expectedTokensInBucket = TimeDeltaToTokens(currentTimeDelta);
+	}
+
+	uint64_t tokensGapCount = _tokenslimitPerSecond;
+	if (minimalRequiredTokens > _tokenslimitPerSecond) {
+		tokensGapCount = minimalRequiredTokens;
+	}
+
+	if (expectedTokensInBucket - _tokensInBucket > tokensGapCount) {
+		_tokensInBucket = expectedTokensInBucket - _tokenslimitPerSecond;
+		return tokensGapCount;
+	}
+
+	return expectedTokensInBucket - _tokensInBucket;
+}
+
+void RateLimiter::SetProcessedTokens(uint64_t processedTokens) noexcept
+{
+	_tokensInBucket += processedTokens;
+}
+
 void RateLimiter::Limit(uint64_t tokensToProcess) noexcept
 {
 	if (!_tokenslimitPerSecond) {

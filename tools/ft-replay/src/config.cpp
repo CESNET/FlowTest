@@ -15,17 +15,8 @@
 namespace replay {
 
 Config::Config()
-	: _exclusiveOption(std::nullopt)
 {
 	SetDefaultValues();
-}
-
-void Config::CheckExclusiveOption(char option)
-{
-	if (_exclusiveOption && _exclusiveOption.value() != option) {
-		throw std::runtime_error("Options -x, -t, -p, and -M are mutually exclusive.");
-	}
-	_exclusiveOption = option;
 }
 
 void Config::Parse(int argc, char** argv)
@@ -41,23 +32,22 @@ void Config::Parse(int argc, char** argv)
 		case 'c':
 			_replicatorConfig = optarg;
 			break;
-		case 'x':
-			CheckExclusiveOption(c);
-			_replayTimeMultiplier = std::atof(optarg);
-			if (!_replayTimeMultiplier) {
-				throw std::runtime_error("Option -x cannot be zero.");
+		case 'x': {
+			float timeMultiplier = std::atof(optarg);
+			if (timeMultiplier <= 0.0) {
+				throw std::runtime_error("Option -x cannot be zero or negative.");
 			}
+			uint64_t timeTokensLimit = RateLimitTimeUnit::NANOSEC_IN_SEC * timeMultiplier;
+			SetRateLimit(RateLimitTimeUnit {timeTokensLimit});
 			break;
+		}
 		case 't':
-			CheckExclusiveOption(c);
-			_replayTimeMultiplier = 0;
+			SetRateLimit(std::monostate());
 			break;
 		case 'p':
-			CheckExclusiveOption(c);
 			SetRateLimit(RateLimitPps {std::stoull(optarg)});
 			break;
 		case 'M':
-			CheckExclusiveOption(c);
 			SetRateLimit(RateLimitMbps {std::stoull(optarg)});
 			break;
 		case 'o':
@@ -89,12 +79,10 @@ void Config::SetDefaultValues()
 	_outputPlugin.clear();
 	_pcapFile.clear();
 
-	_rateLimit = std::monostate();
-	_replayTimeMultiplier = 1;
+	_rateLimit = std::nullopt;
 	_vlanID = 0;
 	_loopsCount = 1;
 	_help = false;
-	_exclusiveOption.reset();
 }
 
 const option* Config::GetLongOptions()
@@ -134,12 +122,12 @@ void Config::Validate()
 
 void Config::SetRateLimit(Config::RateLimit limit)
 {
-	if (std::holds_alternative<std::monostate>(_rateLimit)) {
+	if (!_rateLimit.has_value()) {
 		_rateLimit = limit;
 		return;
 	}
 
-	throw std::invalid_argument("Multiple rate limits are not allowed");
+	throw std::invalid_argument("Options -x, -t, -p, and -M are mutually exclusive.");
 }
 
 const std::string& Config::GetReplicatorConfig() const
@@ -159,12 +147,11 @@ const std::string& Config::GetInputPcapFile() const
 
 Config::RateLimit Config::GetRateLimit() const
 {
-	return _rateLimit;
-}
+	if (_rateLimit.has_value()) {
+		return _rateLimit.value();
+	}
 
-float Config::GetReplayTimeMultiplier() const
-{
-	return _replayTimeMultiplier;
+	return RateLimitTimeUnit {RateLimitTimeUnit::NANOSEC_IN_SEC};
 }
 
 uint16_t Config::GetVlanID() const

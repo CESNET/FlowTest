@@ -34,6 +34,8 @@ add_executable(ft-replay
 	countDownLatch.hpp
 	countDownLatch.cpp
 	timeConverter.hpp
+	timeDuration.cpp
+	timeDuration.hpp
 	replicator-core/configParser.hpp
 	replicator-core/configParser.cpp
 	replicator-core/configParserFactory.hpp
