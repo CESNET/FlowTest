@@ -37,7 +37,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		   {nullptr, 0, nullptr, 0}};
 	const char* shortOpts = ":o:p:c:r:vh";
 
-	int currentIdx = 0;
+	int currentIdx = 1;
 	optind = 0;
 	opterr = 0; // Handle printing error messages ourselves
 
