@@ -161,3 +161,21 @@ def test_ignore_loop():
     replicator.replicate(os.path.join(SOURCE_PATH, "basic.csv"), TMP_CSV, loops=3)
 
     assert filecmp.cmp(TMP_CSV, os.path.join(REF_PATH, "basic_ignore_loop.csv"))
+
+
+def test_ipv6_adding():
+    """Test of custom IPv6 address adding. Only first 4 bytes must be edited."""
+
+    config = {
+        "units": [
+            {
+                "srcip": f"addConstant({2**30})",
+                "dstip": "addConstant(2)",
+            }
+        ]
+    }
+
+    replicator = FlowReplicator(config)
+    replicator.replicate(os.path.join(SOURCE_PATH, "ipv6.csv"), TMP_CSV, loops=1)
+
+    assert filecmp.cmp(TMP_CSV, os.path.join(REF_PATH, "ipv6.csv"))

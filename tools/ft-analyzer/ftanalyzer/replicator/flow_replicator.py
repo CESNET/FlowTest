@@ -9,10 +9,12 @@ in case a replicator (ft-replay) was used as a generator during testing.
 """
 
 
+from __future__ import annotations
+
 import ipaddress
 import re
 from dataclasses import dataclass
-from typing import Iterable, List, Optional
+from typing import Any, Iterable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -127,6 +129,23 @@ class FlowReplicator:
         "BYTES": "sum",
     }
 
+    class IPv6Address(ipaddress.IPv6Address):
+        """Custom representation of IPv6 address which edits only first 4 bytes when adding a number."""
+
+        def __add__(self, other: int) -> FlowReplicator.IPv6Address:
+            if not isinstance(other, int):
+                return NotImplemented
+            return self.__class__(int(self) + 2**96 * other)
+
+    @staticmethod
+    def ip_address(address: Any) -> Union[FlowReplicator.IPv6Address, ipaddress.IPv4Address]:
+        """Custom IP address parser. When IP address is version 6, custom IPv6Address object is returned."""
+
+        obj = ipaddress.ip_address(address)
+        if isinstance(obj, ipaddress.IPv6Address):
+            return FlowReplicator.IPv6Address(obj)
+        return obj
+
     def __init__(self, config: dict, ignore_loops: Optional[list[int]] = None) -> None:
         """Init flow replicator. Parse config dict.
 
@@ -186,8 +205,8 @@ class FlowReplicator:
         except Exception as err:
             raise FlowReplicatorException("Unable to read file with flows.") from err
 
-        self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(ipaddress.ip_address)
-        self._flows.loc[:, "DST_IP"] = self._flows["DST_IP"].apply(ipaddress.ip_address)
+        self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(self.ip_address)
+        self._flows.loc[:, "DST_IP"] = self._flows["DST_IP"].apply(self.ip_address)
         # index of source flow is used when merging flows within single loop
         self._flows["ORIG_INDEX"] = self._flows.index
 
