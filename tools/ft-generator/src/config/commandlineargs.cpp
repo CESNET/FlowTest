@@ -8,6 +8,8 @@
 
 #include "commandlineargs.h"
 
+#include <handlers.h>
+
 #include <getopt.h>
 
 #include <cassert>
@@ -37,13 +39,15 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		   {nullptr, 0, nullptr, 0}};
 	const char* shortOpts = ":o:p:c:r:vh";
 
-	int currentIdx = 0;
+	int currentIdx = 1;
 	optind = 0;
 	opterr = 0; // Handle printing error messages ourselves
 
-	int c;
-	while ((c = getopt_long(argc, argv, shortOpts, longOpts, nullptr)) != -1) {
-		switch (c) {
+	int opt;
+	while ((opt = getopt_long(argc, argv, shortOpts, longOpts, nullptr)) != -1) {
+		const char* current = argv[currentIdx];
+
+		switch (opt) {
 		case 'o':
 			_outputFile = optarg;
 			break;
@@ -72,14 +76,18 @@ void CommandLineArgs::Parse(int argc, char** argv)
 			_noFlowCollisionCheck = true;
 			break;
 		case '?':
-			throw std::invalid_argument("Unknown option " + std::string(argv[currentIdx]));
+			ft::CliHandleInvalidOption(current);
 		case ':':
-			throw std::invalid_argument(
-				"Missing argument for option " + std::string(argv[currentIdx]));
+			ft::CliHandleMissingArgument(current);
 		default:
-			assert(0 && "Unhandled option");
+			ft::CliHandleUnimplementedOption(current);
 		}
+
 		currentIdx = optind;
+	}
+
+	if (optind < argc) {
+		ft::CliHandleInvalidOption(argv[optind]);
 	}
 
 	CheckValidity();
