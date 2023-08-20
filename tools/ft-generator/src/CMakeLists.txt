@@ -47,6 +47,7 @@ set(FT_GENERATOR_SOURCES
 	timestampgenerator.cpp
 	data/words.cpp
 	randomgeneratorengine.cpp
+	domainnamegenerator.cpp
 )
 
 set(FT_GENERATOR_LIBS
