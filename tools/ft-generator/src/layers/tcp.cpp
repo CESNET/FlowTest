@@ -18,8 +18,6 @@
 #include <pcapplusplus/IPv6Layer.h>
 #include <pcapplusplus/TcpLayer.h>
 
-#include <random>
-
 namespace generator {
 
 constexpr uint64_t TCP_HDR_LEN = sizeof(pcpp::tcphdr);
@@ -159,44 +157,23 @@ void Tcp::PlanTerminationHandshake(FlowPlanHelper& planner)
 
 void Tcp::PlanData(FlowPlanHelper& planner)
 {
-	double fwdPktChance = double(planner.FwdPktsRemaining()) / double(planner.PktsRemaining());
-	std::random_device rd;
-	std::mt19937 eng(rd());
-	std::uniform_real_distribution<> dist(0.0, 1.0);
-
 	while (true) {
-		bool fwdAvail;
-		bool revAvail;
+		bool pktsAvail;
 		if (_shouldPlanTermHandshake) {
-			fwdAvail = planner.FwdPktsRemaining() > TERM_HANDSHAKE_FWD_PKTS;
-			revAvail = planner.RevPktsRemaining() > TERM_HANDSHAKE_REV_PKTS;
+			pktsAvail = planner.PktsTillEnd() > TERM_HANDSHAKE_FWD_PKTS + TERM_HANDSHAKE_REV_PKTS;
 		} else {
-			fwdAvail = planner.FwdPktsRemaining() > 0;
-			revAvail = planner.RevPktsRemaining() > 0;
-		}
-		if (!fwdAvail && !revAvail) {
-			break;
+			pktsAvail = planner.PktsTillEnd() > 0;
 		}
 
-		Direction dir;
-		if (fwdAvail && revAvail) {
-			dir = dist(eng) <= fwdPktChance ? Direction::Forward : Direction::Reverse;
-		} else {
-			dir = fwdAvail ? Direction::Forward : Direction::Reverse;
+		if (!pktsAvail) {
+			break;
 		}
 
 		Packet::layerParams params;
 		Packet* pkt = planner.NextPacket();
 
-		if (dir == Direction::Forward) {
-			params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Data);
-			planner._assignedFwdPkts++;
-		} else {
-			params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Data);
-			planner._assignedRevPkts++;
-		}
+		params[int(TcpMap::Kind)] = uint64_t(TcpPacketKind::Data);
 
-		pkt->_direction = dir;
 		pkt->_size += pcpp::TcpLayer().getHeaderLen();
 		pkt->_layers.emplace_back(this, params);
 	}
