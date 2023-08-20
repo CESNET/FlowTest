@@ -33,7 +33,7 @@ public:
 	/**
 	 * @brief Construct a new Flow Plan Helper object
 	 *
-	 * @param flow
+	 * @param flow  The flow the planner will be used for
 	 */
 	explicit FlowPlanHelper(Flow& flow);
 
@@ -60,8 +60,6 @@ public:
 
 	/**
 	 * @brief Get the number of remaining unassigned packets
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t PktsRemaining();
 
@@ -74,22 +72,16 @@ public:
 
 	/**
 	 * @brief Get the number of remaining unassigned packets in the forward direction
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t FwdPktsRemaining();
 
 	/**
 	 * @brief Get the number of remaining unassigned packets in the reverse direction
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t RevPktsRemaining();
 
 	/**
 	 * @brief Get the number of remaining unassigned bytes
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t BytesRemaining();
 
@@ -102,29 +94,22 @@ public:
 
 	/**
 	 * @brief Get the number of remaining unassigned bytes in the forward direction
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t FwdBytesRemaining();
 
 	/**
 	 * @brief Get the number of remaining unassigned bytes in the reverse direction
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t RevBytesRemaining();
 
 	/**
 	 * @brief Generate a random available direction for a packet
-	 *
-	 * @return The direction
 	 */
 	Direction GetRandomDir();
 
 	/**
 	 * @brief Reset the flow packet iterator to the beginning of the flow. Does not reset the
-	 * counters!
-	 * @return uint64_t
+	 *        counters!
 	 */
 	void Reset();
 
