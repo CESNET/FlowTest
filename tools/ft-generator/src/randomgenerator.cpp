@@ -103,4 +103,14 @@ double RandomGenerator::RandomDouble(double min, double max)
 	return min + RandomDouble() * (max - min);
 }
 
+std::string RandomGenerator::RandomString(std::size_t length, std::string_view charset)
+{
+	std::string s;
+	s.reserve(length);
+	for (std::size_t i = 0; i < length; i++) {
+		s.push_back(RandomChoice(charset));
+	}
+	return s;
+}
+
 } // namespace generator

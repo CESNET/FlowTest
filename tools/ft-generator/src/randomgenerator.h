@@ -9,8 +9,16 @@
 #pragma once
 
 #include <cstdint>
+#include <stdexcept>
+#include <string_view>
 
 namespace generator {
+
+inline constexpr std::string_view LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz";
+inline constexpr std::string_view UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+inline constexpr std::string_view NUMBERS = "0123456789";
+inline constexpr std::string_view ALPHANUMERIC_CHARS
+	= "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 /**
  * @brief A SplitMix64 random number generator
@@ -122,6 +130,26 @@ public:
 	 */
 	double RandomDouble(double min, double max);
 
+	/**
+	 * @brief Choose a random value from a container of values
+	 *
+	 * @param values  The values (non-empty)
+	 * @return The randomly chosen value
+	 *
+	 * @throws std::logic_error If the provided values vector is empty
+	 */
+	template <typename T>
+	const auto& RandomChoice(const T& values);
+
+	/**
+	 * @brief Generate a random string
+	 *
+	 * @param length  The length of the string
+	 * @param charset  The character set to choose characters from
+	 * @return A random string
+	 */
+	std::string RandomString(std::size_t length, std::string_view charset = ALPHANUMERIC_CHARS);
+
 private:
 	Xoshiro256PlusPlusGenerator _engine;
 
@@ -140,5 +168,14 @@ private:
 	RandomGenerator& operator=(const RandomGenerator&) = delete;
 	RandomGenerator& operator=(RandomGenerator&&) = delete;
 };
+
+template <typename T>
+const auto& RandomGenerator::RandomChoice(const T& values)
+{
+	if (values.empty()) {
+		throw std::logic_error("cannot randomly choose from empty values");
+	}
+	return values[RandomUInt(0, values.size() - 1)];
+}
 
 } // namespace generator
