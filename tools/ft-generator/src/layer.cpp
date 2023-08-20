@@ -34,9 +34,14 @@ Layer* Layer::GetNextLayer() const
 	return _flow->_layerStack[_layerNumber + 1].get();
 }
 
+bool Layer::PacketHasLayer(Packet& packet) const
+{
+	return _layerNumber < packet._layers.size();
+}
+
 Packet::layerParams& Layer::GetPacketParams(Packet& packet) const
 {
-	assert(_layerNumber < packet._layers.size());
+	assert(PacketHasLayer(packet));
 	return packet._layers[_layerNumber].second;
 }
 

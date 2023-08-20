@@ -155,6 +155,14 @@ protected:
 	size_t GetLayerNumber() const { return _layerNumber; };
 
 	/**
+	 * @brief Check if this layer has been added to the provided packet
+	 *
+	 * @param packet   The packet
+	 * @return true if it has, else false
+	 */
+	bool PacketHasLayer(Packet& packet) const;
+
+	/**
 	 * @brief Get the packet parameters
 	 *
 	 * @param packet  The packet
