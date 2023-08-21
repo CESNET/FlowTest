@@ -176,13 +176,14 @@ void TrafficMeter::RecordPacket(
 	assert(flowId < _records.size());
 	FlowRecord& rec = _records[flowId];
 
-	if (rec._fwdPkts == 0 && rec._revPkts == 0) {
-		rec._firstTs = time;
-	}
-	rec._lastTs = time;
-
 	assert(dir != Direction::Unknown);
 	if (dir == Direction::Forward) {
+		// First packet in FWD direction
+		if (rec._fwdPkts == 0) {
+			rec._fwdFirstTs = time;
+		}
+
+		// First packet overall
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
 			ExtractPacketParams(
 				packet,
@@ -195,10 +196,18 @@ void TrafficMeter::RecordPacket(
 				rec._revIpAddr,
 				rec._revPort);
 		}
+
 		rec._fwdPkts++;
 		rec._fwdBytes += GetPacketSizeFromIPLayer(packet);
+		rec._fwdLastTs = time;
 
 	} else if (dir == Direction::Reverse) {
+		// First packet in REV direction
+		if (rec._revPkts == 0) {
+			rec._revFirstTs = time;
+		}
+
+		// First packet overall
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
 			ExtractPacketParams(
 				packet,
@@ -211,8 +220,10 @@ void TrafficMeter::RecordPacket(
 				rec._fwdIpAddr,
 				rec._fwdPort);
 		}
+
 		rec._revPkts++;
 		rec._revBytes += GetPacketSizeFromIPLayer(packet);
+		rec._revLastTs = time;
 	}
 }
 
@@ -225,7 +236,7 @@ void TrafficMeter::WriteReportCsv(const std::string& fileName)
 		throw std::runtime_error("Error while opening output file \"" + fileName + "\": " + err);
 	}
 
-	csvFile << "SRC_IP,DST_IP,START_TIME,END_TIME,L3_PROTO,L4_PROTO,"
+	csvFile << "SRC_IP,DST_IP,START_TIME,END_TIME,START_TIME_REV,END_TIME_REV,L3_PROTO,L4_PROTO,"
 			   "SRC_PORT,DST_PORT,PACKETS,BYTES,PACKETS_REV,BYTES_REV\n";
 
 	for (const FlowRecord& rec : _records) {
@@ -239,14 +250,24 @@ void TrafficMeter::WriteReportCsv(const std::string& fileName)
 		}
 
 		// START_TIME
-		uint64_t startUsec = rec._firstTs.ToMicroseconds();
+		uint64_t startUsec = rec._fwdFirstTs.ToMicroseconds();
 		uint64_t startMsec = startUsec / 1000;
 		uint64_t startMsecDecimal = startUsec % 1000;
 		csvFile << startMsec << "." << std::setfill('0') << std::setw(3) << startMsecDecimal << ",";
 		// END_TIME
-		uint64_t endUsec = rec._lastTs.ToMicroseconds();
+		uint64_t endUsec = rec._fwdLastTs.ToMicroseconds();
 		uint64_t endMsec = endUsec / 1000;
 		uint64_t endMsecDecimal = endUsec % 1000;
+		csvFile << endMsec << "." << std::setfill('0') << std::setw(3) << endMsecDecimal << ",";
+		// START_TIME_REV
+		startUsec = rec._revFirstTs.ToMicroseconds();
+		startMsec = startUsec / 1000;
+		startMsecDecimal = startUsec % 1000;
+		csvFile << startMsec << "." << std::setfill('0') << std::setw(3) << startMsecDecimal << ",";
+		// END_TIME_REV
+		endUsec = rec._revLastTs.ToMicroseconds();
+		endMsec = endUsec / 1000;
+		endMsecDecimal = endUsec % 1000;
 		csvFile << endMsec << "." << std::setfill('0') << std::setw(3) << endMsecDecimal << ",";
 		// L3_PROTO
 		csvFile << int(rec._l3Proto) << ",";
