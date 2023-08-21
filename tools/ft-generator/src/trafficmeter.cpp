@@ -21,6 +21,15 @@
 
 namespace generator {
 
+static std::ostream& operator<<(std::ostream& os, const Timeval& tv)
+{
+	uint64_t usec = tv.ToMicroseconds();
+	uint64_t msec = usec / 1000;
+	uint64_t msecDecimal = usec % 1000;
+	os << msec << "." << std::setfill('0') << std::setw(3) << msecDecimal;
+	return os;
+}
+
 static bool ExtractUdpParamsFromPayloadLayer(
 	const pcpp::PayloadLayer* payloadLayer,
 	uint16_t& srcPort,
@@ -250,25 +259,13 @@ void TrafficMeter::WriteReportCsv(const std::string& fileName)
 		}
 
 		// START_TIME
-		uint64_t startUsec = rec._fwdFirstTs.ToMicroseconds();
-		uint64_t startMsec = startUsec / 1000;
-		uint64_t startMsecDecimal = startUsec % 1000;
-		csvFile << startMsec << "." << std::setfill('0') << std::setw(3) << startMsecDecimal << ",";
+		csvFile << rec._fwdFirstTs << ",";
 		// END_TIME
-		uint64_t endUsec = rec._fwdLastTs.ToMicroseconds();
-		uint64_t endMsec = endUsec / 1000;
-		uint64_t endMsecDecimal = endUsec % 1000;
-		csvFile << endMsec << "." << std::setfill('0') << std::setw(3) << endMsecDecimal << ",";
+		csvFile << rec._fwdLastTs << ",";
 		// START_TIME_REV
-		startUsec = rec._revFirstTs.ToMicroseconds();
-		startMsec = startUsec / 1000;
-		startMsecDecimal = startUsec % 1000;
-		csvFile << startMsec << "." << std::setfill('0') << std::setw(3) << startMsecDecimal << ",";
+		csvFile << rec._revFirstTs << ",";
 		// END_TIME_REV
-		endUsec = rec._revLastTs.ToMicroseconds();
-		endMsec = endUsec / 1000;
-		endMsecDecimal = endUsec % 1000;
-		csvFile << endMsec << "." << std::setfill('0') << std::setw(3) << endMsecDecimal << ",";
+		csvFile << rec._revLastTs << ",";
 		// L3_PROTO
 		csvFile << int(rec._l3Proto) << ",";
 		// L4_PROTO
