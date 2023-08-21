@@ -69,10 +69,14 @@ CSV file consisting of the following fields:
 
  * *SRC_IP* - generated source IPv4 or IPv6 address
  * *DST_IP* - generated destination IPv4 or IPv6 address
- * *START_TIME* - relative time of the first observed packet of the flow in
-   milliseconds (may contain decimal point)
- * *END_TIME* - relative time of the last observed packet of the flow in
-   milliseconds (may contain decimal point)
+ * *START_TIME* - relative time of the first observed packet in forward
+   direction in milliseconds (may contain decimal point)
+ * *END_TIME* - relative time of the last observed packet in forward direction
+   in milliseconds (may contain decimal point)
+ * *START_TIME_REV* - relative time of the first observed packet in reverse
+   direction in milliseconds (may contain decimal point)
+ * *END_TIME_REV* - relative time of the last observed packet in reverse
+   direction of the flow in milliseconds (may contain decimal point)
  * *L3_PROTO* - either 4 for IPv4 or 6 for IPv6
  * *L4_PROTO* - protocol number assigned by
    *[IANA](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)*
