@@ -29,6 +29,7 @@ class GeneratorBuilder(BuilderBase, Generator):
         config: Config,
         alias: str,
         probe_mac_addresses: List[str],
+        biflow_export: bool,
         add_vlan: Optional[int] = None,
         edit_dst_mac: bool = True,
         cmd_connector_args: Dict[str, Any] = frozenset(),
@@ -44,6 +45,8 @@ class GeneratorBuilder(BuilderBase, Generator):
             Unique identifier in static configuration.
         probe_mac_addresses : List[str]
             List of mac addresses of probe input interfaces.
+        biflow_export : bool
+            Flag indicating whether the tested probe exports biflows.
         add_vlan : int, optional
             If specified, vlan header with given tag will be added to sent packets.
         edit_dst_mac : bool, optional
@@ -72,6 +75,7 @@ class GeneratorBuilder(BuilderBase, Generator):
         self._edit_dst_mac = edit_dst_mac
         self._probe_mac_addresses = probe_mac_addresses
         self._interfaces = generator_cfg.interfaces
+        self._biflow_export = biflow_export
 
         self._connector_args = generator_cfg.connector if generator_cfg.connector else {}
         # cmd additional arguments has higher priority, update arguments from config
@@ -94,7 +98,7 @@ class GeneratorBuilder(BuilderBase, Generator):
             New generator instance.
         """
 
-        instance = self._class(self._host, self._add_vlan, **self._connector_args)
+        instance = self._class(self._host, self._add_vlan, biflow_export=self._biflow_export, **self._connector_args)
         for i, ifc in enumerate(self._interfaces):
             mac = self._probe_mac_addresses[i] if self._edit_dst_mac else None
             instance.add_interface(ifc.name, mac)
