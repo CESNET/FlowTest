@@ -100,7 +100,14 @@ class PcapPlayer(ABC):
     """Interface for generator which replays PCAP file on a network interface."""
 
     @abstractmethod
-    def __init__(self, host, add_vlan: Optional[int] = None, verbose: bool = False, **kwargs):
+    def __init__(
+        self,
+        host,
+        add_vlan: Optional[int] = None,
+        verbose: bool = False,
+        biflow_export: bool = False,
+        **kwargs,
+    ):
         """Init player.
 
         Parameters
@@ -111,6 +118,11 @@ class PcapPlayer(ABC):
             If specified, vlan header with given tag will be added to replayed packets.
         verbose : bool, optional
             If True, logs will collect all debug messages.
+        biflow_export : bool, optional
+            Used to process ft-generator report. When traffic originates from a profile.
+            Flag indicating whether the tested probe exports biflows.
+            If the probe exports biflows, the START_TIME resp. END_TIME in the generator
+            report contains min(START_TIME,START_TIME_REV) resp. max(END_TIME,END_TIME_REV).
         kwargs : dict
             Additional arguments processed by implementation.
         """
