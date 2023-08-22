@@ -47,6 +47,14 @@ class GrouperIteratorWrapper:
         self.index = None
         return tmp
 
+    def __lt__(self, other: "GrouperIteratorWrapper") -> bool:
+        if isinstance(self.key[0], type(other.key[0])):
+            return self.key < other.key
+
+        key_1 = (str(self.key[0]), str(self.key[1])) + self.key[2:]
+        key_2 = (str(other.key[0]), str(other.key[1])) + other.key[2:]
+        return key_1 < key_2
+
 
 class DoubleFrameIterator:
     """
@@ -238,9 +246,9 @@ class PreciseModel(StatisticalModel):
             try:
                 while True:
                     flow, ref = next(group_itr)
-                    if flow.empty or (ref.index is not None and ref.key < flow.key):
+                    if flow.empty or (ref.index is not None and ref < flow):
                         self._report_flows(refs.take(ref.pop_index()), PMTestCategory.MISSING)
-                    elif ref.empty or (flow.index is not None and flow.key < ref.key):
+                    elif ref.empty or (flow.index is not None and flow < ref):
                         self._report_flows(flows.take(flow.pop_index()), PMTestCategory.UNEXPECTED)
                     else:
                         self._compare_group(flows.take(flow.pop_index()), refs.take(ref.pop_index()))

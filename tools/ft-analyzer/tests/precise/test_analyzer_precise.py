@@ -201,3 +201,18 @@ def test_same_segment():
 
     with pytest.raises(ValueError):
         model.validate_precise([None, segment1, segment2, None])
+
+
+def test_ip_version_compare():
+    """Test situation when IPv4 is internally compared with IPv6."""
+
+    model = PMod(
+        os.path.join(FLOWS_PATH, "ip_version_compare.csv"),
+        os.path.join(REF_PATH, "ip_version_compare.csv"),
+        (300, 30),
+        1692691223212,
+    )
+    report = model.validate_precise()
+    report.print_results()
+
+    assert report.is_passing() is False
