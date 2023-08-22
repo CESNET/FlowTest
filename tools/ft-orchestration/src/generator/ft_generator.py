@@ -397,6 +397,8 @@ class FtGenerator:
         "DST_IP": str,
         "START_TIME": np.uint64,
         "END_TIME": np.uint64,
+        "START_TIME_REV": np.uint64,
+        "END_TIME_REV": np.uint64,
         "L3_PROTO": np.uint8,
         "L4_PROTO": np.uint8,
         "SRC_PORT": np.uint16,
@@ -423,7 +425,7 @@ class FtGenerator:
         "BYTES",
     ]
 
-    def __init__(self, host: Host, cache_dir: Optional[str] = None) -> None:
+    def __init__(self, host: Host, cache_dir: Optional[str] = None, biflow_export: bool = False) -> None:
         """Init ft-generator connector.
 
         Parameters
@@ -432,6 +434,10 @@ class FtGenerator:
             Host object with established connection on a machine.
         cache_dir : str, optional
             Path to save PCAPs on (remote) host. Temp directory is created when value is None.
+        biflow_export : bool, optional
+            Flag indicating whether the tested probe exports biflows.
+            If the probe exports biflows, the START_TIME resp. END_TIME in the generator
+            report contains min(START_TIME,START_TIME_REV) resp. max(END_TIME,END_TIME_REV).
 
         Raises
         ------
@@ -442,6 +448,7 @@ class FtGenerator:
         self._host = host
         self._bin = "ft-generator"
         self._local_workdir = tempfile.mkdtemp()
+        self._biflow_export = biflow_export
 
         if host.run(f"command -v {self._bin}", check_rc=False).exited != 0:
             logging.getLogger().error("%s is missing on host %s", self._bin, host.get_host())
@@ -545,6 +552,11 @@ class FtGenerator:
         except Exception as err:
             raise FtGeneratorException("Unable to read ft-generator output CSV.") from err
 
+        # when probe exports biflows, it cannot be detected correct timestamps for a single direction
+        if self._biflow_export:
+            biflows["START_TIME"] = biflows.loc[:, ["START_TIME", "START_TIME_REV"]].min(axis=1)
+            biflows["END_TIME"] = biflows.loc[:, ["END_TIME", "END_TIME_REV"]].max(axis=1)
+
         reverse_biflows = biflows.copy()
         reverse_biflows["SRC_IP"] = biflows["DST_IP"]
         reverse_biflows["DST_IP"] = biflows["SRC_IP"]
@@ -552,6 +564,11 @@ class FtGenerator:
         reverse_biflows["DST_PORT"] = biflows["SRC_PORT"]
         reverse_biflows["PACKETS"] = biflows["PACKETS_REV"]
         reverse_biflows["BYTES"] = biflows["BYTES_REV"]
+
+        # report contains timestamps from reverse direction
+        if not self._biflow_export:
+            reverse_biflows["START_TIME"] = biflows["START_TIME_REV"]
+            reverse_biflows["END_TIME"] = biflows["END_TIME_REV"]
 
         merge = reverse_biflows.loc[reverse_biflows["PACKETS"] > 0]
         biflows = pd.concat([biflows, merge], axis=0, ignore_index=True)
