@@ -32,6 +32,7 @@ class ProbeCfg(YAMLWizard):
     connector: Optional[dict] = None
     ansible_playbook_role: Optional[str] = None
     tests_whitelist: Optional[str] = None
+    biflow_export: bool = False
 
     def check(self, authentications: Dict[str, AuthenticationCfg], whitelists: Dict[str, WhitelistCfg]) -> None:
         """Check the configuration validity.
