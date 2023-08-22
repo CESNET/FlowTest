@@ -25,8 +25,6 @@ from src.config.config import Config
 from src.config.generator import GeneratorCfg
 from src.config.probe import ProbeCfg
 from src.host.common import get_real_user
-from src.host.host import Host
-from src.host.storage import RemoteStorage
 
 ANSIBLE_PATH = path.join(get_project_root(), "ansible")
 
@@ -48,9 +46,7 @@ class BuilderBase(ABC):
         """
 
         self._config = config
-        self._host = None
         self._executor = None
-        self._storage = None
         self._class = None
         self._timestamp_process = None
 
@@ -92,10 +88,8 @@ class BuilderBase(ABC):
         Use method in pytest finalizers.
         """
 
-        if self._host:
-            self._host.close()
-        if self._storage:
-            self._storage.close()
+        if self._executor and isinstance(self._executor, RemoteExecutor):
+            self._executor.close()
 
     def host_timestamp_async(self) -> None:
         """Start command for retrieving time on (remote) host."""
@@ -121,7 +115,7 @@ class BuilderBase(ABC):
 
         logging.getLogger().info(
             "Timestamp on host '%s': %d (%s)",
-            self._host.get_host(),
+            self._executor.get_host(),
             timestamp,
             timestamp_datetime.isoformat(sep=" ", timespec="milliseconds"),
         )
@@ -137,12 +131,6 @@ class BuilderBase(ABC):
         """
 
         auth = self._config.authentications[object_cfg.authentication]
-        self._storage = (
-            RemoteStorage(object_cfg.name, None, auth.username, auth.password, auth.key_path)
-            if object_cfg.name != "localhost"
-            else None
-        )
-        self._host = Host(object_cfg.name, self._storage, auth.username, auth.password, auth.key_path)
         if object_cfg.name in ["localhost", "127.0.0.1"]:
             self._executor = LocalExecutor()
         else:
@@ -170,7 +158,7 @@ class BuilderBase(ABC):
             host_vars["ansible_password"] = auth.password
         if auth.key_path:
             host_vars["ansible_ssh_private_key_file"] = auth.key_path
-        inventory_data = {"all": {"hosts": {self._host.get_host(): host_vars}}}
+        inventory_data = {"all": {"hosts": {self._executor.get_host(): host_vars}}}
 
         with tempfile.TemporaryDirectory(prefix="flowtest-ansible-") as local_tmp:
             inventory_path = path.join(local_tmp, "inventory.yaml")
