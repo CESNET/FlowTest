@@ -23,12 +23,25 @@ enum class L3Type {
 };
 
 /**
+ * @brief Enum representing the transport layer for checksum offloading
+ */
+enum class L4Type {
+	TCP,
+	UDP,
+	Other,
+	NotFound,
+};
+
+/**
  * @brief Class representing the packet L3 info
  *
  */
 struct PacketInfo {
 	enum L3Type l3Type;
 	uint16_t l3Offset;
+
+	enum L4Type l4Type;
+	uint16_t l4Offset; //< Zero if l4type == L4Type::NotFound
 };
 
 /**

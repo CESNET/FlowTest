@@ -41,6 +41,9 @@ std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 	packet.info = GetPacketInfo(rawPacket);
 	if (_vlanID) {
 		packet.info.l3Offset += sizeof(VlanHeader);
+		if (packet.info.l4Offset != 0) {
+			packet.info.l4Offset += sizeof(VlanHeader);
+		}
 		packet.dataLen += sizeof(VlanHeader);
 		packet.data = GetDataCopyWithVlan(rawPacket->data, rawPacket->dataLen);
 	} else {
@@ -73,6 +76,30 @@ static std::optional<size_t> LayersFindFirstOf(
 	}
 }
 
+static std::optional<size_t> LayersFindFirstOf(
+	const std::vector<dissector::Layer>& layers,
+	LayerNumber layerNumber,
+	size_t startPos = 0)
+{
+	if (startPos >= layers.size()) {
+		return std::nullopt;
+	}
+
+	auto layersBegin = layers.begin();
+	std::advance(layersBegin, startPos);
+
+	auto cmp = [layerNumber](const dissector::Layer& layer) {
+		return LayerType2Number(layer._type) == layerNumber;
+	};
+
+	auto result = std::find_if(layersBegin, layers.end(), cmp);
+	if (result != layers.end()) {
+		return std::distance(layers.begin(), result);
+	} else {
+		return std::nullopt;
+	}
+}
+
 static L3Type EtherTypeToIPVersion(EtherType type)
 {
 	switch (type) {
@@ -82,6 +109,26 @@ static L3Type EtherTypeToIPVersion(EtherType type)
 		return L3Type::IPv6;
 	default:
 		throw std::invalid_argument("EtherTypeToIPVersion() failed due to unexpected argument");
+	}
+}
+
+static L4Type LayerToL4Protocol(LayerType type)
+{
+	if (LayerType2Number(type) != LayerNumber::L4) {
+		throw std::invalid_argument("LayerToL4Protocol() failed due to unexpected argument");
+	}
+
+	if (!std::holds_alternative<ProtocolType>(type)) {
+		return L4Type::Other;
+	}
+
+	switch (std::get<ProtocolType>(type)) {
+	case ProtocolType::TCP:
+		return L4Type::TCP;
+	case ProtocolType::UDP:
+		return L4Type::UDP;
+	default:
+		return L4Type::Other;
 	}
 }
 
@@ -101,6 +148,19 @@ PacketInfo PacketBuilder::GetPacketInfo(const RawPacket* rawPacket) const
 	const Layer& l3Layer = layers[l3Pos.value()];
 	info.l3Offset = l3Layer._offset;
 	info.l3Type = EtherTypeToIPVersion(std::get<EtherType>(l3Layer._type));
+
+	std::optional<size_t> l3PosNext = LayersFindFirstOf(layers, l3Layers, l3Pos.value() + 1);
+	std::optional<size_t> l4Pos = LayersFindFirstOf(layers, LayerNumber::L4, l3Pos.value() + 1);
+
+	if (!l4Pos || (l3PosNext && l3PosNext.value() < l4Pos.value())) {
+		// L4 not found or encapsulated within another IPv4/IPv6 packet
+		info.l4Offset = 0;
+		info.l4Type = L4Type::NotFound;
+	} else {
+		const Layer& l4Layer = layers[l4Pos.value()];
+		info.l4Offset = l4Layer._offset;
+		info.l4Type = LayerToL4Protocol(l4Layer._type);
+	}
 
 	return info;
 }
