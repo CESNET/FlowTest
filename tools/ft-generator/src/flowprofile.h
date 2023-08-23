@@ -78,6 +78,11 @@ struct FlowProfile {
 	 * MAX_EXPECTED_SIZE_DEVIATION_COEF constant.
 	 */
 	uint64_t ExpectedSizeOnDisk() const;
+
+	/**
+	 * @brief Get this profile with the directions reversed
+	 */
+	FlowProfile Reversed() const;
 };
 
 /**
