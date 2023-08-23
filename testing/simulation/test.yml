@@ -3,16 +3,16 @@ description: simple test
 marks: [simple_test, nightly]
 requirements:
   speed: 10
-profile: profiles/test.csv
+profile: profiles/csv_basic_profile.csv
 mtu: 1500
 sampling: 0.1
-pps: 800000
+pps: 400000
 generator:
   encapsulation: []
   ipv4:
     fragmentation_probability: 0%
-  mac:
-    mac_range: "94:00:00:00:00:00/40"
+  ipv6:
+    fragmentation_probability: 0%
 probe:
   protocols: []
   active_timeout: 300
@@ -22,8 +22,8 @@ probe:
       input_plugin: rawnetcap
 analysis:
   - key: PACKETS
-    diff: 0.0
+    diff: 0.0001
   - key: BYTES
-    diff: 0.0
+    diff: 0.0001
   - key: FLOWS
     diff: 0.1

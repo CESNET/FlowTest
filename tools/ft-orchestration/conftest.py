@@ -32,6 +32,7 @@ def pytest_addhooks(pluginmanager: pytest.PytestPluginManager):
         "src.common.fixtures",
         "src.topology.common",
         "src.topology.pcap_player",
+        "src.topology.replicator",
         "tests.validation.test_validation",
         "tests.simulation.test_simulation_original",
     ]

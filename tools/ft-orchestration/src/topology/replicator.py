@@ -4,7 +4,7 @@ Author(s): Jan Sobol <sobol@cesnet.cz>
 Copyright: (C) 2023 CESNET, z.s.p.o.
 SPDX-License-Identifier: BSD-3-Clause
 
-Implementation of topology with pcap-player generator, probe and collector.
+Implementation of topology with replicator (probably ft-replay), probe and collector.
 """
 
 from copy import deepcopy
@@ -27,14 +27,15 @@ from src.topology.common import (
 def pytest_addoption(parser: pytest.Parser):
     """Add topology options."""
 
-    # enable pcap-player topology
+    # enable replicator topology
     parser.addoption(
-        "--pcap-player",
+        "--replicator",
         action="append",
         default=None,
         help=(
-            "Enable wired pcap player topology -- main FlowTest topology. "
-            "Tests with selected pcap player topology will be runnable. "
+            "Enable replicator topology using ft-replay. "
+            "Tests with selected replicator topology will be runnable. "
+            "Format of cmd arguments is the same as for pcap-player. "
             "Use 'alias' to identify generator from configuration file generators.yml. "
             "Optionally, you can add generator parameters after alias. "
             "Standard options are 'vlan' for adding vlan tag to sent packets and "
@@ -46,14 +47,14 @@ def pytest_addoption(parser: pytest.Parser):
 
 
 @pytest_cases.fixture(scope="session")
-def topology_pcap_player(
+def topology_replicator(
     request: pytest.FixtureRequest,
     config: Config,
-    option_pcap_player: str,
+    option_replicator: str,
     probe_option: Optional[Option],
     collector_option: Optional[Option],
 ) -> Topology:
-    """Topology using pcap file player (interface PcapPlayer) as traffic generator.
+    """Topology using replicator (interface Replicator) as traffic generator.
     For better configuration inside a test, object builders are used.
 
     Parameters
@@ -62,7 +63,7 @@ def topology_pcap_player(
         Pytest request object used to add finalizer.
     config : Config
         Global static configuration object. Description of probes, generators and collectors.
-    option_pcap_player : str
+    option_replicator : str
         Generator alias and additional settings. E.g.: validation-gen:vlan=25;mtu=3500.
     probe_option : Optional[Option]
         Parsed probe option - probe alias and additional settings.
@@ -87,7 +88,7 @@ def topology_pcap_player(
     assert probe_option, "Probe cmd argument is required."
     assert collector_option, "Collector cmd argument is required."
 
-    generator_option = parse_generator_option(option_pcap_player)
+    generator_option = parse_generator_option(option_replicator)
     assert generator_option, "Generator cmd argument is required."
 
     probe_option, collector_option, generator_option = (
@@ -129,4 +130,4 @@ def topology_pcap_player(
     return Topology(device=probe_builder, generator=generator_builder, analyzer=collector_builder)
 
 
-registration.topology_option_register("pcap_player")
+registration.topology_option_register("replicator")
