@@ -165,14 +165,6 @@ PacketInfo PacketBuilder::GetPacketInfo(const RawPacket* rawPacket) const
 	return info;
 }
 
-void PacketBuilder::CheckSufficientDataLength(size_t availableLength, size_t requiredLength) const
-{
-	if (availableLength < requiredLength) {
-		_logger->error("Unsufficient packet data length");
-		throw std::runtime_error("PacketBuilder::CheckSufficientDataLength() has failed");
-	}
-}
-
 std::unique_ptr<std::byte[]> PacketBuilder::GetDataCopy(const std::byte* rawData, uint16_t dataLen)
 {
 	std::unique_ptr<std::byte[]> packetData;

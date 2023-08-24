@@ -40,7 +40,6 @@ public:
 
 private:
 	PacketInfo GetPacketInfo(const RawPacket* rawPacket) const;
-	void CheckSufficientDataLength(size_t availableLength, size_t requiredLength) const;
 	std::unique_ptr<std::byte[]> GetDataCopy(const std::byte* rawData, uint16_t dataLen);
 	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen);
 
