@@ -83,4 +83,17 @@ uint64_t PacketQueueProvider::GetPacketsTimeDuration() const noexcept
 	return _timeDuration.GetDuration();
 }
 
+void PacketQueueProvider::PrintStats() const
+{
+	for (size_t queueId = 0; queueId < _queueCount; queueId++) {
+		const auto& [packets, bytes] = GetPacketQueueRatioById(queueId);
+
+		_logger->info(
+			"Packet queue ID {} contains {:.2f}% of packets and {:.2f}% of bytes",
+			queueId,
+			100 * packets,
+			100 * bytes);
+	}
+}
+
 } // namespace replay
