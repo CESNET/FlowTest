@@ -10,11 +10,6 @@ install [Oracle Linux 8]:
   needs: ["rpmbuild [Oracle Linux 8]"]
   variables: { DOCKER_TAG: ol8 }
 
-install [CentOS Stream 8]:
-  extends: .install
-  needs: ["rpmbuild [CentOS Stream 8]"]
-  variables: { DOCKER_TAG: centos8 }
-
 install [Oracle Linux 9]:
     extends: .install
     needs: ["rpmbuild [Oracle Linux 9]"]
