@@ -11,13 +11,6 @@ docker [Oracle Linux 8]:
     OS_RELEASE: "8"
     DOCKER_TAG: "ol8"
 
-docker [CentOS Stream 8]:
-  extends: .docker
-  variables:
-    OS_DISTRO: "quay.io/centos/centos"
-    OS_RELEASE: "stream8"
-    DOCKER_TAG: "centos8"
-
 docker [Oracle Linux 9]:
   extends: .docker
   variables:
@@ -34,11 +27,6 @@ docker [Rocky Linux 9]:
 
 docker-rebuild [Oracle Linux 8]:
   extends: "docker [Oracle Linux 8]"
-  variables: { DOCKER_OPTS: --no-cache }
-  when: manual
-
-docker-rebuild [CentOS Stream 8]:
-  extends: "docker [CentOS Stream 8]"
   variables: { DOCKER_OPTS: --no-cache }
   when: manual
 

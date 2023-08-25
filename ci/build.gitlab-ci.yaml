@@ -11,10 +11,6 @@ build [Oracle Linux 8]:
   extends: .build
   variables: { DOCKER_TAG: ol8 }
 
-build [CentOS Stream 8]:
-  extends: .build
-  variables: { DOCKER_TAG: centos8 }
-
 build [Oracle Linux 9]:
   extends: .build
   variables: { DOCKER_TAG: ol9 }
@@ -37,10 +33,6 @@ build [Rocky Linux 9]:
 rpmbuild [Oracle Linux 8]:
   extends: .rpmbuild
   variables: { DOCKER_TAG: ol8 }
-
-rpmbuild [CentOS Stream 8]:
-  extends: .rpmbuild
-  variables: { DOCKER_TAG: centos8 }
 
 rpmbuild [Oracle Linux 9]:
     extends: .rpmbuild
