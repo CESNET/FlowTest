@@ -50,7 +50,7 @@ class StatisticalModel:
     """
 
     # pylint: disable=too-few-public-methods
-    TIME_EPSILON = 100
+    TIME_EPSILON = 1000
     FLOW_KEY = ["SRC_IP", "DST_IP", "SRC_PORT", "DST_PORT", "PROTOCOL"]
     CSV_COLUMN_TYPES = {
         "START_TIME": np.int64,
@@ -192,7 +192,7 @@ class StatisticalModel:
         # columns with the same name which are not part of the key (PACKETS, BYTES, START_TIME, END_TIME)
         # are provided with a suffix (_x - columns from "long flows" and _y - columns from "flows_with_index")
         split_flows = combined_flows[
-            (combined_flows["START_TIME_y"] >= combined_flows["START_TIME_x"])
+            (combined_flows["START_TIME_y"] >= combined_flows["START_TIME_x"] - self.TIME_EPSILON)
             & (combined_flows["END_TIME_y"] <= combined_flows["END_TIME_x"] + self.TIME_EPSILON)
         ]
         logging.getLogger().debug("split flows aggregation - matched %d split flows", len(split_flows))
@@ -213,7 +213,11 @@ class StatisticalModel:
         )
         aggregated_flows.drop(["START_TIME_x", "END_TIME_x"], axis=1, inplace=True)
         logging.getLogger().debug(
-            "split flows aggregation - found %d/%d long flows", len(aggregated_flows), len(long_flows)
+            "split flows aggregation - found %d/%d long flows (%d/%d packets)",
+            len(aggregated_flows),
+            len(long_flows),
+            aggregated_flows["PACKETS"].sum(),
+            long_flows["PACKETS"].sum(),
         )
 
         # remove split flows from the probe flows (using original index backup)
