@@ -150,8 +150,8 @@ units:
 
 loop:
   # Modify packets each loop by adding +4 to the highest byte of the IP addresses.
-  srcip: addConstant(67108864)     # 4 x 256^3
-  dstip: addConstant(67108864)     # 4 x 256^3
+  srcip: addOffset(67108864)     # 4 x 256^3
+  dstip: addOffset(67108864)     # 4 x 256^3
 ```
 
 The replication functionality of the tool is best demonstrated on the example of a suitably prepared
