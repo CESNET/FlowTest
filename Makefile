@@ -23,10 +23,10 @@ SOURCE_REGEX = '.*\.\(cpp\|hpp\|c\|h\)'
 
 .PHONY: all
 all: build/Makefile
-	@$(MAKE) --no-print-directory -C build
+	@$(MAKE) --no-print-directory -C build -j $(shell nproc)
 
 %: build/Makefile
-	@$(MAKE) --no-print-directory -C build $@
+	@$(MAKE) --no-print-directory -C build -j $(shell nproc) $@
 
 build/Makefile: | build
 	@cd build && $(CMAKE) $(CMAKE_ARGS) ..
