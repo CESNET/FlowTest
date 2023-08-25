@@ -1,3 +1,6 @@
+# Allow to easily include files from nested directories using #include <...>
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+
 add_executable(ft-replay
 	main.cpp
 	config.hpp
@@ -53,6 +56,8 @@ add_executable(ft-replay
 	replicator-core/replicator.cpp
 	replicator-core/packetModifier.hpp
 	replicator-core/packetModifier.cpp
+	dissector/dissector.cpp
+	dissector/layer.cpp
 )
 
 if (ENABLE_NFB)
