@@ -373,10 +373,7 @@ def stop_components(probe: ProbeInterface, collector: CollectorInterface):
         Collector to be stopped.
     """
 
-    logging.info("\t- Stop probe.")
     probe.stop()
-
-    logging.info("\t- Stop collector.")
     collector.stop()
 
 
@@ -418,17 +415,14 @@ def test_validation(
     test_validation.test_description = scenario.description
     test_validation.logs_path = log_dir
 
-    logging.info("\t- Starting collector...")
     collector_instance = analyzer.get()
     objects_to_cleanup.append(collector_instance)
     collector_instance.start()
 
-    logging.info("\t- Starting probe...")
     probe_instance = device.get(**scenario.probe.get_args(device.get_instance_type()))
     objects_to_cleanup.append(probe_instance)
     probe_instance.start()
 
-    logging.info("\t- Sending packets via generator to probe...")
     generator_instance = generator.get()
     generator_instance.start(os.path.join(PCAP_DIR, scenario.pcap), PpsSpeed(10))
     time.sleep(0.1)

@@ -404,6 +404,7 @@ class FtReplay(Replicator):
         if self._output_plugin.output_plugin in ["raw", "xdp"]:
             self._host.run(f"sudo ip link set dev {self._interface} up")
 
+        logging.getLogger().info("Traffic transmission started.")
         start = time.time()
         res = self._process = self._host.run(
             f"(set -o pipefail; sudo {self._bin} {' '.join(cmd_args)} |& tee -i {self._log_file})",
@@ -471,10 +472,11 @@ class FtReplay(Replicator):
             When failed generating traffic from profile.
         """
 
+        logging.getLogger().info("PCAP generator started, profile: %s", profile_path)
         start = time.time()
         pcap, report = self._ft_generator.generate(profile_path, generator_config, self._generator_log_file)
         end = time.time()
-        logging.getLogger().info("Generated traffic from profile ft-generator in %.2f seconds.", (end - start))
+        logging.getLogger().info("PCAP generated in %.2f seconds.", (end - start))
 
         self.start(pcap, speed, loop_count, asynchronous, check_rc, timeout, remote_pcap=True)
 
