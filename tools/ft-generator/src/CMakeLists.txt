@@ -46,6 +46,7 @@ set(FT_GENERATOR_SOURCES
 	normalizedflowidentifier.cpp
 	timestampgenerator.cpp
 	data/words.cpp
+	layers/httpbuilder.cpp
 	randomgeneratorengine.cpp
 	domainnamegenerator.cpp
 )
