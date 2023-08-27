@@ -10,6 +10,7 @@
 #include "flow.h"
 #include "layer.h"
 #include "layers/ethernet.h"
+#include "layers/http.h"
 #include "layers/icmpecho.h"
 #include "layers/icmprandom.h"
 #include "layers/icmpv6echo.h"
@@ -201,7 +202,11 @@ Flow::Flow(
 	}
 	_l4Proto = profile._l4Proto;
 
-	if (profile._l4Proto == L4Protocol::Tcp || profile._l4Proto == L4Protocol::Udp) {
+	if (profile._l4Proto == L4Protocol::Tcp
+		&& (profile._dstPort == 80 || profile._dstPort == 8080)) {
+		AddLayer(std::make_unique<Http>());
+
+	} else if (profile._l4Proto == L4Protocol::Tcp || profile._l4Proto == L4Protocol::Udp) {
 		AddLayer(std::make_unique<Payload>());
 	}
 
