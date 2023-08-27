@@ -70,6 +70,7 @@ set(FT_GENERATOR_TEST_SOURCES
 	tests/packetsizegenerator.cpp
 	tests/timestampgenerator.cpp
 	tests/domainnamegenerator.cpp
+	tests/httpbuilder.cpp
 )
 
 add_executable(ft-generator-test ${FT_GENERATOR_SOURCES} ${FT_GENERATOR_TEST_SOURCES} tests/main.cpp)
