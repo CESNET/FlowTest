@@ -10,6 +10,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
@@ -87,6 +88,15 @@ typename std::enable_if<std::is_unsigned_v<T>, T>::type OverflowCheckedMultiply(
 		throw std::overflow_error("multiplication of values would overflow");
 	}
 	return a * b;
+}
+
+/**
+ * @brief Get length of a string literal at compile time
+ */
+template <typename T>
+static constexpr size_t LengthOf(const T& str)
+{
+	return std::string_view(str).size();
 }
 
 } // namespace generator
