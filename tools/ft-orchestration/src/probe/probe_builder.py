@@ -74,6 +74,7 @@ class ProbeBuilder(BuilderBase, Device):
             self._whitelist = None
 
         self._protocols = probe_cfg.protocols
+        self._biflow_export = probe_cfg.biflow_export
 
         # cmd additional arguments has higher priority, update arguments from config
         self._connector_args.update(cmd_connector_args)
@@ -131,6 +132,17 @@ class ProbeBuilder(BuilderBase, Device):
         """
 
         return self._protocols
+
+    def get_biflow_export(self) -> bool:
+        """Find out if the probe exports biflows.
+
+        Returns
+        -------
+        bool
+            True when probe exports biflows, False when exports single flows.
+        """
+
+        return self._biflow_export
 
     @staticmethod
     def _load_interfaces(probe_cfg: ProbeCfg, enabled_interfaces: List[str]) -> List[InterfaceCfg]:
