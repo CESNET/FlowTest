@@ -42,9 +42,8 @@ struct FlowRecord {
 	L3Protocol _l3Proto;
 	L4Protocol _l4Proto;
 
-	Timeval _firstTs;
-	Timeval _lastTs;
-
+	Timeval _fwdFirstTs;
+	Timeval _fwdLastTs;
 	MacAddress _fwdMacAddr;
 	IPAddressVariant _fwdIpAddr;
 	uint64_t _fwdPkts = 0;
@@ -53,6 +52,8 @@ struct FlowRecord {
 	uint64_t _desiredFwdPkts = 0;
 	uint64_t _desiredFwdBytes = 0;
 
+	Timeval _revFirstTs;
+	Timeval _revLastTs;
 	MacAddress _revMacAddr;
 	IPAddressVariant _revIpAddr;
 	uint64_t _revPkts = 0;

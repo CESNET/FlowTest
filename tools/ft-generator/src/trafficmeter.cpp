@@ -21,6 +21,15 @@
 
 namespace generator {
 
+static std::ostream& operator<<(std::ostream& os, const Timeval& tv)
+{
+	uint64_t usec = tv.ToMicroseconds();
+	uint64_t msec = usec / 1000;
+	uint64_t msecDecimal = usec % 1000;
+	os << msec << "." << std::setfill('0') << std::setw(3) << msecDecimal;
+	return os;
+}
+
 static bool ExtractUdpParamsFromPayloadLayer(
 	const pcpp::PayloadLayer* payloadLayer,
 	uint16_t& srcPort,
@@ -176,13 +185,14 @@ void TrafficMeter::RecordPacket(
 	assert(flowId < _records.size());
 	FlowRecord& rec = _records[flowId];
 
-	if (rec._fwdPkts == 0 && rec._revPkts == 0) {
-		rec._firstTs = time;
-	}
-	rec._lastTs = time;
-
 	assert(dir != Direction::Unknown);
 	if (dir == Direction::Forward) {
+		// First packet in FWD direction
+		if (rec._fwdPkts == 0) {
+			rec._fwdFirstTs = time;
+		}
+
+		// First packet overall
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
 			ExtractPacketParams(
 				packet,
@@ -195,10 +205,18 @@ void TrafficMeter::RecordPacket(
 				rec._revIpAddr,
 				rec._revPort);
 		}
+
 		rec._fwdPkts++;
 		rec._fwdBytes += GetPacketSizeFromIPLayer(packet);
+		rec._fwdLastTs = time;
 
 	} else if (dir == Direction::Reverse) {
+		// First packet in REV direction
+		if (rec._revPkts == 0) {
+			rec._revFirstTs = time;
+		}
+
+		// First packet overall
 		if (rec._fwdPkts == 0 && rec._revPkts == 0) {
 			ExtractPacketParams(
 				packet,
@@ -211,8 +229,10 @@ void TrafficMeter::RecordPacket(
 				rec._fwdIpAddr,
 				rec._fwdPort);
 		}
+
 		rec._revPkts++;
 		rec._revBytes += GetPacketSizeFromIPLayer(packet);
+		rec._revLastTs = time;
 	}
 }
 
@@ -225,7 +245,7 @@ void TrafficMeter::WriteReportCsv(const std::string& fileName)
 		throw std::runtime_error("Error while opening output file \"" + fileName + "\": " + err);
 	}
 
-	csvFile << "SRC_IP,DST_IP,START_TIME,END_TIME,L3_PROTO,L4_PROTO,"
+	csvFile << "SRC_IP,DST_IP,START_TIME,END_TIME,START_TIME_REV,END_TIME_REV,L3_PROTO,L4_PROTO,"
 			   "SRC_PORT,DST_PORT,PACKETS,BYTES,PACKETS_REV,BYTES_REV\n";
 
 	for (const FlowRecord& rec : _records) {
@@ -239,15 +259,13 @@ void TrafficMeter::WriteReportCsv(const std::string& fileName)
 		}
 
 		// START_TIME
-		uint64_t startUsec = rec._firstTs.ToMicroseconds();
-		uint64_t startMsec = startUsec / 1000;
-		uint64_t startMsecDecimal = startUsec % 1000;
-		csvFile << startMsec << "." << std::setfill('0') << std::setw(3) << startMsecDecimal << ",";
+		csvFile << rec._fwdFirstTs << ",";
 		// END_TIME
-		uint64_t endUsec = rec._lastTs.ToMicroseconds();
-		uint64_t endMsec = endUsec / 1000;
-		uint64_t endMsecDecimal = endUsec % 1000;
-		csvFile << endMsec << "." << std::setfill('0') << std::setw(3) << endMsecDecimal << ",";
+		csvFile << rec._fwdLastTs << ",";
+		// START_TIME_REV
+		csvFile << rec._revFirstTs << ",";
+		// END_TIME_REV
+		csvFile << rec._revLastTs << ",";
 		// L3_PROTO
 		csvFile << int(rec._l3Proto) << ",";
 		// L4_PROTO
