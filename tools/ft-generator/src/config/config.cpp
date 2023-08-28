@@ -13,7 +13,14 @@ namespace config {
 
 Config::Config(const YAML::Node& node)
 {
-	CheckAllowedKeys(node, {"ipv4", "ipv6", "mac", "encapsulation", "packet_size_probabilities"});
+	CheckAllowedKeys(
+		node,
+		{"ipv4",
+		 "ipv6",
+		 "mac",
+		 "encapsulation",
+		 "packet_size_probabilities",
+		 "max_flow_inter_packet_gap"});
 
 	if (node["ipv4"].IsDefined()) {
 		_ipv4 = IPv4(node["ipv4"]);
@@ -33,6 +40,21 @@ Config::Config(const YAML::Node& node)
 
 	if (node["packet_size_probabilities"].IsDefined()) {
 		_packetSizeProbabilities = PacketSizeProbabilities(node["packet_size_probabilities"]);
+	}
+
+	const auto& maxFlowInterPacketGapNode = node["max_flow_inter_packet_gap"];
+	if (maxFlowInterPacketGapNode.IsDefined()) {
+		if (maxFlowInterPacketGapNode.IsNull()) {
+			_maxFlowInterPacketGapSecs = std::nullopt;
+		} else {
+			auto value = ParseValue<uint64_t>(AsScalar(maxFlowInterPacketGapNode));
+			if (!value || *value == 0) {
+				throw ConfigError(
+					node,
+					"invalid max flow inter packet gap value, expected integer > 0");
+			}
+			_maxFlowInterPacketGapSecs = *value;
+		}
 	}
 }
 

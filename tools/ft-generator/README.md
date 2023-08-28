@@ -168,6 +168,14 @@ packet_size_probabilities:
   1280-1500: 0.6119
 ```
 
+### Additional options
+
+Additionaly, the following options can be specified in the top level configuration section:
+
+* `max_flow_inter_packet_gap` - Specifies the maximum number of seconds two
+consecutive packets in a flow can be apart. In case the constraint could not
+be fulfilled, **the flow will be trimmed** resulting in a different END_TIME than
+the provided one. _(default = no limit)_
 
 ## Example configuration
 
@@ -205,6 +213,8 @@ packet_size_probabilities:
   320-639: 0.012
   640-1279: 0.0092
   1280-1500: 0.6119
+
+max_flow_inter_packet_gap: 30
 ```
 
 Explanation:
@@ -230,3 +240,7 @@ can be chosen from, as in the case of the IPv4 section.
 The packet size probability section defines the possible sizes of generated
 packets. The chance of generating a packet with a size between 63 and 79
 inclusive is 28.24%, between 80 and 159 inclusive 7.3%, etc..
+
+The max flow inter packet gap option specifies the maximum number of seconds two
+consecutive packets in a flow can be apart. In this case, no two packets in a
+flow will be more than 30 seconds apart.
