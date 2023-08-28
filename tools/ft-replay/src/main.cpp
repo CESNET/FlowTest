@@ -80,6 +80,7 @@ void ReplicatorExecutor(const Config& config)
 	}
 
 	CountDownLatch workersLatch(queueCount);
+	packetQueueProvider.PrintStats();
 
 	auto loopTimeDuration = packetQueueProvider.GetPacketsTimeDuration();
 

@@ -47,11 +47,18 @@ void OutputPluginStatsPrinter::SumarizeOutputQueuesStats(OutputPlugin* outputPlu
 			< timeConverter.TimespecToDuration<msec>(b.transmitStartTime);
 	};
 
-	auto transmitStartTimeIterator = std::min_element(
+	std::vector<OutputQueueStats> activeQueues;
+	std::copy_if(
 		outputQueuesStats.begin(),
 		outputQueuesStats.end(),
-		outputQueuesStatsTimeMin);
-	_outputQueueStats.transmitStartTime = transmitStartTimeIterator->transmitStartTime;
+		std::back_inserter(activeQueues),
+		[](const OutputQueueStats& stats) { return stats.transmittedBytes; });
+
+	auto transmitStartTimeIterator
+		= std::min_element(activeQueues.begin(), activeQueues.end(), outputQueuesStatsTimeMin);
+	if (transmitStartTimeIterator != activeQueues.end()) {
+		_outputQueueStats.transmitStartTime = transmitStartTimeIterator->transmitStartTime;
+	}
 
 	auto outputQueuesStatsTimeMax = [](const OutputQueueStats& a, const OutputQueueStats& b) {
 		TimeConverter timeConverter;

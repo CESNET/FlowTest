@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "logger.h"
 #include "packet.hpp"
 #include "timeDuration.hpp"
 
@@ -84,6 +85,18 @@ public:
 	 */
 	uint64_t GetPacketsTimeDuration() const noexcept;
 
+	/**
+	 * @brief Print statistics about the distribution of packets and bytes in each queue.
+	 *
+	 * This function prints statistics about the distribution of packets and bytes in each queue.
+	 * For each queue, it calculates and logs the percentage share of packets and bytes in that
+	 * queue compared to the total packets and bytes in all queues.
+	 *
+	 * The statistics are logged using the configured logger and include the queue ID, the
+	 * percentage share of packets, and the percentage share of bytes.
+	 */
+	void PrintStats() const;
+
 private:
 	uint8_t GetPacketQueueId(const Packet& packet);
 	void UpdateQueueDistribution(QueueDistribution& queueDistribution, size_t packetLength);
@@ -93,6 +106,8 @@ private:
 	TimeDuration _timeDuration;
 
 	size_t _queueCount;
+
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketQueueProvider");
 };
 
 } // namespace replay
