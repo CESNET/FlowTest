@@ -1,0 +1,24 @@
+- name: Switch Driver Without Rebooting
+  ansible.builtin.command: sudo /home/flowmon/switch-nic-driver.sh {{ driver }}
+  ignore_errors: True
+  register: switch_result
+
+- name: Reboot Flowmon Probe
+  ansible.builtin.reboot:
+    reboot_command: sudo reboot
+    reboot_timeout: 300
+  when: switch_result.rc != 0
+
+- name: Ensure SCM service is running
+  ansible.builtin.service:
+    name: scm
+    state: started
+  register: scm_service
+  until: scm_service.status.ActiveState == "active"
+  retries: 6
+  delay: 5
+  when: switch_result.rc != 0
+
+- name: Switch Driver After Reboot
+  ansible.builtin.command: sudo /home/flowmon/switch-nic-driver.sh {{ driver }}
+  when: switch_result.rc != 0

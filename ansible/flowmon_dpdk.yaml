@@ -1,0 +1,6 @@
+---
+- name: Flowmon DPDK Probe
+  hosts: all
+  roles:
+    - role: probe_flowmon_driver
+      driver: dpdk
