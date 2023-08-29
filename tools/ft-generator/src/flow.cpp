@@ -21,10 +21,12 @@
 #include "layers/tcp.h"
 #include "layers/udp.h"
 #include "layers/vlan.h"
+#include "logger.h"
 #include "packet.h"
 #include "packetflowspan.h"
 #include "packetsizegeneratorslow.h"
 #include "randomgenerator.h"
+#include "timestampgenerator.h"
 #include "timeval.h"
 
 #include <pcapplusplus/IPv4Layer.h>
@@ -44,6 +46,8 @@
 #include <vector>
 
 namespace generator {
+
+static constexpr uint64_t USEC_IN_SEC = 1'000'000;
 
 static constexpr int ICMP_HDR_SIZE = sizeof(pcpp::icmphdr);
 static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
@@ -84,6 +88,7 @@ Flow::Flow(
 	, _revBytes(profile._bytesRev)
 	, _tsFirst(profile._startTime)
 	, _tsLast(profile._endTime)
+	, _profileFileLineNum(profile._fileLineNum)
 	, _id(id)
 	, _config(config)
 {
@@ -363,47 +368,27 @@ void Flow::PlanPacketsDirections()
 
 void Flow::PlanPacketsTimestamps()
 {
-	PacketFlowSpan packetsSpan(this, false);
+	const auto& timestamps = GenerateTimestamps(
+		_packets.size(),
+		_tsFirst,
+		_tsLast,
+		_config.GetMaxFlowInterPacketGapSecs());
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int64_t> secDis(_tsFirst.GetSec(), _tsLast.GetSec());
-	std::uniform_int_distribution<int64_t> usecDis(0, 999999);
-	std::uniform_int_distribution<int64_t> firstUsecDis;
-	std::uniform_int_distribution<int64_t> lastUsecDis;
-	if (_tsFirst.GetSec() == _tsLast.GetSec()) {
-		firstUsecDis
-			= std::uniform_int_distribution<int64_t>(_tsFirst.GetUsec(), _tsLast.GetUsec());
-		lastUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.GetUsec(), _tsLast.GetUsec());
-	} else {
-		firstUsecDis = std::uniform_int_distribution<int64_t>(_tsFirst.GetUsec(), 999999);
-		lastUsecDis = std::uniform_int_distribution<int64_t>(0, _tsLast.GetUsec());
+	auto it = timestamps.begin();
+	for (auto& pkt : _packets) {
+		pkt._timestamp = Timeval(*it / USEC_IN_SEC, *it % USEC_IN_SEC);
+		it++;
 	}
 
-	std::vector<Timeval> timestamps({_tsFirst, _tsLast});
+	if (_packets.size() > 0 && _packets.back()._timestamp != _tsLast) {
+		Timeval newTsLast = _packets.back()._timestamp;
 
-	size_t timestampsToGen = _packets.size() > 2 ? _packets.size() - 2 : 0;
+		ft::LoggerGet("Flow")->info(
+			"Flow (line no. {}) has been trimmed by {}s to satisfy max gap",
+			_profileFileLineNum,
+			(_tsLast - newTsLast).ToMilliseconds() / 1000.0);
 
-	for (size_t i = 0; i < timestampsToGen; i++) {
-		timeval time;
-		time.tv_sec = secDis(gen);
-		if (time.tv_sec == _tsFirst.GetSec()) {
-			time.tv_usec = firstUsecDis(gen);
-		} else if (time.tv_sec == _tsLast.GetSec()) {
-			time.tv_usec = lastUsecDis(gen);
-		} else {
-			time.tv_usec = usecDis(gen);
-		}
-		timestamps.emplace_back(time);
-	}
-
-	std::sort(timestamps.begin(), timestamps.end(), [](const Timeval& a, const Timeval& b) {
-		return a < b;
-	});
-
-	size_t id = 0;
-	for (auto& packet : packetsSpan) {
-		packet._timestamp = timestamps[id++];
+		_tsLast = newTsLast;
 	}
 }
 
