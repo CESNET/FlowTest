@@ -1,0 +1,6 @@
+---
+- name: Flowmon Rawnetcap Probe
+  hosts: all
+  roles:
+    - role: probe_flowmon_driver
+      driver: rawnetcap
