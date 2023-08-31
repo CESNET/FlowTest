@@ -234,6 +234,7 @@ def test_simulation_overload(
     logging.info("\t- Starting probe...")
     probe_instance = device.get(**scenario.probe.get_args(device.get_instance_type()))
     objects_to_cleanup.append(probe_instance)
+    probe_timeouts = probe_instance.get_timeouts()
     probe_instance.start()
 
     logging.info("\t- Sending packets via generator to probe...")
@@ -245,6 +246,7 @@ def test_simulation_overload(
     scenario.generator.ipv4.ip_range = f"{BASE_IPV4}/{32-UNIT_SUBNET_BITS}"
     # ft-replay can edit only first 32 bits from IPv6 address
     scenario.generator.ipv6.ip_range = f"{BASE_IPV6}/{32-UNIT_SUBNET_BITS}"
+    scenario.generator.max_flow_inter_packet_gap = probe_timeouts[1]
 
     generator_instance.start_profile(
         os.path.join(SIMULATION_TESTS_DIR, scenario.profile),
@@ -268,7 +270,7 @@ def test_simulation_overload(
         scenario.analysis,
         flows_file,
         ref_file,
-        probe_instance.get_timeouts(),
+        probe_timeouts,
         generator_instance.stats().start_time,
         replicator_config,
         tmp_dir,
