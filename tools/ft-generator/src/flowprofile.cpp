@@ -322,6 +322,8 @@ std::optional<FlowProfile> FlowProfileReader::ParseProfile(const std::string& li
 		ThrowParseError(line, "bad START_TIME > END_TIME");
 	}
 
+	profile._fileLineNum = _lineNum;
+
 	return profile;
 }
 
