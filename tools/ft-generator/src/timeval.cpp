@@ -50,10 +50,10 @@ int64_t Timeval::ToMilliseconds() const
 	}
 	milliseconds += _value.tv_sec * 1000;
 
-	if (std::numeric_limits<int64_t>::max() - milliseconds < _value.tv_usec) {
+	if (std::numeric_limits<int64_t>::max() - milliseconds < _value.tv_usec / 1000) {
 		throw std::overflow_error("cannot convert timeval to milliseconds due to overflow");
 	}
-	milliseconds += _value.tv_usec;
+	milliseconds += _value.tv_usec / 1000;
 
 	return milliseconds;
 }
