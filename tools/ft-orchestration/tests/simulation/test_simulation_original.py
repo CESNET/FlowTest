@@ -72,6 +72,7 @@ def test_simulation_original(
     device: ProbeBuilder,
     analyzer: CollectorBuilder,
     scenario: SimulationScenario,
+    scenario_filename: str,
     log_dir: str,
     tmp_dir: str,
     check_requirements,
@@ -92,6 +93,8 @@ def test_simulation_original(
         Collector builder.
     scenario: SimulationScenario
         Scenario configration.
+    scenario_filename: str
+        Path to scenario filename.
     log_dir: str
         Directory for storing logs.
     tmp_dir: str
@@ -131,7 +134,7 @@ def test_simulation_original(
     # timestamp milliseconds precision
     start_time = int(time.time_ns() * 10**-6)
     generator_instance.start_profile(
-        os.path.join(SIMULATION_TESTS_DIR, scenario.profile),
+        scenario.get_profile(scenario_filename, SIMULATION_TESTS_DIR),
         ref_file,
         speed=PpsSpeed(scenario.pps),
         loop_count=1,

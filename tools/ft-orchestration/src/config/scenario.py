@@ -7,8 +7,13 @@ SPDX-License-Identifier: BSD-3-Clause
 Configuration of individual test scenarios.
 """
 
+import hashlib
+import logging
+import os
 from dataclasses import dataclass, field
 from typing import Optional
+from urllib.parse import urlparse
+from urllib.request import HTTPError, urlretrieve
 
 from dataclass_wizard import YAMLWizard
 from ftanalyzer.models.sm_data_types import SMMetric
@@ -98,6 +103,48 @@ class SimulationScenario(ScenarioCfg):
 
     probe: Optional[ProbeCfg] = ProbeCfg()
     generator: Optional[FtGeneratorConfig] = FtGeneratorConfig()
+
+    def get_profile(self, scenario_filename: str, simulation_tests_dir: str) -> str:
+        """
+        Download simulation profile if URL is provided in scenario configuration.
+
+        Parameters
+        ----------
+        scenario_filename: str
+            Path to scenario filename.
+        simulation_tests_dir: str
+            Path to directory used for simulation tests.
+
+        Returns
+        -------
+        str
+            Absolute path to profile - csv file.
+        """
+        parsed_url = urlparse(self.profile)
+        if parsed_url.scheme and parsed_url.netloc:
+            profiles_dir = "profiles"
+            # add hash of URL to downloaded profile
+            hash_url = hashlib.md5(self.profile.encode("utf-8")).hexdigest()
+            profile_name = os.path.splitext(os.path.basename(scenario_filename))[0]
+            profile_name = f"{profile_name}_{hash_url}.csv"
+            profile_path = os.path.join(simulation_tests_dir, profiles_dir, profile_name)
+
+            # duplicity - check if the profile has been already downloaded in some previous tests
+            csv_list = [f for f in os.listdir(os.path.dirname(profile_path)) if hash_url in f]
+            if csv_list:
+                return os.path.join(simulation_tests_dir, profiles_dir, csv_list[0])
+
+            # profile does not exist - download it
+            try:
+                logging.getLogger().info("Downloading scenario profile from URL %s", self.profile)
+                urlretrieve(self.profile, profile_path)
+            except HTTPError as err:
+                raise ScenarioCfgException("Error downloading profile from provided URL.") from err
+
+            return profile_path
+
+        # profile is local path
+        return os.path.join(simulation_tests_dir, self.profile)
 
 
 @dataclass

@@ -123,6 +123,7 @@ def test_simulation_replicator(
     device: ProbeBuilder,
     analyzer: CollectorBuilder,
     scenario: SimulationScenario,
+    scenario_filename: str,
     log_dir: str,
     tmp_dir: str,
     check_requirements,
@@ -144,6 +145,8 @@ def test_simulation_replicator(
         Collector builder.
     scenario: SimulationScenario
         Scenario configration.
+    scenario_filename: str
+        Path to scenario filename.
     log_dir: str
         Directory for storing logs.
     tmp_dir: str
@@ -190,7 +193,7 @@ def test_simulation_replicator(
     scenario.generator.ipv6.ip_range = f"{BASE_IPV6}/{32-UNIT_SUBNET_BITS}"
 
     generator_instance.start_profile(
-        os.path.join(SIMULATION_TESTS_DIR, scenario.profile),
+        scenario.get_profile(scenario_filename, SIMULATION_TESTS_DIR),
         ref_file,
         speed=PpsSpeed(scenario.pps),
         loop_count=LOOPS,
