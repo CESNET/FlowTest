@@ -7,8 +7,10 @@
  */
 
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace generator {
@@ -59,6 +61,22 @@ static std::string ToMetricUnits(T value)
 	std::stringstream ss;
 	ss << std::fixed << std::setprecision(2) << adjValue << " " << Suffixes[i];
 	return ss.str();
+}
+
+/**
+ * @brief Multiplication of unsigned values that checks for overflow
+ *
+ * @throw std::overflow_error if the operation would overflow
+ */
+template <typename T>
+// Enable only when T is an unsigned integer type
+typename std::enable_if<std::is_unsigned_v<T>, T>::type OverflowCheckedMultiply(T a, T b)
+{
+	if ((b > 0 && a > std::numeric_limits<T>::max() / b)
+		|| (a > 0 && b > std::numeric_limits<T>::max() / a)) {
+		throw std::overflow_error("multiplication of values would overflow");
+	}
+	return a * b;
 }
 
 } // namespace generator

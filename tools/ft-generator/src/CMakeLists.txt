@@ -44,6 +44,7 @@ set(FT_GENERATOR_SOURCES
 	packetsizegeneratorslow.cpp
 	packetsizegeneratorfast.cpp
 	normalizedflowidentifier.cpp
+	timestampgenerator.cpp
 )
 
 set(FT_GENERATOR_LIBS
@@ -63,6 +64,7 @@ set(FT_GENERATOR_TEST_SOURCES
 	tests/macaddressgenerator.cpp
 	tests/lfsr.cpp
 	tests/packetsizegenerator.cpp
+	tests/timestampgenerator.cpp
 )
 
 add_executable(ft-generator-test ${FT_GENERATOR_SOURCES} ${FT_GENERATOR_TEST_SOURCES} tests/main.cpp)

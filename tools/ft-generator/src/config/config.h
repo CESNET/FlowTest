@@ -78,6 +78,14 @@ public:
 	}
 
 	/**
+	 * @brief Get the max flow inter packet gap seconds
+	 */
+	std::optional<uint64_t> GetMaxFlowInterPacketGapSecs() const
+	{
+		return _maxFlowInterPacketGapSecs;
+	}
+
+	/**
 	 * @brief Load a configuration from a yaml file
 	 *
 	 * @param configFilename  Path to the yaml file
@@ -91,6 +99,7 @@ private:
 	Mac _mac;
 	Encapsulation _encapsulation;
 	PacketSizeProbabilities _packetSizeProbabilities;
+	std::optional<uint64_t> _maxFlowInterPacketGapSecs;
 };
 
 } // namespace config

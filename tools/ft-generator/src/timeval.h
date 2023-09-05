@@ -79,6 +79,11 @@ public:
 	}
 
 	/**
+	 * @brief Compare timevals for non-equality
+	 */
+	friend bool operator!=(const Timeval& a, const Timeval& b) { return !(a == b); }
+
+	/**
 	 * @brief Less than comparison of timevals
 	 */
 	friend bool operator<(const Timeval& a, const Timeval& b)

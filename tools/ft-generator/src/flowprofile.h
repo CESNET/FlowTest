@@ -59,6 +59,7 @@ struct FlowProfile {
 	uint64_t _bytesRev;
 	std::optional<IPAddress> _srcIp;
 	std::optional<IPAddress> _dstIp;
+	uint64_t _fileLineNum;
 
 	/**
 	 * @brief Get a string representation of a FlowProfile

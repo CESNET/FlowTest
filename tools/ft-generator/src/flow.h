@@ -119,6 +119,8 @@ private:
 	friend class PacketFlowSpan;
 	friend class Layer;
 
+	uint64_t _profileFileLineNum;
+
 	uint64_t _id;
 	std::vector<std::unique_ptr<Layer>> _layerStack;
 
