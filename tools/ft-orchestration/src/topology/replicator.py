@@ -119,6 +119,7 @@ def topology_replicator(
         config,
         generator_option.alias,
         [ifc.mac for ifc in probe_builder.get_enabled_interfaces()],
+        probe_builder.get_biflow_export(),
         add_vlan=generator_option.arguments.pop("vlan"),
         edit_dst_mac=not generator_option.arguments.pop("orig-mac"),
         cmd_connector_args=generator_option.arguments,
