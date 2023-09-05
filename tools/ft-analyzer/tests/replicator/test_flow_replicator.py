@@ -179,3 +179,27 @@ def test_ipv6_adding():
     replicator.replicate(os.path.join(SOURCE_PATH, "ipv6.csv"), TMP_CSV, loops=1)
 
     assert filecmp.cmp(TMP_CSV, os.path.join(REF_PATH, "ipv6.csv"))
+
+
+def test_speed_multiplier_2():
+    """Test of timestamps multiplication. 2.0 means that flows will take half the time."""
+
+    config = {
+        "units": [{"srcip": "addConstant(10)"}, {"dstip": "addConstant(256)"}],
+    }
+    replicator = FlowReplicator(config)
+    replicator.replicate(os.path.join(SOURCE_PATH, "basic.csv"), TMP_CSV, loops=3, speed_multiplier=2.0)
+
+    assert filecmp.cmp(TMP_CSV, os.path.join(REF_PATH, "basic_time_2.0.csv"))
+
+
+def test_speed_multiplier_0_8():
+    """Test of timestamps multiplication. 0.8 means that flows will take 1.25 as long."""
+
+    config = {
+        "units": [{"srcip": "addConstant(10)"}, {"dstip": "addConstant(256)"}],
+    }
+    replicator = FlowReplicator(config)
+    replicator.replicate(os.path.join(SOURCE_PATH, "basic.csv"), TMP_CSV, loops=2, speed_multiplier=0.8)
+
+    assert filecmp.cmp(TMP_CSV, os.path.join(REF_PATH, "basic_time_0.8.csv"))
