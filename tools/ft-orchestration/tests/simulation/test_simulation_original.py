@@ -122,6 +122,7 @@ def test_simulation_original(
 
     probe_instance = device.get(**scenario.probe.get_args(device.get_instance_type()))
     objects_to_cleanup.append(probe_instance)
+    probe_timeouts = probe_instance.get_timeouts()
     probe_instance.start()
 
     generator_instance = generator.get()
@@ -130,6 +131,9 @@ def test_simulation_original(
     ref_file = os.path.join(tmp_dir, "reference.csv")
     # timestamp milliseconds precision
     start_time = int(time.time_ns() * 10**-6)
+
+    scenario.generator.max_flow_inter_packet_gap = probe_timeouts[1]
+
     generator_instance.start_profile(
         os.path.join(SIMULATION_TESTS_DIR, scenario.profile),
         ref_file,
@@ -145,7 +149,7 @@ def test_simulation_original(
     flows_file = os.path.join(tmp_dir, "flows.csv")
     collector_instance.get_reader().save_csv(flows_file)
 
-    report = validate(scenario.analysis, flows_file, ref_file, probe_instance.get_timeouts(), start_time)
+    report = validate(scenario.analysis, flows_file, ref_file, probe_timeouts, start_time)
     print("")
     report.print_results()
     if not report.is_passing():

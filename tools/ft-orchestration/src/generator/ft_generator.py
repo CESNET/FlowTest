@@ -13,7 +13,7 @@ import pickle
 import subprocess
 import tempfile
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from os import path
 from pathlib import Path
 from typing import Any, Optional, TextIO, Union
@@ -37,15 +37,23 @@ class FtGeneratorConfig(YAMLWizard, JSONWizard, key_transform="SNAKE"):
 
     Attributes
     ----------
-    encapsulation: list[Encapsulation], optional
+    encapsulation: list[Encapsulation]
         List of encapsulation description and probability of occurrence.
         Several possible encapsulations can be defined.
-    ipv4: IP, optional
+    ipv4: IP
         Description of IPv4 layer generation.
-    ipv6: IP, optional
+    ipv6: IP
         Description of IPv6 layer generation.
     mac: Mac, optional
         Definition of range(s) from which MAC addresses are generated.
+    packet_size_probabilities: dict[str, float], optional
+        A map of values, where key is a definition of an interval in the form of
+        <lower bound>-<upper bound>, e.g. 100-200, and value is a probability of
+        choosing a value from that interval in the form of a floating point number 0.0.
+    max_flow_inter_packet_gap: int, optional
+        Specifies the maximum number of seconds two consecutive packets in a flow can be apart.
+        In case the constraint could not be fulfilled, the flow will be trimmed resulting in
+        a different END_TIME than the provided one. None = no limit.
     """
 
     @dataclass
@@ -118,10 +126,12 @@ class FtGeneratorConfig(YAMLWizard, JSONWizard, key_transform="SNAKE"):
 
         mac_range: Union[list[str], str]
 
-    encapsulation: Optional[list[Encapsulation]] = None
-    ipv4: Optional[IP] = None
-    ipv6: Optional[IP] = None
+    encapsulation: list[Encapsulation] = field(default_factory=list)
+    ipv4: IP = IP()
+    ipv6: IP = IP()
     mac: Optional[Mac] = None
+    packet_size_probabilities: Optional[dict[str, float]] = None
+    max_flow_inter_packet_gap: Optional[int] = None
 
 
 def _custom_dump(data: Any, stream: TextIO = None, **kwds) -> Optional[str]:
