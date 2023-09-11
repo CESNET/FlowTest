@@ -16,6 +16,7 @@ import time
 import pytest
 from ftanalyzer.models.precise_model import PreciseModel
 from ftanalyzer.models.sm_data_types import SMMetric, SMMetricType, SMRule
+from ftanalyzer.replicator.flow_replicator import FlowReplicator
 from ftanalyzer.reports.precise_report import PreciseReport
 from ftanalyzer.reports.statistical_report import StatisticalReport
 from lbr_testsuite.topology.topology import select_topologies
@@ -29,11 +30,18 @@ from src.probe.probe_builder import ProbeBuilder
 PROJECT_ROOT = get_project_root()
 SIMULATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/simulation")
 
+SPEED = MultiplierSpeed(2.0)
+LOOPS = 100
+
 select_topologies(["pcap_player"])
 
 
 def validate(
-    flows_file: str, ref_file: str, timeouts: tuple[int, int], start_time: int
+    flows_file: str,
+    ref_file: str,
+    timeouts: tuple[int, int],
+    start_time: int,
+    tmp_dir: str,
 ) -> tuple[StatisticalReport, PreciseReport]:
     """
     Perform statistical and precise model evaluation of the test scenario.
@@ -49,6 +57,8 @@ def validate(
         Active and inactive timeout which used during flow creation process on a probe.
     start_time: int
         Timestamp of the first packet.
+    tmp_dir: str
+        Temporary directory used to save replicated flows CSV.
 
     Returns
     -------
@@ -56,7 +66,13 @@ def validate(
         Evaluation reports.
     """
 
-    model = PreciseModel(flows_file, ref_file, timeouts, start_time)
+    flows_replicator = FlowReplicator({"units": [{}]})
+    replicated_ref_file = os.path.join(tmp_dir, "replicated_ref.csv")
+    flows_replicator.replicate(
+        ref_file, replicated_ref_file, loops=LOOPS, speed_multiplier=SPEED.multiplier, merge_across_loops=True
+    )
+
+    model = PreciseModel(flows_file, replicated_ref_file, timeouts, start_time)
     logging.getLogger().info("performing precise model evaluation")
     precise_report = model.validate_precise()
 
@@ -148,8 +164,8 @@ def test_simulation_dropless(
     generator_instance.start_profile(
         scenario.get_profile(scenario_filename, SIMULATION_TESTS_DIR),
         ref_file,
-        speed=MultiplierSpeed(1.0),
-        loop_count=1,
+        speed=SPEED,
+        loop_count=LOOPS,
         generator_config=scenario.generator,
     )
 
@@ -161,7 +177,7 @@ def test_simulation_dropless(
     collector_instance.get_reader().save_csv(flows_file)
     start_time = generator_instance.stats().start_time
 
-    stats_report, precise_report = validate(flows_file, ref_file, probe_timeouts, start_time)
+    stats_report, precise_report = validate(flows_file, ref_file, probe_timeouts, start_time, tmp_dir)
     print("")
     stats_report.print_results()
     precise_report.print_results()
