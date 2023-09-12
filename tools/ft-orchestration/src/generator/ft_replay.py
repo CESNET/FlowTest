@@ -607,7 +607,7 @@ class FtReplay(Replicator):
         """
 
         if isinstance(speed, MultiplierSpeed):
-            raise TypeError("MultiplierSpeed is not implemented yet.")
+            return f"--multiplier={speed.multiplier}"
         if isinstance(speed, MbpsSpeed):
             return f"--mbps={speed.mbps}"
         if isinstance(speed, PpsSpeed):
