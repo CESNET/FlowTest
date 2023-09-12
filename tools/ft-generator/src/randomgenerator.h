@@ -97,6 +97,14 @@ public:
 	 */
 	std::string RandomString(std::size_t length, std::string_view charset = ALPHANUMERIC_CHARS);
 
+	/**
+	 * @brief Randomly shuffle a container
+	 *
+	 * @param values  The values to shuffle
+	 */
+	template <typename T>
+	void Shuffle(T& values);
+
 private:
 	Xoshiro256PlusPlusGenerator _engine;
 
@@ -123,6 +131,20 @@ const auto& RandomGenerator::RandomChoice(const T& values)
 		throw std::logic_error("cannot randomly choose from empty values");
 	}
 	return values[RandomUInt(0, values.size() - 1)];
+}
+
+template <typename T>
+void RandomGenerator::Shuffle(T& values)
+{
+	if (values.size() <= 1) {
+		return;
+	}
+
+	// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+	for (std::size_t i = values.size() - 1; i >= 1; i--) {
+		std::size_t j = RandomUInt(0, i);
+		std::swap(values[i], values[j]);
+	}
 }
 
 } // namespace generator
