@@ -73,6 +73,7 @@ set(FT_GENERATOR_TEST_SOURCES
 	tests/macaddressgenerator.cpp
 	tests/packetsizegenerator.cpp
 	tests/timestampgenerator.cpp
+	tests/randomgenerator.cpp
 )
 
 add_executable(ft-generator-test ${FT_GENERATOR_SOURCES} ${FT_GENERATOR_TEST_SOURCES} tests/main.cpp)
