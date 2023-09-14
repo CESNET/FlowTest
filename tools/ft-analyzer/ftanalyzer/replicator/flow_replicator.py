@@ -130,21 +130,40 @@ class FlowReplicator:
     }
 
     class IPv6Address(ipaddress.IPv6Address):
-        """Custom representation of IPv6 address which edits only first 4 bytes when adding a number."""
+        """Custom representation of IPv6 address which edits only first 4 bytes when adding a number.
+        __lt__ can be performed over addresses with different versions (4 or 6).
+        Necessary for DataFrame grouping.
+        """
 
         def __add__(self, other: int) -> FlowReplicator.IPv6Address:
             if not isinstance(other, int):
                 return NotImplemented
             return self.__class__(int(self) + 2**96 * other)
 
+        def __lt__(self, other):
+            if self._ip != other._ip:
+                return self._ip < other._ip
+            return False
+
+    class IPv4Address(ipaddress.IPv4Address):
+        """Custom representation of IPv4 address.
+        __lt__ can be performed over addresses with different versions (4 or 6).
+        Necessary for DataFrame grouping.
+        """
+
+        def __lt__(self, other):
+            if self._ip != other._ip:
+                return self._ip < other._ip
+            return False
+
     @staticmethod
-    def ip_address(address: Any) -> Union[FlowReplicator.IPv6Address, ipaddress.IPv4Address]:
-        """Custom IP address parser. When IP address is version 6, custom IPv6Address object is returned."""
+    def ip_address(address: Any) -> Union[FlowReplicator.IPv6Address, FlowReplicator.IPv4Address]:
+        """Custom IP address parser. Custom IPv6Adress or IPv4Address object is returned."""
 
         obj = ipaddress.ip_address(address)
         if isinstance(obj, ipaddress.IPv6Address):
             return FlowReplicator.IPv6Address(obj)
-        return obj
+        return FlowReplicator.IPv4Address(obj)
 
     def __init__(self, config: dict, ignore_loops: Optional[list[int]] = None) -> None:
         """Init flow replicator. Parse config dict.
