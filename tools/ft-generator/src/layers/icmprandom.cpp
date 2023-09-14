@@ -26,7 +26,19 @@ static constexpr int UDP_HDR_SIZE = sizeof(pcpp::udphdr);
 
 static_assert(MAX_DUMMY_PKT_LEN >= IPV4_HDR_SIZE + UDP_HDR_SIZE);
 
-IcmpRandom::IcmpRandom() {}
+IcmpRandom::IcmpRandom()
+{
+	int rnd = RandomGenerator::GetInstance().RandomUInt(0, 3);
+	if (rnd == 0) {
+		_destUnreachableCode = pcpp::IcmpDestinationHostProhibited;
+	} else if (rnd == 1) {
+		_destUnreachableCode = pcpp::IcmpDestinationNetworkProhibited;
+	} else if (rnd == 2) {
+		_destUnreachableCode = pcpp::IcmpDestinationHostUnknown;
+	} else {
+		_destUnreachableCode = pcpp::IcmpDestinationNetworkUnknown;
+	}
+}
 
 void IcmpRandom::PlanFlow(Flow& flow)
 {
@@ -68,25 +80,14 @@ void IcmpRandom::Build(PcppPacket& packet, Packet::layerParams& params, Packet& 
 	ipv4Hdr->totalLength = RandomGenerator::GetInstance().RandomUInt(
 		IPV4_HDR_SIZE + UDP_HDR_SIZE,
 		MAX_DUMMY_PKT_LEN);
-	ipv4Hdr->protocol = static_cast<int>(L4Protocol::Udp);
+	ipv4Hdr->protocol = static_cast<uint8_t>(L4Protocol::Udp);
 
 	pcpp::UdpLayer* udpLayer = new pcpp::UdpLayer(
 		RandomGenerator::GetInstance().RandomUInt(1, 65535),
 		RandomGenerator::GetInstance().RandomUInt(1, 65535));
 
 	// We might want to add more possible ICMP messages in the future
-	int rnd = RandomGenerator::GetInstance().RandomUInt(0, 3);
-	pcpp::IcmpDestUnreachableCodes code;
-	if (rnd == 0) {
-		code = pcpp::IcmpDestinationHostProhibited;
-	} else if (rnd == 1) {
-		code = pcpp::IcmpDestinationNetworkProhibited;
-	} else if (rnd == 2) {
-		code = pcpp::IcmpDestinationHostUnknown;
-	} else {
-		code = pcpp::IcmpDestinationNetworkUnknown;
-	}
-	icmpLayer->setDestUnreachableData(code, 0, ipv4Layer, udpLayer);
+	icmpLayer->setDestUnreachableData(_destUnreachableCode, 0, ipv4Layer, udpLayer);
 }
 
 } // namespace generator

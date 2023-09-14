@@ -22,6 +22,21 @@
 namespace generator {
 
 /**
+ * @brief ICMPv6 destination unreachable codes
+ */
+enum class Icmpv6DestUnreachableCodes : uint8_t {
+	NoRoute = 0, // No route to destination
+	Prohibited = 1, // Communication with destination administratively prohibited
+	BeyondScope = 2, // Beyond scope of source address
+	AddrUnreachable = 3, // Address unreachable
+	PortUnreachable = 4, // Port unreachable
+	SourceAddrPolicyFailed = 5, // Source address failed ingress/egress policy
+	RejectRoute = 6, // Reject route to destination
+	ErrorInSrcRoutingHdr = 7, // Error in Source Routing Header
+	HdrTooLong = 8 // Headers too long
+};
+
+/**
  * @brief A representation of an Icmpv6Random layer.
  */
 class Icmpv6Random : public Layer {
@@ -30,7 +45,7 @@ public:
 	 * @brief Construct a new Icmpv6Random object
 	 *
 	 */
-	Icmpv6Random() = default;
+	Icmpv6Random();
 
 	/**
 	 * @brief Plan Icmpv6Random layer
@@ -47,6 +62,9 @@ public:
 	 * @param plan   Packet plan.
 	 */
 	virtual void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
+
+private:
+	Icmpv6DestUnreachableCodes _destUnreachableCode;
 };
 
 } // namespace generator
