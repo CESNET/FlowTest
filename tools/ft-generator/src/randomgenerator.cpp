@@ -8,6 +8,7 @@
 
 #include "randomgenerator.h"
 
+#include <algorithm>
 #include <ctime>
 
 namespace generator {
@@ -66,6 +67,13 @@ std::string RandomGenerator::RandomString(std::size_t length, std::string_view c
 		s.push_back(RandomChoice(charset));
 	}
 	return s;
+}
+
+std::vector<uint8_t> RandomGenerator::RandomBytes(std::size_t length)
+{
+	std::vector<uint8_t> data(length);
+	std::generate(data.begin(), data.end(), [&]() { return RandomUInt(0, 255); });
+	return data;
 }
 
 } // namespace generator

@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <string_view>
+#include <vector>
 
 namespace generator {
 
@@ -96,6 +97,14 @@ public:
 	 * @return A random string
 	 */
 	std::string RandomString(std::size_t length, std::string_view charset = ALPHANUMERIC_CHARS);
+
+	/**
+	 * @brief Generate a random sequence of bytes
+	 *
+	 * @param length  Number of bytes to generate
+	 * @return Random bytes
+	 */
+	std::vector<uint8_t> RandomBytes(std::size_t length);
 
 	/**
 	 * @brief Randomly shuffle a container
