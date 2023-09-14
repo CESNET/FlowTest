@@ -23,6 +23,7 @@ set(FT_GENERATOR_SOURCES
 	generators/multirangegenerator.cpp
 	generators/prefixedgenerator.cpp
 	layer.cpp
+	layers/dnsbuilder.cpp
 	layers/ethernet.cpp
 	layers/http.cpp
 	layers/httpbuilder.cpp
