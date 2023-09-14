@@ -104,7 +104,7 @@ void Icmpv6Random::Build(PcppPacket& packet, Packet::layerParams& params, Packet
 	// Construct the ICMPv6 layer using the payload from the dummy packet
 	pcpp::IcmpV6Layer* icmpV6Layer = new pcpp::IcmpV6Layer(
 		pcpp::ICMPv6MessageType::ICMPv6_DESTINATION_UNREACHABLE,
-		_destUnreachableCode,
+		static_cast<uint8_t>(_destUnreachableCode),
 		&buf[0],
 		buf.size());
 	packet.addLayer(icmpV6Layer, true);

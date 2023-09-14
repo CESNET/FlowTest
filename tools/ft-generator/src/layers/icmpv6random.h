@@ -24,7 +24,7 @@ namespace generator {
 /**
  * @brief ICMPv6 destination unreachable codes
  */
-enum Icmpv6DestUnreachableCodes : uint8_t {
+enum class Icmpv6DestUnreachableCodes : uint8_t {
 	NoRoute = 0, // No route to destination
 	Prohibited = 1, // Communication with destination administratively prohibited
 	BeyondScope = 2, // Beyond scope of source address
