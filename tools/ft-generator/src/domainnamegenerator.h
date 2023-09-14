@@ -42,6 +42,8 @@ private:
 	RandomGenerator& _rng = RandomGenerator::GetInstance();
 
 	DomainNameGenerator();
+
+	std::string GenerateName(uint64_t length);
 };
 
 } // namespace generator
