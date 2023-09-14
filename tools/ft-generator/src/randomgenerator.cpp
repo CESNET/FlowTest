@@ -9,7 +9,10 @@
 #include "randomgenerator.h"
 
 #include <algorithm>
+#include <cassert>
 #include <ctime>
+#include <numeric>
+#include <vector>
 
 namespace generator {
 
@@ -67,6 +70,99 @@ std::string RandomGenerator::RandomString(std::size_t length, std::string_view c
 		s.push_back(RandomChoice(charset));
 	}
 	return s;
+}
+
+static void GenerateNormWeights(
+	RandomGenerator& rng,
+	std::vector<double>::iterator begin,
+	std::vector<double>::iterator end)
+{
+	double sum = 0;
+
+	for (auto it = begin; it != end; it++) {
+		*it = rng.RandomDouble();
+		sum += *it;
+	}
+
+	for (auto it = begin; it != end; it++) {
+		*it /= sum;
+	}
+}
+
+static uint64_t WeightedDistribute(
+	uint64_t amount,
+	std::vector<uint64_t>::iterator valuesBegin,
+	std::vector<uint64_t>::iterator valuesEnd,
+	std::vector<double>::iterator weightsBegin,
+	uint64_t max)
+{
+	uint64_t remainder = amount;
+	auto weight = weightsBegin;
+
+	for (auto value = valuesBegin; value != valuesEnd; value++, weight++) {
+		uint64_t part = std::min<uint64_t>(max - *value, amount * *weight);
+		*value += part;
+
+		assert(remainder >= part);
+		remainder -= part;
+	}
+
+	return remainder;
+}
+
+static uint64_t SimpleDistribute(
+	uint64_t amount,
+	std::vector<uint64_t>::iterator begin,
+	std::vector<uint64_t>::iterator end,
+	uint64_t max)
+{
+	for (auto value = begin; value != end && amount > 0; value++) {
+		uint64_t part = std::min<uint64_t>(max - *value, amount);
+		*value += part;
+		amount -= part;
+	}
+	return amount;
+}
+
+std::vector<uint64_t> RandomGenerator::RandomlyDistribute(
+	uint64_t amount,
+	std::size_t numValues,
+	uint64_t min,
+	uint64_t max)
+{
+	if (min > max || numValues * min > amount || numValues * max < amount) {
+		throw std::logic_error("distribution impossible with the constraints provided");
+	}
+
+	std::vector<uint64_t> values(numValues, min);
+	amount -= numValues * min;
+
+	std::vector<double> weights(numValues);
+
+	auto begin = values.begin();
+	auto end = values.end();
+
+	while (begin < end && amount > 0) {
+		GenerateNormWeights(*this, weights.begin(), weights.end());
+
+		uint64_t oldAmount = amount;
+		amount = WeightedDistribute(amount, begin, end, weights.begin(), max);
+
+		if (oldAmount == amount) {
+			amount = SimpleDistribute(amount, begin, end, max);
+			break;
+		}
+
+		end = std::partition(begin, end, [=](auto v) { return v < max; });
+		weights.resize(std::distance(begin, end));
+	}
+
+	(void) amount;
+	assert(amount == 0);
+
+	Shuffle(values);
+
+	return values;
 }
 
 std::vector<uint8_t> RandomGenerator::RandomBytes(std::size_t length)

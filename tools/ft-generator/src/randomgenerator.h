@@ -114,6 +114,18 @@ public:
 	template <typename T>
 	void Shuffle(T& values);
 
+	/**
+	 * @brief Randomly distribute N values such that they sum up to a certain amount
+	 *
+	 * @param amount  The total amount to sum to
+	 * @param numValues  Number of values to generate
+	 * @param min  The minimum of a single value
+	 * @param max  The maximum of a single value
+	 * @return The randomly distributed values
+	 */
+	std::vector<uint64_t>
+	RandomlyDistribute(uint64_t amount, std::size_t numValues, uint64_t min, uint64_t max);
+
 private:
 	Xoshiro256PlusPlusGenerator _engine;
 
