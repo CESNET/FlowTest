@@ -68,7 +68,7 @@ void IcmpRandom::Build(PcppPacket& packet, Packet::layerParams& params, Packet& 
 	ipv4Hdr->totalLength = RandomGenerator::GetInstance().RandomUInt(
 		IPV4_HDR_SIZE + UDP_HDR_SIZE,
 		MAX_DUMMY_PKT_LEN);
-	ipv4Hdr->protocol = static_cast<int>(L4Protocol::Udp);
+	ipv4Hdr->protocol = static_cast<uint8_t>(L4Protocol::Udp);
 
 	pcpp::UdpLayer* udpLayer = new pcpp::UdpLayer(
 		RandomGenerator::GetInstance().RandomUInt(1, 65535),
