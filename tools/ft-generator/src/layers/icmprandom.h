@@ -51,6 +51,7 @@ public:
 	virtual void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
+	pcpp::IcmpDestUnreachableCodes _destUnreachableCode;
 };
 
 } // namespace generator
