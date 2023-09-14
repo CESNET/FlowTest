@@ -1,4 +1,5 @@
 set(FT_GENERATOR_SOURCES
+	buffer.cpp
 	calendar.cpp
 	config/commandlineargs.cpp
 	config/common.cpp
