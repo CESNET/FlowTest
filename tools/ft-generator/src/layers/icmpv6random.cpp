@@ -25,19 +25,22 @@ static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
 static constexpr int IPV6_HDR_SIZE = sizeof(pcpp::ip6_hdr);
 static constexpr int UDP_HDR_SIZE = sizeof(pcpp::udphdr);
 
-enum Icmpv6DestUnreachableCodes : uint8_t {
-	NoRoute = 0, // No route to destination
-	Prohibited = 1, // Communication with destination administratively prohibited
-	BeyondScope = 2, // Beyond scope of source address
-	AddrUnreachable = 3, // Address unreachable
-	PortUnreachable = 4, // Port unreachable
-	SourceAddrPolicyFailed = 5, // Source address failed ingress/egress policy
-	RejectRoute = 6, // Reject route to destination
-	ErrorInSrcRoutingHdr = 7, // Error in Source Routing Header
-	HdrTooLong = 8 // Headers too long
-};
-
 static_assert(MAX_DUMMY_PKT_LEN >= IPV6_HDR_SIZE + UDP_HDR_SIZE);
+
+Icmpv6Random::Icmpv6Random()
+{
+	// We might want to add more possible ICMP messages in the future
+	int rnd = RandomGenerator::GetInstance().RandomUInt(0, 3);
+	if (rnd == 0) {
+		_destUnreachableCode = Icmpv6DestUnreachableCodes::NoRoute;
+	} else if (rnd == 1) {
+		_destUnreachableCode = Icmpv6DestUnreachableCodes::Prohibited;
+	} else if (rnd == 2) {
+		_destUnreachableCode = Icmpv6DestUnreachableCodes::AddrUnreachable;
+	} else {
+		_destUnreachableCode = Icmpv6DestUnreachableCodes::PortUnreachable;
+	}
+}
 
 void Icmpv6Random::PlanFlow(Flow& flow)
 {
@@ -98,23 +101,10 @@ void Icmpv6Random::Build(PcppPacket& packet, Packet::layerParams& params, Packet
 	buf[3] = 0;
 	std::memcpy(&buf[4], rawDummyPkt->getRawData(), rawDummyPkt->getRawDataLen());
 
-	// We might want to add more possible ICMP messages in the future
-	int rnd = RandomGenerator::GetInstance().RandomUInt(0, 3);
-	Icmpv6DestUnreachableCodes code;
-	if (rnd == 0) {
-		code = Icmpv6DestUnreachableCodes::NoRoute;
-	} else if (rnd == 1) {
-		code = Icmpv6DestUnreachableCodes::Prohibited;
-	} else if (rnd == 2) {
-		code = Icmpv6DestUnreachableCodes::AddrUnreachable;
-	} else {
-		code = Icmpv6DestUnreachableCodes::PortUnreachable;
-	}
-
 	// Construct the ICMPv6 layer using the payload from the dummy packet
 	pcpp::IcmpV6Layer* icmpV6Layer = new pcpp::IcmpV6Layer(
 		pcpp::ICMPv6MessageType::ICMPv6_DESTINATION_UNREACHABLE,
-		code,
+		_destUnreachableCode,
 		&buf[0],
 		buf.size());
 	packet.addLayer(icmpV6Layer, true);
