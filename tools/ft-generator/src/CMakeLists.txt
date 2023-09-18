@@ -8,6 +8,8 @@ set(FT_GENERATOR_SOURCES
 	config/ipv6.cpp
 	config/mac.cpp
 	config/packetsizeprobabilities.cpp
+	data/words.cpp
+	domainnamegenerator.cpp
 	flow.cpp
 	flowplanhelper.cpp
 	flowprofile.cpp
@@ -21,6 +23,9 @@ set(FT_GENERATOR_SOURCES
 	generators/prefixedgenerator.cpp
 	layer.cpp
 	layers/ethernet.cpp
+	layers/http.cpp
+	layers/httpbuilder.cpp
+	layers/httpgenerator.cpp
 	layers/icmpecho.cpp
 	layers/icmprandom.cpp
 	layers/icmpv6echo.cpp
@@ -32,25 +37,20 @@ set(FT_GENERATOR_SOURCES
 	layers/tcp.cpp
 	layers/udp.cpp
 	layers/vlan.cpp
+	normalizedflowidentifier.cpp
 	packet.cpp
 	packetflowspan.cpp
+	packetsizegenerator.cpp
+	packetsizegeneratorfast.cpp
+	packetsizegeneratorslow.cpp
 	pcapwriter.cpp
 	pcppethlayer.cpp
 	pcpppacket.cpp
 	randomgenerator.cpp
+	randomgeneratorengine.cpp
+	timestampgenerator.cpp
 	timeval.cpp
 	trafficmeter.cpp
-	packetsizegenerator.cpp
-	packetsizegeneratorslow.cpp
-	packetsizegeneratorfast.cpp
-	normalizedflowidentifier.cpp
-	timestampgenerator.cpp
-	data/words.cpp
-	layers/http.cpp
-	layers/httpbuilder.cpp
-	layers/httpgenerator.cpp
-	randomgeneratorengine.cpp
-	domainnamegenerator.cpp
 )
 
 set(FT_GENERATOR_LIBS
@@ -67,12 +67,12 @@ add_executable(ft-generator ${FT_GENERATOR_SOURCES} main.cpp)
 target_link_libraries(ft-generator PRIVATE ${FT_GENERATOR_LIBS})
 
 set(FT_GENERATOR_TEST_SOURCES
-	tests/macaddressgenerator.cpp
-	tests/lfsr.cpp
-	tests/packetsizegenerator.cpp
-	tests/timestampgenerator.cpp
 	tests/domainnamegenerator.cpp
 	tests/httpbuilder.cpp
+	tests/lfsr.cpp
+	tests/macaddressgenerator.cpp
+	tests/packetsizegenerator.cpp
+	tests/timestampgenerator.cpp
 )
 
 add_executable(ft-generator-test ${FT_GENERATOR_SOURCES} ${FT_GENERATOR_TEST_SOURCES} tests/main.cpp)
