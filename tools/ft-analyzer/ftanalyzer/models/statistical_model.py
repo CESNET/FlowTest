@@ -36,7 +36,8 @@ class StatisticalModel:
         PACKETS: number of transferred packets
         BYTES: number of transferred bytes (IP headers + payload)
 
-    Statistical model is able to merge flows which were split by active timeout configured on the network probe.
+    Statistical model is able to merge flows with the same flow key (SRC_IP, DST_IP, SRC_PORT, DST_PORT, PROTOCOL).
+    Merging flows is allowed only if the flow key is unique in the reference data.
     The model is able to perform statistical analysis of the provided data to determine how much it differs from the
     reference. Every analysis can be done either with the whole data or with a specific subset (called "segment")
     which can be specified either by IP subnets or time intervals.
@@ -64,16 +65,14 @@ class StatisticalModel:
         "BYTES": np.uint64,
     }
 
-    AGGREGATE_SPLIT_FLOWS = {
-        "START_TIME_y": "min",
-        "END_TIME_y": "max",
-        "PACKETS_y": "sum",
-        "BYTES_y": "sum",
+    AGGREGATE_FLOWS = {
+        "START_TIME": "min",
+        "END_TIME": "max",
+        "PACKETS": "sum",
+        "BYTES": "sum",
     }
 
-    def __init__(
-        self, flows: str, reference: str, timeouts: Tuple[int, int], start_time: int = 0, sort: bool = False
-    ) -> None:
+    def __init__(self, flows: str, reference: str, start_time: int = 0, merge: bool = False) -> None:
         """Read provided files and converts it to data frames.
 
         Parameters
@@ -82,16 +81,12 @@ class StatisticalModel:
             Path to a CSV containing flow records acquired from a network probe.
         reference : str
             Path to a CSV containing flow records acting as a reference.
-        timeouts : tuple
-            Active and inactive timeout (in seconds) which was configured on the network
-            probe during the monitoring period.
         start_time : int
             Treat times in the reference file as offsets (in milliseconds) from the provided start time.
             UTC timestamp in milliseconds.
-        sort : bool
-            Sort flows by the flow key (SRC_IP, DST_IP, SRC_PORT, DST_PORT, PROTOCOL).
-            Necessary for the precise model, not needed for the statistical model.
-            Must be done before IP addresses are converted to ipaddr objects.
+        merge : bool
+            Merge probe flows with the same flow key (SRC_IP, DST_IP, SRC_PORT, DST_PORT, PROTOCOL).
+            Merging flows is allowed only if the flow key is unique in the reference data.
 
         Raises
         ------
@@ -116,8 +111,8 @@ class StatisticalModel:
             self._ref["START_TIME"] = self._ref["START_TIME"] + start_time
             self._ref["END_TIME"] = self._ref["END_TIME"] + start_time
 
-        self._merge_flows(timeouts[0])
-        if sort:
+        if merge:
+            self._merge_flows()
             logging.getLogger().debug("sorting probe flows")
             self._flows = self._flows.sort_values(self.FLOW_KEY).reset_index(drop=True)
             logging.getLogger().debug("sorting reference flows")
@@ -169,61 +164,18 @@ class StatisticalModel:
 
         return report
 
-    def _merge_flows(self, active_t: int) -> None:
-        """Merge flows acquired from the probe which were split due to active timeout.
-
-        Find flows in the reference which are longer than the active timeout and attempt to
-        find its parts in the flows acquired from the probe.
-
-        Parameters
-        ----------
-        active_t : int
-            Active timeout.
+    def _merge_flows(self) -> None:
+        """
+        Merge flows with the same flow key.
+        Allowed only if the flow key is unique in the reference data.
+        Add 'FLOW_COUNT' column to the data from probe to indicate how many flows were merged together.
         """
 
-        # find long flows among reference flows
-        long_flows = self._ref.loc[(self._ref["END_TIME"] - self._ref["START_TIME"]) > (active_t * 1000)]
-        # backup indexes of probe flows
-        flows_with_index = self._flows.reset_index().rename(columns={"index": "index_y"})
-        # perform inner join between long flows and probe flows
-        combined_flows = pd.merge(long_flows, flows_with_index, on=self.FLOW_KEY, how="inner")
-        # filter probe flows which start and end times fit into the frame of their long flow counterpart
-        # thus finding flows which were split by an active timeout
-        # columns with the same name which are not part of the key (PACKETS, BYTES, START_TIME, END_TIME)
-        # are provided with a suffix (_x - columns from "long flows" and _y - columns from "flows_with_index")
-        split_flows = combined_flows[
-            (combined_flows["START_TIME_y"] >= combined_flows["START_TIME_x"] - self.TIME_EPSILON)
-            & (combined_flows["END_TIME_y"] <= combined_flows["END_TIME_x"] + self.TIME_EPSILON)
-        ]
-        logging.getLogger().debug("split flows aggregation - matched %d split flows", len(split_flows))
+        assert len(self._ref.index) == self._ref.groupby(self.FLOW_KEY).ngroups, "Cannot merge flows, duplicated key."
 
-        # aggregate flows split by an active timeout (sum packets and bytes, minimum start time, maximum end time)
-        aggregated_flows = (
-            split_flows.groupby(self.FLOW_KEY + ["START_TIME_x", "END_TIME_x"])
-            .agg(self.AGGREGATE_SPLIT_FLOWS)
-            .reset_index()
-            .rename(
-                columns={
-                    "START_TIME_y": "START_TIME",
-                    "END_TIME_y": "END_TIME",
-                    "PACKETS_y": "PACKETS",
-                    "BYTES_y": "BYTES",
-                }
-            )
-        )
-        aggregated_flows.drop(["START_TIME_x", "END_TIME_x"], axis=1, inplace=True)
-        logging.getLogger().debug(
-            "split flows aggregation - found %d/%d long flows (%d/%d packets)",
-            len(aggregated_flows),
-            len(long_flows),
-            aggregated_flows["PACKETS"].sum(),
-            long_flows["PACKETS"].sum(),
-        )
-
-        # remove split flows from the probe flows (using original index backup)
-        self._flows.drop(index=split_flows["index_y"].unique(), axis=0, inplace=True)
-        # add aggregated flows to the probe flows
-        self._flows = pd.concat([self._flows, aggregated_flows], axis=0, ignore_index=True)
+        flows = self._flows.groupby(self.FLOW_KEY).aggregate(self.AGGREGATE_FLOWS)
+        flows["FLOW_COUNT"] = self._flows.groupby(self.FLOW_KEY).size()
+        self._flows = flows.reset_index()
 
     def _filter_segment(
         self, segment: Optional[Union[SMSubnetSegment, SMTimeSegment]]

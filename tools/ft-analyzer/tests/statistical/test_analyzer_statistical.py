@@ -26,7 +26,7 @@ REF_PATH = os.path.join(BASE_PATH, "references")
 
 def test_basic():
     """Test basic functionality on the same data but shuffled."""
-    model = SMod(os.path.join(FLOWS_PATH, "shuffled_basic.csv"), os.path.join(REF_PATH, "basic.csv"), (300, 30))
+    model = SMod(os.path.join(FLOWS_PATH, "shuffled_basic.csv"), os.path.join(REF_PATH, "basic.csv"))
     metrics = [
         SMMetric(SMMetricType.PACKETS, 0),
         SMMetric(SMMetricType.BYTES, 0),
@@ -40,7 +40,7 @@ def test_basic():
 
 def test_long_flows():
     """Test the ability to merge flows which were divided by active timeout."""
-    model = SMod(os.path.join(FLOWS_PATH, "long_flows_split.csv"), os.path.join(REF_PATH, "long_flows.csv"), (300, 30))
+    model = SMod(os.path.join(FLOWS_PATH, "long_flows_split.csv"), os.path.join(REF_PATH, "long_flows.csv"), merge=True)
     metrics = [
         SMMetric(SMMetricType.PACKETS, 0),
         SMMetric(SMMetricType.BYTES, 0),
@@ -54,7 +54,7 @@ def test_long_flows():
 
 def test_incomplete():
     """Test different acceptable relative differences when some data is missing."""
-    model = SMod(os.path.join(FLOWS_PATH, "basic_missing.csv"), os.path.join(REF_PATH, "basic.csv"), (300, 30))
+    model = SMod(os.path.join(FLOWS_PATH, "basic_missing.csv"), os.path.join(REF_PATH, "basic.csv"))
     metrics = [
         SMMetric(SMMetricType.PACKETS, 0.1),
         SMMetric(SMMetricType.BYTES, 0.1),
@@ -78,7 +78,7 @@ def test_incomplete():
 
 def test_subnet_segment():
     """Test dividing input data into segments by subnets."""
-    model = SMod(os.path.join(FLOWS_PATH, "long_flows_split.csv"), os.path.join(REF_PATH, "long_flows.csv"), (300, 30))
+    model = SMod(os.path.join(FLOWS_PATH, "long_flows_split.csv"), os.path.join(REF_PATH, "long_flows.csv"), merge=True)
     metrics = [
         SMMetric(SMMetricType.PACKETS, 0),
         SMMetric(SMMetricType.BYTES, 0),
@@ -96,7 +96,7 @@ def test_single_subnet():
     can have tons of missing data.
     """
     model = SMod(
-        os.path.join(FLOWS_PATH, "long_flows_missing.csv"), os.path.join(REF_PATH, "long_flows.csv"), (300, 30)
+        os.path.join(FLOWS_PATH, "long_flows_missing.csv"), os.path.join(REF_PATH, "long_flows.csv"), merge=True
     )
     metrics = [
         SMMetric(SMMetricType.PACKETS, 0),
@@ -125,7 +125,7 @@ def test_single_subnet():
 
 def test_time_segment():
     """Test dividing input data into segments by time intervals."""
-    model = SMod(os.path.join(FLOWS_PATH, "basic_missing.csv"), os.path.join(REF_PATH, "basic.csv"), (300, 30))
+    model = SMod(os.path.join(FLOWS_PATH, "basic_missing.csv"), os.path.join(REF_PATH, "basic.csv"))
     metrics = [
         SMMetric(SMMetricType.PACKETS, 0),
         SMMetric(SMMetricType.BYTES, 0),
@@ -147,18 +147,18 @@ def test_time_segment():
 def test_source_file_error():
     """Test using multiple same metrics in a single rule."""
     with pytest.raises(SMException):
-        SMod(os.path.join(FLOWS_PATH, "non-existent.csv"), os.path.join(REF_PATH, "basic.csv"), (300, 30))
+        SMod(os.path.join(FLOWS_PATH, "non-existent.csv"), os.path.join(REF_PATH, "basic.csv"))
 
     with pytest.raises(SMException):
-        SMod(os.path.join(FLOWS_PATH, "basic_missing.csv"), os.path.join(REF_PATH, "non-existent.csv"), (300, 30))
+        SMod(os.path.join(FLOWS_PATH, "basic_missing.csv"), os.path.join(REF_PATH, "non-existent.csv"))
 
     with pytest.raises(SMException):
-        SMod(os.path.join(FLOWS_PATH, "malformed.csv"), os.path.join(REF_PATH, "basic.csv"), (300, 30))
+        SMod(os.path.join(FLOWS_PATH, "malformed.csv"), os.path.join(REF_PATH, "basic.csv"))
 
 
 def test_multiple_same_metrics():
     """Test using multiple same metrics in a single rule."""
-    model = SMod(os.path.join(FLOWS_PATH, "basic_missing.csv"), os.path.join(REF_PATH, "basic.csv"), (300, 30))
+    model = SMod(os.path.join(FLOWS_PATH, "basic_missing.csv"), os.path.join(REF_PATH, "basic.csv"))
     metrics = [
         SMMetric(SMMetricType.PACKETS, 0),
         SMMetric(SMMetricType.BYTES, 0),
@@ -183,7 +183,6 @@ def test_relative_time():
     model = SMod(
         os.path.join(FLOWS_PATH, "relative_time.csv"),
         os.path.join(REF_PATH, "relative_time.csv"),
-        (300, 30),
         start_time=1678312157497,
     )
     metrics = [

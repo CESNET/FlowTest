@@ -198,7 +198,7 @@ class PreciseModel(StatisticalModel):
             Unable to process provided files.
         """
 
-        super().__init__(flows, reference, timeouts, start_time, sort=True)
+        super().__init__(flows, reference, start_time, merge=True)
         self._max_time_diff = self.DEFAULT_MAX_TIME_DIFF
         self._ok_time_diff = self.DEFAULT_OK_TIME_DIFF
         self._report = None
