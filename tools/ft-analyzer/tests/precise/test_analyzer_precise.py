@@ -188,3 +188,20 @@ def test_ip_version_compare():
     report.print_results()
 
     assert report.is_passing() is False
+
+
+def test_split():
+    """Test situation where flows were incorrectly split."""
+
+    model = PMod(
+        os.path.join(FLOWS_PATH, "split.csv"),
+        os.path.join(REF_PATH, "split.csv"),
+        300,
+        start_time=1694766005473,
+    )
+
+    report = model.validate_precise()
+    report.print_results()
+
+    assert report.is_passing() is True
+    assert len(report.get_test().split) == 3
