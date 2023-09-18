@@ -194,6 +194,7 @@ class FlowReplicator:
         loops: int,
         merge_across_loops: bool = False,
         inactive_timeout: int = -1,
+        speed_multiplier: float = 1,
     ) -> None:
         """Read source data and replicate source flows based on configuration.
         Save replication result to CSV file. Helper columns like "ORIG_INDEX" are not exported.
@@ -212,6 +213,11 @@ class FlowReplicator:
         inactive_timeout : int, optional
             Probe inactive timeout in seconds. Time after which inactive flow is marked as ended.
             Ignored during merge if the value is -1.
+        speed_multiplier : float, optional
+            Modify flows timestamps according to real number multiplier. The value
+            corresponds to traffic replay speed. Value 1 means the original layout.
+            Value 0.5 means that flows will take twice as long. 2.0 means that flows
+            will take half the time.
 
         Raises
         ------
@@ -229,8 +235,12 @@ class FlowReplicator:
         # index of source flow is used when merging flows within single loop
         self._flows["ORIG_INDEX"] = self._flows.index
 
+        # transform speed to time multiplier
+        # e.g. time multiplier 0.5 corresponds to traffic played 2x faster
+        time_multiplier = 1 / speed_multiplier
+
         # replicate and drop original record indexes - deduplicate
-        result = self._replicate(loops)
+        result = self._replicate(loops, time_multiplier)
         result.reset_index(drop=True, inplace=True)
         result.reindex()
 
@@ -326,13 +336,15 @@ class FlowReplicator:
 
         return ReplicatorConfig(units, loop)
 
-    def _replicate(self, loops: int) -> pd.DataFrame:
+    def _replicate(self, loops: int, time_multiplier: float) -> pd.DataFrame:
         """Replicate flows from source according to the configuration.
 
         Parameters
         ----------
         loops : int
             Number of replay loops.
+        time_multiplier : float
+            Time multiplier propagated from replicate method.
 
         Returns
         -------
@@ -340,26 +352,33 @@ class FlowReplicator:
             Replicated flows.
         """
 
-        loop_start = self._flows.loc[:, "START_TIME"].min()
-        loop_end = self._flows.loc[:, "END_TIME"].max()
-        loop_length = int(loop_end - loop_start)
+        loop_start = int(self._flows.loc[:, "START_TIME"].min())
+        loop_end = int(self._flows.loc[:, "END_TIME"].max())
+        loop_length = int((loop_end - loop_start) * time_multiplier)
+
+        self._flows["_FLOW_LEN"] = ((self._flows["END_TIME"] - self._flows["START_TIME"]) * time_multiplier).astype(
+            np.uint64
+        )
+        self._flows["_START_OFFSET"] = ((self._flows["START_TIME"] - loop_start) * time_multiplier).astype(np.uint64)
 
         res = pd.DataFrame()
         for loop_n in range(loops):
             if loop_n in self._ignore_loops:
                 continue
-            loop_flows = self._process_single_loop(loop_n, loop_length)
+            loop_flows = self._process_single_loop(loop_n, loop_start, loop_length)
             res = pd.concat([res, loop_flows], axis=0)
 
         return res
 
-    def _process_single_loop(self, loop_n: int, loop_length: int) -> pd.DataFrame:
+    def _process_single_loop(self, loop_n: int, global_start: int, loop_length: int) -> pd.DataFrame:
         """Replicate flows for single loop. Copy, add time offset to timestamps and replicate with units.
 
         Parameters
         ----------
         loop_n : int
             Sequence number of loop.
+        global_start : int
+            Timestamp of first loop start.
         loop_length : int
             Duration of one loop in milliseconds.
 
@@ -369,7 +388,7 @@ class FlowReplicator:
             Replicated flows (deep copy).
         """
 
-        time_offset = loop_n * loop_length
+        time_offset = global_start + loop_n * loop_length
         srcip_offset = 0
         dstip_offset = 0
         if self._config.loop.srcip:
@@ -378,8 +397,8 @@ class FlowReplicator:
             dstip_offset += loop_n * self._config.loop.dstip.value
 
         flows = self._flows.copy()
-        flows["START_TIME"] = flows["START_TIME"] + time_offset
-        flows["END_TIME"] = flows["END_TIME"] + time_offset
+        flows["START_TIME"] = time_offset + flows["_START_OFFSET"]
+        flows["END_TIME"] = flows["START_TIME"] + flows["_FLOW_LEN"]
         flows["SRC_IP"] = flows["SRC_IP"] + srcip_offset
         flows["DST_IP"] = flows["DST_IP"] + dstip_offset
 
