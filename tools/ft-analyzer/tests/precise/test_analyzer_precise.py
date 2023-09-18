@@ -141,7 +141,7 @@ def test_incorrect_timestamps():
     Test that flows which timestamps differ more than allowed threshold (but not pairing limit) are reported.
     """
 
-    model = PMod(os.path.join(FLOWS_PATH, "timestamps.csv"), os.path.join(REF_PATH, "timestamps.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "timestamps.csv"), os.path.join(REF_PATH, "small.csv"), (300, 30))
     report = model.validate_precise()
     report.print_results()
 
