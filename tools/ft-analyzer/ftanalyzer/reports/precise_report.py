@@ -21,6 +21,7 @@ class PMTestCategory(Enum):
     UNEXPECTED = 2  # unexpected flows
     SHIFTED = 3  # differences in timestamps
     SCALED = 4  # differences in values of packets and bytes
+    SPLIT = 5  # flows split into more flows than expected
 
 
 @dataclass
@@ -31,6 +32,7 @@ class PMFlow:
     """
 
     # pylint: disable=invalid-name
+    # pylint: disable=too-many-instance-attributes
     SRC_IP: Union[ipaddress.IPv4Address, ipaddress.IPv6Address]
     DST_IP: Union[ipaddress.IPv4Address, ipaddress.IPv6Address]
     PROTOCOL: int
@@ -41,6 +43,7 @@ class PMFlow:
     START_TIME: int
     END_TIME: int
     TIME_DIFF: int = 0
+    FLOW_COUNT: int = 0
 
     def __str__(self) -> str:
         return (
@@ -67,6 +70,8 @@ class PMTestOutcome:
     ----------
     segment : SMSubnetSegment, SMTimeSegment, None
         Segment used to filter flow and reference data.
+    split : list
+        Flows split into more flows than expected.
     missing : list
         Flows which were not present but were expected.
     unexpected : list
@@ -78,6 +83,7 @@ class PMTestOutcome:
     """
 
     segment: Union[SMSubnetSegment, SMTimeSegment, None] = None
+    split: list[PMFlow] = field(default_factory=list)
     missing: list[PMFlow] = field(default_factory=list)
     unexpected: list[PMFlow] = field(default_factory=list)
     shifted: list[PMFlowPair] = field(default_factory=list)
@@ -104,6 +110,7 @@ class PreciseReport:
     """
 
     ERR_CLR = "\033[31m"
+    WARN_CLR = "\033[33m"
     RST_CLR = "\033[0m"
 
     def __init__(self) -> None:
@@ -147,7 +154,9 @@ class PreciseReport:
         # There must be at least one segment.
         assert len(self.tests) > 0
 
-        if category == PMTestCategory.MISSING:
+        if category == PMTestCategory.SPLIT:
+            self.tests[-1].split.append(flow)
+        elif category == PMTestCategory.MISSING:
             self.tests[-1].missing.append(flow)
         elif category == PMTestCategory.UNEXPECTED:
             self.tests[-1].unexpected.append(flow)
@@ -217,6 +226,11 @@ class PreciseReport:
             else:
                 print(test.segment)
 
+            print_category(
+                test.split,
+                "flows split unexpectedly",
+                lambda item: print(f"\t{self.WARN_CLR}({item.FLOW_COUNT}) {item}{self.RST_CLR}"),
+            )
             if test.is_passing():
                 print(" - PASSED")
                 continue
