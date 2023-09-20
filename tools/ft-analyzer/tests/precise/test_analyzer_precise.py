@@ -27,7 +27,7 @@ REF_PATH = os.path.join(BASE_PATH, "references")
 def test_shuffled():
     """Test basic functionality on the same data but shuffled."""
 
-    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), 300)
     report = model.validate_precise()
     report.print_results()
 
@@ -37,7 +37,7 @@ def test_shuffled():
 def test_subnet_segment():
     """Test basic functionality in a specified subnet segment on the same data but shuffled."""
 
-    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), 300)
     segment1 = SMSubnetSegment(source="192.168.51.0/24", dest="81.2.248.0/24", bidir=True)
     segment2 = SMSubnetSegment(dest="ff02::2")
     segment3 = SMSubnetSegment(source="10.100.56.132", dest="37.187.104.44", bidir=True)
@@ -50,7 +50,7 @@ def test_subnet_segment():
 def test_time_segment():
     """Test basic functionality in a specified time segment on the same data but shuffled."""
 
-    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), 300)
 
     tstart = datetime(2023, 3, 8, 21, 50, 00, 0, timezone.utc)
     tend = datetime(2023, 3, 8, 21, 55, 0, 0, timezone.utc)
@@ -67,7 +67,7 @@ def test_time_segment():
 def test_missing():
     """Test that missing flows are correctly reported."""
 
-    model = PMod(os.path.join(FLOWS_PATH, "small_missing.csv"), os.path.join(REF_PATH, "small.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "small_missing.csv"), os.path.join(REF_PATH, "small.csv"), 300)
 
     segment1 = SMSubnetSegment(source="10.100.40.0/24", dest="37.186.104.0/24")
     segment2 = SMSubnetSegment(source="10.100.40.0/24", dest="37.187.104.0/24")
@@ -85,7 +85,7 @@ def test_missing():
 def test_unexpected():
     """Test that unexpected flows are correctly reported."""
 
-    model = PMod(os.path.join(FLOWS_PATH, "small_unexpected.csv"), os.path.join(REF_PATH, "small.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "small_unexpected.csv"), os.path.join(REF_PATH, "small.csv"), 300)
 
     segment1 = SMSubnetSegment(source="10.100.40.0/24", dest="37.186.104.0/24")
     segment2 = SMSubnetSegment(source="10.100.40.0/24", dest="37.187.104.0/24")
@@ -103,7 +103,7 @@ def test_unexpected():
 def test_incorrect_values():
     """Test that flows which have missmatch in packet / bytes are reported."""
 
-    model = PMod(os.path.join(FLOWS_PATH, "small_incorrect.csv"), os.path.join(REF_PATH, "small.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "small_incorrect.csv"), os.path.join(REF_PATH, "small.csv"), 300)
     report = model.validate_precise()
     report.print_results()
 
@@ -117,26 +117,22 @@ def test_incorrect_timestamps():
     Test that flows which timestamps differ more than allowed threshold (but not pairing limit) are reported.
     """
 
-    model = PMod(os.path.join(FLOWS_PATH, "timestamps.csv"), os.path.join(REF_PATH, "small.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "timestamps.csv"), os.path.join(REF_PATH, "small.csv"), 300)
     report = model.validate_precise()
     report.print_results()
 
     assert report.is_passing() is False
     test = report.get_test()
-    assert len(test.missing) == 2
-    assert len(test.unexpected) == 2
-    assert len(test.shifted) == 2
+    assert len(test.shifted) == 4
 
-    report = model.validate_precise(max_time_diff=1000, ok_time_diff=10)
+    report = model.validate_precise(ok_time_diff=10)
     report.print_results()
 
     assert report.is_passing() is False
     test = report.get_test()
-    assert len(test.missing) == 2
-    assert len(test.unexpected) == 2
-    assert len(test.shifted) == 3
+    assert len(test.shifted) == 5
 
-    report = model.validate_precise(max_time_diff=10000, ok_time_diff=10000)
+    report = model.validate_precise(ok_time_diff=10000)
     report.print_results()
 
     assert report.is_passing() is True
@@ -145,7 +141,7 @@ def test_incorrect_timestamps():
 def test_mixed():
     """Test statistical validation on the precise model."""
 
-    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), 300)
     metrics = [
         SMMetric(SMMetricType.PACKETS, 0),
         SMMetric(SMMetricType.BYTES, 0),
@@ -161,7 +157,7 @@ def test_mixed():
 def test_same_segment():
     """Test adding the same segment multiple times."""
 
-    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), (300, 30))
+    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), 300)
     with pytest.raises(ValueError):
         model.validate_precise([None, None])
 
@@ -185,7 +181,7 @@ def test_ip_version_compare():
     model = PMod(
         os.path.join(FLOWS_PATH, "ip_version_compare.csv"),
         os.path.join(REF_PATH, "ip_version_compare.csv"),
-        (300, 30),
+        300,
         1692691223212,
     )
     report = model.validate_precise()

@@ -113,10 +113,6 @@ class StatisticalModel:
 
         if merge:
             self._merge_flows()
-            logging.getLogger().debug("sorting probe flows")
-            self._flows = self._flows.sort_values(self.FLOW_KEY).reset_index(drop=True)
-            logging.getLogger().debug("sorting reference flows")
-            self._ref = self._ref.sort_values(self.FLOW_KEY).reset_index(drop=True)
 
         self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(ipaddress.ip_address)
         self._flows.loc[:, "DST_IP"] = self._flows["DST_IP"].apply(ipaddress.ip_address)
