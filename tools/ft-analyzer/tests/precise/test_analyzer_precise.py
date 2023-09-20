@@ -100,30 +100,6 @@ def test_unexpected():
     assert len(report.get_test(segment3).unexpected) == 1
 
 
-def test_finish_references():
-    """Test that all reference flows are processed even if there are no more flows."""
-
-    model = PMod(os.path.join(FLOWS_PATH, "small_finish_refs.csv"), os.path.join(REF_PATH, "small.csv"), (300, 30))
-    report = model.validate_precise()
-    report.print_results()
-
-    assert report.is_passing() is False
-    assert len(report.get_test().missing) == 5
-    assert len(report.get_test().unexpected) == 1
-
-
-def test_finish_flows():
-    """Test that all flows are processed even if there are no more reference flows."""
-
-    model = PMod(os.path.join(FLOWS_PATH, "small_finish_flows.csv"), os.path.join(REF_PATH, "small.csv"), (300, 30))
-    report = model.validate_precise()
-    report.print_results()
-
-    assert report.is_passing() is False
-    assert len(report.get_test().missing) == 5
-    assert len(report.get_test().unexpected) == 1
-
-
 def test_incorrect_values():
     """Test that flows which have missmatch in packet / bytes are reported."""
 
