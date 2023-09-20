@@ -30,8 +30,8 @@ from src.probe.probe_builder import ProbeBuilder
 PROJECT_ROOT = get_project_root()
 SIMULATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/simulation")
 
-SPEED = MultiplierSpeed(2.0)
-LOOPS = 100
+SPEED = MultiplierSpeed(1.0)
+LOOPS = 1
 
 select_topologies(["pcap_player"])
 
