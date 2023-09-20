@@ -200,9 +200,15 @@ class PreciseReport:
             Limit the amount of reported errors per category per segment.
         """
 
-        def notify_truncated(count: int) -> None:
-            if count > limit:
-                print(f"\t{self.ERR_CLR}Truncated, total records: {count}{self.RST_CLR}")
+        def print_category(category, title, callback):
+            if len(category) > 0:
+                print(" - " + title)
+                for item in category[:limit]:
+                    callback(item)
+
+                total = len(category)
+                if total > limit:
+                    print(f"\t{self.ERR_CLR}Truncated, total records: {total}{self.RST_CLR}")
 
         for test in self.tests:
             print()
@@ -215,30 +221,19 @@ class PreciseReport:
                 print(" - PASSED")
                 continue
 
-            if len(test.missing) > 0:
-                print(" - missing flows")
-                for flow in test.missing[:limit]:
-                    print(f"\t{self.ERR_CLR}{flow}{self.RST_CLR}")
-
-                notify_truncated(len(test.missing))
-
-            if len(test.unexpected) > 0:
-                print(" - unexpected flows")
-                for flow in test.unexpected[:limit]:
-                    print(f"\t{self.ERR_CLR}{flow}{self.RST_CLR}")
-
-                notify_truncated(len(test.unexpected))
-
-            if len(test.shifted) > 0:
-                print(" - incorrect timestamps")
-                for err in test.shifted[:limit]:
-                    print(f"\t{self.ERR_CLR}{err.flow} != {err.ref} (diff: {err.flow.TIME_DIFF} ms){self.RST_CLR}")
-
-                notify_truncated(len(test.shifted))
-
-            if len(test.scaled) > 0:
-                print(" - incorrect values of packets / bytes")
-                for err in test.scaled[:limit]:
-                    print(f"\t{self.ERR_CLR}{err.flow} != {err.ref}{self.RST_CLR}")
-
-                notify_truncated(len(test.scaled))
+            print_category(test.missing, "missing flows", lambda item: print(f"\t{self.ERR_CLR}{item}{self.RST_CLR}"))
+            print_category(
+                test.unexpected, "unexpected flows", lambda item: print(f"\t{self.ERR_CLR}{item}{self.RST_CLR}")
+            )
+            print_category(
+                test.shifted,
+                "incorrect timestamps",
+                lambda item: print(
+                    f"\t{self.ERR_CLR}{item.flow} != {item.ref} (diff: {item.flow.TIME_DIFF} ms){self.RST_CLR}"
+                ),
+            )
+            print_category(
+                test.scaled,
+                "incorrect values of packets / bytes",
+                lambda item: print(f"\t{self.ERR_CLR}{item.flow} != {item.ref}{self.RST_CLR}"),
+            )
