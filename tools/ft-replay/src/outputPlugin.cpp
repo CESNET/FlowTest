@@ -43,4 +43,9 @@ std::map<std::string, std::string> OutputPlugin::SplitArguments(const std::strin
 	return argMap;
 }
 
+Offloads OutputPlugin::ConfigureOffloads([[maybe_unused]] const OffloadRequests& offloads)
+{
+	return 0;
+}
+
 } // namespace replay

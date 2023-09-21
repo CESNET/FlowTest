@@ -265,6 +265,12 @@ OutputQueue* XdpPlugin::GetQueue(uint16_t queueId)
 	return _queues.at(queueId).get();
 }
 
+Offloads XdpPlugin::ConfigureOffloads(const OffloadRequests& offloads)
+{
+	(void) offloads;
+	return 0;
+}
+
 void XdpPlugin::PrintSettings()
 {
 	std::string report = "Used settings: zeroCopy=";

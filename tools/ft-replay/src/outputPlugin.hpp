@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include "config.hpp"
 #include "logger.h"
+#include "offloads.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -45,6 +47,14 @@ public:
 	 * @brief Default virtual destructor
 	 */
 	virtual ~OutputPlugin() = default;
+
+	/**
+	 * @brief Determines and configure the available offloads.
+	 *
+	 * @param offloads The requested offloads to configure.
+	 * @return Configured offloads.
+	 */
+	virtual Offloads ConfigureOffloads(const OffloadRequests& offloads);
 
 protected:
 	/**

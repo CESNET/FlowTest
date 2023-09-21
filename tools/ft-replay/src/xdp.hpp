@@ -242,6 +242,14 @@ public:
 	 */
 	OutputQueue* GetQueue(uint16_t queueId) override;
 
+	/**
+	 * @brief Determines and configure the available offloads.
+	 *
+	 * @param offloads The requested offloads to configure.
+	 * @return Configured offloads.
+	 */
+	Offloads ConfigureOffloads(const OffloadRequests& offloads) override;
+
 private:
 	void PrintSettings();
 
