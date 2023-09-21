@@ -8,6 +8,7 @@
 #include "flowplanhelper.h"
 #include "randomgenerator.h"
 
+#include <algorithm>
 #include <cassert>
 
 namespace generator {
@@ -35,6 +36,10 @@ FlowPlanHelper::FlowPlanHelper(Flow& flow)
 			assert(availRevBytes >= packet._size && "value underflow");
 			availRevBytes -= packet._size;
 		}
+
+		if (!packet._isFinished) {
+			_nUnfinished++;
+		}
 	}
 
 	_assignedFwdPkts = _flow->_fwdPackets - availFwdPkts;
@@ -46,35 +51,70 @@ FlowPlanHelper::FlowPlanHelper(Flow& flow)
 
 Packet* FlowPlanHelper::NextPacket()
 {
-	if (_first) {
-		_it = _flow->_packets.begin();
-		_first = false;
-	} else if (_it != _flow->_packets.end()) {
-		++_it;
-	}
+	auto next = [&]() -> Packet* {
+		if (_nTraversed == _flow->_packets.size()) {
+			return nullptr;
+		}
 
-	while (_it != _flow->_packets.end() && _it->_isFinished) {
-		++_it;
-	}
+		if (_nTraversed == 0) {
+			_it = _flow->_packets.begin();
+		} else if (_it != _flow->_packets.end()) {
+			++_it;
+		}
+		_nTraversed++;
 
-	if (_it != _flow->_packets.end()) {
-		_packet = &(*_it);
-	} else {
-		_packet = nullptr;
-	}
+		return &(*_it);
+	};
 
-	return _packet;
+	Packet* pkt = nullptr;
+	while (true) {
+		pkt = next();
+		// Break if there are no more packets (nullptr) or we have found a unfinished packet
+		if (!pkt || !pkt->_isFinished) {
+			break;
+		}
+	}
+	_packet = pkt;
+	if (pkt && !pkt->_isFinished) {
+		_nUnfinishedTraversed++;
+	}
+	return pkt;
+}
+
+uint64_t FlowPlanHelper::PktsFromStart()
+{
+	return _nUnfinishedTraversed == 0 ? 0 : _nUnfinishedTraversed - 1;
+}
+
+uint64_t FlowPlanHelper::PktsTillEnd()
+{
+	assert(_nUnfinished >= _nUnfinishedTraversed);
+	return _nUnfinished - _nUnfinishedTraversed;
 }
 
 void FlowPlanHelper::Reset()
 {
-	_first = true;
+	_nTraversed = 0;
+	_nUnfinishedTraversed = 0;
 	_packet = nullptr;
+
+	_nUnfinished = 0;
+	for (auto& packet : _flow->_packets) {
+		if (!packet._isFinished) {
+			_nUnfinished++;
+		}
+	}
 }
 
 uint64_t FlowPlanHelper::PktsRemaining()
 {
 	return FwdPktsRemaining() + RevPktsRemaining();
+}
+
+uint64_t FlowPlanHelper::PktsRemaining(Direction dir)
+{
+	assert(dir != Direction::Unknown);
+	return dir == Direction::Reverse ? RevPktsRemaining() : FwdPktsRemaining();
 }
 
 uint64_t FlowPlanHelper::FwdPktsRemaining()
@@ -85,6 +125,12 @@ uint64_t FlowPlanHelper::FwdPktsRemaining()
 uint64_t FlowPlanHelper::RevPktsRemaining()
 {
 	return _flow->_revPackets - _assignedRevPkts;
+}
+
+uint64_t FlowPlanHelper::BytesRemaining(Direction dir)
+{
+	assert(dir != Direction::Unknown);
+	return dir == Direction::Reverse ? RevBytesRemaining() : FwdBytesRemaining();
 }
 
 Direction FlowPlanHelper::GetRandomDir()

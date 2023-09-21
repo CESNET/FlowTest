@@ -428,4 +428,14 @@ FlowProfileReader::ThrowParseError(const std::string& value, const std::string& 
 		+ std::to_string(_lineNum) + ")");
 }
 
+FlowProfile FlowProfile::Reversed() const
+{
+	FlowProfile rev = *this;
+	std::swap(rev._srcIp, rev._dstIp);
+	std::swap(rev._srcPort, rev._dstPort);
+	std::swap(rev._packets, rev._packetsRev);
+	std::swap(rev._bytes, rev._bytesRev);
+	return rev;
+}
+
 } // namespace generator

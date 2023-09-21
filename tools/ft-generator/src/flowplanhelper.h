@@ -10,6 +10,7 @@
 #include "flow.h"
 #include "packet.h"
 
+#include <cstdint>
 #include <random>
 
 namespace generator {
@@ -19,9 +20,6 @@ namespace generator {
  *
  * Mainly used for tracking remaining flow resources and providing useful utility functions for
  * planning
- *
- * @note Still a work in progress. More functionality will be added as it becomes more apparent what
- *       functionality is needed for implementing various layers and their features.
  */
 class FlowPlanHelper {
 public:
@@ -35,69 +33,83 @@ public:
 	/**
 	 * @brief Construct a new Flow Plan Helper object
 	 *
-	 * @param flow
+	 * @param flow  The flow the planner will be used for
 	 */
 	explicit FlowPlanHelper(Flow& flow);
 
 	/**
 	 * @brief Move to the next available packet
 	 *
+	 * A packet is considered "available" if it has the finished flag unset
+	 *
 	 * @return Pointer to the packet
 	 */
 	Packet* NextPacket();
 
 	/**
+	 * @brief Get the number of packets that have been traversed through from
+	 *        the start. This does not include the current packet.
+	 */
+	uint64_t PktsFromStart();
+
+	/**
+	 * @brief Get the number of packets till the iterator reaches end. In other
+	 *        words, how many times NextPacket() will return another packet.
+	 */
+	uint64_t PktsTillEnd();
+
+	/**
 	 * @brief Get the number of remaining unassigned packets
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t PktsRemaining();
 
 	/**
-	 * @brief Get the number of remaining unassigned packets in the forward direction
+	 * @brief Get the number of remaining packets in the specified direction
 	 *
-	 * @return uint64_t
+	 * @param dir  The direction
+	 */
+	uint64_t PktsRemaining(Direction dir);
+
+	/**
+	 * @brief Get the number of remaining unassigned packets in the forward direction
 	 */
 	uint64_t FwdPktsRemaining();
 
 	/**
 	 * @brief Get the number of remaining unassigned packets in the reverse direction
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t RevPktsRemaining();
 
 	/**
 	 * @brief Get the number of remaining unassigned bytes
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t BytesRemaining();
 
 	/**
-	 * @brief Get the number of remaining unassigned bytes in the forward direction
+	 * @brief Get the number of remaining bytes in the specified direction
 	 *
-	 * @return uint64_t
+	 * @param dir  The direction
+	 */
+	uint64_t BytesRemaining(Direction dir);
+
+	/**
+	 * @brief Get the number of remaining unassigned bytes in the forward direction
 	 */
 	uint64_t FwdBytesRemaining();
+
 	/**
 	 * @brief Get the number of remaining unassigned bytes in the reverse direction
-	 *
-	 * @return uint64_t
 	 */
 	uint64_t RevBytesRemaining();
 
 	/**
 	 * @brief Generate a random available direction for a packet
-	 *
-	 * @return The direction
 	 */
 	Direction GetRandomDir();
 
 	/**
 	 * @brief Reset the flow packet iterator to the beginning of the flow. Does not reset the
-	 * counters!
-	 * @return uint64_t
+	 *        counters!
 	 */
 	void Reset();
 
@@ -109,7 +121,9 @@ public:
 	void IncludePkt(Packet* pkt);
 
 private:
-	bool _first = true;
+	uint64_t _nUnfinished = 0;
+	uint64_t _nTraversed = 0;
+	uint64_t _nUnfinishedTraversed = 0;
 	std::list<Packet>::iterator _it;
 	double _fwdPktChance;
 };

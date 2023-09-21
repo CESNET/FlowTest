@@ -10,6 +10,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
@@ -31,6 +32,16 @@ template <typename T>
 T SafeDiv(T a, T b)
 {
 	return b == 0 ? 0 : a / b;
+}
+
+/**
+ * @brief Safe subtraction of unsigned values, where what would be an underflow results in a 0
+ */
+template <typename T>
+// Enable only when T is an unsigned integer type
+typename std::enable_if<std::is_unsigned_v<T>, T>::type SafeSub(T a, T b)
+{
+	return a > b ? a - b : 0;
 }
 
 /**
@@ -77,6 +88,15 @@ typename std::enable_if<std::is_unsigned_v<T>, T>::type OverflowCheckedMultiply(
 		throw std::overflow_error("multiplication of values would overflow");
 	}
 	return a * b;
+}
+
+/**
+ * @brief Get length of a string literal at compile time
+ */
+template <typename T>
+static constexpr size_t LengthOf(const T& str)
+{
+	return std::string_view(str).size();
 }
 
 } // namespace generator

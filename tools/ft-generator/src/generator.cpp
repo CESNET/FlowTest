@@ -22,6 +22,17 @@ static constexpr int PROGRESS_TIMEOUT_SECS = 10;
 // Number of attempts to try to create a flow with unique addresses before failing
 static constexpr int UNIQUE_FLOW_NUM_ATTEMPTS = 10;
 
+/**
+ * Minimal value for a port to be considered "ephemeral" or "local" as opposed to a port used by a
+ * service
+ *
+ * This is suggested to be 49152 according to IANA and the RFC 6335, but Linux kernels typically use
+ * a lower value of 32768 as the default (See /proc/sys/net/ipv4/ip_local_port_range)
+ *
+ * See https://en.wikipedia.org/wiki/Ephemeral_port for more info
+ */
+static constexpr uint16_t EPHEMERAL_PORT_MIN = 32768;
+
 template <typename T>
 static std::string ToHumanSize(T value)
 {
@@ -68,6 +79,14 @@ void Generator::PrepareProfiles()
 			assert(profile._startTime <= profile._endTime);
 			assert(profile._startTime >= Timeval(0, 0));
 			assert(profile._endTime >= Timeval(0, 0));
+		}
+	}
+
+	// Switch around the directions if necessary so that the communication from the client is always
+	// the forward direction
+	for (auto& profile : _profiles) {
+		if (profile._srcPort < EPHEMERAL_PORT_MIN && profile._dstPort >= EPHEMERAL_PORT_MIN) {
+			profile = profile.Reversed();
 		}
 	}
 }
