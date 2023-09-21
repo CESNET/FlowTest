@@ -181,7 +181,14 @@ class BuilderBase(ABC):
             f"{ANSIBLE_PATH}/{ansible_playbook_role}"
         )
         # temporary solution, use LocalExecutor after implementation in testsuite
-        res = subprocess.run(cmd, check=True, shell=True, capture_output=True)
+        try:
+            res = subprocess.run(cmd, check=True, shell=True, capture_output=True)
+        except subprocess.CalledProcessError as err:
+            logging.getLogger().error("Ansible failed!")
+            logging.getLogger().error("Stdout: %s", err.stdout)
+            logging.getLogger().error("Stderr: %s", err.stderr)
+            raise
+
         logging.getLogger().info("Ansible output: %s", res.stdout.decode("ascii"))
 
         logging.getLogger().info("Environment setup with ansible done.")
