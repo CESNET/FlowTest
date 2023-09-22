@@ -109,7 +109,8 @@ with the following fields:
  * PACKETS: number of transferred packets
  * BYTES: number of transferred bytes (IP headers + payload)
 
-The statistical model is able to merge flows which were split by active timeout configured on the network probe.
+Statistical model is able to merge flows with the same flow key (SRC_IP, DST_IP, SRC_PORT, DST_PORT, PROTOCOL).
+Merging flows is allowed only if the flow key is unique in the reference data.
 The following metrics are taken into account to describe the difference between both flow sets:
  * PACKETS: relative difference in the number of packets across all flows
  * BYTES: relative difference in the number of bytes across all flows
@@ -131,9 +132,7 @@ from ftanalyzer.models import (
 )
 from ftanalyzer.models import StatisticalModel as SMod
 
-active_timeout = 300
-inactive_timeout = 30
-model = SMod("path_to_ipfix_probe_flows.csv", "path_to_reference_flows.csv", (active_timeout, inactive_timeout))
+model = SMod("path_to_ipfix_probe_flows.csv", "path_to_reference_flows.csv")
 metrics = [
     SMMetric(SMMetricType.FLOWS, 0.1),    # 10% tolerance for the difference in number of flows
 ]
@@ -167,15 +166,21 @@ report.print_results()
 
 The precise model aims to discover specific differences between flow records from an IPFIX probe
 and reference flow records. It is an extension of the statistical model mainly for situations in which
-network errors (such as packet drops) are not expected. Due to the computational complexity, this model
-is not recommended if the number of flow records in the validated set exceeds approximately 100,000
-(after subnet or time filter is applied).
+network errors (such as packet drops) are not expected.
+Precise model requires flow keys in reference data to be unique.
 
 The model is able to discover the following differences:
  * missing flows
  * unexpected flows
  * incorrect timestamps
  * incorrect values of packets and bytes
+ * flows which consists of incorrect number of partial flows
+
+Inconsistent number of flows is treated only as a warning, since there are numerous reasons why a flow may be split.
+The most common reasons are:
+ * active timeout exceeded only in one direction of a biflow
+ * forced split by a probe when parsing application data (e.g., DNS, HTTP, ICMP traffic)
+ * flow cache collisions
 
 Example of using the precise model:
 
@@ -188,8 +193,7 @@ from ftanalyzer.models import (
 from ftanalyzer.models import PreciseModel as PMod
 
 active_timeout = 300
-inactive_timeout = 30
-model = PMod("path_to_ipfix_probe_flows.csv", "path_to_reference_flows.csv", (active_timeout, inactive_timeout))
+model = PMod("path_to_ipfix_probe_flows.csv", "path_to_reference_flows.csv", active_timeout)
 
 subnet_segment = SMSubnetSegment(source="192.168.187.0/24", dest="212.24.128.0/24", bidir=True)
 tend = datetime(2023, 3, 8, 21, 49, 22, 483000, timezone.utc)
@@ -215,4 +219,7 @@ report.print_results()
 #         1678312272317,1678312288316,17,10.100.40.140,37.188.104.44,42088,123,4,304
 #   - incorrect values of packets / bytes
 #         1678312182319,1678312188318,17,192.168.187.1,192.168.187.2,42088,123,5,304 != 1678312182319,1678312188318,17,192.168.187.1,192.168.187.2,42088,123,4,304
+#   - flows split unexpectedly
+#         (3) 1694766049217,1694766128628,58,75dc:b024:c91a:9cac:e1f3:6816:fee0:df5e,baee:5812:648d:4e56:70f9:b40b:7f70:6faf,0,0,4,288
+#         (2) 1694766028859,1694766327274,6,158.251.62.121,61.246.124.243,443,56259,18,2368
 ```

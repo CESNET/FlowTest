@@ -38,7 +38,6 @@ def validate(
     metrics: list[SMMetric],
     flows_file: str,
     ref_file: str,
-    timeouts: tuple[int, int],
     start_time: int,
     replicator_config: dict,
     tmp_dir: str,
@@ -53,8 +52,6 @@ def validate(
         Path to a file with flows from collector.
     ref_file: str
         Path to a file with reference flows.
-    timeouts: tuple
-        Active and inactive timeout which used during flow creation process on a probe.
     start_time: int
         Timestamp of the first packet.
     replicator_config : dict
@@ -73,7 +70,7 @@ def validate(
     replicated_ref_file = os.path.join(tmp_dir, "replicated_ref.csv")
     flows_replicator.replicate(ref_file, replicated_ref_file, loops=LOOPS)
 
-    model = StatisticalModel(flows_file, replicated_ref_file, timeouts, start_time)
+    model = StatisticalModel(flows_file, replicated_ref_file, start_time)
     return model.validate([SMRule(metrics)])
 
 
@@ -216,7 +213,6 @@ def test_simulation_replicator(
         scenario.analysis,
         flows_file,
         ref_file,
-        probe_timeouts,
         generator_instance.stats().start_time,
         replicator_config,
         tmp_dir,

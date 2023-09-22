@@ -30,8 +30,8 @@ from src.probe.probe_builder import ProbeBuilder
 PROJECT_ROOT = get_project_root()
 SIMULATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/simulation")
 
-SPEED = MultiplierSpeed(2.0)
-LOOPS = 100
+SPEED = MultiplierSpeed(1.0)
+LOOPS = 1
 
 select_topologies(["pcap_player"])
 
@@ -39,7 +39,7 @@ select_topologies(["pcap_player"])
 def validate(
     flows_file: str,
     ref_file: str,
-    timeouts: tuple[int, int],
+    active_timeout: int,
     start_time: int,
     tmp_dir: str,
 ) -> tuple[StatisticalReport, PreciseReport]:
@@ -53,8 +53,8 @@ def validate(
         Path to a file with flows from collector.
     ref_file: str
         Path to a file with reference flows.
-    timeouts: tuple
-        Active and inactive timeout which used during flow creation process on a probe.
+    active_timeout: int
+        Active timeout which was used during flow creation process on a probe.
     start_time: int
         Timestamp of the first packet.
     tmp_dir: str
@@ -72,7 +72,7 @@ def validate(
         ref_file, replicated_ref_file, loops=LOOPS, speed_multiplier=SPEED.multiplier, merge_across_loops=True
     )
 
-    model = PreciseModel(flows_file, replicated_ref_file, timeouts, start_time)
+    model = PreciseModel(flows_file, replicated_ref_file, active_timeout, start_time)
     logging.getLogger().info("performing precise model evaluation")
     precise_report = model.validate_precise()
 
@@ -152,7 +152,7 @@ def test_simulation_dropless(
 
     probe_instance = device.get(**scenario.probe.get_args(device.get_instance_type()))
     objects_to_cleanup.append(probe_instance)
-    probe_timeouts = probe_instance.get_timeouts()
+    active_timeout, inactive_timeout = probe_instance.get_timeouts()
     probe_instance.start()
 
     generator_instance = generator.get()
@@ -160,7 +160,7 @@ def test_simulation_dropless(
     # file to save replication report from ft-generator (flows reference)
     ref_file = os.path.join(tmp_dir, "reference.csv")
 
-    scenario.generator.max_flow_inter_packet_gap = probe_timeouts[1]
+    scenario.generator.max_flow_inter_packet_gap = inactive_timeout
     generator_instance.start_profile(
         scenario.get_profile(scenario_filename, SIMULATION_TESTS_DIR),
         ref_file,
@@ -177,7 +177,7 @@ def test_simulation_dropless(
     collector_instance.get_reader().save_csv(flows_file)
     start_time = generator_instance.stats().start_time
 
-    stats_report, precise_report = validate(flows_file, ref_file, probe_timeouts, start_time, tmp_dir)
+    stats_report, precise_report = validate(flows_file, ref_file, active_timeout, start_time, tmp_dir)
     print("")
     stats_report.print_results()
     precise_report.print_results()

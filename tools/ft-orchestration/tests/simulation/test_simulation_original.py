@@ -31,9 +31,7 @@ SIMULATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/simulation")
 select_topologies(["pcap_player"])
 
 
-def validate(
-    metrics: list[SMMetric], flows_file: str, ref_file: str, timeouts: tuple[int, int], start_time: int
-) -> StatisticalReport:
+def validate(metrics: list[SMMetric], flows_file: str, ref_file: str, start_time: int) -> StatisticalReport:
     """Perform statistical model evaluation of the test scenario with provided metrics.
 
     Parameters
@@ -44,8 +42,6 @@ def validate(
         Path to a file with flows from collector.
     ref_file: str
         Path to a file with reference flows.
-    timeouts: tuple
-        Active and inactive timeout which used during flow creation process on a probe.
     start_time: int
         Timestamp of the first packet.
 
@@ -55,7 +51,7 @@ def validate(
         Evaluation report.
     """
 
-    model = StatisticalModel(flows_file, ref_file, timeouts, start_time)
+    model = StatisticalModel(flows_file, ref_file, start_time)
     logging.getLogger().info("performing statistical model evaluation")
     return model.validate([SMRule(metrics=metrics)])
 
@@ -152,7 +148,7 @@ def test_simulation_original(
     flows_file = os.path.join(tmp_dir, "flows.csv")
     collector_instance.get_reader().save_csv(flows_file)
 
-    report = validate(scenario.analysis, flows_file, ref_file, probe_timeouts, start_time)
+    report = validate(scenario.analysis, flows_file, ref_file, start_time)
     print("")
     report.print_results()
     if not report.is_passing():
