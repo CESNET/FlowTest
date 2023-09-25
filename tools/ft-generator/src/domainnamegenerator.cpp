@@ -110,8 +110,8 @@ std::string DomainNameGenerator::Generate(std::size_t length)
 DomainNameGenerator::DomainNameGenerator()
 	: _minWordLen(WORDS.front().size())
 	, _maxWordLen(WORDS.back().size())
-	, _startIndexForWordLen(_maxWordLen)
-	, _endIndexForWordLen(_maxWordLen)
+	, _startIndexForWordLen(_maxWordLen + 1)
+	, _endIndexForWordLen(_maxWordLen + 1)
 {
 	auto isSorted = [](std::string_view a, std::string_view b) { return a.size() < b.size(); };
 	if (!std::is_sorted(WORDS.begin(), WORDS.end(), isSorted)) {

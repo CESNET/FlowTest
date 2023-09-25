@@ -106,7 +106,7 @@ void Icmpv6Echo::Build(PcppPacket& packet, Packet::layerParams& params, Packet& 
 			pcpp::ICMPv6EchoLayer::REQUEST,
 			_id,
 			_seqFwd,
-			&_data[0],
+			_data.data(),
 			_data.size());
 		_seqFwd++;
 
@@ -115,7 +115,7 @@ void Icmpv6Echo::Build(PcppPacket& packet, Packet::layerParams& params, Packet& 
 			pcpp::ICMPv6EchoLayer::REPLY,
 			_id,
 			_seqRev,
-			&_data[0],
+			_data.data(),
 			_data.size());
 		_seqRev++;
 	}
