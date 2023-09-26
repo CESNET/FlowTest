@@ -81,12 +81,12 @@ Packet* FlowPlanHelper::NextPacket()
 	return pkt;
 }
 
-uint64_t FlowPlanHelper::PktsFromStart()
+uint64_t FlowPlanHelper::PktsFromStart() const
 {
 	return _nUnfinishedTraversed == 0 ? 0 : _nUnfinishedTraversed - 1;
 }
 
-uint64_t FlowPlanHelper::PktsTillEnd()
+uint64_t FlowPlanHelper::PktsTillEnd() const
 {
 	assert(_nUnfinished >= _nUnfinishedTraversed);
 	return _nUnfinished - _nUnfinishedTraversed;
@@ -106,34 +106,34 @@ void FlowPlanHelper::Reset()
 	}
 }
 
-uint64_t FlowPlanHelper::PktsRemaining()
+uint64_t FlowPlanHelper::PktsRemaining() const
 {
 	return FwdPktsRemaining() + RevPktsRemaining();
 }
 
-uint64_t FlowPlanHelper::PktsRemaining(Direction dir)
+uint64_t FlowPlanHelper::PktsRemaining(Direction dir) const
 {
 	assert(dir != Direction::Unknown);
 	return dir == Direction::Reverse ? RevPktsRemaining() : FwdPktsRemaining();
 }
 
-uint64_t FlowPlanHelper::FwdPktsRemaining()
+uint64_t FlowPlanHelper::FwdPktsRemaining() const
 {
 	return _flow->_fwdPackets - _assignedFwdPkts;
 }
 
-uint64_t FlowPlanHelper::RevPktsRemaining()
+uint64_t FlowPlanHelper::RevPktsRemaining() const
 {
 	return _flow->_revPackets - _assignedRevPkts;
 }
 
-uint64_t FlowPlanHelper::BytesRemaining(Direction dir)
+uint64_t FlowPlanHelper::BytesRemaining(Direction dir) const
 {
 	assert(dir != Direction::Unknown);
 	return dir == Direction::Reverse ? RevBytesRemaining() : FwdBytesRemaining();
 }
 
-Direction FlowPlanHelper::GetRandomDir()
+Direction FlowPlanHelper::GetRandomDir() const
 {
 	bool hasFwd = FwdPktsRemaining() > 0;
 	bool hasRev = RevPktsRemaining() > 0;
@@ -149,12 +149,12 @@ Direction FlowPlanHelper::GetRandomDir()
 	return hasFwd ? Direction::Forward : Direction::Reverse;
 }
 
-uint64_t FlowPlanHelper::FwdBytesRemaining()
+uint64_t FlowPlanHelper::FwdBytesRemaining() const
 {
 	return _flow->_fwdBytes - _assignedFwdBytes;
 }
 
-uint64_t FlowPlanHelper::RevBytesRemaining()
+uint64_t FlowPlanHelper::RevBytesRemaining() const
 {
 	return _flow->_revBytes - _assignedRevBytes;
 }

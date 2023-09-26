@@ -50,62 +50,62 @@ public:
 	 * @brief Get the number of packets that have been traversed through from
 	 *        the start. This does not include the current packet.
 	 */
-	uint64_t PktsFromStart();
+	uint64_t PktsFromStart() const;
 
 	/**
 	 * @brief Get the number of packets till the iterator reaches end. In other
 	 *        words, how many times NextPacket() will return another packet.
 	 */
-	uint64_t PktsTillEnd();
+	uint64_t PktsTillEnd() const;
 
 	/**
 	 * @brief Get the number of remaining unassigned packets
 	 */
-	uint64_t PktsRemaining();
+	uint64_t PktsRemaining() const;
 
 	/**
 	 * @brief Get the number of remaining packets in the specified direction
 	 *
 	 * @param dir  The direction
 	 */
-	uint64_t PktsRemaining(Direction dir);
+	uint64_t PktsRemaining(Direction dir) const;
 
 	/**
 	 * @brief Get the number of remaining unassigned packets in the forward direction
 	 */
-	uint64_t FwdPktsRemaining();
+	uint64_t FwdPktsRemaining() const;
 
 	/**
 	 * @brief Get the number of remaining unassigned packets in the reverse direction
 	 */
-	uint64_t RevPktsRemaining();
+	uint64_t RevPktsRemaining() const;
 
 	/**
 	 * @brief Get the number of remaining unassigned bytes
 	 */
-	uint64_t BytesRemaining();
+	uint64_t BytesRemaining() const;
 
 	/**
 	 * @brief Get the number of remaining bytes in the specified direction
 	 *
 	 * @param dir  The direction
 	 */
-	uint64_t BytesRemaining(Direction dir);
+	uint64_t BytesRemaining(Direction dir) const;
 
 	/**
 	 * @brief Get the number of remaining unassigned bytes in the forward direction
 	 */
-	uint64_t FwdBytesRemaining();
+	uint64_t FwdBytesRemaining() const;
 
 	/**
 	 * @brief Get the number of remaining unassigned bytes in the reverse direction
 	 */
-	uint64_t RevBytesRemaining();
+	uint64_t RevBytesRemaining() const;
 
 	/**
 	 * @brief Generate a random available direction for a packet
 	 */
-	Direction GetRandomDir();
+	Direction GetRandomDir() const;
 
 	/**
 	 * @brief Reset the flow packet iterator to the beginning of the flow. Does not reset the
