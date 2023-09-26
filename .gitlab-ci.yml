@@ -7,6 +7,7 @@ stages:
 
 default:
   image: $DOCKER_IMAGE:ol8
+  tags: [$DOCKER_IMAGE_TAG]
   interruptible: true
 
 include:
@@ -18,4 +19,6 @@ include:
 
 variables:
   GIT_STRATEGY: clone
+  DOCKER_SHELL_TAG: docker-ci-shell
+  DOCKER_IMAGE_TAG: docker-ci-image
   DOCKER_IMAGE: $CI_PROJECT_PATH_SLUG/$CI_COMMIT_REF_SLUG
