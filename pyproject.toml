@@ -16,6 +16,7 @@ known-third-party = ["docker"]
 pythonpath = [
   "tools/ft-profiler/src",
   "tools/ft-analyzer",
+  "tools/ft-generator/tests",
 ]
 markers = [
   "dev: development tests",

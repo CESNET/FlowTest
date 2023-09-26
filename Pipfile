@@ -19,6 +19,7 @@ py = "*"
 lbr-testsuite = ">=5.0"
 scapy = "*"
 matplotlib = "*"
+netaddr = "*"
 
 [dev-packages]
 pylint = "*"
