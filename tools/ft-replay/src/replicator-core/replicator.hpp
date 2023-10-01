@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../config.hpp"
+#include "../offloads.hpp"
 #include "../outputQueue.hpp"
 #include "../packetQueueProvider.hpp"
 #include "../rateLimiter.hpp"
@@ -73,6 +74,12 @@ public:
 	void SetReplicatorStrategy(const ConfigParser* configParser);
 
 	/**
+	 * @brief Sets the requested network offloads for the Replicator.
+	 * @param requestedOffloads The requested network offloads.
+	 */
+	void SetRequestedOffloads(const OffloadRequests& reguestedOffloads);
+
+	/**
 	 * @brief Initiates the replication process for a given replication loop ID.
 	 * @param replicationLoopId The ID of the current replication loop.
 	 * @details This method replicates packets from the source queue to the output queue based on
@@ -83,6 +90,7 @@ public:
 private:
 	void SetAvailableReplicationUnits(uint64_t replicationLoopId);
 	void SetDefaultReplicatorStrategy();
+	void SetPacketModifierChecksumOffloads();
 	void FillPacketBuffers(uint64_t replicatedPackets, size_t burstSize);
 	uint64_t GetBurstSize(uint64_t replicatedPackets);
 	uint64_t GetNumberOfPacketToReplicate() const noexcept;
@@ -107,6 +115,7 @@ private:
 	uint64_t _lastPacketTimestamp;
 	uint64_t _loopTimeDuration;
 
+	OffloadRequests _reguestedOffloads = {};
 	Config::RateLimit _rateLimiterConfig;
 	RateLimiter _rateLimiter;
 

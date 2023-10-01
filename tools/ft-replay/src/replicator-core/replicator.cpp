@@ -35,6 +35,7 @@ void Replicator::SetDefaultReplicatorStrategy()
 	ReplicationUnit defaultReplicationUnit(std::move(defaultStrategy));
 	_replicationUnits.clear();
 	_replicationUnits.emplace_back(std::move(defaultReplicationUnit));
+	SetPacketModifierChecksumOffloads();
 }
 
 void Replicator::SetReplicatorStrategy(const ConfigParser* configParser)
@@ -53,6 +54,22 @@ void Replicator::SetReplicatorStrategy(const ConfigParser* configParser)
 	for (const auto& unitStrategy : configParser->GetUnitsStrategyDescription()) {
 		ReplicationUnit replicationUnit(strategyFactory.Create(unitStrategy, loopStrategy));
 		_replicationUnits.emplace_back(std::move(replicationUnit));
+	}
+	SetPacketModifierChecksumOffloads();
+}
+
+void Replicator::SetRequestedOffloads(const OffloadRequests& reguestedOffloads)
+{
+	_reguestedOffloads = reguestedOffloads;
+
+	SetPacketModifierChecksumOffloads();
+	SetRateLimiter(reguestedOffloads.rateLimit);
+}
+
+void Replicator::SetPacketModifierChecksumOffloads()
+{
+	for (auto& replicationUnit : _replicationUnits) {
+		replicationUnit.packetModifier.SetChecksumOffloads(_reguestedOffloads.checksumOffloads);
 	}
 }
 
