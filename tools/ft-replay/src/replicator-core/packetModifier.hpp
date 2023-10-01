@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "../offloads.hpp"
 #include "../packet.hpp"
 #include "strategy.hpp"
 
@@ -36,7 +37,15 @@ public:
 	bool IsEnabledThisLoop(size_t loopId) noexcept;
 
 	/**
-	 * @brief Apply packet modifier strategies to given packet
+	 * @brief Set checksum offloads for the packet modifier.
+	 *
+	 * @param checksumOffloads Checksum offload configuration.
+	 */
+	void SetChecksumOffloads(const ChecksumOffloads& checksumOffloads) noexcept;
+
+	/**
+	 * @brief Apply packet modifier strategies to given packet and update checksum according to
+	 * offloads.
 	 *
 	 * @param ptr Pointer to the beggining of packet data
 	 * @param pktInfo Information about given packet pointer @p ptr
@@ -45,7 +54,15 @@ public:
 	void Modify(std::byte* ptr, const PacketInfo& pktInfo, size_t loopId);
 
 private:
+	void UpdateChecksumOffloads(std::byte* ptr, const PacketInfo& pktInfo);
+	uint16_t CalculateChecksum(
+		uint16_t originalChecksum,
+		uint16_t originalIpChecksum,
+		uint16_t newIpChecksum,
+		bool isUDP = false) const noexcept;
+
 	ModifierStrategies _strategy;
+	ChecksumOffloads _checksumOffloads = {};
 };
 
 } // namespace replay
