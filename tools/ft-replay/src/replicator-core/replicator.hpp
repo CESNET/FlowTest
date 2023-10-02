@@ -57,12 +57,6 @@ public:
 		uint64_t loopTimeDuration);
 
 	/**
-	 * @brief Sets the rate limiter configuration for the Replicator.
-	 * @param rateLimiterConfig The configuration for rate limiting.
-	 */
-	void SetRateLimiter(const Config::RateLimit& rateLimiterConfig);
-
-	/**
 	 * @brief Sets the replication strategy for the Replicator.
 	 * @details The Replicator can be configured with multiple replication units, each having its
 	 * own strategy. If a ConfigParser is provided, the Replicator sets its replication units
@@ -91,6 +85,7 @@ private:
 	void SetAvailableReplicationUnits(uint64_t replicationLoopId);
 	void SetDefaultReplicatorStrategy();
 	void SetPacketModifierChecksumOffloads();
+	void SetRateLimiter(const Config::RateLimit& rateLimiterConfig);
 	void FillPacketBuffers(uint64_t replicatedPackets, size_t burstSize);
 	uint64_t GetBurstSize(uint64_t replicatedPackets);
 	uint64_t GetNumberOfPacketToReplicate() const noexcept;
