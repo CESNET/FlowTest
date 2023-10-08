@@ -270,7 +270,7 @@ class FlowmonProbe(ProbeInterface):
         if self._verbose:
             self._settings["VERBOSE"] = "DEBUG"
         else:
-            self._settings["VERBOSE"] = "WARN"
+            self._settings["VERBOSE"] = "INFO"
         self._settings["PID-FILE"] = self._pidfile
 
     def _set_input(self, input_plugin, attributes):
