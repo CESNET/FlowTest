@@ -580,8 +580,8 @@ class FtGenerator:
             reverse_biflows["START_TIME"] = biflows["START_TIME_REV"]
             reverse_biflows["END_TIME"] = biflows["END_TIME_REV"]
 
-        merge = reverse_biflows.loc[reverse_biflows["PACKETS"] > 0]
-        biflows = pd.concat([biflows, merge], axis=0, ignore_index=True)
+        biflows = pd.concat([biflows, reverse_biflows], axis=0, ignore_index=True)
+        biflows = biflows.loc[biflows["PACKETS"] > 0]
 
         biflows.rename(columns=self.CSV_COLUMN_RENAME, inplace=True)
         biflows.loc[:, self.CSV_OUT_COLUMN_NAMES].to_csv(local_csv_path, index=False)
