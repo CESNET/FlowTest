@@ -41,6 +41,9 @@ void Config::Parse(int argc, char** argv)
 		case 'c':
 			_replicatorConfig = optarg;
 			break;
+		case 'd':
+			_hwOffloadsSupport = false;
+			break;
 		case 'x': {
 			float timeMultiplier = std::atof(optarg);
 			if (timeMultiplier <= 0.0) {
@@ -104,6 +107,7 @@ void Config::SetDefaultValues()
 	_outputPlugin.clear();
 	_pcapFile.clear();
 
+	_hwOffloadsSupport = true;
 	_rateLimit = std::nullopt;
 	_vlanID = 0;
 	_loopsCount = 1;
@@ -117,6 +121,7 @@ const option* Config::GetLongOptions()
 		= {{"input", required_argument, nullptr, 'i'},
 		   {"output", required_argument, nullptr, 'o'},
 		   {"config", required_argument, nullptr, 'c'},
+		   {"disable-hw-offload", no_argument, nullptr, 'd'},
 		   {"multiplier", required_argument, nullptr, 'x'},
 		   {"pps", required_argument, nullptr, 'p'},
 		   {"mbps", required_argument, nullptr, 'M'},
@@ -131,7 +136,7 @@ const option* Config::GetLongOptions()
 
 const char* Config::GetShortOptions()
 {
-	return ":i:o:c:x:p:M:tv:l:hn";
+	return ":i:o:c:dx:p:M:tv:l:hn";
 }
 
 void Config::Validate()
@@ -172,6 +177,11 @@ const std::string& Config::GetInputPcapFile() const
 	return _pcapFile;
 }
 
+bool Config::GetHwOffloadsSupport() const
+{
+	return _hwOffloadsSupport;
+}
+
 Config::RateLimit Config::GetRateLimit() const
 {
 	if (_rateLimit.has_value()) {
@@ -206,7 +216,8 @@ void Config::PrintUsage() const
 	std::cout << "Usage: ./ft-replay [options] -i <pcap file> -o <output plugin params>\n";
 	std::cout << "  -i, --input=str           Input PCAP file\n";
 	std::cout << "  -o, --output=str          The output plugin specification\n";
-	std::cout << "  -c, --config=str,         The replicator config file\n";
+	std::cout << "  -c, --config=str          The replicator config file\n";
+	std::cout << "  -d, --disable-hw-offload  Disable hardware offloading\n";
 	std::cout << "  -x. --multiplier=num      Modify replay speed to a given multiple.\n";
 	std::cout << "  -p, --pps=num             Replay packets at a given packets/sec\n";
 	std::cout << "  -M, --mbps=num            Replay packets at a given mbps\n";
