@@ -187,6 +187,7 @@ class FlowmonProbe(ProbeInterface):
         self._pidfile = f"/tmp/tmp_probe_{interface}.pidfile"
         self._settings = {}
         self._verbose = verbose
+        self._remote_dir = self._host.get_storage().get_remote_directory()
         attributes = self._get_appliance_attributes(input_plugin)
         self._set_config(
             QUEUE_SIZE,
@@ -201,7 +202,6 @@ class FlowmonProbe(ProbeInterface):
         self._set_plugins()
         self._set_filters(attributes)
         self._set_output(target)
-        self._remote_dir = self._host.get_storage().get_remote_directory()
         self._probe_json = f"tmp_probe_{interface}.json"
         self._probe_json_conf = Path(self._remote_dir) / self._probe_json
         self._pid = None
