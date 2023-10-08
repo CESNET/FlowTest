@@ -21,7 +21,8 @@ from src.probe.interface import ProbeException, ProbeInterface
 FLOWMONEXP_BIN = "/usr/bin/flowmonexp5"
 FLOWMONEXP_LOG = "/data/components/flowmonexp/log/"
 QUEUE_SIZE = 22
-DPDK_INFO_FILE = "/data/components/dpdk-tools/stats/ifc_map.csv"
+DPDK_STATS_DIR = "/data/components/dpdk-tools/stats/"
+DPDK_INFO_FILE = Path(DPDK_STATS_DIR) / "ifc_map.csv"
 
 PLUGIN_PARAMS = {
     "as-helper": "/etc/flowmon/flowmon-as.txt",
@@ -341,6 +342,10 @@ class FlowmonProbe(ProbeInterface):
                     Path(FLOWMONEXP_LOG) / "flowmonexp_debug.log",
                 ]
             )
+
+        # get interface statistics in the INPUT plugin is DPDK
+        if self._settings["INPUT"]["NAME"] == "dpdk":
+            log_files.append(Path(DPDK_STATS_DIR) / self._interface)
 
         # flowmonexp_init.log is not readable by flowmon, need to use this workaround
         self._host.run(
