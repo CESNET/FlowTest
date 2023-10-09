@@ -21,7 +21,8 @@ from src.probe.interface import ProbeException, ProbeInterface
 FLOWMONEXP_BIN = "/usr/bin/flowmonexp5"
 FLOWMONEXP_LOG = "/data/components/flowmonexp/log/"
 QUEUE_SIZE = 22
-DPDK_INFO_FILE = "/data/components/dpdk-tools/stats/ifc_map.csv"
+DPDK_STATS_DIR = "/data/components/dpdk-tools/stats/"
+DPDK_INFO_FILE = Path(DPDK_STATS_DIR) / "ifc_map.csv"
 
 PLUGIN_PARAMS = {
     "as-helper": "/etc/flowmon/flowmon-as.txt",
@@ -187,6 +188,7 @@ class FlowmonProbe(ProbeInterface):
         self._pidfile = f"/tmp/tmp_probe_{interface}.pidfile"
         self._settings = {}
         self._verbose = verbose
+        self._remote_dir = self._host.get_storage().get_remote_directory()
         attributes = self._get_appliance_attributes(input_plugin)
         self._set_config(
             QUEUE_SIZE,
@@ -201,7 +203,6 @@ class FlowmonProbe(ProbeInterface):
         self._set_plugins()
         self._set_filters(attributes)
         self._set_output(target)
-        self._remote_dir = self._host.get_storage().get_remote_directory()
         self._probe_json = f"tmp_probe_{interface}.json"
         self._probe_json_conf = Path(self._remote_dir) / self._probe_json
         self._pid = None
@@ -270,7 +271,7 @@ class FlowmonProbe(ProbeInterface):
         if self._verbose:
             self._settings["VERBOSE"] = "DEBUG"
         else:
-            self._settings["VERBOSE"] = "WARN"
+            self._settings["VERBOSE"] = "INFO"
         self._settings["PID-FILE"] = self._pidfile
 
     def _set_input(self, input_plugin, attributes):
@@ -341,6 +342,10 @@ class FlowmonProbe(ProbeInterface):
                     Path(FLOWMONEXP_LOG) / "flowmonexp_debug.log",
                 ]
             )
+
+        # get interface statistics in the INPUT plugin is DPDK
+        if self._settings["INPUT"]["NAME"] == "dpdk":
+            log_files.append(Path(DPDK_STATS_DIR) / self._interface)
 
         # flowmonexp_init.log is not readable by flowmon, need to use this workaround
         self._host.run(
