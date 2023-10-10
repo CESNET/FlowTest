@@ -1,6 +1,6 @@
 upload python packages:
   stage: upload
-  needs: ["python package build"]
+  needs: ["python package build", "pytest", "ctest"]
   script:
     - |
       REPO_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
@@ -19,7 +19,7 @@ upload python packages:
 upload rpm package:
   stage: upload
   tags: [ci-shell]
-  needs: ["rpmbuild [Oracle Linux 8]", "rpmbuild [Oracle Linux 9]"]
+  needs: ["rpmbuild [Oracle Linux 8]", "rpmbuild [Oracle Linux 9]", "pytest", "ctest"]
   script:
     - |
         umask 0002
