@@ -10,9 +10,9 @@ Base class for probe, generator and collector builder. Used by topology for cons
 
 import datetime
 import logging
-import os
 import pkgutil
 import subprocess
+import tempfile
 from abc import ABC, abstractmethod
 from os import path
 from typing import Union
@@ -156,10 +156,7 @@ class BuilderBase(ABC):
         """
 
         user = auth.username if auth.username else get_real_user()
-        local_tmp = f"/tmp/flowtest-ansible-{user}"
-        inventory_path = path.join(local_tmp, "inventory.yaml")
         remote_tmp = f"/tmp/ansible-{user}/tmp"
-        ssh_control_path_dir = f"/tmp/ansible-{user}/cp"
 
         host_vars = {"ansible_user": user}
         if auth.password:
@@ -168,26 +165,29 @@ class BuilderBase(ABC):
             host_vars["ansible_ssh_private_key_file"] = auth.key_path
         inventory_data = {"all": {"hosts": {self._host.get_host(): host_vars}}}
 
-        os.makedirs(local_tmp, exist_ok=True)
-        with open(inventory_path, "w", encoding="utf-8") as inventory_file:
-            yaml.safe_dump(inventory_data, inventory_file)
+        with tempfile.TemporaryDirectory(prefix="flowtest-ansible-") as local_tmp:
+            inventory_path = path.join(local_tmp, "inventory.yaml")
+            ssh_control_path_dir = path.join(local_tmp, "cp")
 
-        logging.getLogger().info("Running environment setup - ansible playbook '%s'...", ansible_playbook_role)
+            with open(inventory_path, "w", encoding="utf-8") as inventory_file:
+                yaml.safe_dump(inventory_data, inventory_file)
 
-        cmd = (
-            f"ANSIBLE_SSH_CONTROL_PATH_DIR={ssh_control_path_dir} "
-            "ANSIBLE_HOST_KEY_CHECKING=False "
-            f"ansible-playbook -i {inventory_path} -e ansible_remote_tmp={remote_tmp} "
-            f"{ANSIBLE_PATH}/{ansible_playbook_role}"
-        )
-        # temporary solution, use LocalExecutor after implementation in testsuite
-        try:
-            res = subprocess.run(cmd, check=True, shell=True, capture_output=True)
-        except subprocess.CalledProcessError as err:
-            logging.getLogger().error("Ansible failed!")
-            logging.getLogger().error("Stdout: %s", err.stdout)
-            logging.getLogger().error("Stderr: %s", err.stderr)
-            raise
+            logging.getLogger().info("Running environment setup - ansible playbook '%s'...", ansible_playbook_role)
+
+            cmd = (
+                f"ANSIBLE_SSH_CONTROL_PATH_DIR={ssh_control_path_dir} "
+                "ANSIBLE_HOST_KEY_CHECKING=False "
+                f"ansible-playbook -i {inventory_path} -e ansible_remote_tmp={remote_tmp} "
+                f"{ANSIBLE_PATH}/{ansible_playbook_role}"
+            )
+            # temporary solution, use LocalExecutor after implementation in testsuite
+            try:
+                res = subprocess.run(cmd, check=True, shell=True, capture_output=True)
+            except subprocess.CalledProcessError as err:
+                logging.getLogger().error("Ansible failed!")
+                logging.getLogger().error("Stdout: %s", err.stdout)
+                logging.getLogger().error("Stderr: %s", err.stderr)
+                raise
 
         logging.getLogger().info("Ansible output: %s", res.stdout.decode("ascii"))
 
