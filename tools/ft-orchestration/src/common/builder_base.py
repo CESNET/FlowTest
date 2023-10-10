@@ -18,6 +18,7 @@ from os import path
 from typing import Union
 
 import yaml
+from src.common.utils import get_project_root
 from src.config.authentication import AuthenticationCfg
 from src.config.collector import CollectorCfg
 from src.config.config import Config
@@ -27,7 +28,7 @@ from src.host.common import get_real_user
 from src.host.host import Host
 from src.host.storage import RemoteStorage
 
-ANSIBLE_PATH = path.join(path.dirname(path.realpath(__file__)), "../../../../ansible")
+ANSIBLE_PATH = path.join(get_project_root(), "ansible")
 
 
 class BuilderError(Exception):
