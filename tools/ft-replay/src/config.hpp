@@ -115,6 +115,8 @@ public:
 	uint16_t GetVlanID() const;
 	/** @brief Get the number of replicator loops. */
 	size_t GetLoopsCount() const;
+	/** @brief Get flag whether check free ram */
+	bool GetFreeRamCheck() const;
 
 	/** @brief Whether help should be printer */
 	bool IsHelp() const;
@@ -136,6 +138,7 @@ private:
 	std::optional<RateLimit> _rateLimit;
 	uint16_t _vlanID;
 	size_t _loopsCount;
+	bool _noFreeRamCheck;
 
 	bool _help;
 };

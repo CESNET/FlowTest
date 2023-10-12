@@ -74,6 +74,9 @@ void Config::Parse(int argc, char** argv)
 		case 'i':
 			_pcapFile = optarg;
 			break;
+		case 'n':
+			_noFreeRamCheck = true;
+			break;
 		case 'h':
 			_help = true;
 			break;
@@ -104,6 +107,7 @@ void Config::SetDefaultValues()
 	_rateLimit = std::nullopt;
 	_vlanID = 0;
 	_loopsCount = 1;
+	_noFreeRamCheck = false;
 	_help = false;
 }
 
@@ -120,13 +124,14 @@ const option* Config::GetLongOptions()
 		   {"vlan-id", required_argument, nullptr, 'v'},
 		   {"loop", required_argument, nullptr, 'l'},
 		   {"help", no_argument, nullptr, 'h'},
+		   {"no-freeram-check", no_argument, nullptr, 'n'},
 		   {nullptr, 0, nullptr, 0}};
 	return longOptions;
 }
 
 const char* Config::GetShortOptions()
 {
-	return ":i:o:c:x:p:M:tv:l:h";
+	return ":i:o:c:x:p:M:tv:l:hn";
 }
 
 void Config::Validate()
@@ -186,6 +191,11 @@ size_t Config::GetLoopsCount() const
 	return _loopsCount;
 }
 
+bool Config::GetFreeRamCheck() const
+{
+	return !_noFreeRamCheck;
+}
+
 bool Config::IsHelp() const
 {
 	return _help;
@@ -203,6 +213,7 @@ void Config::PrintUsage() const
 	std::cout << "  -t, --topspeed            Replay packets as fast as possible\n";
 	std::cout << "  -v, --vlan-id=num         The vlan ID number\n";
 	std::cout << "  -l, --loop=num            Number of loops over PCAP file. [0 = infinite]\n";
+	std::cout << "  -n, --no-freeram-check    Disable verification of free RAM resources\n";
 	std::cout << "  -h, --help                Show this help message\n";
 }
 
