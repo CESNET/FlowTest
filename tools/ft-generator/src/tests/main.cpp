@@ -6,5 +6,19 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#define DOCTEST_CONFIG_IMPLEMENT
+
+#include "../randomgenerator.h"
+#include "logger.h"
+
 #include <doctest.h>
+
+int main(int argc, char** argv)
+{
+	ft::LoggerInit();
+	generator::RandomGenerator::InitInstance();
+
+	doctest::Context context;
+	context.applyCommandLine(argc, argv);
+	return context.run();
+}

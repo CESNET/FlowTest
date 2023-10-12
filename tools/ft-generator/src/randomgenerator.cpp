@@ -7,14 +7,18 @@
  */
 
 #include "randomgenerator.h"
+#include "logger.h"
 
 #include <algorithm>
 #include <cassert>
 #include <ctime>
+#include <memory>
 #include <numeric>
 #include <vector>
 
 namespace generator {
+
+static std::unique_ptr<RandomGenerator> theInstance;
 
 static inline constexpr float FloatFromBits(uint32_t i) noexcept
 {
@@ -31,10 +35,17 @@ RandomGenerator::RandomGenerator(uint64_t seed)
 {
 }
 
+void RandomGenerator::InitInstance(std::optional<uint64_t> seed)
+{
+	uint64_t seedValue = seed ? *seed : std::time(nullptr);
+
+	ft::LoggerGet("RandomGenerator")->info("Seed: {}", seedValue);
+	theInstance.reset(new RandomGenerator(seedValue));
+}
+
 RandomGenerator& RandomGenerator::GetInstance()
 {
-	static RandomGenerator instance(std::time(nullptr));
-	return instance;
+	return *theInstance.get();
 }
 
 uint64_t RandomGenerator::RandomUInt()

@@ -11,6 +11,7 @@
 #include "randomgeneratorengine.h"
 
 #include <cstdint>
+#include <optional>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
@@ -32,6 +33,13 @@ inline constexpr std::string_view ALPHANUMERIC_CHARS
  */
 class RandomGenerator {
 public:
+	/**
+	 * Initialize the Random Generator instance
+	 *
+	 * @param seed The random generation seed
+	 */
+	static void InitInstance(std::optional<uint64_t> seed = std::nullopt);
+
 	/**
 	 * @brief Get the Random Generator instance
 	 *

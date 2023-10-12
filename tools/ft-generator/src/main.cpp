@@ -13,6 +13,7 @@
 #include "generators/addressgenerators.h"
 #include "logger.h"
 #include "pcapwriter.h"
+#include "randomgenerator.h"
 #include "trafficmeter.h"
 
 #include <cstdlib>
@@ -50,6 +51,8 @@ int main(int argc, char* argv[])
 	} else if (args.GetVerbosityLevel() == 0) {
 		spdlog::set_level(spdlog::level::err);
 	}
+
+	RandomGenerator::InitInstance(args.GetSeed());
 
 	auto logger = ft::LoggerGet("main");
 
