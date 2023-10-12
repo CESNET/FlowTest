@@ -49,6 +49,7 @@ Arguments:
   -t, --topspeed                  Replay packets as fast as possible
   -v, --vlan-id=NUMBER            Insert VLAN header with the given ID
   -l, --loop=NUMBER               Number of loops over PCAP file. [0 = infinite]
+  -n, --no-freeram-check          Disable verification of free RAM resources
   -h, --help                      Show this help message
 ```
 
@@ -71,6 +72,10 @@ the ft-replay tool, you can only use one of these parameters -x, -p, -M, or -t.
 
 Please keep in mind that the -x, -p, and -M parameters are used to control the replay speed,
 while the -t parameter allows for replaying packets as fast as possible without any speed limits.
+
+The -n, --no-freeram-check parameter is an optional argument that disables the free RAM check of
+the system during the tool initialization. It should be used with caution and only if you are
+certain that there is sufficient free RAM for the replay operation.
 ```
 
 # Replicator
