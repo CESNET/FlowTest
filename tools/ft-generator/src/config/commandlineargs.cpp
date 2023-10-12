@@ -7,6 +7,7 @@
  */
 
 #include "commandlineargs.h"
+#include "common.h"
 
 #include <handlers.h>
 
@@ -24,7 +25,8 @@ void CommandLineArgs::Parse(int argc, char** argv)
 	enum longOptsValues {
 		OPT_SKIP_UNKNOWN = 256, // Value that cannot collide with chars
 		OPT_NO_DISKSPACE_CHECK,
-		OPT_NO_FLOW_COLLISION_CHECK
+		OPT_NO_FLOW_COLLISION_CHECK,
+		OPT_SEED
 	};
 	const option longOpts[]
 		= {{"output", required_argument, nullptr, 'o'},
@@ -36,6 +38,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		   {"skip-unknown", no_argument, nullptr, OPT_SKIP_UNKNOWN},
 		   {"no-diskspace-check", no_argument, nullptr, OPT_NO_DISKSPACE_CHECK},
 		   {"no-collision-check", no_argument, nullptr, OPT_NO_FLOW_COLLISION_CHECK},
+		   {"seed", required_argument, nullptr, OPT_SEED},
 		   {nullptr, 0, nullptr, 0}};
 	const char* shortOpts = ":o:p:c:r:vh";
 
@@ -75,6 +78,12 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		case OPT_NO_FLOW_COLLISION_CHECK:
 			_noFlowCollisionCheck = true;
 			break;
+		case OPT_SEED:
+			_seed = ParseValue<uint64_t>(optarg);
+			if (!_seed) {
+				throw std::invalid_argument("Invalid --seed value");
+			}
+			break;
 		case '?':
 			ft::CliHandleInvalidOption(current);
 		case ':':
@@ -103,6 +112,7 @@ void CommandLineArgs::PrintUsage()
 	std::cerr << "  -r, --report=str      Output CSV file of actually generated flows\n";
 	std::cerr << "  -v, --verbose         Increase verbosity level. Can be used multiple times.\n";
 	std::cerr << "  -h, --help            Show this help message\n";
+	std::cerr << "  --seed=value          Seed used for random generator\n";
 	std::cerr << "  --skip-unknown        Skip unknown/unsupported profile records\n";
 	std::cerr << "  --no-diskspace-check  Do not check available disk space before generating\n";
 	std::cerr

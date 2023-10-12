@@ -105,6 +105,7 @@ Arguments:
   --report, -r FILE     The report of the generated flows in CSV format
   --verbose, -v         Verbosity level, specify multiple times for more verbose logging
   --help, -h            Show this help message
+  --seed VALUE          The random generator seed
   --skip-unknown        Skip unknown/unsupported profile records
   --no-diskspace-check  Do not check available disk space before generating
   --no-collision-check  Do not check for flow collisions caused by address reuse

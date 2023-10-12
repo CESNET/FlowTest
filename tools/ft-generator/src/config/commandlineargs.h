@@ -7,6 +7,7 @@
  */
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <string>
 
@@ -65,6 +66,13 @@ public:
 	const std::optional<std::string>& GetReportFile() const { return _reportFile; }
 
 	/**
+	 * @brief Get the random generator seed if provided
+	 *
+	 * @return The seed
+	 */
+	const std::optional<uint64_t>& GetSeed() const { return _seed; }
+
+	/**
 	 * @brief Whether help should be printer
 	 *
 	 * @return true or false
@@ -97,6 +105,7 @@ private:
 	std::string _outputFile;
 	std::string _configFile;
 	std::optional<std::string> _reportFile;
+	std::optional<uint64_t> _seed;
 	int _verbosity = 0;
 	bool _help = false;
 	bool _skipUnknown = false;
