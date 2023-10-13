@@ -11,13 +11,13 @@ Base class for probe, generator and collector builder. Used by topology for cons
 import datetime
 import logging
 import pkgutil
-import subprocess
 import tempfile
 from abc import ABC, abstractmethod
 from os import path
 from typing import Union
 
 import yaml
+from lbr_testsuite.executable import AsyncTool, LocalExecutor, RemoteExecutor, Tool
 from src.common.utils import get_project_root
 from src.config.authentication import AuthenticationCfg
 from src.config.collector import CollectorCfg
@@ -49,6 +49,7 @@ class BuilderBase(ABC):
 
         self._config = config
         self._host = None
+        self._executor = None
         self._storage = None
         self._class = None
         self._timestamp_process = None
@@ -99,7 +100,8 @@ class BuilderBase(ABC):
     def host_timestamp_async(self) -> None:
         """Start command for retrieving time on (remote) host."""
 
-        self._timestamp_process = self._host.run("date +%s%3N", asynchronous=True)
+        self._timestamp_process = AsyncTool("date +%s%3N", executor=self._executor)
+        self._timestamp_process.run()
 
     def host_timestamp_result(self) -> int:
         """Wait for timestamp command and return timestamp on (remote) host.
@@ -113,7 +115,7 @@ class BuilderBase(ABC):
 
         assert self._timestamp_process is not None
 
-        timestamp_str = self._host.wait_until_finished(self._timestamp_process).stdout
+        timestamp_str, _ = self._timestamp_process.wait_or_kill()
         timestamp = int(timestamp_str.strip())
         timestamp_datetime = datetime.datetime.fromtimestamp(timestamp / 1000.0, tz=datetime.timezone.utc)
 
@@ -141,6 +143,10 @@ class BuilderBase(ABC):
             else None
         )
         self._host = Host(object_cfg.name, self._storage, auth.username, auth.password, auth.key_path)
+        if object_cfg.name in ["localhost", "127.0.0.1"]:
+            self._executor = LocalExecutor()
+        else:
+            self._executor = RemoteExecutor(object_cfg.name, auth.username, auth.password, auth.key_path)
 
         if object_cfg.ansible_playbook_role:
             self._run_ansible(object_cfg.ansible_playbook_role, auth)
@@ -181,16 +187,15 @@ class BuilderBase(ABC):
                 f"ansible-playbook -i {inventory_path} -e ansible_remote_tmp={remote_tmp} "
                 f"{ANSIBLE_PATH}/{ansible_playbook_role}"
             )
-            # temporary solution, use LocalExecutor after implementation in testsuite
-            try:
-                res = subprocess.run(cmd, check=True, shell=True, capture_output=True)
-            except subprocess.CalledProcessError as err:
+            ansible_cmd = Tool(cmd, failure_verbosity="no-exception")
+            stdout, stderr = ansible_cmd.run()
+            if ansible_cmd.returncode() != 0:
                 logging.getLogger().error("Ansible failed!")
-                logging.getLogger().error("Stdout: %s", err.stdout)
-                logging.getLogger().error("Stderr: %s", err.stderr)
-                raise
+                logging.getLogger().error("Stdout: %s", stdout)
+                logging.getLogger().error("Stderr: %s", stderr)
+                raise BuilderError(f"Ansible playbook '{ansible_playbook_role}' failed.")
 
-        logging.getLogger().info("Ansible output: %s", res.stdout.decode("ascii"))
+        logging.getLogger().info("Ansible output: %s", stdout)
 
         logging.getLogger().info("Environment setup with ansible done.")
 
