@@ -98,7 +98,9 @@ class ProbeBuilder(BuilderBase, Device):
             New probe instance.
         """
 
-        return self._class(self._host, self._target, protocols, self._interfaces, **{**self._connector_args, **kwargs})
+        return self._class(
+            self._executor, self._target, protocols, self._interfaces, **{**self._connector_args, **kwargs}
+        )
 
     def get_enabled_interfaces(self) -> List[InterfaceCfg]:
         """Get list of enabled interfaces.
