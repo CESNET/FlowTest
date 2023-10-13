@@ -102,7 +102,7 @@ class PcapPlayer(ABC):
     @abstractmethod
     def __init__(
         self,
-        host,
+        executor,
         add_vlan: Optional[int] = None,
         verbose: bool = False,
         biflow_export: bool = False,
@@ -112,8 +112,8 @@ class PcapPlayer(ABC):
 
         Parameters
         ----------
-        host : Host
-            Host class with established remote connection.
+        executor : Executor
+            Executor for command execution.
         add_vlan : int, optional
             If specified, vlan header with given tag will be added to replayed packets.
         verbose : bool, optional
@@ -150,8 +150,8 @@ class PcapPlayer(ABC):
         Parameters
         ----------
         pcap_path : str
-            Path to pcap file to replay. Path to PCAP file must be local path.
-            Method will synchronize pcap file on remote machine.
+            Path to pcap file to replay. The path can be local or remote,
+            depending on the implementation.
         speed : ReplaySpeed, optional
             Argument to modify packets replay speed.
         loop_count : int, optional
