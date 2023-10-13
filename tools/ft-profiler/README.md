@@ -17,10 +17,7 @@ Network profile **does not** contain ARP traffic.
     * [Nffile Reader](#nffile-reader)
     * [Fdsfile Reader](#fdsfile-reader)
     * [CSVFile Reader](#csvfile-reader)
-* [Profile Sampler](#profile-sampler)
-    * [Dependencies](#dependencies)
-    * [How It Works](#how-it-works)
-    * [Usage](#usage-1)
+* [Profile Visualizer](#profile-visualizer)
 
 ## Build and Installation
 
@@ -145,3 +142,28 @@ arguments:
   -h, --help           show this help message and exit
   -f FILE, --file FILE path to a CSV file which should be processed
 ```
+
+## Profile Visualizer
+
+Profile visualizer is a short helper script to visualize attributes of a network profile in time.
+It provides several views:
+ * number of packets processed every second
+ * number of bits processed every second
+ * number of active flows (based on a configurable inactive timeout) per second
+ * number of flows which start or end every second
+
+Usage:
+```
+arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program's version number and exit
+  -f FORMAT, --format FORMAT
+                        type of the output (png/pdf/ps/eps/svg, default: png)
+  -i INACTIVE, --inactive INACTIVE
+                        value of the inactive timeout in seconds (default: 30)
+  -o OUTPUT, --output OUTPUT
+                        path to save the visualization
+  -p PROFILE, --profile PROFILE
+                        path to the profile in CSV format
+```
+
