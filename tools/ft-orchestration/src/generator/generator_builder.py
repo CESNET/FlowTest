@@ -98,7 +98,9 @@ class GeneratorBuilder(BuilderBase, Generator):
             New generator instance.
         """
 
-        instance = self._class(self._host, self._add_vlan, biflow_export=self._biflow_export, **self._connector_args)
+        instance = self._class(
+            self._executor, self._add_vlan, biflow_export=self._biflow_export, **self._connector_args
+        )
         for i, ifc in enumerate(self._interfaces):
             mac = self._probe_mac_addresses[i] if self._edit_dst_mac else None
             instance.add_interface(ifc.name, mac)
