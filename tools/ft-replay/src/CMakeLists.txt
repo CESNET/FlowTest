@@ -39,6 +39,8 @@ add_executable(ft-replay
 	timeConverter.hpp
 	timeDuration.cpp
 	timeDuration.hpp
+	freeMemoryChecker.hpp
+	freeMemoryChecker.cpp
 	replicator-core/configParser.hpp
 	replicator-core/configParser.cpp
 	replicator-core/configParserFactory.hpp

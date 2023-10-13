@@ -8,6 +8,7 @@
 
 #include "config.hpp"
 #include "countDownLatch.hpp"
+#include "freeMemoryChecker.hpp"
 #include "logger.h"
 #include "outputPlugin.hpp"
 #include "outputPluginFactory.hpp"
@@ -110,6 +111,26 @@ void ReplicatorExecutor(const Config& config)
 	outputPluginStatsPrinter.PrintStats();
 }
 
+void CheckSufficientMemory(const Config& config)
+{
+	if (!config.GetFreeRamCheck()) {
+		return;
+	}
+
+	constexpr size_t freeMemoryOverheadPercentage = 5;
+
+	FreeMemoryChecker freeMemoryChecker;
+	bool isFreeMemory = freeMemoryChecker.IsFreeMemoryForFile(
+		config.GetInputPcapFile(),
+		freeMemoryOverheadPercentage);
+
+	if (!isFreeMemory) {
+		throw std::runtime_error(
+			"Not enough free RAM memory to process the pcap file (supress with "
+			"--no-freeram-check).");
+	}
+}
+
 int main(int argc, char** argv)
 {
 	Config config;
@@ -134,6 +155,7 @@ int main(int argc, char** argv)
 	}
 
 	try {
+		CheckSufficientMemory(config);
 		ReplicatorExecutor(config);
 	} catch (const std::exception& ex) {
 		logger->critical(ex.what());
