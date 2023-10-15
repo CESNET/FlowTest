@@ -5,6 +5,7 @@ find_package(PCAP REQUIRED)
 find_package(xxHash REQUIRED)
 find_package(Threads REQUIRED)
 find_package(GLPK REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # NFB framework for CESNET FPGA cards
 if (ENABLE_NFB)
