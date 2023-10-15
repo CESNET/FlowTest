@@ -66,6 +66,8 @@ set(FT_GENERATOR_LIBS
 	yaml-cpp
 	stdc++fs
 	glpk::glpk
+	OpenSSL::SSL
+	OpenSSL::Crypto
 )
 
 add_executable(ft-generator ${FT_GENERATOR_SOURCES} main.cpp)
