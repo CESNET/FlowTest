@@ -42,6 +42,7 @@ set(FT_GENERATOR_SOURCES
 	layers/mpls.cpp
 	layers/payload.cpp
 	layers/tcp.cpp
+	layers/tls.cpp
 	layers/tlsbuilder.cpp
 	layers/tlssignature.cpp
 	layers/udp.cpp
