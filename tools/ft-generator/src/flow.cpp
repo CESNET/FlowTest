@@ -21,6 +21,7 @@
 #include "layers/mpls.h"
 #include "layers/payload.h"
 #include "layers/tcp.h"
+#include "layers/tls.h"
 #include "layers/udp.h"
 #include "layers/vlan.h"
 #include "logger.h"
@@ -90,6 +91,34 @@ static std::pair<MacAddress, MacAddress> GenerateMacPair(AddressGenerators& addr
 		macDst = addressGenerators.GenerateMac();
 	}
 	return {macSrc, macDst};
+}
+
+static bool
+ShouldTlsEncrypt(const config::TlsEncryption& encryptionConfig, const FlowProfile& profile)
+{
+	const auto& never = encryptionConfig.GetNeverEncryptPorts();
+	const auto& always = encryptionConfig.GetAlwaysEncryptPorts();
+	double probability = encryptionConfig.GetOtherwiseEncryptProbability();
+
+	auto includes = [](const auto& ranges, auto value) {
+		return std::any_of(ranges.begin(), ranges.end(), [&](const auto& range) {
+			return range.Includes(value);
+		});
+	};
+
+	if (profile._l4Proto != L4Protocol::Tcp) {
+		return false;
+	}
+
+	if (includes(always, profile._dstPort)) {
+		return true;
+	}
+
+	if (includes(never, profile._dstPort)) {
+		return false;
+	}
+
+	return RandomGenerator::GetInstance().RandomDouble() < probability;
 }
 
 Flow::Flow(
@@ -217,7 +246,12 @@ Flow::Flow(
 
 	const auto& enabledProtocols = _config.GetPayload().GetEnabledProtocols();
 
-	if (enabledProtocols.Includes(config::PayloadProtocol::Http)
+	if (enabledProtocols.Includes(config::PayloadProtocol::Tls)
+		&& ShouldTlsEncrypt(_config.GetPayload().GetTlsEncryption(), profile)) {
+		AddLayer(std::make_unique<Tls>());
+
+	} else if (
+		enabledProtocols.Includes(config::PayloadProtocol::Http)
 		&& profile._l4Proto == L4Protocol::Tcp
 		&& (profile._dstPort == 80 || profile._dstPort == 8080)) {
 		AddLayer(std::make_unique<Http>());
