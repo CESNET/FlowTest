@@ -239,15 +239,21 @@ std::optional<T> ParseValue(const std::string& s)
 	}
 }
 
+template <typename ParserT, typename ValueT>
+std::vector<ValueT> ParseMany(const YAML::Node& node)
+{
+	ExpectSequence(node);
+	std::vector<ValueT> values;
+	for (const auto& subnode : node) {
+		values.push_back(ParserT(subnode));
+	}
+	return values;
+}
+
 template <typename T>
 std::vector<T> ParseMany(const YAML::Node& node)
 {
-	ExpectSequence(node);
-	std::vector<T> values;
-	for (const auto& subnode : node) {
-		values.push_back(T(subnode));
-	}
-	return values;
+	return ParseMany<T, T>(node);
 }
 
 template <typename T>
