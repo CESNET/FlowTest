@@ -10,6 +10,8 @@ set(FT_GENERATOR_SOURCES
 	config/mac.cpp
 	config/packetsizeprobabilities.cpp
 	config/payload.cpp
+	config/portrange.cpp
+	config/tlsencryption.cpp
 	data/words.cpp
 	domainnamegenerator.cpp
 	flow.cpp
