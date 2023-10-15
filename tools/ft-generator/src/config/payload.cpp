@@ -57,10 +57,14 @@ bool PayloadProtocolList::Includes(PayloadProtocol value) const
 
 Payload::Payload(const YAML::Node& node)
 {
-	CheckAllowedKeys(node, {"enabled_protocols"});
+	CheckAllowedKeys(node, {"enabled_protocols", "tls_encryption"});
 
 	if (node["enabled_protocols"].IsDefined()) {
 		_enabledProtocols = PayloadProtocolList(node["enabled_protocols"]);
+	}
+
+	if (node["tls_encryption"].IsDefined()) {
+		_tlsEncryption = TlsEncryption(node["tls_encryption"]);
 	}
 }
 
