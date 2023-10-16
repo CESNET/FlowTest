@@ -43,7 +43,8 @@ Arguments:
   -i, --input=FILE                Input pcap file (required)
   -o, --output=SPEC               The output plugin specification (required)
   -c, --config=FILE               The replicator configuration file (optional)
-  -x. --multiplier=NUMBER         Modify replay speed to a given multiple
+  -d, --disable-hw-offload        Disable hardware offloading
+  -x, --multiplier=NUMBER         Modify replay speed to a given multiple
   -p, --pps=NUMBER                Replay packets at a given packets/sec
   -M, --mbps=NUMBER               Replay packets at a given Mbps
   -t, --topspeed                  Replay packets as fast as possible
@@ -76,6 +77,12 @@ while the -t parameter allows for replaying packets as fast as possible without 
 The -n, --no-freeram-check parameter is an optional argument that disables the free RAM check of
 the system during the tool initialization. It should be used with caution and only if you are
 certain that there is sufficient free RAM for the replay operation.
+
+-d, --disable-hw-offload: By using this option, you can prevent the tool from utilizing hardware
+offloading features if they are available. When hardware offloading is disabled (or unavailable),
+the tool will resort to software offloading methods for processing network traffic. Tool supports
+the following offloads: IPv4 checksum, TCP checksum, UDP checksum and Rate limiting. Please note
+that when the original checksums are incorrect, the updated checksums will also be incorrect.
 ```
 
 # Replicator
