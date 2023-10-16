@@ -21,7 +21,6 @@ pyopenssl = "*"
 dataclass_wizard = "*"
 pandas = "*"
 numpy = "*"
-pygad = "*"
 pyarrow = "*"
 pytest = "*"
 pytest-cases = "*"
@@ -29,6 +28,7 @@ pytest-html = "*"
 py = "*"
 lbr-trex-client = {version = ">=2.0.1", index = "liberouter-pypi"}
 lbr-testsuite = {version = "*", index = "flowtest-pypi"}
+matplotlib = "*"
 
 [dev-packages]
 pylint = "*"
