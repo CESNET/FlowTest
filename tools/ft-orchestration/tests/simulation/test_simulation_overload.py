@@ -255,6 +255,9 @@ def test_simulation_overload(
         loop_count=LOOPS,
         generator_config=scenario.generator,
     )
+    # start_profile is asynchronous, method stats blocks until traffic is send
+    start_time = generator_instance.stats().start_time
+
     time.sleep(0.1)
 
     logging.info("\t- Stop probe.")
@@ -270,7 +273,7 @@ def test_simulation_overload(
         scenario.analysis,
         flows_file,
         ref_file,
-        generator_instance.stats().start_time,
+        start_time,
         replicator_config,
         tmp_dir,
     )
