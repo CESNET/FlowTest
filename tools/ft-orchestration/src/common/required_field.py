@@ -50,5 +50,6 @@ def required_field(**kwargs):
         raise ValueError("Required field cannot have a default value.")
 
     kwargs["default_factory"] = ErrorFactory
+    # pylint: disable=invalid-field-call
     field_instance = field(**kwargs)
     return field_instance
