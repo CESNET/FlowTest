@@ -181,6 +181,8 @@ void ReplicatorExecutor(const Config& config)
 
 	PacketBuilder builder;
 	builder.SetVlan(config.GetVlanID());
+	builder.SetSrcMac(config.GetSrcMacAddress());
+	builder.SetDstMac(config.GetDstMacAddress());
 
 	while ((rawPacket = packetProvider.Next())) {
 		packetQueueProvider.InsertPacket(builder.Build(rawPacket));
