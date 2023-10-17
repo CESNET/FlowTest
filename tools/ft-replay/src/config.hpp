@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "replicator-core/macAddress.hpp"
+
 #include <chrono>
 #include <cstdint>
 #include <getopt.h>
@@ -119,6 +121,10 @@ public:
 	bool GetFreeRamCheck() const;
 	/** @brief Get whether hardware offloads should be enabled. */
 	bool GetHwOffloadsSupport() const;
+	/** @brief Get the address that should overwrite all source MAC addresses */
+	std::optional<MacAddress> GetSrcMacAddress() const;
+	/** @brief Get the address that should overwrite all destination MAC addresses */
+	std::optional<MacAddress> GetDstMacAddress() const;
 
 	/** @brief Whether help should be printer */
 	bool IsHelp() const;
@@ -142,6 +148,8 @@ private:
 	uint16_t _vlanID;
 	size_t _loopsCount;
 	bool _noFreeRamCheck;
+	std::optional<MacAddress> _srcMac;
+	std::optional<MacAddress> _dstMac;
 
 	bool _help;
 };

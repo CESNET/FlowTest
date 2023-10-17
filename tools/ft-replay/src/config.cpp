@@ -17,6 +17,11 @@
 
 namespace replay {
 
+enum longOptsValues {
+	OPT_SRC_MAC = 256, // Value that cannot collide with chars
+	OPT_DST_MAC
+};
+
 Config::Config()
 {
 	SetDefaultValues();
@@ -83,6 +88,12 @@ void Config::Parse(int argc, char** argv)
 		case 'h':
 			_help = true;
 			break;
+		case OPT_SRC_MAC:
+			_srcMac.emplace(std::string(optarg));
+			break;
+		case OPT_DST_MAC:
+			_dstMac.emplace(std::string(optarg));
+			break;
 		case '?':
 			ft::CliHandleInvalidOption(current);
 		case ':':
@@ -112,6 +123,9 @@ void Config::SetDefaultValues()
 	_vlanID = 0;
 	_loopsCount = 1;
 	_noFreeRamCheck = false;
+	_srcMac = std::nullopt;
+	_dstMac = std::nullopt;
+
 	_help = false;
 }
 
@@ -130,6 +144,8 @@ const option* Config::GetLongOptions()
 		   {"loop", required_argument, nullptr, 'l'},
 		   {"help", no_argument, nullptr, 'h'},
 		   {"no-freeram-check", no_argument, nullptr, 'n'},
+		   {"src-mac", required_argument, nullptr, OPT_SRC_MAC},
+		   {"dst-mac", required_argument, nullptr, OPT_DST_MAC},
 		   {nullptr, 0, nullptr, 0}};
 	return longOptions;
 }
@@ -206,6 +222,16 @@ bool Config::GetFreeRamCheck() const
 	return !_noFreeRamCheck;
 }
 
+std::optional<MacAddress> Config::GetSrcMacAddress() const
+{
+	return _srcMac;
+}
+
+std::optional<MacAddress> Config::GetDstMacAddress() const
+{
+	return _dstMac;
+}
+
 bool Config::IsHelp() const
 {
 	return _help;
@@ -226,6 +252,8 @@ void Config::PrintUsage() const
 	std::cout << "  -l, --loop=num            Number of loops over PCAP file. [0 = infinite]\n";
 	std::cout << "  -n, --no-freeram-check    Disable verification of free RAM resources\n";
 	std::cout << "  -h, --help                Show this help message\n";
+	std::cout << "  --src-mac=mac             Rewrite all source MAC addresses\n";
+	std::cout << "  --dst-mac=mac             Rewrite all destination MAC addresses\n";
 }
 
 } // namespace replay
