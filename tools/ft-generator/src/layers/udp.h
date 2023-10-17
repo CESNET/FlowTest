@@ -29,14 +29,14 @@ public:
 	Udp(uint16_t portSrc, uint16_t portDst);
 
 	/**
-	 * @brief Plan Ethernet layer
+	 * @brief Plan Udp layer
 	 *
 	 * @param flow Flow to plan.
 	 */
 	virtual void PlanFlow(Flow& flow) override;
 
 	/**
-	 * @brief Build Ethernet layer in packet PcppPacket
+	 * @brief Build Udp layer in packet PcppPacket
 	 *
 	 * @param packet Packet to build.
 	 * @param params Layers parameters
