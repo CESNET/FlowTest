@@ -134,6 +134,20 @@ public:
 	}
 
 	/**
+	 * @brief Size from the beginning of the IP layer.
+	 *
+	 * Represents the number of bytes occupied by this layer and possibly all
+	 * previous layers up to and including the beginning of the IP layer. In other
+	 * words, the value also represents the offset of the end of this layer from
+	 * the beginning of the IP layer.
+	 *
+	 * @param packet The packet
+	 *
+	 * @return The offset
+	 */
+	virtual size_t SizeUpToIpLayer(Packet& packet) const;
+
+	/**
 	 * @brief The destructor
 	 */
 	virtual ~Layer() {}

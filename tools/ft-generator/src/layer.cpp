@@ -10,6 +10,8 @@
 #include "layer.h"
 #include "flow.h"
 
+#include <stdexcept>
+
 namespace generator {
 
 void Layer::AddedToFlow(Flow* flow, size_t layerNumber)
@@ -60,6 +62,12 @@ void Layer::PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& p
 	(void) packet;
 	(void) params;
 	(void) plan;
+}
+
+size_t Layer::SizeUpToIpLayer(Packet& packet) const
+{
+	(void) packet;
+	throw std::logic_error("unimplemented method");
 }
 
 } // namespace generator
