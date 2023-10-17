@@ -155,7 +155,9 @@ class StatisticalModel:
                     reference = ref[metric.key.value].sum()
 
                 report.add_test(
-                    SMTestOutcome(metric, rule.segment, value, reference, abs(value - reference) / reference)
+                    SMTestOutcome(
+                        metric, rule.segment, value, reference, abs(np.int64(value) - np.int64(reference)) / reference
+                    )
                 )
 
         return report

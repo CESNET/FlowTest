@@ -14,7 +14,7 @@ import time
 
 import pytest
 import yaml
-from scapy.layers.all import IP, TCP, Ether
+from scapy.layers.inet import IP, TCP, Ether
 from scapy.utils import wrpcap
 from src.collector.ipfixcol2 import Ipfixcol2
 from src.host.host import Host
