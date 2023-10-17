@@ -50,6 +50,8 @@ public:
 
 	void PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
+	size_t SizeUpToIpLayer(Packet& packet) const override;
+
 private:
 	IPv6Address _ipSrc;
 	IPv6Address _ipDst;

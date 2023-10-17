@@ -327,4 +327,9 @@ void Tcp::DetermineIfHandshakesShouldBePlanned(FlowPlanHelper& planner)
 	}
 }
 
+size_t Tcp::SizeUpToIpLayer(Packet& packet) const
+{
+	return GetPrevLayer()->SizeUpToIpLayer(packet) + TCP_HDR_LEN;
+}
+
 } // namespace generator

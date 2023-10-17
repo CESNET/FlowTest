@@ -50,4 +50,8 @@ void Udp::Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan)
 	packet.addLayer(udpLayer, true);
 }
 
+size_t Udp::SizeUpToIpLayer(Packet& packet) const
+{
+	return GetPrevLayer()->SizeUpToIpLayer(packet) + UDP_HDR_LEN;
+}
 } // namespace generator
