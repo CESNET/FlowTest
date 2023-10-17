@@ -14,11 +14,11 @@ import time
 
 import pytest
 import yaml
+from lbr_testsuite.executable import Executor, RemoteExecutor, Rsync, Tool
 from scapy.layers.inet import IP, TCP, Ether
 from scapy.utils import wrpcap
 from src.collector.ipfixcol2 import Ipfixcol2
-from src.host.host import Host
-from src.host.storage import RemoteStorage
+from src.common.tool_is_installed import assert_tool_is_installed
 
 HOST = os.environ.get("PYTEST_TEST_HOST")
 USERNAME = os.environ.get("PYTEST_TEST_HOST_USERNAME")
@@ -26,20 +26,24 @@ LOCAL_CSV = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saved_flo
 FILES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "files")
 
 
-@pytest.fixture(name="host")
-def fixture_host():
-    """Fixture for connecting to remote."""
+def create_executor():
+    """Create remote executor."""
 
     if not HOST:
         pytest.skip("PYTEST_TEST_HOST env variable must be defined.")
 
     if USERNAME:
-        storage = RemoteStorage(HOST, user=USERNAME)
-        host = Host(HOST, storage, user=USERNAME)
+        executor = RemoteExecutor(HOST, USERNAME)
     else:
-        storage = RemoteStorage(HOST)
-        host = Host(HOST, storage)
-    return host
+        executor = RemoteExecutor(HOST)
+    return executor
+
+
+@pytest.fixture(name="executor")
+def fixture_executor():
+    """Fixture for connecting to remote."""
+
+    return create_executor()
 
 
 def check_csv(csv, number_of_flows):
@@ -53,13 +57,13 @@ def check_csv(csv, number_of_flows):
     assert (lines - 1) == number_of_flows
 
 
-def generate_pcap(host: Host, number_of_flows: int, pcap_file: str):
+def generate_pcap(executor: Executor, number_of_flows: int, pcap_file: str):
     """Generate big pcap with big number of flows on a remote host."""
 
-    if host.run("command -v ft-replay", check_rc=False).exited != 0:
-        raise RuntimeError("Ft-replay must be installed on host.")
+    assert_tool_is_installed("ft-replay", executor)
 
-    remote_dir = host.get_storage().get_remote_directory()
+    rsync = Rsync(executor)
+    remote_dir = rsync.get_data_directory()
 
     # create pcap with 1 packet
     payload = "xxxxxxxxxxxxxxxxxxx"
@@ -68,7 +72,7 @@ def generate_pcap(host: Host, number_of_flows: int, pcap_file: str):
     with tempfile.TemporaryDirectory() as temp_dir:
         tmp = os.path.join(temp_dir, "tmp.pcap")
         wrpcap(tmp, packets)
-        host.get_storage().push(tmp)
+        rsync.push_path(tmp)
         tmp_pcap = os.path.join(remote_dir, "tmp.pcap")
 
         # replicate with ft-replay
@@ -77,17 +81,20 @@ def generate_pcap(host: Host, number_of_flows: int, pcap_file: str):
         tmp = os.path.join(temp_dir, "cfg.yaml")
         with open(tmp, "w", encoding="ascii") as tmp_fd:
             yaml.safe_dump(config, tmp_fd)
-        host.get_storage().push(tmp)
+        rsync.push_path(tmp)
         config_file = os.path.join(remote_dir, "cfg.yaml")
 
-    res = host.run(f"ft-replay -c {config_file} -l {number_of_flows} -p {tmp_pcap} -o 'pcapFile:file={pcap_file}'")
-    print(res.stdout)
-    print(res.stderr)
+    stdout, stderr = Tool(
+        f"ft-replay -c {config_file} -l {number_of_flows} -i {tmp_pcap} -o 'pcapFile:file={pcap_file}'",
+        executor=executor,
+    ).run()
+    print(stdout)
+    print(stderr)
 
 
 @pytest.mark.dev
-@pytest.mark.parametrize("file, number_of_flows", [("ipv6-neighbor-discovery.pcap", 3), ("http_get.pcap", 2)])
-def test_save_csv(request: pytest.FixtureRequest, host: Host, file: str, number_of_flows: int):
+@pytest.mark.parametrize("file, number_of_flows", [("ipv6-neighbor-discovery.pcap", 2), ("http_get.pcap", 2)])
+def test_save_csv(request: pytest.FixtureRequest, executor: Executor, file: str, number_of_flows: int):
     """Test basic usage of save_csv. On host must be installed ipfixprobe with PCAP input plugin and ipfixcol2."""
 
     def finalize():
@@ -96,13 +103,18 @@ def test_save_csv(request: pytest.FixtureRequest, host: Host, file: str, number_
 
     request.addfinalizer(finalize)
 
-    ipfixcol2 = Ipfixcol2(host, input_plugin="tcp")
+    ipfixcol2 = Ipfixcol2(executor, input_plugin="tcp")
     ipfixcol2.start()
 
-    host.get_storage().push(f"{FILES_DIR}/{file}")
-    remote_dir = host.get_storage().get_remote_directory()
-    proc = host.run(f"ipfixprobe -i 'pcap;file={remote_dir}/{file}' -o 'ipfix;host=localhost;port=4739'")
-    print(proc.stdout)
+    rsync = Rsync(executor)
+    rsync.push_path(f"{FILES_DIR}/{file}")
+    remote_dir = rsync.get_data_directory()
+    # executor does not support concurrently running commands in this version of testsuite (4.15)
+    executor_copy = create_executor()
+    stdout, _ = Tool(
+        f"ipfixprobe -i 'pcap;file={remote_dir}/{file}' -o 'ipfix;host=localhost;port=4739'", executor=executor_copy
+    ).run()
+    print(stdout)
 
     ipfixcol2.stop()
 
@@ -114,7 +126,7 @@ def test_save_csv(request: pytest.FixtureRequest, host: Host, file: str, number_
 
 @pytest.mark.dev
 @pytest.mark.parametrize("file, number_of_flows", [("/tmp/big.pcap", 40000000)])
-def test_save_csv_big(request: pytest.FixtureRequest, host: Host, file: str, number_of_flows: int):
+def test_save_csv_big(request: pytest.FixtureRequest, executor: Executor, file: str, number_of_flows: int):
     """Test usage of save_csv with large pcap.
     On host must be installed ipfixprobe with PCAP input plugin and ipfixcol2."""
 
@@ -124,13 +136,17 @@ def test_save_csv_big(request: pytest.FixtureRequest, host: Host, file: str, num
 
     request.addfinalizer(finalize)
 
-    generate_pcap(host, number_of_flows, file)
+    generate_pcap(executor, number_of_flows, file)
 
-    ipfixcol2 = Ipfixcol2(host, input_plugin="tcp")
+    ipfixcol2 = Ipfixcol2(executor, input_plugin="tcp")
     ipfixcol2.start()
 
-    proc = host.run(f"ipfixprobe -i 'pcap;file={file}' -o 'ipfix;host=localhost;port=4739'")
-    print(proc.stdout)
+    # executor does not support concurrently running commands in this version of testsuite (4.15)
+    executor_copy = create_executor()
+    stdout, _ = Tool(
+        f"ipfixprobe -i 'pcap;file={file}' -o 'ipfix;host=localhost;port=4739'", executor=executor_copy
+    ).run()
+    print(stdout)
 
     ipfixcol2.stop()
 
