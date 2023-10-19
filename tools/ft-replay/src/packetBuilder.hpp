@@ -10,6 +10,7 @@
 
 #include "packet.hpp"
 #include "rawPacketProvider.hpp"
+#include "replicator-core/macAddress.hpp"
 
 #include <memory>
 
@@ -38,12 +39,34 @@ public:
 	 */
 	void SetVlan(uint16_t vlanID);
 
+	/**
+	 * @brief Set the source MAC address
+	 *
+	 * If the MAC address is unspecified, the original source MAC address is preserved.
+	 * Default: std::nullopt - do not modify the address
+	 *
+	 * @param address MAC address to set.
+	 */
+	void SetSrcMac(const std::optional<MacAddress>& address);
+
+	/**
+	 * @brief Set the destination MAC address
+	 *
+	 * If the MAC address is unspecified, the original destination MAC address is preserved.
+	 * Default: std::nullopt - do not modify the address
+	 *
+	 * @param address MAC address to set.
+	 */
+	void SetDstMac(const std::optional<MacAddress>& address);
+
 private:
 	PacketInfo GetPacketInfo(const RawPacket* rawPacket) const;
 	std::unique_ptr<std::byte[]> GetDataCopy(const std::byte* rawData, uint16_t dataLen);
 	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen);
 
 	uint16_t _vlanID = 0;
+	std::optional<MacAddress> _srcMac = std::nullopt;
+	std::optional<MacAddress> _dstMac = std::nullopt;
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketBuilder");
 };
 

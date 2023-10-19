@@ -62,7 +62,7 @@ public:
 		_isMacPtrAllocated = macAddress._isMacPtrAllocated;
 	}
 
-	MacAddress operator=(const MacAddress& otherMac)
+	MacAddress& operator=(const MacAddress& otherMac)
 	{
 		std::memcpy(_macPtr, otherMac._macPtr, MAC_LENGTH);
 		return *this;
@@ -72,6 +72,9 @@ public:
 	{
 		if (_isMacPtrAllocated) {
 			delete[] _macPtr;
+
+			_isMacPtrAllocated = false;
+			_macPtr = nullptr;
 		}
 	}
 

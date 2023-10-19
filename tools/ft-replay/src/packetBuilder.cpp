@@ -35,12 +35,23 @@ void PacketBuilder::SetVlan(uint16_t vlanID)
 	_vlanID = vlanID;
 }
 
+void PacketBuilder::SetSrcMac(const std::optional<MacAddress>& address)
+{
+	_srcMac = address;
+}
+
+void PacketBuilder::SetDstMac(const std::optional<MacAddress>& address)
+{
+	_dstMac = address;
+}
+
 std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 {
 	Packet packet;
 	packet.timestamp = rawPacket->timestamp;
 	packet.dataLen = rawPacket->dataLen;
 	packet.info = GetPacketInfo(rawPacket);
+
 	if (_vlanID) {
 		packet.info.l3Offset += sizeof(VlanHeader);
 		if (packet.info.l4Offset != 0) {
@@ -51,6 +62,19 @@ std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 	} else {
 		packet.data = GetDataCopy(rawPacket->data, rawPacket->dataLen);
 	}
+
+	if (_srcMac) {
+		ether_header* ethHeader = reinterpret_cast<ether_header*>(packet.data.get());
+		MacAddress ref {reinterpret_cast<MacAddress::MacPtr>(ethHeader->ether_shost)};
+		ref = _srcMac.value();
+	}
+
+	if (_dstMac) {
+		ether_header* ethHeader = reinterpret_cast<ether_header*>(packet.data.get());
+		MacAddress ref {reinterpret_cast<MacAddress::MacPtr>(ethHeader->ether_dhost)};
+		ref = _dstMac.value();
+	}
+
 	return std::make_unique<Packet>(std::move(packet));
 }
 

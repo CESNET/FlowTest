@@ -52,6 +52,8 @@ Arguments:
   -l, --loop=NUMBER               Number of loops over PCAP file. [0 = infinite]
   -n, --no-freeram-check          Disable verification of free RAM resources
   -h, --help                      Show this help message
+      --src-mac=MAC               Rewrite all source MAC addresses
+      --dst-mac=MAC               Rewrite all destination MAC addresses
 ```
 
 Detailed description:
@@ -83,6 +85,11 @@ offloading features if they are available. When hardware offloading is disabled 
 the tool will resort to software offloading methods for processing network traffic. Tool supports
 the following offloads: IPv4 checksum, TCP checksum, UDP checksum and Rate limiting. Please note
 that when the original checksums are incorrect, the updated checksums will also be incorrect.
+
+--src-mac=MAC, --dst-mac=MAC: This option is used to overwrite the source and destination MAC
+addresses of packets. The address change is made when the file is being loaded into memory. Note,
+however, that the MAC addresses themselves can be independently modified later by the replication
+units (see "Replicator" below).
 ```
 
 # Replicator
