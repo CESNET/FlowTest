@@ -117,6 +117,8 @@ public:
 	size_t GetLoopsCount() const;
 	/** @brief Get flag whether check free ram */
 	bool GetFreeRamCheck() const;
+	/** @brief Get whether hardware offloads should be enabled. */
+	bool GetHwOffloadsSupport() const;
 
 	/** @brief Whether help should be printer */
 	bool IsHelp() const;
@@ -134,6 +136,7 @@ private:
 	std::string _replicatorConfig;
 	std::string _outputPlugin;
 	std::string _pcapFile;
+	bool _hwOffloadsSupport;
 
 	std::optional<RateLimit> _rateLimit;
 	uint16_t _vlanID;

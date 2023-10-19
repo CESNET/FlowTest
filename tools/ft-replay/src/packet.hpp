@@ -42,6 +42,8 @@ struct PacketInfo {
 
 	enum L4Type l4Type;
 	uint16_t l4Offset; //< Zero if l4type == L4Type::NotFound
+
+	uint16_t ipAddressesChecksum; //< checksum of IP addresses in host byte order
 };
 
 /**

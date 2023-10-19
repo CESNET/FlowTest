@@ -7,6 +7,8 @@
  */
 
 #include "packetBuilder.hpp"
+
+#include "checksumCalculator.hpp"
 #include "dissector/dissector.hpp"
 
 #include <cstring>
@@ -161,6 +163,9 @@ PacketInfo PacketBuilder::GetPacketInfo(const RawPacket* rawPacket) const
 		info.l4Offset = l4Layer._offset;
 		info.l4Type = LayerToL4Protocol(l4Layer._type);
 	}
+
+	info.ipAddressesChecksum
+		= CalculateIPAddressesChecksum(rawPacket->data, info.l3Type, info.l3Offset);
 
 	return info;
 }

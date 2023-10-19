@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../config.hpp"
+#include "../offloads.hpp"
 #include "../outputQueue.hpp"
 #include "../packetQueueProvider.hpp"
 #include "../rateLimiter.hpp"
@@ -56,12 +57,6 @@ public:
 		uint64_t loopTimeDuration);
 
 	/**
-	 * @brief Sets the rate limiter configuration for the Replicator.
-	 * @param rateLimiterConfig The configuration for rate limiting.
-	 */
-	void SetRateLimiter(const Config::RateLimit& rateLimiterConfig);
-
-	/**
 	 * @brief Sets the replication strategy for the Replicator.
 	 * @details The Replicator can be configured with multiple replication units, each having its
 	 * own strategy. If a ConfigParser is provided, the Replicator sets its replication units
@@ -71,6 +66,12 @@ public:
 	 * configurations.
 	 */
 	void SetReplicatorStrategy(const ConfigParser* configParser);
+
+	/**
+	 * @brief Sets the requested network offloads for the Replicator.
+	 * @param requestedOffloads The requested network offloads.
+	 */
+	void SetRequestedOffloads(const OffloadRequests& reguestedOffloads);
 
 	/**
 	 * @brief Initiates the replication process for a given replication loop ID.
@@ -83,6 +84,8 @@ public:
 private:
 	void SetAvailableReplicationUnits(uint64_t replicationLoopId);
 	void SetDefaultReplicatorStrategy();
+	void SetPacketModifierChecksumOffloads();
+	void SetRateLimiter(const Config::RateLimit& rateLimiterConfig);
 	void FillPacketBuffers(uint64_t replicatedPackets, size_t burstSize);
 	uint64_t GetBurstSize(uint64_t replicatedPackets);
 	uint64_t GetNumberOfPacketToReplicate() const noexcept;
@@ -107,6 +110,7 @@ private:
 	uint64_t _lastPacketTimestamp;
 	uint64_t _loopTimeDuration;
 
+	OffloadRequests _reguestedOffloads = {};
 	Config::RateLimit _rateLimiterConfig;
 	RateLimiter _rateLimiter;
 

@@ -10,6 +10,7 @@
 #include "countDownLatch.hpp"
 #include "freeMemoryChecker.hpp"
 #include "logger.h"
+#include "offloads.hpp"
 #include "outputPlugin.hpp"
 #include "outputPluginFactory.hpp"
 #include "outputPluginStatsPrinter.hpp"
@@ -24,6 +25,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -60,6 +62,103 @@ Config::RateLimit CreateRateLimiterConfig(
 	return rateLimit;
 }
 
+Offloads ConfigureHwOffloads(
+	const Config::RateLimit& rateLimit,
+	OutputPlugin* outputPlugin,
+	bool isHwOffloadsEnabled)
+{
+	if (!isHwOffloadsEnabled) {
+		return 0;
+	}
+
+	OffloadRequests hwOffloadRequests {};
+	hwOffloadRequests.checksumOffloads.checksumIPv4 = true;
+	hwOffloadRequests.checksumOffloads.checksumTCP = true;
+	hwOffloadRequests.checksumOffloads.checksumUDP = true;
+	hwOffloadRequests.rateLimit = rateLimit;
+
+	return outputPlugin->ConfigureOffloads(hwOffloadRequests);
+}
+
+void UpdateSwRateLimiterOffload(
+	OffloadRequests& swOffloadRequests,
+	Offloads configuredHwOffloads,
+	const Config::RateLimit& rateLimit)
+{
+	if (std::holds_alternative<Config::RateLimitPps>(rateLimit)) {
+		if (!(configuredHwOffloads & Offload::RATE_LIMIT_PACKETS)) {
+			swOffloadRequests.rateLimit = rateLimit;
+		}
+	} else if (std::holds_alternative<Config::RateLimitMbps>(rateLimit)) {
+		if (!(configuredHwOffloads & Offload::RATE_LIMIT_BYTES)) {
+			swOffloadRequests.rateLimit = rateLimit;
+		}
+	} else if (std::holds_alternative<Config::RateLimitTimeUnit>(rateLimit)) {
+		if (!(configuredHwOffloads & Offload::RATE_LIMIT_TIME)) {
+			swOffloadRequests.rateLimit = rateLimit;
+		}
+	}
+}
+
+OffloadRequests
+GetRequestedSwOffloads(const Config::RateLimit& rateLimit, Offloads configuredHwOffloads)
+{
+	OffloadRequests swOffloadRequests {};
+
+	UpdateSwRateLimiterOffload(swOffloadRequests, configuredHwOffloads, rateLimit);
+
+	if (!(configuredHwOffloads & Offload::CHECKSUM_IPV4)) {
+		swOffloadRequests.checksumOffloads.checksumIPv4 = true;
+	}
+
+	if (!(configuredHwOffloads & Offload::CHECKSUM_TCP)) {
+		swOffloadRequests.checksumOffloads.checksumTCP = true;
+	}
+
+	if (!(configuredHwOffloads & Offload::CHECKSUM_UDP)) {
+		swOffloadRequests.checksumOffloads.checksumUDP = true;
+	}
+
+	return swOffloadRequests;
+}
+
+void PrintConfiguredHwOffloads(const Offloads& configuredHwOffloads)
+{
+	auto logger = ft::LoggerGet("HwOffloads");
+	if (!configuredHwOffloads) {
+		logger->info("No HW offload enabled.");
+		return;
+	}
+
+	std::string enabledOffloads;
+
+	if (configuredHwOffloads & Offload::RATE_LIMIT_PACKETS
+		|| configuredHwOffloads & Offload::RATE_LIMIT_BYTES
+		|| configuredHwOffloads & Offload::RATE_LIMIT_TIME) {
+		enabledOffloads += "rate limit, ";
+	}
+
+	if (configuredHwOffloads & Offload::CHECKSUM_IPV4) {
+		enabledOffloads += "IPv4 checksum, ";
+	}
+
+	if (configuredHwOffloads & Offload::CHECKSUM_TCP) {
+		enabledOffloads += "TCP checksum, ";
+	}
+
+	if (configuredHwOffloads & Offload::CHECKSUM_UDP) {
+		enabledOffloads += "UDP checksum";
+	}
+
+	// remove unwanted ", " at the end of the string
+	std::size_t pos = enabledOffloads.find_last_of(", ");
+	if (pos != std::string::npos && pos == enabledOffloads.length() - 2) {
+		enabledOffloads.erase(pos, 2);
+	}
+
+	logger->info("Enabled HW offloads: " + enabledOffloads);
+}
+
 void ReplicatorExecutor(const Config& config)
 {
 	std::vector<std::thread> threads;
@@ -69,6 +168,13 @@ void ReplicatorExecutor(const Config& config)
 	replicatorConfigParser = ConfigParserFactory::Instance().Create(config.GetReplicatorConfig());
 
 	size_t queueCount = outputPlugin->GetQueueCount();
+	auto configuredHwOffloads = ConfigureHwOffloads(
+		config.GetRateLimit(),
+		outputPlugin.get(),
+		config.GetHwOffloadsSupport());
+	PrintConfiguredHwOffloads(configuredHwOffloads);
+	auto requestedSwOffloads = GetRequestedSwOffloads(config.GetRateLimit(), configuredHwOffloads);
+
 	RawPacketProvider packetProvider(config.GetInputPcapFile());
 	PacketQueueProvider packetQueueProvider(queueCount);
 	const RawPacket* rawPacket;
@@ -89,10 +195,11 @@ void ReplicatorExecutor(const Config& config)
 		auto packetQueue = packetQueueProvider.GetPacketQueueById(queueId);
 		auto packetQueueRatio = packetQueueProvider.GetPacketQueueRatioById(queueId);
 		auto rateLimiterConfig = CreateRateLimiterConfig(packetQueueRatio, config.GetRateLimit());
+		UpdateSwRateLimiterOffload(requestedSwOffloads, configuredHwOffloads, rateLimiterConfig);
 
 		OutputQueue* outputQueue = outputPlugin->GetQueue(queueId);
 		Replicator replicator(std::move(packetQueue), outputQueue, loopTimeDuration);
-		replicator.SetRateLimiter(rateLimiterConfig);
+		replicator.SetRequestedOffloads(requestedSwOffloads);
 		replicator.SetReplicatorStrategy(replicatorConfigParser.get());
 
 		std::thread worker(

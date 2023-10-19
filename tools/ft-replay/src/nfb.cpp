@@ -376,6 +376,12 @@ size_t NfbPlugin::GetQueueCount() const noexcept
 	return _queueCount;
 }
 
+Offloads NfbPlugin::ConfigureOffloads(const OffloadRequests& offloads)
+{
+	(void) offloads;
+	return 0;
+}
+
 OutputQueue* NfbPlugin::GetQueue(uint16_t queueId)
 {
 	return _queues.at(queueId).get();
