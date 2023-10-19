@@ -24,7 +24,7 @@ numpy = "*"
 pyarrow = "*"
 pytest = "*"
 pytest-cases = "*"
-pytest-html = "*"
+pytest-html = "==3.2.0"
 py = "*"
 lbr-trex-client = {version = ">=2.0.1", index = "liberouter-pypi"}
 lbr-testsuite = {version = "*", index = "flowtest-pypi"}
