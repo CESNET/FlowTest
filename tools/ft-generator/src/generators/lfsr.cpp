@@ -9,7 +9,6 @@
 #include "lfsr.h"
 #include "../randomgenerator.h"
 
-#include <algorithm>
 #include <stdexcept>
 #include <vector>
 
@@ -160,6 +159,7 @@ static const std::vector<std::vector<int>> PRIMITIVE_POLYNOMIALS {
 };
 
 Lfsr::Lfsr(unsigned int nBits)
+	: _zeroState(nBits, 0)
 {
 	if (nBits >= PRIMITIVE_POLYNOMIALS.size()) {
 		throw std::invalid_argument(
@@ -179,13 +179,22 @@ Lfsr::Lfsr(unsigned int nBits)
 		for (unsigned int i = 0; i < _state.size(); i++) {
 			_state[i] = rng.RandomUInt(0, 1);
 		}
-		// All zeros is an invalid state
-	} while (std::all_of(_state.begin(), _state.end(), [](bool b) { return b == 0; }));
+		// All zeros is an invalid initial state
+	} while (_state == _zeroState);
+
+	_initState = _state;
 }
 
 void Lfsr::Next()
 {
 	if (_state.empty()) {
+		return;
+	}
+
+	// The state that follows the zero state is the initial state, as we have
+	// "manually" set the zero state as described below.
+	if (_state == _zeroState) {
+		_state = _initState;
 		return;
 	}
 
@@ -195,6 +204,13 @@ void Lfsr::Next()
 	}
 	_state.pop_back();
 	_state.insert(_state.begin(), in);
+
+	// We cannot ever get the all zero state from normal LFSR operation. To
+	// circumvent this, set this state "manually" after looping over and
+	// reaching the initial state again.
+	if (_state == _initState) {
+		_state = _zeroState;
+	}
 }
 
 } // namespace generator

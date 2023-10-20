@@ -49,7 +49,7 @@ TEST_CASE("addresses with LSB=1 in first octet will be generated if prefix expli
 	}
 }
 
-TEST_CASE("period with N address bits should be 2^N - 1")
+TEST_CASE("period with N address bits should be 2^N")
 {
 	int prefixLen = 32;
 	int remBits = 48 - prefixLen;
@@ -66,7 +66,7 @@ TEST_CASE("period with N address bits should be 2^N - 1")
 		seen.emplace(macStr);
 	}
 
-	std::size_t expectedPeriod = (1 << remBits) - 1;
+	std::size_t expectedPeriod = (1 << remBits);
 	CHECK(seen.size() == expectedPeriod);
 }
 
