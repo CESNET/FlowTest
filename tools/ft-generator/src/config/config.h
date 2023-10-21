@@ -14,6 +14,7 @@
 #include "ipv6.h"
 #include "mac.h"
 #include "packetsizeprobabilities.h"
+#include "payload.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -86,6 +87,11 @@ public:
 	}
 
 	/**
+	 * @brief Get the payload config
+	 */
+	const Payload& GetPayload() const { return _payload; }
+
+	/**
 	 * @brief Load a configuration from a yaml file
 	 *
 	 * @param configFilename  Path to the yaml file
@@ -100,6 +106,7 @@ private:
 	Encapsulation _encapsulation;
 	PacketSizeProbabilities _packetSizeProbabilities;
 	std::optional<uint64_t> _maxFlowInterPacketGapSecs;
+	Payload _payload;
 };
 
 } // namespace config
