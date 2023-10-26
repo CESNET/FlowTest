@@ -13,6 +13,7 @@
 #include "macAddress.hpp"
 
 #include <algorithm>
+#include <netinet/icmp6.h>
 #include <netinet/if_ether.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
@@ -97,6 +98,13 @@ void PacketModifier::UpdateChecksumOffloads(std::byte* ptr, const PacketInfo& pk
 			newIPAddresesChecksum,
 			true);
 		udpHeader->check = htons(newChecksum);
+	} else if (_checksumOffloads.checksumICMPv6 && pktInfo.l4Type == L4Type::ICMPv6) {
+		icmp6_hdr* icmp6Header = reinterpret_cast<icmp6_hdr*>(ptr + pktInfo.l4Offset);
+		uint16_t newChecksum = CalculateChecksum(
+			ntohs(icmp6Header->icmp6_cksum),
+			pktInfo.ipAddressesChecksum,
+			newIPAddresesChecksum);
+		icmp6Header->icmp6_cksum = htons(newChecksum);
 	}
 }
 
