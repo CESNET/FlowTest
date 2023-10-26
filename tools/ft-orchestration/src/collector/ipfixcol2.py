@@ -11,13 +11,21 @@ as FDS file.
 import logging
 import shutil
 import tempfile
-import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import List
 
+from lbr_testsuite.executable import (
+    Daemon,
+    ExecutableProcessError,
+    Executor,
+    Rsync,
+    Tool,
+)
+from lbr_testsuite.executable.rsync import RsyncException
 from src.collector.fdsdump import Fdsdump
 from src.collector.interface import CollectorException, CollectorInterface
+from src.common.tool_is_installed import assert_tool_is_installed
 
 
 # pylint: disable=too-many-instance-attributes
@@ -27,8 +35,8 @@ class Ipfixcol2(CollectorInterface):
 
     Attributes
     ----------
-    _host : Host
-        Host class with established connection.
+    _executor : Executor
+        Initialized executor object.
     _cmd : string
         Ipfixcol2 command for startup.
     _process : invoke.runners.Promise
@@ -49,13 +57,15 @@ class Ipfixcol2(CollectorInterface):
     # traverse YYYY/MM/DD directory structure
     FDS_FILE = "*/*/*/*.fds"
 
-    def __init__(self, host, input_plugin="udp", port=4739, verbose=False):  # pylint: disable=super-init-not-called
+    def __init__(
+        self, executor: Executor, input_plugin="udp", port=4739, verbose=False
+    ):  # pylint: disable=super-init-not-called
         """Initialize the collector.
 
         Parameters
         ----------
-        host : Host
-            Host class with established connection.
+        executor : Executor
+            Initialized executor object.
         input_plugin : str, optional
             Input plugin. Only 'udp' and 'tcp' plugins are supported.
         port : int, optional
@@ -71,9 +81,7 @@ class Ipfixcol2(CollectorInterface):
             Ipfixcol2 could not be located.
         """
 
-        if host.run("command -v ipfixcol2", check_rc=False).exited != 0:
-            logging.getLogger().error("ipfixcol2 is missing")
-            raise CollectorException("Unable to locate or execute ipfixcol2 binary")
+        assert_tool_is_installed("ipfixcol2", executor)
 
         if input_plugin not in ("udp", "tcp"):
             raise CollectorException(f"Only 'tcp' and 'udp' input plugins are supported, not '{input_plugin}'")
@@ -90,22 +98,16 @@ class Ipfixcol2(CollectorInterface):
         else:
             self._verbosity = "-v"
 
-        self._host = host
-        self._work_dir = tempfile.mkdtemp()
+        self._executor = executor
+        self._rsync = Rsync(executor)
+        self._work_dir = Path(tempfile.mkdtemp())
 
-        if self._host.is_local():
-            self._conf_dir = self._work_dir
-            self._log_dir = Path(tempfile.mkdtemp())
-        else:
-            self._conf_dir = Path(self._host.get_storage().get_remote_directory())
-            self._log_dir = self._conf_dir
-        self._log_file = Path(self._log_dir, "ipfixcol2.log")
+        self._conf_dir = Path(self._rsync.get_data_directory())
+        self._log_dir = self._conf_dir
 
-        self._cmd = (
-            f"(set -o pipefail; ipfixcol2 {self._verbosity} "
-            f"-c {Path(self._conf_dir, self.CONFIG_FILE)} "
-            f"|& tee -i {self._log_file})"
-        )
+        self._log_file = Path(self._work_dir, "ipfixcol2.log")
+
+        self._cmd = f"ipfixcol2 {self._verbosity} -c {Path(self._conf_dir, self.CONFIG_FILE)}"
         self._process = None
         self._fdsdump = None
         self._input_plugin = input_plugin
@@ -151,7 +153,7 @@ class Ipfixcol2(CollectorInterface):
         List
             Absolute paths to log files.
         """
-        log_files = [Path(self._conf_dir, self.CONFIG_FILE), self._log_file]
+        log_files = [Path(self._conf_dir, self.CONFIG_FILE)]
         if self._verbose:
             log_files.extend([self._log_dir / "json.*"])
         return log_files
@@ -196,12 +198,7 @@ class Ipfixcol2(CollectorInterface):
         outpt_name.text = "FDS output plugin"
         outpt_plugin.text = "fds"
 
-        # Host class replaces local paths with remote paths in command strings,
-        # but paths stored in file must be set for target remote machine
-        if self._host.is_local():
-            outpt_params_storage.text = self._work_dir
-        else:
-            outpt_params_storage.text = self._host.get_storage().get_remote_directory()
+        outpt_params_storage.text = str(self._log_dir)
 
         outpt_params_compression.text = "lz4"
 
@@ -214,11 +211,11 @@ class Ipfixcol2(CollectorInterface):
             self._json_verbosity(output_plugins)
 
         tree = ET.ElementTree(root)
-        tree.write(str(Path(self._work_dir, self.CONFIG_FILE)))
-        if self._host.is_local():
-            tree.write(str(Path(self._log_dir / self.CONFIG_FILE)))
-        else:
-            self._host.get_storage().push(Path(self._work_dir, self.CONFIG_FILE))
+        # with open(Path(self._work_dir, self.CONFIG_FILE), "wb", encoding="ascii") as config_file:
+        config_file = str(Path(self._work_dir, self.CONFIG_FILE))
+        tree.write(config_file)
+
+        self._rsync.push_path(Path(self._work_dir, self.CONFIG_FILE))
 
     def start(self):
         """Start ipfixcol2 process.
@@ -232,17 +229,13 @@ class Ipfixcol2(CollectorInterface):
         if self._process is not None:
             self.stop()
         self._create_xml_config()
-        self._process = self._host.run(self._cmd, asynchronous=True, check_rc=False)
-        time.sleep(1)
+        self._process = Daemon(self._cmd, executor=self._executor)
+        self._process.set_outputs(self._log_file)
 
-        runner = self._process.runner
-        if runner.process_is_finished:
-            res = self._process.join()
-            if res.failed:
-                # If pty is true, stderr is redirected to stdout
-                err = res.stdout if runner.opts["pty"] else res.stderr
-                logging.getLogger().error("ipfixcol2 return code: %d, error: %s", res.return_code, err)
-                raise CollectorException("ipfixcol2 startup error")
+        try:
+            self._process.start()
+        except ExecutableProcessError as err:
+            raise CollectorException("ipfixcol2 startup error") from err
 
     def stop(self):
         """Stop ipfixcol2 process."""
@@ -250,15 +243,13 @@ class Ipfixcol2(CollectorInterface):
         if self._process is None:
             return
 
-        self._host.stop(self._process)
-        res = self._host.wait_until_finished(self._process)
-        runner = self._process.runner
+        stdout, _ = self._process.stop()
 
-        if res.failed:
-            # If pty is true, stderr is redirected to stdout
+        if self._process.returncode() > 0:
+            # stderr is redirected to stdout
             # Since stdout could be filled with normal output, print only last 1 line
-            err = runner.stdout[-1] if runner.opts["pty"] else runner.stderr
-            logging.getLogger().error("ipfixcol2 runtime error: %s, error: %s", res.return_code, err)
+            err = stdout[-1]
+            logging.getLogger().error("ipfixcol2 runtime error: %s, error: %s", self._process.returncode(), err)
             raise CollectorException("ipfixcol2 runtime error")
 
         self._process = None
@@ -271,26 +262,19 @@ class Ipfixcol2(CollectorInterface):
         directory : str
             Path to a local directory where logs should be stored.
         """
-        storage = self._host.get_storage()
 
         for log_file in self._prepare_logs():
-            if self._host.is_local():
-                Path(directory).mkdir(parents=True, exist_ok=True)
-                shutil.copy(log_file, directory)
-            else:
-                try:
-                    storage.pull(log_file, directory)
-                except RuntimeError as err:
-                    logging.getLogger().warning("%s", err)
+            try:
+                self._rsync.pull_path(log_file, directory)
+            except RsyncException as err:
+                logging.getLogger().warning("%s", err)
+        shutil.copy(self._log_file, directory)
 
     def cleanup(self):
         """Delete working directory."""
 
-        if self._host.is_local():
-            shutil.rmtree(self._log_dir, ignore_errors=True)
-        else:
-            self._host.get_storage().remove_all()
-        shutil.rmtree(self._work_dir, ignore_errors=True)
+        self._rsync.wipe_data_directory()
+        Tool(f"rm -rf {self._work_dir}/*").run()
 
     def get_reader(self):
         """Return flow reader fdsdump.
@@ -318,11 +302,6 @@ class Ipfixcol2(CollectorInterface):
             self._fdsdump._stop()
         self._fdsdump = None
 
-        if self._host.is_local():
-            work_dir = self._work_dir
-        else:
-            work_dir = self._host.get_storage().get_remote_directory()
-
-        self._fdsdump = Fdsdump(self._host, str(Path(work_dir, self.FDS_FILE)), work_dir)
+        self._fdsdump = Fdsdump(self._executor, str(Path(self._rsync.get_data_directory(), self.FDS_FILE)))
 
         return self._fdsdump
