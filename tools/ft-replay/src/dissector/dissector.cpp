@@ -10,6 +10,7 @@
 
 #include <converters.h>
 #include <protocol/ethernet.hpp>
+#include <protocol/icmp6.hpp>
 #include <protocol/ipFragmentType.hpp>
 #include <protocol/ipv4.hpp>
 #include <protocol/ipv6.hpp>
@@ -213,6 +214,13 @@ static void ProcessUDP(DissectorCtx& ctx, size_t offset)
 	return ProcessPayloadTypeLayer(ctx, nextOffset, PayloadType::AppData);
 }
 
+static void ProcessICMPv6(DissectorCtx& ctx, size_t offset)
+{
+	AssertBytesAvailable(ctx, offset, ICMPv6::HEADER_SIZE);
+
+	LayerPush(ctx, ProtocolType::ICMPv6, offset);
+}
+
 static void ProcessIPv6HopByHopOption(DissectorCtx& ctx, size_t offset)
 {
 	AssertBytesAvailable(ctx, offset, IPv6HopByHop::HEADER_SIZE_MIN);
@@ -308,6 +316,8 @@ static void ProcessProtocolTypeLayer(DissectorCtx& ctx, size_t offset, ProtocolT
 		return ProcessTCP(ctx, offset);
 	case ProtocolType::UDP:
 		return ProcessUDP(ctx, offset);
+	case ProtocolType::ICMPv6:
+		return ProcessICMPv6(ctx, offset);
 	case ProtocolType::IPv6: // Tunneled IPv6
 		return ProcessIPv6(ctx, offset);
 	case ProtocolType::IPv6Route:
