@@ -140,9 +140,11 @@ void Http::PostPlanFlow(Flow& flow)
 														: HttpPacketKind::ResInitial);
 
 		} else {
-			auto& initParams = GetPacketParams(*initPkt);
-			std::get<uint64_t>(initParams[HttpParams::MessageSize]) += pkt._size - sizeOffset;
-			std::get<uint64_t>(initParams[HttpParams::NumParts]) += 1;
+			if (initPkt) {
+				auto& initParams = GetPacketParams(*initPkt);
+				std::get<uint64_t>(initParams[HttpParams::MessageSize]) += pkt._size - sizeOffset;
+				std::get<uint64_t>(initParams[HttpParams::NumParts]) += 1;
+			}
 
 			params[HttpParams::Kind]
 				= (pkt._direction == Direction::Forward ? HttpPacketKind::ReqContinuation
