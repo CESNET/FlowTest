@@ -23,41 +23,19 @@ static const std::vector<std::string_view> TLDS
 static constexpr int DOMAIN_NAME_MIN_SIZE = 4;
 static constexpr int DOMAIN_NAME_MAX_SIZE = 255;
 
+static constexpr int DNS_MAX_LABEL_SIZE = 63;
+
 DomainNameGenerator& DomainNameGenerator::GetInstance()
 {
 	static DomainNameGenerator instance;
 	return instance;
 }
 
-std::string DomainNameGenerator::Generate(std::size_t length)
+std::string DomainNameGenerator::GenerateName(uint64_t length)
 {
-	// Check minimal and maximal length
-	if (length < DOMAIN_NAME_MIN_SIZE || length > DOMAIN_NAME_MAX_SIZE) {
-		throw std::logic_error(
-			"domain length must be between " + std::to_string(DOMAIN_NAME_MIN_SIZE) + " and "
-			+ std::to_string(DOMAIN_NAME_MAX_SIZE) + " inclusive");
-	}
-
-	// Special case for the minimum size to simplify the process further
-	if (length == DOMAIN_NAME_MIN_SIZE) {
-		// Technically ineffective, but it shouldn't matter here
-		std::vector<std::string_view> eligibleTlds;
-		for (const auto& tld : TLDS) {
-			if (tld.size() <= DOMAIN_NAME_MIN_SIZE - 1) {
-				eligibleTlds.push_back(tld);
-			}
-		}
-		return _rng.RandomChoice(LOWERCASE_LETTERS) + std::string(_rng.RandomChoice(eligibleTlds));
-	}
-
-	std::size_t lengthSoFar = 0;
-
-	// Choose random TLD
-	std::string_view tld = _rng.RandomChoice(TLDS);
-	lengthSoFar += tld.size();
-
 	// Choose random words to make up the domain name
 	std::vector<std::string_view> words;
+	uint64_t lengthSoFar = 0;
 
 	while (lengthSoFar < length) {
 		std::size_t maxNextWordLen = length - lengthSoFar;
@@ -101,8 +79,53 @@ std::string DomainNameGenerator::Generate(std::size_t length)
 		lengthSoFar += 1;
 	}
 
-	// Finally add the TLD
-	domain += tld;
+	return domain;
+}
+
+std::string DomainNameGenerator::Generate(std::size_t length)
+{
+	// Check minimal and maximal length
+	if (length < DOMAIN_NAME_MIN_SIZE || length > DOMAIN_NAME_MAX_SIZE) {
+		throw std::logic_error(
+			"domain length must be between " + std::to_string(DOMAIN_NAME_MIN_SIZE) + " and "
+			+ std::to_string(DOMAIN_NAME_MAX_SIZE) + " inclusive");
+	}
+
+	// Special case for the minimum size to simplify the process further
+	if (length == DOMAIN_NAME_MIN_SIZE) {
+		// Technically ineffective, but it shouldn't matter here
+		std::vector<std::string_view> eligibleTlds;
+		for (const auto& tld : TLDS) {
+			if (tld.size() <= DOMAIN_NAME_MIN_SIZE - 1) {
+				eligibleTlds.push_back(tld);
+			}
+		}
+		return _rng.RandomChoice(LOWERCASE_LETTERS) + std::string(_rng.RandomChoice(eligibleTlds));
+	}
+
+	// Choose random TLD
+	std::string_view tld = _rng.RandomChoice(TLDS);
+
+	std::string domain;
+	domain.reserve(length);
+	domain = tld;
+
+	while (domain.size() < length) {
+		auto remaining = length - domain.size();
+
+		if (remaining <= DNS_MAX_LABEL_SIZE) {
+			domain.insert(0, GenerateName(remaining));
+
+		} else if (remaining == DNS_MAX_LABEL_SIZE + 1) {
+			// So we are not left with 0 remaining bytes and a dot at the start
+			std::string tmp = '.' + GenerateName(DNS_MAX_LABEL_SIZE - 1);
+			domain.insert(0, tmp);
+
+		} else {
+			std::string tmp = '.' + GenerateName(DNS_MAX_LABEL_SIZE);
+			domain.insert(0, tmp);
+		}
+	}
 
 	return domain;
 }

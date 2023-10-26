@@ -205,4 +205,16 @@ void IPv6::PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& pl
 	}
 }
 
+size_t IPv6::SizeUpToIpLayer(Packet& packet) const
+{
+	const auto& params = GetPacketParams(packet);
+	size_t offset = IPV6_BASE_HDR_SIZE;
+
+	if (params.find(int(IPv6Map::FragmentCount)) != params.end() || packet._isExtra) {
+		offset += IPV6_FRAG_HDR_SIZE;
+	}
+
+	return offset;
+}
+
 } // namespace generator

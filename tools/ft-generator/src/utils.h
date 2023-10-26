@@ -6,9 +6,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <cstdint>
 #include <iomanip>
 #include <limits>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -97,6 +99,30 @@ template <typename T>
 static constexpr size_t LengthOf(const T& str)
 {
 	return std::string_view(str).size();
+}
+
+/**
+ * @brief Numeric cast with bounds checking
+ *
+ * @throws std::overflow_error if the conversion would result in an overflow/underflow
+ */
+template <typename Target, typename Source>
+static std::enable_if_t<std::is_integral_v<Source> && std::is_integral_v<Target>, Target>
+SafeCast(Source value)
+{
+	static_assert(
+		sizeof(Source) <= sizeof(std::uintmax_t) && sizeof(Target) <= sizeof(std::uintmax_t));
+
+	bool wouldUnderflow
+		= value < 0 && std::uintmax_t(-value) > std::uintmax_t(-std::numeric_limits<Target>::min());
+	bool wouldOverflow
+		= value > 0 && std::uintmax_t(value) > std::uintmax_t(std::numeric_limits<Target>::max());
+
+	if (wouldUnderflow || wouldOverflow) {
+		throw std::overflow_error("type conversion would underflow/overflow");
+	}
+
+	return static_cast<Target>(value);
 }
 
 } // namespace generator

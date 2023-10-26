@@ -1,4 +1,5 @@
 set(FT_GENERATOR_SOURCES
+	buffer.cpp
 	calendar.cpp
 	config/commandlineargs.cpp
 	config/common.cpp
@@ -22,6 +23,8 @@ set(FT_GENERATOR_SOURCES
 	generators/multirangegenerator.cpp
 	generators/prefixedgenerator.cpp
 	layer.cpp
+	layers/dns.cpp
+	layers/dnsbuilder.cpp
 	layers/ethernet.cpp
 	layers/http.cpp
 	layers/httpbuilder.cpp
@@ -73,6 +76,7 @@ set(FT_GENERATOR_TEST_SOURCES
 	tests/macaddressgenerator.cpp
 	tests/packetsizegenerator.cpp
 	tests/timestampgenerator.cpp
+	tests/randomgenerator.cpp
 )
 
 add_executable(ft-generator-test ${FT_GENERATOR_SOURCES} ${FT_GENERATOR_TEST_SOURCES} tests/main.cpp)

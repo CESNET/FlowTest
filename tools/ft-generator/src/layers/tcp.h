@@ -21,21 +21,46 @@ class FlowPlanHelper;
 
 /**
  * @brief A representation of a TCP layer.
- *
  */
 class Tcp : public Layer {
 public:
 	/**
-	 * @brief Construct a new Tcp object
+	 * @brief Construct a new TCP layer object
 	 *
 	 * @param portSrc Source port
 	 * @param portDst Destination port
 	 */
 	Tcp(uint16_t portSrc, uint16_t portDst);
 
+	/**
+	 * @brief Plan TCP layer
+	 *
+	 * @param flow Flow to plan.
+	 */
 	void PlanFlow(Flow& flow) override;
 
+	/**
+	 * @brief Build TCP layer for packet
+	 *
+	 * @param packet Packet to build.
+	 * @param params Layers parameters
+	 * @param plan   Packet plan.
+	 */
 	void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
+
+	/**
+	 * @brief Size from the beginning of the IP layer.
+	 *
+	 * Represents the number of bytes occupied by this layer and possibly all
+	 * previous layers up to and including the beginning of the IP layer. In other
+	 * words, the value also represents the offset of the end of this layer from
+	 * the beginning of the IP layer.
+	 *
+	 * @param packet The packet
+	 *
+	 * @return The offset
+	 */
+	size_t SizeUpToIpLayer(Packet& packet) const override;
 
 private:
 	uint32_t _ackNumber = 0;

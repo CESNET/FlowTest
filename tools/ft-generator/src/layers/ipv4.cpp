@@ -176,4 +176,10 @@ void IPv4::PostBuild(PcppPacket& packet, Packet::layerParams& params, Packet& pl
 	}
 }
 
+size_t IPv4::SizeUpToIpLayer(Packet& packet) const
+{
+	(void) packet;
+	return IPV4_HDR_SIZE;
+}
+
 } // namespace generator

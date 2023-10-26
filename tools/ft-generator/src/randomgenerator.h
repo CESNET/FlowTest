@@ -11,8 +11,10 @@
 #include "randomgeneratorengine.h"
 
 #include <cstdint>
+#include <optional>
 #include <stdexcept>
 #include <string_view>
+#include <vector>
 
 namespace generator {
 
@@ -31,6 +33,13 @@ inline constexpr std::string_view ALPHANUMERIC_CHARS
  */
 class RandomGenerator {
 public:
+	/**
+	 * Initialize the Random Generator instance
+	 *
+	 * @param seed The random generation seed
+	 */
+	static void InitInstance(std::optional<uint64_t> seed = std::nullopt);
+
 	/**
 	 * @brief Get the Random Generator instance
 	 *
@@ -97,6 +106,34 @@ public:
 	 */
 	std::string RandomString(std::size_t length, std::string_view charset = ALPHANUMERIC_CHARS);
 
+	/**
+	 * @brief Generate a random sequence of bytes
+	 *
+	 * @param length  Number of bytes to generate
+	 * @return Random bytes
+	 */
+	std::vector<uint8_t> RandomBytes(std::size_t length);
+
+	/**
+	 * @brief Randomly shuffle a container
+	 *
+	 * @param values  The values to shuffle
+	 */
+	template <typename T>
+	void Shuffle(T& values);
+
+	/**
+	 * @brief Randomly distribute N values such that they sum up to a certain amount
+	 *
+	 * @param amount  The total amount to sum to
+	 * @param numValues  Number of values to generate
+	 * @param min  The minimum of a single value
+	 * @param max  The maximum of a single value
+	 * @return The randomly distributed values
+	 */
+	std::vector<uint64_t>
+	RandomlyDistribute(uint64_t amount, std::size_t numValues, uint64_t min, uint64_t max);
+
 private:
 	Xoshiro256PlusPlusGenerator _engine;
 
@@ -123,6 +160,20 @@ const auto& RandomGenerator::RandomChoice(const T& values)
 		throw std::logic_error("cannot randomly choose from empty values");
 	}
 	return values[RandomUInt(0, values.size() - 1)];
+}
+
+template <typename T>
+void RandomGenerator::Shuffle(T& values)
+{
+	if (values.size() <= 1) {
+		return;
+	}
+
+	// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+	for (std::size_t i = values.size() - 1; i >= 1; i--) {
+		std::size_t j = RandomUInt(0, i);
+		std::swap(values[i], values[j]);
+	}
 }
 
 } // namespace generator
