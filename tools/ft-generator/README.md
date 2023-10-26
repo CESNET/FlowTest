@@ -12,6 +12,7 @@ The generator supports the generation of flow packets with the following protoco
 * L2: VLAN, MPLS
 * L3: IPv4, IPv6
 * L4: TCP, UDP, ICMP, ICMPv6
+* L7: HTTP, DNS
 
 Other protocols are not currently supported. If the input profile file contains
 unsupported protocols, the unsupported entries can be skipped (see [Usage](#usage)).
@@ -24,6 +25,7 @@ unsupported protocols, the unsupported entries can be skipped (see [Usage](#usag
 * [Usage](#usage)
 * [Configuration](#configuration)
 * [Example Configuration](#example-configuration)
+* [Specifics of Generated Traffic](#specifics-of-generated-traffic)
 
 ## Input Format
 
@@ -169,6 +171,14 @@ packet_size_probabilities:
   1280-1500: 0.6119
 ```
 
+### Payload
+
+Specifies options for payload generation
+
+* `enabled_protocols` - A list of protocols for which valid protocol traffic
+  will be generated. Possible options: `http`, `dns` _(default = all supported
+  protocols)_
+
 ### Additional options
 
 Additionaly, the following options can be specified in the top level configuration section:
@@ -216,6 +226,9 @@ packet_size_probabilities:
   1280-1500: 0.6119
 
 max_flow_inter_packet_gap: 30
+
+payload:
+    enabled_protocols: [http]
 ```
 
 Explanation:
@@ -245,3 +258,72 @@ inclusive is 28.24%, between 80 and 159 inclusive 7.3%, etc..
 The max flow inter packet gap option specifies the maximum number of seconds two
 consecutive packets in a flow can be apart. In this case, no two packets in a
 flow will be more than 30 seconds apart.
+
+The payload section specifies options of payload generation, or in other words,
+the application level layers. The `enabled_protocols` option allows us to
+enable and disable individual payload generators. If a payload generator is
+disabled, random data is generated instead. In this case, we enable the
+generation of HTTP payload for flows that are considered HTTP traffic (i.e. TCP
+and port 80 or 8080).
+
+## Specifics of Generated Traffic
+
+This section describes the traffic generated for the supported L7 protocols.
+
+For protocols that are not in the list of supported protocols above, or in case
+the protocol has been disabled in the payload section of the configuration, a
+random payload is generated instead.
+
+### HTTP
+
+HTTP traffic is generated for flows using port 80 or 8080 over TCP.
+
+Generated HTTP traffic consists of HTTP/1.1 messages using the GET and POST
+methods. The method and headers are selected based on heursitics to best fit
+the characteristic of the flow. The body of the HTTP message is randomly
+generated.
+
+The following headers are supported:
+ - Accept
+ - Accept-Encoding
+ - Cache-Control
+ - Connection
+ - Content-Length
+ - Content-Type
+ - Cookie
+ - Host
+ - Server
+ - User-Agent
+
+Whether a specific optional header is present in the HTTP message is determined
+by random chance and packet size. Header values are typically randomly chosen
+from a pool of commonly used values. In case of the `Host` header, a
+human-readable domain name is generated consisting of English nouns. In case of
+the `Cookie` header, a random string of alphanumeric characters is generated.
+
+### DNS
+
+DNS traffic is generated for flows using port 53 over UDP.
+
+The queried domain is randomly generated from a list of English nouns ensuring
+human readability. The record type of the query and response is chosen using a
+heuristic approach based on size of the packets. A response may contain
+multiple resource records where applicable. Domain name compression may also be
+used if deemed viable by the heuristics. EDNS is automatically used when
+required according to the standard, i.e. for packet sizes larger than 512
+bytes.
+
+The following record types are supported:
+ - A
+ - AAAA
+ - CNAME
+ - TXT
+
+_Note:_ As the size of a DNS response depends on the size of a DNS query,
+it is not possible to generate valid DNS traffic for all possible combinations
+of packet sizes. In such cases, random payload will be generated instead. This
+prioritizes generating traffic that is more accurate to the specified profile
+over always generating application level payload corresponding to the specified
+port, as even in actual traffic the usage of a certain port does not guarantee
+usage of the specific protocol.
+
