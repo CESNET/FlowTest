@@ -51,6 +51,7 @@ static LayerNumber ProtocolType2Number(ProtocolType type)
 		return LayerNumber::L3;
 	case ProtocolType::TCP:
 	case ProtocolType::UDP:
+	case ProtocolType::ICMPv6:
 		return LayerNumber::L4;
 	case ProtocolType::Unknown:
 		// Consider the "worst" case as there is no other detected layer after this one.

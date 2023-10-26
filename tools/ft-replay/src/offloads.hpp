@@ -19,6 +19,7 @@ struct ChecksumOffloads {
 	bool checksumIPv4; ///< Flag for IPv4 checksum offload support.
 	bool checksumTCP; ///< Flag for TCP checksum offload support.
 	bool checksumUDP; ///< Flag for UDP checksum offload support.
+	bool checksumICMPv6; ///< Flag for ICMPv6 checksum offload support.
 };
 
 /**
@@ -38,9 +39,10 @@ enum class Offload {
 	CHECKSUM_IPV4 = 0x1, ///< Support IPv4 checksum offload.
 	CHECKSUM_UDP = 0x2, ///< Support UDP checksum offload.
 	CHECKSUM_TCP = 0x4, ///< Support TCP checksum offload.
-	RATE_LIMIT_PACKETS = 0x8, ///< Support rate limiting based on packets.
-	RATE_LIMIT_BYTES = 0x10, ///< Support rate limiting based on bytes.
-	RATE_LIMIT_TIME = 0x20 ///< Support rate limiting based on time intervals.
+	CHECKSUM_ICMPV6 = 0x8, ///< Support ICMPv6 checksum offload.
+	RATE_LIMIT_PACKETS = 0x10, ///< Support rate limiting based on packets.
+	RATE_LIMIT_BYTES = 0x20, ///< Support rate limiting based on bytes.
+	RATE_LIMIT_TIME = 0x30 ///< Support rate limiting based on time intervals.
 };
 
 /**

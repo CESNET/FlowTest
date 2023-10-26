@@ -24,6 +24,7 @@ enum class ProtocolType : uint8_t {
 	IPv6 = 41, /**< IPv6 encapsulation */
 	IPv6Route = 43, /**< Routing Header for IPv6 */
 	IPv6Frag = 44, /**< Fragment Header for IPv6 */
+	ICMPv6 = 58, /**< Internet Control Message Protocol for IPv6 */
 	IPv6NoNext = 59, /**< No Next Header for IPv6 */
 	IPv6Dest = 60, /**< Destination Options for IPv6 */
 

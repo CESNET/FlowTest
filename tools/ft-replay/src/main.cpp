@@ -75,6 +75,7 @@ Offloads ConfigureHwOffloads(
 	hwOffloadRequests.checksumOffloads.checksumIPv4 = true;
 	hwOffloadRequests.checksumOffloads.checksumTCP = true;
 	hwOffloadRequests.checksumOffloads.checksumUDP = true;
+	hwOffloadRequests.checksumOffloads.checksumICMPv6 = true;
 	hwOffloadRequests.rateLimit = rateLimit;
 
 	return outputPlugin->ConfigureOffloads(hwOffloadRequests);
@@ -119,6 +120,10 @@ GetRequestedSwOffloads(const Config::RateLimit& rateLimit, Offloads configuredHw
 		swOffloadRequests.checksumOffloads.checksumUDP = true;
 	}
 
+	if (!(configuredHwOffloads & Offload::CHECKSUM_ICMPV6)) {
+		swOffloadRequests.checksumOffloads.checksumICMPv6 = true;
+	}
+
 	return swOffloadRequests;
 }
 
@@ -147,7 +152,11 @@ void PrintConfiguredHwOffloads(const Offloads& configuredHwOffloads)
 	}
 
 	if (configuredHwOffloads & Offload::CHECKSUM_UDP) {
-		enabledOffloads += "UDP checksum";
+		enabledOffloads += "UDP checksum, ";
+	}
+
+	if (configuredHwOffloads & Offload::CHECKSUM_ICMPV6) {
+		enabledOffloads += "ICMPv6 checksum";
 	}
 
 	// remove unwanted ", " at the end of the string
