@@ -153,6 +153,8 @@ static L4Type LayerToL4Protocol(LayerType type)
 		return L4Type::TCP;
 	case ProtocolType::UDP:
 		return L4Type::UDP;
+	case ProtocolType::ICMPv6:
+		return L4Type::ICMPv6;
 	default:
 		return L4Type::Other;
 	}

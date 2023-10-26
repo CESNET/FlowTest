@@ -28,6 +28,7 @@ enum class L3Type {
 enum class L4Type {
 	TCP,
 	UDP,
+	ICMPv6,
 	Other,
 	NotFound,
 };
