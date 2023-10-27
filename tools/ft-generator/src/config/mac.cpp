@@ -10,6 +10,8 @@
 #include "../utils.h"
 #include "common.h"
 
+#include <algorithm>
+
 namespace generator {
 namespace config {
 
@@ -52,7 +54,26 @@ Mac::Mac(const YAML::Node& node)
 		{
 			"mac_range",
 		});
+
 	_macRange = ParseOneOrMany<MacAddressRange>(node["mac_range"]);
+
+	bool allAddrsExact = std::all_of(_macRange.begin(), _macRange.end(), [](const auto& range) {
+		return range.GetPrefixLen() == 48;
+	});
+
+	if (allAddrsExact) {
+		int uniqueExactAddrs = 0;
+
+		for (auto it = _macRange.begin(); it != _macRange.end(); it++) {
+			if (std::find(std::next(it), _macRange.end(), *it) == _macRange.end()) {
+				uniqueExactAddrs++;
+			}
+		}
+
+		if (uniqueExactAddrs < 2) {
+			throw ConfigError(node, "at least 2 unique mac addresses are required");
+		}
+	}
 }
 
 } // namespace config
