@@ -7,6 +7,7 @@
  */
 
 #include "prefixedgenerator.h"
+#include "../utils.h"
 
 #include <stdexcept>
 
@@ -29,11 +30,7 @@ std::vector<uint8_t> PrefixedGenerator::Generate()
 	const std::vector<bool>& state = _lfsr.GetState();
 	auto it = state.begin();
 	for (unsigned int n = _prefixLen; n < _totalLen && it != state.end(); n++, it++) {
-		bool bit = *it;
-		unsigned int byteIdx = n / 8;
-		unsigned int bitIdx = 7 - (n % 8);
-		result[byteIdx] &= ~(uint8_t(1) << bitIdx);
-		result[byteIdx] |= uint8_t(bit) << bitIdx;
+		SetBit(n, *it, result.data());
 	}
 	_lfsr.Next();
 	return result;
