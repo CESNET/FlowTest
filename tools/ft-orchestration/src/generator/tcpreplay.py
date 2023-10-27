@@ -73,7 +73,7 @@ class TcpReplay(PcapPlayer):
         self._mtu = mtu
         self._process = None
 
-        self._ft_generator = FtGenerator(host, cache_path, biflow_export)
+        self._ft_generator = FtGenerator(host, cache_path, biflow_export, verbose)
 
         self._bin = "tcpreplay"
         if host.run(f"command -v {self._bin}", check_rc=False).exited != 0:
