@@ -61,7 +61,6 @@ enum HttpPacketKind : uint64_t {
 enum HttpParams : int {
 	Kind, //< The HttpPacketKind of the packet
 	MessageSize, //< The size of the whole HTTP message
-	LayerStartOffset, //< The offset of the HTTP layer from the start of the packet
 	NumParts //< Number of packets the HTTP message is split to
 };
 } // namespace
@@ -77,7 +76,6 @@ void Http::PlanFlow(Flow& flow)
 		Packet* pkt = planner.NextPacket();
 
 		Packet::layerParams params;
-		params[HttpParams::LayerStartOffset] = pkt->_size;
 		pkt->_layers.emplace_back(this, params);
 
 		/**
@@ -126,7 +124,7 @@ void Http::PostPlanFlow(Flow& flow)
 		}
 
 		auto& params = GetPacketParams(pkt);
-		auto sizeOffset = std::get<uint64_t>(params[HttpParams::LayerStartOffset]);
+		auto sizeOffset = GetPrevLayer()->SizeUpToIpLayer(pkt);
 
 		assert(sizeOffset <= pkt._size);
 		assert(pkt._direction == Direction::Forward || pkt._direction == Direction::Reverse);
@@ -142,9 +140,11 @@ void Http::PostPlanFlow(Flow& flow)
 														: HttpPacketKind::ResInitial);
 
 		} else {
-			auto& initParams = GetPacketParams(*initPkt);
-			std::get<uint64_t>(initParams[HttpParams::MessageSize]) += pkt._size - sizeOffset;
-			std::get<uint64_t>(initParams[HttpParams::NumParts]) += 1;
+			if (initPkt) {
+				auto& initParams = GetPacketParams(*initPkt);
+				std::get<uint64_t>(initParams[HttpParams::MessageSize]) += pkt._size - sizeOffset;
+				std::get<uint64_t>(initParams[HttpParams::NumParts]) += 1;
+			}
 
 			params[HttpParams::Kind]
 				= (pkt._direction == Direction::Forward ? HttpPacketKind::ReqContinuation
