@@ -7,6 +7,7 @@
  */
 
 #include "mac.h"
+#include "../utils.h"
 #include "common.h"
 
 namespace generator {
@@ -29,6 +30,19 @@ MacAddressRange::MacAddressRange(const YAML::Node& node)
 	if (!_baseAddr.isValid()) {
 		throw ConfigError(node, "invalid mac range address");
 	}
+
+	// Zero out the non-prefix bits
+	uint8_t bytes[6];
+	_baseAddr.copyTo(bytes);
+	for (uint8_t i = _prefixLen; i < 48; i++) {
+		SetBit(i, 0, bytes);
+	}
+	_baseAddr = pcpp::MacAddress(bytes);
+}
+
+bool MacAddressRange::operator==(const MacAddressRange& other) const
+{
+	return _baseAddr == other._baseAddr && _prefixLen == other._prefixLen;
 }
 
 Mac::Mac(const YAML::Node& node)
