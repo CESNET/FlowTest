@@ -435,7 +435,9 @@ class FtGenerator:
         "BYTES",
     ]
 
-    def __init__(self, host: Host, cache_dir: Optional[str] = None, biflow_export: bool = False) -> None:
+    def __init__(
+        self, host: Host, cache_dir: Optional[str] = None, biflow_export: bool = False, verbose: bool = False
+    ) -> None:
         """Init ft-generator connector.
 
         Parameters
@@ -448,6 +450,8 @@ class FtGenerator:
             Flag indicating whether the tested probe exports biflows.
             If the probe exports biflows, the START_TIME resp. END_TIME in the generator
             report contains min(START_TIME,START_TIME_REV) resp. max(END_TIME,END_TIME_REV).
+        verbose : bool, optional
+            If True, logs will collect all debug messages.
 
         Raises
         ------
@@ -459,6 +463,7 @@ class FtGenerator:
         self._bin = "ft-generator"
         self._local_workdir = tempfile.mkdtemp()
         self._biflow_export = biflow_export
+        self._verbose = verbose
 
         if host.run(f"command -v {self._bin}", check_rc=False).exited != 0:
             logging.getLogger().error("%s is missing on host %s", self._bin, host.get_host())
@@ -519,8 +524,13 @@ class FtGenerator:
 
         pcap_path, csv_path = self._cache.generate_unique_paths(Path(profile_path).stem)
 
+        if self._verbose:
+            verbosity = "-vvvv"
+        else:
+            verbosity = "-v"
+
         # always skip unknown L4 protocols (option --skip-unknown)
-        cmd = f"{self._bin} -p {profile_path} -o {pcap_path} -r {csv_path} {config_arg} --skip-unknown -v"
+        cmd = f"{self._bin} -p {profile_path} -o {pcap_path} -r {csv_path} {config_arg} --skip-unknown {verbosity}"
         if log_file:
             cmd = f"(set -o pipefail; {cmd} |& tee -i {log_file})"
 
