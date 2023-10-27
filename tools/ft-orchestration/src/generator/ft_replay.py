@@ -222,7 +222,7 @@ class FtReplay(Replicator):
         self._work_dir = tempfile.mkdtemp()
         self._config_file = path.join(self._work_dir, "config.yaml")
 
-        self._ft_generator = FtGenerator(host, cache_path, biflow_export)
+        self._ft_generator = FtGenerator(host, cache_path, biflow_export, verbose)
 
         res = host.run("command -v ft-replay", check_rc=False)
         if res.exited != 0:
@@ -550,6 +550,9 @@ class FtReplay(Replicator):
                     self._host.get_storage().pull(file, directory)
                 except RuntimeError as err:
                     logging.getLogger().warning("%s", err)
+
+        if self._verbose:
+            shutil.copy(self._config_file, directory)
 
     def stats(self) -> GeneratorStats:
         """Get stats of last generator run.
