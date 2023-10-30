@@ -14,6 +14,7 @@ BuildRequires: cmake >= 3.12
 BuildRequires: libpcap-devel
 BuildRequires: libbpf-devel
 BuildRequires: glpk-devel
+BuildRequires: openssl-devel
 %if 0%{?rhel} > 8
 BuildRequires: libxdp-devel
 %endif
@@ -21,6 +22,7 @@ BuildRequires: libxdp-devel
 Requires: libpcap
 Requires: libbpf
 Requires: glpk
+Requires: openssl
 %if 0%{?rhel} > 8
 Requires: libxdp
 %endif
