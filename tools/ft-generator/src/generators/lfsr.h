@@ -43,6 +43,8 @@ public:
 
 private:
 	std::vector<int> _taps; //< The tap mask used for calculation of the next bit
+	std::vector<bool> _zeroState; //< State of all zeros
+	std::vector<bool> _initState; //< The initial shift register state
 	std::vector<bool> _state; //< The shift register state
 };
 

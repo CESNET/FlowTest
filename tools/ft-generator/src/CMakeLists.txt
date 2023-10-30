@@ -54,6 +54,7 @@ set(FT_GENERATOR_SOURCES
 	timestampgenerator.cpp
 	timeval.cpp
 	trafficmeter.cpp
+	utils.cpp
 )
 
 set(FT_GENERATOR_LIBS

@@ -125,4 +125,13 @@ SafeCast(Source value)
 	return static_cast<Target>(value);
 }
 
+/**
+ * @brief Set a single bit of a byte array to a value
+ *
+ * @param position The index of the bit (0 is the MSB of the first byte in the byte array)
+ * @param bitValue The desired value
+ * @param bytes The byte array
+ */
+void SetBit(unsigned int position, bool bitValue, uint8_t* bytes);
+
 } // namespace generator

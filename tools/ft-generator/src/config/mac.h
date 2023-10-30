@@ -50,6 +50,14 @@ public:
 	 */
 	uint8_t GetPrefixLen() const { return _prefixLen; };
 
+	/**
+	 * @brief Compare the mac address range for equality
+	 *
+	 * @param other The other range
+	 * @return true if the ranges match, else false
+	 */
+	bool operator==(const MacAddressRange& other) const;
+
 private:
 	pcpp::MacAddress _baseAddr {pcpp::MacAddress::Zero};
 	uint8_t _prefixLen;

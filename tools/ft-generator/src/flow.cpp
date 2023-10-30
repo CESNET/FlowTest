@@ -44,6 +44,7 @@
 #include <numeric>
 #include <random>
 #include <stdexcept>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -79,6 +80,18 @@ ChooseEncaps(const std::vector<config::EncapsulationVariant>& variants)
 	return {};
 }
 
+static std::pair<MacAddress, MacAddress> GenerateMacPair(AddressGenerators& addressGenerators)
+{
+	MacAddress macSrc = addressGenerators.GenerateMac();
+	MacAddress macDst = addressGenerators.GenerateMac();
+	while (macSrc == macDst) {
+		// Configuration checks that there are at least 2 unique mac addresses,
+		// so this should always terminate
+		macDst = addressGenerators.GenerateMac();
+	}
+	return {macSrc, macDst};
+}
+
 Flow::Flow(
 	uint64_t id,
 	const FlowProfile& profile,
@@ -94,8 +107,7 @@ Flow::Flow(
 	, _id(id)
 	, _config(config)
 {
-	MacAddress macSrc = addressGenerators.GenerateMac();
-	MacAddress macDst = addressGenerators.GenerateMac();
+	auto [macSrc, macDst] = GenerateMacPair(addressGenerators);
 	AddLayer(std::make_unique<Ethernet>(macSrc, macDst));
 
 	const auto& encapsLayers = ChooseEncaps(config.GetEncapsulation().GetVariants());

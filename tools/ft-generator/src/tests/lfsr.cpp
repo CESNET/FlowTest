@@ -24,7 +24,7 @@ TEST_CASE("0 bit LFSR is valid and should have empty state vector")
 	CHECK(lfsr.GetState().empty());
 }
 
-TEST_CASE("period of LFSR of N bits should be 2^N - 1")
+TEST_CASE("period of LFSR of N bits should be 2^N")
 {
 	// Check periods of up to 20 bits. Higher lengths are too infeasible to test.
 	for (int i = 1; i <= 20; i++) {
@@ -47,7 +47,7 @@ TEST_CASE("period of LFSR of N bits should be 2^N - 1")
 			lfsr.Next();
 		}
 
-		CHECK(values.size() == (1 << nBits) - 1);
+		CHECK(values.size() == (1 << nBits));
 	}
 }
 
