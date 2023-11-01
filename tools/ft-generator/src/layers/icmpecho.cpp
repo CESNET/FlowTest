@@ -39,28 +39,25 @@ void IcmpEcho::PlanFlow(Flow& flow)
 	uint64_t revPkts = 0;
 
 	// Plan the directions and the headers
-	while (planner.PktsRemaining()) {
+	while (planner.PktsRemaining() > 0) {
+		if (planner.PktsRemaining(dir) == 0) {
+			dir = SwapDirection(dir);
+			assert(planner.PktsRemaining(dir) > 0);
+		}
+
 		pkt = planner.NextPacket();
-		Packet::layerParams params;
 
 		if (dir == Direction::Forward) {
-			pkt->_direction = Direction::Forward;
 			fwdPkts++;
 		} else if (dir == Direction::Reverse) {
-			pkt->_direction = Direction::Reverse;
 			revPkts++;
 		}
-		pkt->_layers.emplace_back(this, params);
+		pkt->_direction = dir;
+		pkt->_layers.emplace_back(this, Packet::layerParams {});
 		pkt->_size += sizeof(pcpp::icmp_echo_hdr);
 		planner.IncludePkt(pkt);
 
-		if (planner.FwdPktsRemaining() == 0) {
-			dir = Direction::Reverse;
-		} else if (planner.RevPktsRemaining() == 0) {
-			dir = Direction::Forward;
-		} else {
-			dir = dir == Direction::Forward ? Direction::Reverse : Direction::Forward;
-		}
+		dir = SwapDirection(dir);
 	}
 
 	uint64_t fwdRemBpp = fwdPkts > 0 ? planner.FwdBytesRemaining() / fwdPkts : 0;
