@@ -1,3 +1,6 @@
+# Enable build with support for NFB FPGA cards
+%bcond_with nfb
+
 Name:          flowtest
 Version:       @VERSION@
 Release:       @RELEASE@%{?dist}
@@ -25,6 +28,11 @@ Requires: glpk
 Requires: libxdp
 %endif
 
+%if %{with nfb}
+BuildRequires: nfb-framework
+Requires: nfb-framework
+%endif
+
 # Make sure that build is always performed out-of-source
 %undefine __cmake_in_source_build
 
@@ -36,7 +44,7 @@ that make up the main components of the test environment.
 %autosetup
 
 %build
-%cmake -DCMAKE_BUILD_TYPE=Release
+%cmake -DCMAKE_BUILD_TYPE=Release %{?with_nfb:-DENABLE_NFB=ON}
 %cmake_build
 
 %install
