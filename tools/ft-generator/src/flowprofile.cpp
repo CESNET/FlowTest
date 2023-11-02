@@ -322,6 +322,17 @@ std::optional<FlowProfile> FlowProfileReader::ParseProfile(const std::string& li
 		ThrowParseError(line, "bad START_TIME > END_TIME");
 	}
 
+	if ((profile._l4Proto == L4Protocol::Icmp || profile._l4Proto == L4Protocol::Icmpv6)
+		&& (profile._srcPort != 0 || profile._dstPort != 0)) {
+		_logger->warn(
+			"Ignoring non-zero port number in profile because L4 protocol is {} ({}:{}))",
+			L4ProtocolToString(profile._l4Proto),
+			_filename,
+			_lineNum);
+		profile._srcPort = 0;
+		profile._dstPort = 0;
+	}
+
 	profile._fileLineNum = _lineNum;
 
 	return profile;
