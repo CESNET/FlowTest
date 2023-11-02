@@ -21,17 +21,17 @@ extern "C" {
 
 namespace replay {
 
-void SuperPacketHeader::clear() noexcept
+void SuperPacketHeader::Clear() noexcept
 {
 	std::memset(this, 0, sizeof(*this));
 }
 
-void SuperPacketHeader::setLength(uint16_t length) noexcept
+void SuperPacketHeader::SetLength(uint16_t length) noexcept
 {
 	_length = htole16(length);
 }
 
-void SuperPacketHeader::setHasNextHeader(bool value) noexcept
+void SuperPacketHeader::SetHasNextHeader(bool value) noexcept
 {
 	_hasNextHeader = !!value;
 }
@@ -94,11 +94,11 @@ void NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 
 void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 {
-	static constexpr size_t minPacketSize = 64;
+	static constexpr size_t MinPacketSize = 64;
 
 	for (unsigned i = 0; i < burstSize; i++) {
-		if (burst[i]._len < minPacketSize) {
-			_txPacket[i].data_length = minPacketSize;
+		if (burst[i]._len < MinPacketSize) {
+			_txPacket[i].data_length = MinPacketSize;
 			_outputQueueStats.upscaledPackets++;
 		} else {
 			_txPacket[i].data_length = burst[i]._len;
@@ -123,15 +123,15 @@ void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 
 void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 {
-	static constexpr size_t headerLen = sizeof(SuperPacketHeader);
-	static constexpr size_t minPacketSize = 64;
+	static constexpr size_t HeaderLen = sizeof(SuperPacketHeader);
+	static constexpr size_t MinPacketSize = 64;
 
 	// fill _txPacket data_len
 	unsigned txSuperPacketIndex = 0;
 	size_t txSuperPacketCount = 0;
 	_txPacket[0].data_length = 0;
 	for (unsigned i = 0; i < burstSize; i++) {
-		size_t nextSize = headerLen + std::max(burst[i]._len, minPacketSize);
+		size_t nextSize = HeaderLen + std::max(burst[i]._len, MinPacketSize);
 		nextSize = AlignBlockSize(nextSize);
 
 		if (_txPacket[txSuperPacketIndex].data_length + nextSize <= _superPacketSize
@@ -151,9 +151,9 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 	txSuperPacketIndex = 0;
 	unsigned i, pos = 0;
 	for (i = 0; i < burstSize; i++) {
-		size_t pktLen = std::max(burst[i]._len, minPacketSize);
+		size_t pktLen = std::max(burst[i]._len, MinPacketSize);
 		_lastBurstTotalPacketLen += pktLen;
-		size_t nextSize = headerLen + pktLen;
+		size_t nextSize = HeaderLen + pktLen;
 		nextSize = AlignBlockSize(nextSize);
 		// next packet/break condition
 		if (pos + nextSize > _txPacket[txSuperPacketIndex].data_length) {
@@ -163,15 +163,15 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 		// fill header
 		SuperPacketHeader* hdrPtr
 			= reinterpret_cast<SuperPacketHeader*>(_txPacket[txSuperPacketIndex].data + pos);
-		hdrPtr->clear();
-		hdrPtr->setLength(pktLen);
+		hdrPtr->Clear();
+		hdrPtr->SetLength(pktLen);
 		if (pos + nextSize >= _txPacket[txSuperPacketIndex].data_length) {
-			hdrPtr->setHasNextHeader(false);
+			hdrPtr->SetHasNextHeader(false);
 		} else {
-			hdrPtr->setHasNextHeader(true);
+			hdrPtr->SetHasNextHeader(true);
 		}
 
-		pos += headerLen;
+		pos += HeaderLen;
 
 		// assign buffer
 		burst[i]._data = reinterpret_cast<std::byte*>(_txPacket[txSuperPacketIndex].data + pos);
@@ -182,7 +182,7 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 				pktLen - burst[i]._len,
 				0);
 		}
-		pos += nextSize - headerLen;
+		pos += nextSize - HeaderLen;
 	}
 	_lastBurstSize = burstSize;
 }
@@ -195,13 +195,13 @@ void NfbQueue::GetBuffers(size_t burstSize)
 
 size_t NfbQueue::AlignBlockSize(size_t size)
 {
-	static constexpr size_t blockAlignment = 8;
+	static constexpr size_t BlockAlignment = 8;
 
-	if (size % blockAlignment == 0) {
+	if (size % BlockAlignment == 0) {
 		return size;
 	}
 
-	const size_t offset = blockAlignment - (size % blockAlignment);
+	const size_t offset = BlockAlignment - (size % BlockAlignment);
 	return size + offset;
 }
 
