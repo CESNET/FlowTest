@@ -13,6 +13,14 @@ file(MAKE_DIRECTORY
 set(SOURCE_TGZ "flowtest-${VERSION}.tar.gz")
 set(SPEC_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/flowtest.spec.in")
 set(SPEC_FILE "${RPMBUILD_DIR}/SPECS/flowtest.spec")
+set(RPMBUILD_ARGS
+	"-ba" "${SPEC_FILE}"
+	"--define" "_topdir ${RPMBUILD_DIR}/"
+)
+
+if (ENABLE_NFB)
+	list(APPEND RPMBUILD_ARGS "--with" "nfb")
+endif()
 
 configure_file("${SPEC_FILE_IN}" "${SPEC_FILE}" @ONLY)
 
@@ -21,7 +29,7 @@ add_custom_target(rpm
 	WORKING_DIRECTORY "${RPMBUILD_DIR}"
 
 	COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${TGZ_FILE}" "SOURCES/${SOURCE_TGZ}"
-	COMMAND "${RPMBUILD_EXECUTABLE}" "-ba" ${SPEC_FILE} "--define" "_topdir ${RPMBUILD_DIR}/"
+	COMMAND "${RPMBUILD_EXECUTABLE}" ${RPMBUILD_ARGS}
 )
 
 add_dependencies(rpm
