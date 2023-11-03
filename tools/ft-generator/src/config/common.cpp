@@ -176,5 +176,17 @@ std::optional<double> ParseValue(const std::string& s)
 	return value;
 }
 
+std::string StringJoin(const std::vector<std::string>& values, const std::string& delimiter)
+{
+	std::string s;
+	for (std::size_t i = 0; i < values.size(); i++) {
+		s.append(values[i]);
+		if (i < values.size() - 1) {
+			s.append(delimiter);
+		}
+	}
+	return s;
+}
+
 } // namespace config
 } // namespace generator

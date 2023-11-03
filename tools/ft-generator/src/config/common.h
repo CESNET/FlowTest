@@ -264,5 +264,30 @@ std::vector<T> ParseOneOrMany(const YAML::Node& node)
 
 void PrintError(const ConfigError& error, const std::string& filename);
 
+/**
+ * @brief Get the keys of a map
+ *
+ * @param map The map to get the keys of
+ * @return A vector of the key values
+ */
+template <typename K, typename V>
+std::vector<K> KeysOfMap(const std::map<K, V>& map)
+{
+	std::vector<K> keys;
+	keys.reserve(map.size());
+	for (const auto& [k, _] : map) {
+		keys.emplace_back(k);
+	}
+	return keys;
+}
+
+/**
+ * @brief Join a list of a string values into a single string
+ *
+ * @param values The values to join together
+ * @param delimiter The delimiter to join the values by
+ */
+std::string StringJoin(const std::vector<std::string>& values, const std::string& delimiter);
+
 } // namespace config
 } // namespace generator

@@ -9,6 +9,7 @@ set(FT_GENERATOR_SOURCES
 	config/ipv6.cpp
 	config/mac.cpp
 	config/packetsizeprobabilities.cpp
+	config/payload.cpp
 	data/words.cpp
 	domainnamegenerator.cpp
 	flow.cpp

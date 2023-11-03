@@ -215,11 +215,16 @@ Flow::Flow(
 	}
 	_l4Proto = profile._l4Proto;
 
-	if (profile._l4Proto == L4Protocol::Tcp
+	const auto& enabledProtocols = _config.GetPayload().GetEnabledProtocols();
+
+	if (enabledProtocols.Includes(config::PayloadProtocol::Http)
+		&& profile._l4Proto == L4Protocol::Tcp
 		&& (profile._dstPort == 80 || profile._dstPort == 8080)) {
 		AddLayer(std::make_unique<Http>());
 
-	} else if (profile._l4Proto == L4Protocol::Udp && profile._dstPort == 53) {
+	} else if (
+		enabledProtocols.Includes(config::PayloadProtocol::Dns)
+		&& profile._l4Proto == L4Protocol::Udp && profile._dstPort == 53) {
 		AddLayer(std::make_unique<Dns>());
 
 	} else if (profile._l4Proto == L4Protocol::Tcp || profile._l4Proto == L4Protocol::Udp) {

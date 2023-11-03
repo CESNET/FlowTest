@@ -20,7 +20,8 @@ Config::Config(const YAML::Node& node)
 		 "mac",
 		 "encapsulation",
 		 "packet_size_probabilities",
-		 "max_flow_inter_packet_gap"});
+		 "max_flow_inter_packet_gap",
+		 "payload"});
 
 	if (node["ipv4"].IsDefined()) {
 		_ipv4 = IPv4(node["ipv4"]);
@@ -55,6 +56,10 @@ Config::Config(const YAML::Node& node)
 			}
 			_maxFlowInterPacketGapSecs = *value;
 		}
+	}
+
+	if (node["payload"].IsDefined()) {
+		_payload = Payload(node["payload"]);
 	}
 }
 
