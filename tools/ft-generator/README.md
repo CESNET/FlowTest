@@ -176,7 +176,7 @@ packet_size_probabilities:
 Specifies options for payload generation
 
 * `enabled_protocols` - A list of protocols for which valid protocol traffic
-  will be generated. Possible options: `http`, `dns` _(default = all supported
+  will be generated. Possible options: `http`, `dns`, `tls`  _(default = all supported
   protocols)_
 
 ### Additional options
