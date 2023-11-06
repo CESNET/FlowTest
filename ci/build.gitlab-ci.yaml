@@ -5,7 +5,7 @@
   variables:
     CFLAGS: -Werror
     CXXFLAGS: -Werror
-    CMAKE_ARGS: -DCMAKE_BUILD_TYPE=Debug
+    CMAKE_ARGS: -DCMAKE_BUILD_TYPE=Debug -DENABLE_NFB=ON
 
 build [Oracle Linux 8]:
   extends: .build
@@ -26,6 +26,8 @@ build [Rocky Linux 9]:
     - make rpm
     - mkdir $DOCKER_TAG
     - mv build/pkg/rpm/rpmbuild/RPMS $DOCKER_TAG
+  variables:
+    CMAKE_ARGS: -DENABLE_NFB=ON
   artifacts:
     paths: [$DOCKER_TAG/RPMS/*/*.rpm]
     expire_in: 1 week

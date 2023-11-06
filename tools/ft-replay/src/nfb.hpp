@@ -36,23 +36,24 @@ public:
 	/**
 	 * @brief Clear header
 	 */
-	void clear() noexcept;
+	void Clear() noexcept;
 
 	/**
 	 * @brief Set packet length
 	 *
 	 * @param[in] length of packet
 	 */
-	void setLength(uint16_t length) noexcept;
+	void SetLength(uint16_t length) noexcept;
 
 	/**
 	 * @brief Set next header flag
 	 *
 	 * @param[in] next header flag
 	 */
-	void setHasNextHeader(bool value) noexcept;
+	void SetHasNextHeader(bool value) noexcept;
 
 private:
+	// NOLINTBEGIN(clang-diagnostic-unused-private-field)
 	uint16_t _length : 15;
 	uint16_t _hasNextHeader : 1;
 	uint16_t _l2Len : 7;
@@ -60,6 +61,7 @@ private:
 	uint8_t _flags;
 	uint8_t _timestamp[6];
 	uint8_t _reserved[5];
+	// NOLINTEND(clang-diagnostic-unused-private-field)
 };
 
 static_assert(sizeof(SuperPacketHeader) == 16, "Invalid header definition");

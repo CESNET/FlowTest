@@ -2,8 +2,20 @@
 - name: FlowTest repository is installed
   ansible.builtin.yum_repository:
     name: flowtest
-    description: Flowtest repository
+    file: flowtest
+    description: FlowTest repository
     baseurl: "https://www.liberouter.org/repo/flowtest/$releasever/"
+    skip_if_unavailable: yes
+    gpgcheck: no
+    repo_gpgcheck: no
+    enabled: yes
+
+- name: FlowTest FPGA Firmware repository is installed
+  ansible.builtin.yum_repository:
+    name: flowtest-firmware
+    file: flowtest
+    description: FlowTest repository for FPGA firmwares
+    baseurl: "https://www.liberouter.org/repo/flowtest/firmware/"
     skip_if_unavailable: yes
     gpgcheck: no
     repo_gpgcheck: no

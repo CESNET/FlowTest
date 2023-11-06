@@ -1,0 +1,12 @@
+[Unit]
+Description=NFB TimeStamp Unit service for %f
+Wants=network.target network-online.target
+After=network.target network-online.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/nfb-tsu -d %f
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

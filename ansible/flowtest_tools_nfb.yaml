@@ -1,0 +1,6 @@
+---
+- hosts: all
+  become: yes
+  roles:
+    - flowtest_tools
+    - flowtest_firmware
