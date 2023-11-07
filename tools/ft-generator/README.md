@@ -12,7 +12,7 @@ The generator supports the generation of flow packets with the following protoco
 * L2: VLAN, MPLS
 * L3: IPv4, IPv6
 * L4: TCP, UDP, ICMP, ICMPv6
-* L7: HTTP, DNS
+* L7: HTTP, DNS, TLS
 
 Other protocols are not currently supported. If the input profile file contains
 unsupported protocols, the unsupported entries can be skipped (see [Usage](#usage)).
@@ -58,6 +58,17 @@ following fields:
 
 Lines starting with the # character are skipped. First row must contain the
 header to specify the order of the fields.
+
+### Input normalization
+
+After the profiles are loaded, **normalization** is performed such that:
+- The records are **sorted** by their start time
+- The start/end times are **shifted** such that the first record starts at time
+  0
+- If one of the ports is considered **ephemeral** and the other one
+  **non-ephemeral**, the direction of the record is flipped such that the
+  **non-ephemeral** port is the destination port. Ports of number **>= 32768**
+  are considered **ephemeral**.
 
 ## Output Format
 
@@ -176,8 +187,28 @@ packet_size_probabilities:
 Specifies options for payload generation
 
 * `enabled_protocols` - A list of protocols for which valid protocol traffic
-  will be generated. Possible options: `http`, `dns`, `tls`  _(default = all supported
-  protocols)_
+  will be generated. Possible options: `http`, `dns`, `tls`  _(default = all
+  supported protocols)_
+
+* `tls_encryption` - Configuration options for TLS encrypted payload
+	* `always_encrypt_ports` - A list of TCP ports to **always** encrypt
+	  _(default = 443)_
+	* `never_encrypt_ports` - A list of TCP ports to **never** encrypt
+	  _(default = 80)_
+	* `otherwise_with_probability` - Probability of encrypting traffic of other
+	  TCP ports _(default = 30%)_
+
+	Ports can also be specified as a range, e.g. `1000-2000` to specify ports
+	from 1000 to 2000 (including).
+
+	_Note:_ Be aware that if a port belonging to other application protocol
+	isn't present in the `never_encrypt_ports` section, generation of TLS takes
+	precedence over the generation of that particular payload. For example,
+	although HTTP traffic should be generated for flows with TCP port 80, if
+	the `never_encrypt_ports` section does not include port 80 and
+	`otherwise_with_probability` is non-zero, TLS traffic may be generated
+	instead.
+
 
 ### Additional options
 
@@ -228,7 +259,11 @@ packet_size_probabilities:
 max_flow_inter_packet_gap: 30
 
 payload:
-    enabled_protocols: [http]
+    enabled_protocols: [http, dns, tls]
+    tls_encryption:
+        always_encrypt_ports: [443, 2222, 11111]
+        never_encrypt_ports: [80, 10000-20000]
+        otherwise_with_probability: 50%
 ```
 
 Explanation:
@@ -264,11 +299,17 @@ the application level layers. The `enabled_protocols` option allows us to
 enable and disable individual payload generators. If a payload generator is
 disabled, random data is generated instead. In this case, we enable the
 generation of HTTP payload for flows that are considered HTTP traffic (i.e. TCP
-and port 80 or 8080).
+and port 80 or 8080), DNS payload for flows that are considered DNS traffic
+(i.e. UDP and port 53), and TLS payload for flows selected by the
+`tls_encryption` configuration section.
 
 ## Specifics of Generated Traffic
 
 This section describes the traffic generated for the supported L7 protocols.
+
+The Application Level protocol payload to be generated is determined by
+inspecting the destination port and transport protocol of the flow record in
+**normalized** form (see [Input normalization](#input-normalization))
 
 For protocols that are not in the list of supported protocols above, or in case
 the protocol has been disabled in the payload section of the configuration, a
@@ -326,4 +367,36 @@ prioritizes generating traffic that is more accurate to the specified profile
 over always generating application level payload corresponding to the specified
 port, as even in actual traffic the usage of a certain port does not guarantee
 usage of the specific protocol.
+
+### TLS
+
+TLS traffic is generated for flows as specified by the `tls_configuration`
+section. By default, this includes flows using port 443 over TCP with 100%
+probability and other TCP flows that are not one of the application level
+protocols above with 30% probability.
+
+The generated traffic consists of TLS 1.2 traffic and uses the
+`ECDHE_RSA_WITH_AES_256_GCM_SHA384` cipher suite. The TLS handshakes are
+generated if the number of bytes and packets of the flow in both directions
+allows it.
+
+The following TLS extensions are supported:
+ - `server_name`
+ - `supported_groups`
+ - `ec_point_formats`
+ - `signature_algorithms`
+ - `supported_versions`
+ - `application_layer_protocol_negotiation`
+
+The certificates used in the TLS handshake are randomly choosen from a pool of
+a number of pregenerated certificates (currently 50). This is done for
+performance reasons, as generating unique certificates on-the-fly would be too
+slow to be a feasible option. A script (`generate_tls_keys.py`) is provided for
+automatic generation of these certificates, which allows for simple
+re-generation in case the number of the certificates or their parameters need
+to be adjusted.
+
+The payload generated as part of the "Application Data" messages consists of
+randomly generated bytes, as it is supposed to represent encrypted data which
+should be indistinguishable from random bytes anyway.
 
