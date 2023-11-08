@@ -48,16 +48,9 @@ struct PacketInfo {
 };
 
 /**
- * @brief Class representing the packet interface
- *
+ * @brief Struct representing packet data.
  */
-class Packet {
-public:
-	/**
-	 * @brief Get the Packet hash value
-	 */
-	uint32_t GetHash() const;
-
+struct Packet {
 	/** @brief Packet data. */
 	std::unique_ptr<std::byte[]> data;
 	/** @brief Packet data length. */
@@ -66,10 +59,36 @@ public:
 	uint64_t timestamp;
 	/** @brief Packet L3 info. */
 	PacketInfo info;
+};
+
+/**
+ * @brief Class for calculating hash value of packet based on its IP version.
+ */
+class PacketHashCalculator {
+public:
+	PacketHashCalculator() = default;
+
+	/**
+	 * @brief Get the Packet hash value
+	 */
+	uint32_t GetHash(const Packet& packet) const;
 
 private:
-	uint32_t CalculateIpv4Hash() const;
-	uint32_t CalculateIpv6Hash() const;
+	uint32_t CalculateIpv4Hash(const Packet& packet) const;
+	uint32_t CalculateIpv6Hash(const Packet& packet) const;
 };
 
 } // namespace replay
+
+namespace std {
+
+template <>
+struct hash<replay::Packet> {
+	size_t operator()(const replay::Packet& packet) const
+	{
+		replay::PacketHashCalculator hashCalculator;
+		return hashCalculator.GetHash(packet);
+	}
+};
+
+} // namespace std
