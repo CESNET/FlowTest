@@ -68,6 +68,8 @@ class FtReplayOutputPluginSettings:
         elif self.output_plugin in ["xdp", "pcapFile"]:
             if self.super_packet:
                 err = True
+        elif self.output_plugin == "nfb":
+            pass
         else:
             logging.getLogger().error("FtReplay: Used unknown output plugin '%s'", self.output_plugin)
             raise RuntimeError(f"FtReplay: Used unknown output plugin '{self.output_plugin}'")
