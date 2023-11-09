@@ -27,7 +27,7 @@ from lbr_testsuite.executable import (
     Tool,
 )
 from src.common.tool_is_installed import assert_tool_is_installed
-from src.common.typed_dataclass import typed_dataclass
+from src.common.typed_dataclass import bool_convertor, typed_dataclass
 from src.generator.ft_generator import FtGenerator, FtGeneratorConfig
 from src.generator.interface import (
     GeneratorException,
@@ -63,6 +63,10 @@ class FtReplayOutputPluginSettings:
     queue_count: int = field(default=1, metadata={"plugins": ["pcapFile", "xdp", "nfb"]})
     burst_size: Optional[int] = field(default=None, metadata={"plugins": ["pcapFile", "raw", "xdp", "nfb"]})
     super_packet: Optional[str] = field(default=None, metadata={"plugins": ["nfb"]})
+    umem_size: Optional[int] = field(default=None, metadata={"plugins": ["xdp"]})
+    xsk_queue_size: Optional[int] = field(default=None, metadata={"plugins": ["xdp"]})
+    zero_copy: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
+    native_mode: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
 
     def __post_init__(self) -> None:
         """Check combination of input plugin and parameters."""
@@ -110,6 +114,17 @@ class FtReplayOutputPluginSettings:
             args.append(f"device={interface}")
         if self.output_plugin == "pcapFile":
             args.append(f"file={interface}")
+
+        if self.umem_size is not None:
+            args.append(f"umemSize={self.umem_size}")
+        if self.xsk_queue_size is not None:
+            args.append(f"xskQueueSize={self.xsk_queue_size}")
+        if self.zero_copy is not None:
+            str_zero_copy = "true" if self.zero_copy else "false"
+            args.append(f"zeroCopy={str_zero_copy}")
+        if self.native_mode is not None:
+            str_native_mode = "true" if self.native_mode else "false"
+            args.append(f"nativeMode={str_native_mode}")
 
         return f"{self.output_plugin}:{','.join(args)}"
 
