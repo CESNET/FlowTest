@@ -67,11 +67,6 @@ void PacketModifier::Modify(std::byte* ptr, const PacketInfo& pktInfo, size_t lo
 
 void PacketModifier::UpdateChecksumOffloads(std::byte* ptr, const PacketInfo& pktInfo)
 {
-	if (!_checksumOffloads.checksumIPv4 && !_checksumOffloads.checksumTCP
-		&& !_checksumOffloads.checksumUDP) {
-		return;
-	}
-
 	uint16_t newIPAddresesChecksum
 		= CalculateIPAddressesChecksum(ptr, pktInfo.l3Type, pktInfo.l3Offset);
 
@@ -80,30 +75,37 @@ void PacketModifier::UpdateChecksumOffloads(std::byte* ptr, const PacketInfo& pk
 		uint16_t newChecksum = CalculateChecksum(
 			ntohs(ipHeader->check),
 			pktInfo.ipAddressesChecksum,
-			newIPAddresesChecksum);
+			newIPAddresesChecksum,
+			false);
 		ipHeader->check = htons(newChecksum);
 	}
-	if (_checksumOffloads.checksumTCP && pktInfo.l4Type == L4Type::TCP) {
+	if (pktInfo.l4Type == L4Type::TCP) {
 		tcphdr* tcpHeader = reinterpret_cast<tcphdr*>(ptr + pktInfo.l4Offset);
+		bool calculatePseudoHeader = !_checksumOffloads.checksumTCP;
 		uint16_t newChecksum = CalculateChecksum(
 			ntohs(tcpHeader->check),
 			pktInfo.ipAddressesChecksum,
-			newIPAddresesChecksum);
+			newIPAddresesChecksum,
+			calculatePseudoHeader);
 		tcpHeader->check = htons(newChecksum);
-	} else if (_checksumOffloads.checksumUDP && pktInfo.l4Type == L4Type::UDP) {
+	} else if (pktInfo.l4Type == L4Type::UDP) {
 		udphdr* udpHeader = reinterpret_cast<udphdr*>(ptr + pktInfo.l4Offset);
+		bool calculatePseudoHeader = !_checksumOffloads.checksumUDP;
 		uint16_t newChecksum = CalculateChecksum(
 			ntohs(udpHeader->check),
 			pktInfo.ipAddressesChecksum,
 			newIPAddresesChecksum,
+			calculatePseudoHeader,
 			true);
 		udpHeader->check = htons(newChecksum);
-	} else if (_checksumOffloads.checksumICMPv6 && pktInfo.l4Type == L4Type::ICMPv6) {
+	} else if (pktInfo.l4Type == L4Type::ICMPv6) {
 		icmp6_hdr* icmp6Header = reinterpret_cast<icmp6_hdr*>(ptr + pktInfo.l4Offset);
+		bool calculatePseudoHeader = !_checksumOffloads.checksumICMPv6;
 		uint16_t newChecksum = CalculateChecksum(
 			ntohs(icmp6Header->icmp6_cksum),
 			pktInfo.ipAddressesChecksum,
-			newIPAddresesChecksum);
+			newIPAddresesChecksum,
+			calculatePseudoHeader);
 		icmp6Header->icmp6_cksum = htons(newChecksum);
 	}
 }
@@ -112,9 +114,16 @@ uint16_t PacketModifier::CalculateChecksum(
 	uint16_t originalChecksum,
 	uint16_t originalIpChecksum,
 	uint16_t newIpChecksum,
+	bool calculatePseudoHeader,
 	bool isUDP) const noexcept
 {
-	int32_t checksum = originalChecksum - originalIpChecksum + newIpChecksum;
+	int32_t checksum;
+	// calculate non complemented value
+	if (calculatePseudoHeader) {
+		checksum = originalChecksum - (originalIpChecksum ^ 0xFFFF) + (newIpChecksum ^ 0xFFFF);
+	} else {
+		checksum = originalChecksum - originalIpChecksum + newIpChecksum;
+	}
 	if (checksum < 0) {
 		checksum -= 1;
 	} else if (checksum >= std::numeric_limits<uint16_t>::max()) {

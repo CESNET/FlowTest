@@ -59,6 +59,7 @@ private:
 		uint16_t originalChecksum,
 		uint16_t originalIpChecksum,
 		uint16_t newIpChecksum,
+		bool calculatePseudoHeader,
 		bool isUDP = false) const noexcept;
 
 	ModifierStrategies _strategy;
