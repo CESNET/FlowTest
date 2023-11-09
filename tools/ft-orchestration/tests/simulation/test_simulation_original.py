@@ -128,8 +128,6 @@ def test_simulation_original(
 
     # file to save replication report from ft-generator (flows reference)
     ref_file = os.path.join(tmp_dir, "reference.csv")
-    # timestamp milliseconds precision
-    start_time = int(time.time_ns() * 10**-6)
 
     scenario.generator.max_flow_inter_packet_gap = probe_timeouts[1]
 
@@ -140,6 +138,8 @@ def test_simulation_original(
         loop_count=1,
         generator_config=scenario.generator,
     )
+    # start_profile is asynchronous, method stats blocks until traffic is send
+    start_time = generator_instance.stats().start_time
 
     time.sleep(0.1)
     probe_instance.stop()

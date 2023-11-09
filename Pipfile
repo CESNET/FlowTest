@@ -8,11 +8,6 @@ url = "http://cisticka-devel.liberouter.org/piproxy/tmc/pypi-liberouter/simple"
 verify_ssl = false
 name = "liberouter-pypi"
 
-[[source]]
-url = "https://__token__:glpat-H8Un4m1kPzBoxVDtcu42@gitlab.liberouter.org/api/v4/projects/138/packages/pypi/simple"
-verify_ssl = false
-name = "flowtest-pypi"
-
 [packages]
 cppcheck-junit = "*"
 fabric = "*"
@@ -27,7 +22,8 @@ pytest-cases = "*"
 pytest-html = "==3.2.0"
 py = "*"
 lbr-trex-client = {version = ">=2.0.1", index = "liberouter-pypi"}
-lbr-testsuite = {version = "*", index = "flowtest-pypi"}
+lbr-testsuite = {version = ">=4.15", index = "liberouter-pypi"}
+scapy = "*"
 matplotlib = "*"
 
 [dev-packages]

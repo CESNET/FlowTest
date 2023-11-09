@@ -19,14 +19,14 @@ class ProbeInterface(ABC):
     """Abstract class defining common interface for all probes"""
 
     @abstractmethod
-    def __init__(self, host, target, protocols, interfaces, verbose, **kwargs):
+    def __init__(self, executor, target, protocols, interfaces, verbose, **kwargs):
         """Initialize the local or remote probe interface as object
 
         Parameters
         ----------
 
-        host : object
-            Initialized host object with the deployed probe.
+        executor : lbr_testsuite.executable.Executor
+            Initialized executor object with the deployed probe.
 
         target : src.probe.probe_target
             Target object for the exporter/probe

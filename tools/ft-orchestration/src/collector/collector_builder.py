@@ -78,7 +78,7 @@ class CollectorBuilder(BuilderBase, Analyzer):
             New collector instance.
         """
 
-        return self._class(self._host, self._input_plugin, self._port, **self._connector_args)
+        return self._class(self._executor, self._input_plugin, self._port, **self._connector_args)
 
     def get_probe_target(self) -> ProbeTarget:
         """Get exporting target used by probe connector.

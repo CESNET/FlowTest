@@ -11,13 +11,13 @@ Base class for probe, generator and collector builder. Used by topology for cons
 import datetime
 import logging
 import pkgutil
-import subprocess
 import tempfile
 from abc import ABC, abstractmethod
 from os import path
 from typing import Union
 
 import yaml
+from lbr_testsuite.executable import AsyncTool, LocalExecutor, RemoteExecutor, Tool
 from src.common.utils import get_project_root
 from src.config.authentication import AuthenticationCfg
 from src.config.collector import CollectorCfg
@@ -25,8 +25,6 @@ from src.config.config import Config
 from src.config.generator import GeneratorCfg
 from src.config.probe import ProbeCfg
 from src.host.common import get_real_user
-from src.host.host import Host
-from src.host.storage import RemoteStorage
 
 ANSIBLE_PATH = path.join(get_project_root(), "ansible")
 
@@ -48,8 +46,7 @@ class BuilderBase(ABC):
         """
 
         self._config = config
-        self._host = None
-        self._storage = None
+        self._executor = None
         self._class = None
         self._timestamp_process = None
 
@@ -91,15 +88,14 @@ class BuilderBase(ABC):
         Use method in pytest finalizers.
         """
 
-        if self._host:
-            self._host.close()
-        if self._storage:
-            self._storage.close()
+        if self._executor and isinstance(self._executor, RemoteExecutor):
+            self._executor.close()
 
     def host_timestamp_async(self) -> None:
         """Start command for retrieving time on (remote) host."""
 
-        self._timestamp_process = self._host.run("date +%s%3N", asynchronous=True)
+        self._timestamp_process = AsyncTool("date +%s%3N", executor=self._executor)
+        self._timestamp_process.run()
 
     def host_timestamp_result(self) -> int:
         """Wait for timestamp command and return timestamp on (remote) host.
@@ -113,13 +109,13 @@ class BuilderBase(ABC):
 
         assert self._timestamp_process is not None
 
-        timestamp_str = self._host.wait_until_finished(self._timestamp_process).stdout
+        timestamp_str, _ = self._timestamp_process.wait_or_kill()
         timestamp = int(timestamp_str.strip())
         timestamp_datetime = datetime.datetime.fromtimestamp(timestamp / 1000.0, tz=datetime.timezone.utc)
 
         logging.getLogger().info(
             "Timestamp on host '%s': %d (%s)",
-            self._host.get_host(),
+            self._executor.get_host(),
             timestamp,
             timestamp_datetime.isoformat(sep=" ", timespec="milliseconds"),
         )
@@ -135,12 +131,10 @@ class BuilderBase(ABC):
         """
 
         auth = self._config.authentications[object_cfg.authentication]
-        self._storage = (
-            RemoteStorage(object_cfg.name, None, auth.username, auth.password, auth.key_path)
-            if object_cfg.name != "localhost"
-            else None
-        )
-        self._host = Host(object_cfg.name, self._storage, auth.username, auth.password, auth.key_path)
+        if object_cfg.name in ["localhost", "127.0.0.1"]:
+            self._executor = LocalExecutor()
+        else:
+            self._executor = RemoteExecutor(object_cfg.name, auth.username, auth.password, auth.key_path)
 
         if object_cfg.ansible_playbook_role:
             self._run_ansible(object_cfg.ansible_playbook_role, auth)
@@ -164,7 +158,7 @@ class BuilderBase(ABC):
             host_vars["ansible_password"] = auth.password
         if auth.key_path:
             host_vars["ansible_ssh_private_key_file"] = auth.key_path
-        inventory_data = {"all": {"hosts": {self._host.get_host(): host_vars}}}
+        inventory_data = {"all": {"hosts": {self._executor.get_host(): host_vars}}}
 
         with tempfile.TemporaryDirectory(prefix="flowtest-ansible-") as local_tmp:
             inventory_path = path.join(local_tmp, "inventory.yaml")
@@ -181,16 +175,15 @@ class BuilderBase(ABC):
                 f"ansible-playbook -i {inventory_path} -e ansible_remote_tmp={remote_tmp} "
                 f"{ANSIBLE_PATH}/{ansible_playbook_role}"
             )
-            # temporary solution, use LocalExecutor after implementation in testsuite
-            try:
-                res = subprocess.run(cmd, check=True, shell=True, capture_output=True)
-            except subprocess.CalledProcessError as err:
+            ansible_cmd = Tool(cmd, failure_verbosity="no-exception")
+            stdout, stderr = ansible_cmd.run()
+            if ansible_cmd.returncode() != 0:
                 logging.getLogger().error("Ansible failed!")
-                logging.getLogger().error("Stdout: %s", err.stdout)
-                logging.getLogger().error("Stderr: %s", err.stderr)
-                raise
+                logging.getLogger().error("Stdout: %s", stdout)
+                logging.getLogger().error("Stderr: %s", stderr)
+                raise BuilderError(f"Ansible playbook '{ansible_playbook_role}' failed.")
 
-        logging.getLogger().info("Ansible output: %s", res.stdout.decode("ascii"))
+        logging.getLogger().info("Ansible output: %s", stdout)
 
         logging.getLogger().info("Environment setup with ansible done.")
 
