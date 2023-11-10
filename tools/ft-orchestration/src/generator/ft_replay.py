@@ -13,7 +13,7 @@ import re
 import shutil
 import tempfile
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 from os import path
 from pathlib import Path
 from typing import Iterable, Optional, Union
@@ -60,29 +60,22 @@ class FtReplayOutputPluginSettings:
     """
 
     output_plugin: str = "raw"
-    queue_count: int = 1
-    burst_size: Optional[int] = None
-    super_packet: Optional[str] = None
+    queue_count: int = field(default=1, metadata={"plugins": ["pcapFile", "xdp", "nfb"]})
+    burst_size: Optional[int] = field(default=None, metadata={"plugins": ["pcapFile", "raw", "xdp", "nfb"]})
+    super_packet: Optional[str] = field(default=None, metadata={"plugins": ["nfb"]})
 
     def __post_init__(self) -> None:
         """Check combination of input plugin and parameters."""
 
-        err = False
-        if self.output_plugin == "raw":
-            if self.queue_count > 1 or self.super_packet:
-                err = True
-        elif self.output_plugin in ["xdp", "pcapFile"]:
-            if self.super_packet:
-                err = True
-        elif self.output_plugin == "nfb":
-            pass
-        else:
+        if self.output_plugin not in ["pcapFile", "raw", "xdp", "nfb"]:
             logging.getLogger().error("FtReplay: Used unknown output plugin '%s'", self.output_plugin)
             raise RuntimeError(f"FtReplay: Used unknown output plugin '{self.output_plugin}'")
 
-        if err:
-            logging.getLogger().error("FtReplay: Used unsupported %s output plugin parameters.", self.output_plugin)
-            raise RuntimeError(f"FtReplay: Used unsupported {self.output_plugin} output plugin parameters.")
+        params = [field for field in fields(self) if "plugins" in field.metadata]
+        for param in params:
+            if getattr(self, param.name) != param.default and self.output_plugin not in param.metadata["plugins"]:
+                logging.getLogger().error("FtReplay: Used unsupported %s output plugin parameters.", self.output_plugin)
+                raise RuntimeError(f"FtReplay: Used unsupported {self.output_plugin} output plugin parameters.")
 
     def get_cmd_args(self, interface: str, mtu: int) -> str:
         """Get output plugin argument for ft-replay.
