@@ -526,9 +526,8 @@ class FtGenerator:
         pcap_path, csv_path = self._cache.generate_unique_paths(Path(profile_path).stem)
 
         remote_profile_path = self._rsync.push_path(profile_path)
+        verbosity = ""
         if self._verbose:
-            verbosity = "-vvvv"
-        else:
             verbosity = "-v"
 
         # always skip unknown L4 protocols (option --skip-unknown)
