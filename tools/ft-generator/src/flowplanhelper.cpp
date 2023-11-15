@@ -127,6 +127,11 @@ uint64_t FlowPlanHelper::RevPktsRemaining() const
 	return _flow->_revPackets - _assignedRevPkts;
 }
 
+uint64_t FlowPlanHelper::BytesRemaining() const
+{
+	return FwdBytesRemaining() + RevBytesRemaining();
+}
+
 uint64_t FlowPlanHelper::BytesRemaining(Direction dir) const
 {
 	assert(dir != Direction::Unknown);
