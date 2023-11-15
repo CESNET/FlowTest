@@ -27,7 +27,7 @@
 #include "logger.h"
 #include "packet.h"
 #include "packetflowspan.h"
-#include "packetsizegeneratorslow.h"
+#include "packetsizegenerator.h"
 #include "randomgenerator.h"
 #include "timestampgenerator.h"
 #include "timeval.h"
