@@ -9,14 +9,17 @@
 #include "tls.h"
 #include "../buffer.h"
 #include "../flowplanhelper.h"
-#include "../randomgenerator.h"
 #include "tlsconstants.h"
 
 #include <pcapplusplus/PayloadLayer.h>
 
+#include <cassert>
+
 namespace generator {
 
 namespace {
+
+static constexpr std::size_t PACKET_SPLIT_THRESHOLD = 256;
 
 enum class TlsMap : int {
 	StoreIndex = 1,
@@ -24,40 +27,105 @@ enum class TlsMap : int {
 
 } // namespace
 
-static constexpr int FWD_HANDSHAKE_PKTS = 4;
-static constexpr int REV_HANDSHAKE_PKTS = 6;
+static std::vector<std::pair<Buffer, Direction>>
+MakeHandshakePackets(TlsBuilder& builder, std::size_t maxPayloadSize)
+{
+	assert(maxPayloadSize > 0);
+
+	std::vector<std::pair<Buffer, Direction>> packets;
+	auto putPackets = [&](std::initializer_list<Buffer> messages, Direction dir) {
+		for (auto& buffer : Buffer::Concat(messages).Split(maxPayloadSize)) {
+			packets.emplace_back(std::move(buffer), dir);
+		}
+	};
+
+	putPackets(
+		{
+			builder.BuildClientHello(),
+		},
+		Direction::Forward);
+
+	putPackets(
+		{
+			builder.BuildServerHello(),
+			builder.BuildCertificate(),
+			builder.BuildServerKeyExchange(),
+			builder.BuildServerHelloDone(),
+		},
+		Direction::Reverse);
+
+	putPackets(
+		{
+			builder.BuildClientKeyExchange(),
+			builder.BuildChangeCipherSpec(),
+			builder.BuildEncryptedHandshake(),
+		},
+		Direction::Forward);
+
+	putPackets(
+		{
+			builder.BuildChangeCipherSpec(),
+			builder.BuildEncryptedHandshake(),
+		},
+		Direction::Reverse);
+
+	return packets;
+}
+
+static bool ShouldIncludeHandshake(
+	const FlowPlanHelper& planner,
+	const std::vector<std::pair<Buffer, Direction>>& handshakePackets)
+{
+	uint64_t handshakeFwdPkts = 0;
+	uint64_t handshakeRevPkts = 0;
+	uint64_t handshakeFwdBytes = 0;
+	uint64_t handshakeRevBytes = 0;
+
+	for (const auto& [packet, dir] : handshakePackets) {
+		if (dir == Direction::Forward) {
+			handshakeFwdPkts++;
+			handshakeFwdBytes += packet.Length();
+		} else {
+			handshakeRevPkts++;
+			handshakeRevBytes += packet.Length();
+		}
+	}
+
+	return planner.PktsRemaining(Direction::Forward) >= handshakeFwdPkts
+		&& planner.BytesRemaining(Direction::Forward) >= handshakeFwdBytes
+		&& planner.PktsRemaining(Direction::Reverse) >= handshakeRevPkts
+		&& planner.BytesRemaining(Direction::Reverse) >= handshakeRevBytes
+		&& planner.PktsRemaining() > handshakeFwdPkts + handshakeRevPkts
+		&& planner.BytesRemaining()
+		> handshakeFwdBytes + handshakeRevBytes + TLS_MIN_APPLICATION_DATA_PKT_LEN;
+}
+
+Tls::Tls(uint64_t maxPayloadSizeHint)
+	: _maxPayloadSizeHint(maxPayloadSizeHint)
+{
+}
 
 void Tls::PlanFlow(Flow& flow)
 {
 	FlowPlanHelper planner(flow);
 
-	auto putPacket = [&](Buffer message, Direction dir) {
-		auto* pkt = planner.NextPacket();
-		Packet::layerParams params;
+	auto handshakePackets
+		= MakeHandshakePackets(_builder, std::max(PACKET_SPLIT_THRESHOLD, _maxPayloadSizeHint));
+	if (ShouldIncludeHandshake(planner, handshakePackets)) {
+		for (auto& [packet, dir] : handshakePackets) {
+			auto* pkt = planner.NextPacket();
+			Packet::layerParams params;
 
-		params[int(TlsMap::StoreIndex)] = _messageStore.size();
-		pkt->_size += message.Length();
-		_messageStore.emplace_back(std::move(message));
+			params[int(TlsMap::StoreIndex)] = _messageStore.size();
+			pkt->_size += packet.Length();
+			_messageStore.emplace_back(std::move(packet));
 
-		pkt->_direction = dir;
-		pkt->_isFinished = true;
+			pkt->_direction = dir;
+			pkt->_isFinished = true;
 
-		pkt->_layers.emplace_back(this, params);
-		planner.IncludePkt(pkt);
-	};
-
-	if (planner.PktsRemaining(Direction::Forward) >= FWD_HANDSHAKE_PKTS
-		&& planner.PktsRemaining(Direction::Reverse) >= REV_HANDSHAKE_PKTS) {
-		putPacket(_builder.BuildClientHello(), Direction::Forward);
-		putPacket(_builder.BuildServerHello(), Direction::Reverse);
-		putPacket(_builder.BuildCertificate(), Direction::Reverse);
-		putPacket(_builder.BuildServerKeyExchange(), Direction::Reverse);
-		putPacket(_builder.BuildServerHelloDone(), Direction::Reverse);
-		putPacket(_builder.BuildClientKeyExchange(), Direction::Forward);
-		putPacket(_builder.BuildChangeCipherSpec(), Direction::Forward);
-		putPacket(_builder.BuildEncryptedHandshake(), Direction::Forward);
-		putPacket(_builder.BuildChangeCipherSpec(), Direction::Reverse);
-		putPacket(_builder.BuildEncryptedHandshake(), Direction::Reverse);
+			pkt->_layers.emplace_back(this, params);
+			planner.IncludePkt(pkt);
+		}
 	}
 
 	// Remaining packets - application data packets

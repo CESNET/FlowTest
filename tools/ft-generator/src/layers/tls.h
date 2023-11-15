@@ -24,8 +24,14 @@ class Tls : public Layer {
 public:
 	/**
 	 * @brief Construct a TLS layer object
+	 *
+	 * @param maxPayloadSizeHint  The maximum size the TLS layer _should_ occupy in a packet.
+	 *
+	 * @note maxPayloadSizeHint only involes handshake packets (application data packet sizes are
+	 *       determined by the packet size planner, not this layer). The value is also only a hint
+	 *       and can be ignored if too low.
 	 */
-	Tls() = default;
+	Tls(uint64_t maxPayloadSizeHint);
 
 	/**
 	 * @brief Plan TLS layer
@@ -46,6 +52,7 @@ public:
 private:
 	std::vector<Buffer> _messageStore;
 	TlsBuilder _builder;
+	std::size_t _maxPayloadSizeHint;
 };
 
 } // namespace generator
