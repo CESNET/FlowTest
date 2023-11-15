@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <initializer_list>
 #include <memory>
 #include <stdexcept>
 #include <string_view>
@@ -69,6 +70,8 @@ struct UInt24Be {
  */
 class Buffer {
 public:
+	static Buffer Concat(std::initializer_list<Buffer> buffers);
+
 	/**
 	 * @brief Get the length of the buffer
 	 */
@@ -196,6 +199,15 @@ public:
 	 * @return The pcpp::Layer object
 	 */
 	std::unique_ptr<pcpp::Layer> ToLayer() const;
+
+	/**
+	 * @brief Split the buffer into chunks
+	 *
+	 * @param maxSize The maximum size of one chunk
+	 *
+	 * @return The chunks
+	 */
+	std::vector<Buffer> Split(std::size_t maxSize) const;
 
 private:
 	std::vector<std::byte> _data;

@@ -10,7 +10,9 @@
 
 #include <pcapplusplus/PayloadLayer.h>
 
+#include <cassert>
 #include <cstring>
+#include <numeric>
 #include <stdexcept>
 
 namespace generator {
@@ -62,6 +64,48 @@ void Buffer::WriteAt(std::size_t pos, std::string_view value)
 void Buffer::Append(std::string_view value)
 {
 	Append(reinterpret_cast<const std::byte*>(value.data()), value.size());
+}
+
+Buffer Buffer::Concat(std::initializer_list<Buffer> buffers)
+{
+	std::size_t totalLen = std::accumulate(
+		buffers.begin(),
+		buffers.end(),
+		std::size_t(0),
+		[](std::size_t value, const Buffer& buffer) { return value + buffer.Length(); });
+
+	Buffer result;
+	result._data.reserve(totalLen);
+
+	for (auto& buffer : buffers) {
+		result.Append(buffer.PtrAt(0), buffer.Length());
+	}
+
+	return result;
+}
+
+std::vector<Buffer> Buffer::Split(std::size_t maxSize) const
+{
+	assert(maxSize > 0);
+
+	if (Length() <= maxSize) {
+		return {*this};
+	}
+
+	std::vector<Buffer> chunks;
+	std::size_t pos = 0;
+
+	while (pos < Length()) {
+		std::size_t chunkSize = std::min(maxSize, Length() - pos);
+
+		Buffer chunk;
+		chunk.Append(PtrAt(pos), chunkSize);
+		chunks.emplace_back(std::move(chunk));
+
+		pos += chunkSize;
+	}
+
+	return chunks;
 }
 
 } // namespace generator
