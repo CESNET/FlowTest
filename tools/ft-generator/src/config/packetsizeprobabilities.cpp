@@ -91,9 +91,21 @@ static std::vector<IntervalInfo> NormalizeIntervals(std::vector<IntervalInfo> in
 	return intervals;
 }
 
+static std::uint64_t GetMaxPacketSize(const std::vector<IntervalInfo>& intervals)
+{
+	std::uint64_t maxPacketSize = 0;
+	for (const auto& interval : intervals) {
+		if (interval._probability > 0.0) {
+			maxPacketSize = std::max(maxPacketSize, interval._to);
+		}
+	}
+	return maxPacketSize;
+}
+
 PacketSizeProbabilities::PacketSizeProbabilities()
 	: _intervals(DEFAULT_PACKET_SIZE_PROBABILITIES)
 	, _normalizedIntervals(NormalizeIntervals(_intervals))
+	, _maxNormalizedPacketSize(GetMaxPacketSize(_normalizedIntervals))
 {
 }
 
@@ -147,6 +159,8 @@ PacketSizeProbabilities::PacketSizeProbabilities(const YAML::Node& node)
 	}
 
 	_normalizedIntervals = NormalizeIntervals(_intervals);
+
+	_maxNormalizedPacketSize = GetMaxPacketSize(_normalizedIntervals);
 }
 
 } // namespace config

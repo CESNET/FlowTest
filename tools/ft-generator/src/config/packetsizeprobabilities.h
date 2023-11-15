@@ -53,9 +53,15 @@ public:
 	 */
 	const std::vector<IntervalInfo>& AsNormalizedIntervals() const { return _normalizedIntervals; }
 
+	/**
+	 * @brief Get the maximum possible packet size
+	 */
+	uint64_t MaxNormalizedPacketSize() const { return _maxNormalizedPacketSize; }
+
 private:
 	std::vector<IntervalInfo> _intervals;
 	std::vector<IntervalInfo> _normalizedIntervals;
+	std::uint64_t _maxNormalizedPacketSize = 0;
 };
 
 } // namespace config
