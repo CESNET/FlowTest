@@ -57,6 +57,13 @@ def pytest_addoption(parser: pytest.Parser):
         ),
     )
 
+    parser.addoption(
+        "--disable-ansible",
+        action="store_true",
+        default=False,
+        help="Disable objects (generator, probe, collector) preparation via ansible.",
+    )
+
 
 @pytest.fixture(scope="session")
 def config(request: pytest.FixtureRequest) -> Config:
