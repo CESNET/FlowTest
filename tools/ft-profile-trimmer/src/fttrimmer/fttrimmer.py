@@ -456,10 +456,10 @@ class PTStatistics:
             [0, self.flows_nonaltered, round_stats(nr_flows_orig, self.flows_nonaltered)],
             [0, self.flows_altered, round_stats(nr_flows_orig, self.flows_altered)],
             [0, self.flows_dropped, round_stats(nr_flows_orig, self.flows_dropped)],
-            [nr_bytes_orig, nr_bytes_trim, round_stats(nr_bytes_orig, nr_bytes_trim)],
             [nr_packets_orig, nr_packets_trim, round_stats(nr_packets_orig, nr_packets_trim)],
-            [nr_bytes_rev_orig, nr_bytes_rev_trim, round_stats(nr_bytes_rev_orig, nr_bytes_rev_trim)],
+            [nr_bytes_orig, nr_bytes_trim, round_stats(nr_bytes_orig, nr_bytes_trim)],
             [nr_packets_rev_orig, nr_packets_rev_trim, round_stats(nr_packets_rev_orig, nr_packets_rev_trim)],
+            [nr_bytes_rev_orig, nr_bytes_rev_trim, round_stats(nr_bytes_rev_orig, nr_bytes_rev_trim)],
         ]
 
     def statistics(self, df_original: pd.DataFrame, df_trimmed: pd.DataFrame) -> pd.DataFrame:
