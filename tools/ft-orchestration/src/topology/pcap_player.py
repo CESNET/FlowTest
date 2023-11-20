@@ -96,8 +96,11 @@ def topology_pcap_player(
         deepcopy(generator_option),
     )
 
+    disable_ansible = request.config.getoption("disable_ansible")
+
     collector_builder = CollectorBuilder(
         config,
+        disable_ansible,
         collector_option.alias,
         collector_option.arguments.pop("protocol"),
         collector_option.arguments.pop("port"),
@@ -107,6 +110,7 @@ def topology_pcap_player(
 
     probe_builder = ProbeBuilder(
         config,
+        disable_ansible,
         probe_option.alias,
         collector_builder.get_probe_target(),
         probe_option.arguments.pop("ifc"),
@@ -116,6 +120,7 @@ def topology_pcap_player(
 
     generator_builder = GeneratorBuilder(
         config,
+        disable_ansible,
         generator_option.alias,
         [ifc.mac for ifc in probe_builder.get_enabled_interfaces()],
         probe_builder.get_biflow_export(),
