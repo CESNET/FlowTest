@@ -36,19 +36,22 @@ class BuilderError(Exception):
 class BuilderBase(ABC):
     """Base class for probe, generator and collector builder. It handles host creation and running ansible playbook."""
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config, disable_ansible: bool) -> None:
         """Init builder.
 
         Parameters
         ----------
         config : Config
             Static configuration object.
+        disable_ansible: bool
+            If True, ansible preparation (with ansible_playbook_role) is disabled.
         """
 
         self._config = config
         self._executor = None
         self._class = None
         self._timestamp_process = None
+        self._disable_ansible = disable_ansible
 
     @abstractmethod
     def get(self, **kwargs):
@@ -136,7 +139,7 @@ class BuilderBase(ABC):
         else:
             self._executor = RemoteExecutor(object_cfg.name, auth.username, auth.password, auth.key_path)
 
-        if object_cfg.ansible_playbook_role:
+        if object_cfg.ansible_playbook_role and not self._disable_ansible:
             self._run_ansible(object_cfg.ansible_playbook_role, auth)
 
     def _run_ansible(self, ansible_playbook_role: str, auth: AuthenticationCfg):
