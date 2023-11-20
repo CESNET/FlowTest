@@ -13,7 +13,7 @@ import re
 import shutil
 import tempfile
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 from os import path
 from pathlib import Path
 from typing import Iterable, Optional, Union
@@ -27,7 +27,7 @@ from lbr_testsuite.executable import (
     Tool,
 )
 from src.common.tool_is_installed import assert_tool_is_installed
-from src.common.typed_dataclass import typed_dataclass
+from src.common.typed_dataclass import bool_convertor, typed_dataclass
 from src.generator.ft_generator import FtGenerator, FtGeneratorConfig
 from src.generator.interface import (
     GeneratorException,
@@ -60,29 +60,26 @@ class FtReplayOutputPluginSettings:
     """
 
     output_plugin: str = "raw"
-    queue_count: int = 1
-    burst_size: Optional[int] = None
-    super_packet: Optional[str] = None
+    queue_count: int = field(default=1, metadata={"plugins": ["pcapFile", "xdp", "nfb"]})
+    burst_size: Optional[int] = field(default=None, metadata={"plugins": ["pcapFile", "raw", "xdp", "nfb"]})
+    super_packet: Optional[str] = field(default=None, metadata={"plugins": ["nfb"]})
+    umem_size: Optional[int] = field(default=None, metadata={"plugins": ["xdp"]})
+    xsk_queue_size: Optional[int] = field(default=None, metadata={"plugins": ["xdp"]})
+    zero_copy: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
+    native_mode: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
 
     def __post_init__(self) -> None:
         """Check combination of input plugin and parameters."""
 
-        err = False
-        if self.output_plugin == "raw":
-            if self.queue_count > 1 or self.super_packet:
-                err = True
-        elif self.output_plugin in ["xdp", "pcapFile"]:
-            if self.super_packet:
-                err = True
-        elif self.output_plugin == "nfb":
-            pass
-        else:
+        if self.output_plugin not in ["pcapFile", "raw", "xdp", "nfb"]:
             logging.getLogger().error("FtReplay: Used unknown output plugin '%s'", self.output_plugin)
             raise RuntimeError(f"FtReplay: Used unknown output plugin '{self.output_plugin}'")
 
-        if err:
-            logging.getLogger().error("FtReplay: Used unsupported %s output plugin parameters.", self.output_plugin)
-            raise RuntimeError(f"FtReplay: Used unsupported {self.output_plugin} output plugin parameters.")
+        params = [field for field in fields(self) if "plugins" in field.metadata]
+        for param in params:
+            if getattr(self, param.name) != param.default and self.output_plugin not in param.metadata["plugins"]:
+                logging.getLogger().error("FtReplay: Used unsupported %s output plugin parameters.", self.output_plugin)
+                raise RuntimeError(f"FtReplay: Used unsupported {self.output_plugin} output plugin parameters.")
 
     def get_cmd_args(self, interface: str, mtu: int) -> str:
         """Get output plugin argument for ft-replay.
@@ -117,6 +114,17 @@ class FtReplayOutputPluginSettings:
             args.append(f"device={interface}")
         if self.output_plugin == "pcapFile":
             args.append(f"file={interface}")
+
+        if self.umem_size is not None:
+            args.append(f"umemSize={self.umem_size}")
+        if self.xsk_queue_size is not None:
+            args.append(f"xskQueueSize={self.xsk_queue_size}")
+        if self.zero_copy is not None:
+            str_zero_copy = "true" if self.zero_copy else "false"
+            args.append(f"zeroCopy={str_zero_copy}")
+        if self.native_mode is not None:
+            str_native_mode = "true" if self.native_mode else "false"
+            args.append(f"nativeMode={str_native_mode}")
 
         return f"{self.output_plugin}:{','.join(args)}"
 
