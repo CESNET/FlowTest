@@ -77,6 +77,8 @@ if (ENABLE_NFB)
 		nfbFrameUnpacker.cpp
 		nfbTimestampLimiter.hpp
 		nfbTimestampLimiter.cpp
+		nfbRateLimiter.hpp
+		nfbRateLimiter.cpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE
