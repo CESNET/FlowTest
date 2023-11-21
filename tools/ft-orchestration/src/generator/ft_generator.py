@@ -181,7 +181,7 @@ class FtGeneratorCache:
 
     INDEX_FILENAME = "ft-generator-cache.pickle"
 
-    def __init__(self, executor: Executor, cache_dir: str) -> None:
+    def __init__(self, executor: Executor, cache_dir: str, biflow_export: bool) -> None:
         """Cache init.
 
         Parameters
@@ -190,6 +190,9 @@ class FtGeneratorCache:
             Executor for command execution.
         cache_dir: str, optional
             Path to save PCAPs on (remote) host.
+        biflow_export: bool
+            Flag indicating whether the tested probe exports biflows.
+            Flag is part of the cache record key (config hash).
         """
 
         self._executor = executor
@@ -197,6 +200,7 @@ class FtGeneratorCache:
         self._cache_dir = cache_dir
         self._tmp_dir = tempfile.mkdtemp()
         self._tmp_index = path.join(self._tmp_dir, self.INDEX_FILENAME)
+        self._biflow_export = biflow_export
 
     def get(self, profile_path: str, config: Optional[FtGeneratorConfig]) -> Optional[tuple[str, str]]:
         """Get PCAP path and CSV report path in cache generated with given profile and config.
@@ -365,6 +369,7 @@ class FtGeneratorCache:
             config_hash = hashlib.md5(config.to_json().encode("utf-8")).hexdigest()
         else:
             config_hash = ""
+        config_hash += str(self._biflow_export)
 
         return self._Key(
             profile_name=path.basename(profile_path),
@@ -478,9 +483,9 @@ class FtGenerator:
         self._cache_rsync = Rsync(executor, data_dir=cache_dir)
 
         if cache_dir:
-            self._cache = FtGeneratorCache(executor, cache_dir)
+            self._cache = FtGeneratorCache(executor, cache_dir, biflow_export)
         else:
-            self._cache = FtGeneratorCache(executor, self._cache_rsync.get_data_directory())
+            self._cache = FtGeneratorCache(executor, self._cache_rsync.get_data_directory(), biflow_export)
 
         assert_tool_is_installed(self._bin, executor)
 
