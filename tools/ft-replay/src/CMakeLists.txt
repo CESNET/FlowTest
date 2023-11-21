@@ -68,6 +68,8 @@ if (ENABLE_NFB)
 	target_sources(ft-replay PRIVATE
 		nfbDeviceTree.hpp
 		nfbDeviceTree.cpp
+		nfbCompatible.hpp
+		nfbCompatible.cpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE
