@@ -42,6 +42,7 @@ def validate(
     active_timeout: int,
     start_time: int,
     tmp_dir: str,
+    biflows_export: bool,
 ) -> tuple[StatisticalReport, PreciseReport]:
     """
     Perform statistical and precise model evaluation of the test scenario.
@@ -59,6 +60,8 @@ def validate(
         Timestamp of the first packet.
     tmp_dir: str
         Temporary directory used to save replicated flows CSV.
+    biflows_export: bool
+        True if probe exporting biflows.
 
     Returns
     -------
@@ -72,7 +75,9 @@ def validate(
         ref_file, replicated_ref_file, loops=LOOPS, speed_multiplier=SPEED.multiplier, merge_across_loops=True
     )
 
-    model = PreciseModel(flows_file, replicated_ref_file, active_timeout, start_time)
+    model = PreciseModel(
+        flows_file, replicated_ref_file, active_timeout, start_time, biflows_ts_correction=biflows_export
+    )
     logging.getLogger().info("performing precise model evaluation")
     precise_report = model.validate_precise()
 
@@ -178,7 +183,9 @@ def test_simulation_dropless(
     flows_file = os.path.join(tmp_dir, "flows.csv")
     collector_instance.get_reader().save_csv(flows_file)
 
-    stats_report, precise_report = validate(flows_file, ref_file, active_timeout, start_time, tmp_dir)
+    stats_report, precise_report = validate(
+        flows_file, ref_file, active_timeout, start_time, tmp_dir, device.get_biflow_export()
+    )
     print("")
     stats_report.print_results()
     precise_report.print_results()
