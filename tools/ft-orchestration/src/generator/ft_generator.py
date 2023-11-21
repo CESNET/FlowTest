@@ -474,12 +474,13 @@ class FtGenerator:
         self._local_workdir = tempfile.mkdtemp()
         self._biflow_export = biflow_export
         self._verbose = verbose
-        self._rsync = Rsync(executor, data_dir=cache_dir)
+        self._tmp_rsync = Rsync(executor)
+        self._cache_rsync = Rsync(executor, data_dir=cache_dir)
 
         if cache_dir:
             self._cache = FtGeneratorCache(executor, cache_dir)
         else:
-            self._cache = FtGeneratorCache(executor, self._rsync.get_data_directory())
+            self._cache = FtGeneratorCache(executor, self._cache_rsync.get_data_directory())
 
         assert_tool_is_installed(self._bin, executor)
 
@@ -520,12 +521,12 @@ class FtGenerator:
         if config:
             local_config = path.join(self._local_workdir, "config.yaml")
             config.to_yaml_file(local_config, encoder=_custom_dump)
-            config_path = self._rsync.push_path(local_config)
+            config_path = self._tmp_rsync.push_path(local_config)
             config_arg = f"-c {config_path}"
 
         pcap_path, csv_path = self._cache.generate_unique_paths(Path(profile_path).stem)
 
-        remote_profile_path = self._rsync.push_path(profile_path)
+        remote_profile_path = self._tmp_rsync.push_path(profile_path)
         verbosity = ""
         if self._verbose:
             verbosity = "-v"
@@ -566,7 +567,7 @@ class FtGenerator:
             When pandas is unable to read source CSV.
         """
 
-        local_csv_path = self._rsync.pull_path(csv_path, self._local_workdir)
+        local_csv_path = self._cache_rsync.pull_path(csv_path, self._local_workdir)
 
         try:
             biflows = pd.read_csv(local_csv_path, engine="pyarrow", dtype=self.CSV_COLUMN_TYPES)
@@ -597,4 +598,4 @@ class FtGenerator:
         biflows.rename(columns=self.CSV_COLUMN_RENAME, inplace=True)
         biflows.loc[:, self.CSV_OUT_COLUMN_NAMES].to_csv(local_csv_path, index=False)
 
-        self._rsync.push_path(local_csv_path)
+        self._cache_rsync.push_path(local_csv_path)
