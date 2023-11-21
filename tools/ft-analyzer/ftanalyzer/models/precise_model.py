@@ -46,6 +46,7 @@ class PreciseModel(StatisticalModel):
         reference: str,
         active_timeout: int,
         start_time: int = 0,
+        biflows_ts_correction: bool = False,
     ) -> None:
         """Initialize the statistical model with sorted input data.
         Parameters
@@ -60,6 +61,9 @@ class PreciseModel(StatisticalModel):
         start_time : int
             Treat times in the reference file as offsets (in milliseconds) from the provided start time.
             UTC timestamp in milliseconds.
+        biflows_ts_correction : bool
+            Value should be True when probe exporting biflows.
+            Timestamps in reverse direction flows is corrected.
 
         Raises
         ------
@@ -67,7 +71,7 @@ class PreciseModel(StatisticalModel):
             Unable to process provided files.
         """
 
-        super().__init__(flows, reference, start_time, merge=True)
+        super().__init__(flows, reference, start_time, merge=True, biflows_ts_correction=biflows_ts_correction)
         self._report = None
         self._active_timeout = active_timeout * 1000
 
