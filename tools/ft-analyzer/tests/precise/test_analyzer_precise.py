@@ -205,3 +205,20 @@ def test_split():
 
     assert report.is_passing() is True
     assert len(report.get_test().split) == 3
+
+
+def test_biflows_ts_correction():
+    """Test of timestamps correction in biflow records."""
+
+    model = PMod(
+        os.path.join(FLOWS_PATH, "biflows_split.csv"),
+        os.path.join(REF_PATH, "biflows_split.csv"),
+        300,
+        start_time=1700571552637,
+        biflows_ts_correction=True,
+    )
+
+    report = model.validate_precise()
+    report.print_results()
+
+    assert report.is_passing() is True
