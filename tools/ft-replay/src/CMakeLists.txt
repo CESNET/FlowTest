@@ -66,8 +66,6 @@ add_executable(ft-replay
 
 if (ENABLE_NFB)
 	target_sources(ft-replay PRIVATE
-		nfb.cpp
-		nfb.hpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE
