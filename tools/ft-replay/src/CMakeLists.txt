@@ -85,6 +85,8 @@ if (ENABLE_NFB)
 		nfbQueue.cpp
 		nfbQueueBuilder.hpp
 		nfbQueueBuilder.cpp
+		nfbPlugin.hpp
+		nfbPlugin.cpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE
