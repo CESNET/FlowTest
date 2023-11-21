@@ -101,11 +101,11 @@ void Replicator::Replicate(uint64_t replicationLoopId)
 
 	while (replicatedPackets != packetsToReplicate) {
 		uint64_t burstSize = GetBurstSize(replicatedPackets);
-
-		FillPacketBuffers(replicatedPackets, burstSize);
+		FillPacketBuffers(replicatedPackets, burstSize, replicationLoopId);
 		_outputQueue->GetBurst(_packetBuffers.get(), burstSize);
 		CopyPacketsToBuffer(replicatedPackets, burstSize);
 		ModifyPackets(replicatedPackets, burstSize, replicationLoopId);
+
 		_outputQueue->SendBurst(_packetBuffers.get());
 
 		replicatedPackets += burstSize;
@@ -148,11 +148,16 @@ void Replicator::SetAvailableReplicationUnits(uint64_t replicationLoopId)
 	}
 }
 
-void Replicator::FillPacketBuffers(uint64_t replicatedPackets, uint64_t burstSize)
+void Replicator::FillPacketBuffers(
+	uint64_t replicatedPackets,
+	uint64_t burstSize,
+	uint64_t replicationLoopId)
 {
 	for (uint64_t idx = 0; idx < burstSize; idx++) {
 		uint64_t packetQueueIndex = GetIndexToPacketQueue(idx + replicatedPackets);
 		_packetBuffers[idx]._len = _packetQueue[packetQueueIndex]->dataLen;
+		_packetBuffers[idx]._timestamp
+			= _packetQueue[packetQueueIndex]->timestamp + (replicationLoopId * _loopTimeDuration);
 		_packetBuffers[idx]._info = &_packetQueue[packetQueueIndex]->info;
 	}
 }
