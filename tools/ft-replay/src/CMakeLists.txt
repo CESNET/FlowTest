@@ -66,6 +66,8 @@ add_executable(ft-replay
 
 if (ENABLE_NFB)
 	target_sources(ft-replay PRIVATE
+		nfbDeviceTree.hpp
+		nfbDeviceTree.cpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE
