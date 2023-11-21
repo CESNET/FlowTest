@@ -73,6 +73,8 @@ if (ENABLE_NFB)
 		nfbFirmwareComponent.hpp
 		nfbReplicatorCore.hpp
 		nfbReplicatorCore.cpp
+		nfbFrameUnpacker.hpp
+		nfbFrameUnpacker.cpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE
