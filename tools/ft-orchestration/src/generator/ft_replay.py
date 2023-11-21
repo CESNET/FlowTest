@@ -514,6 +514,9 @@ class FtReplay(Replicator):
         self._process.wait_or_kill()
         output = Path(self._log_file).read_text(encoding="utf-8")
 
+        logging.getLogger().info("Ft-replay output:")
+        logging.getLogger().info(output)
+
         pkts = int(re.findall(r"(\d+) packets", output)[-1])
         bts = int(re.findall(r"(\d+) bytes", output)[-1])
 
