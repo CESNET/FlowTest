@@ -81,6 +81,8 @@ if (ENABLE_NFB)
 		nfbRateLimiter.cpp
 		nfbReplicatorFirmware.hpp
 		nfbReplicatorFirmware.cpp
+		nfbQueue.hpp
+		nfbQueue.cpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE
