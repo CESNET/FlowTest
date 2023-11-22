@@ -29,7 +29,10 @@ PcapWriter::PcapWriter(const std::string& filename)
 		throw std::runtime_error("file open failed: " + std::string(std::strerror(errno)));
 	}
 
-	_pcap.reset(pcap_open_dead(DLT_EN10MB, std::numeric_limits<uint16_t>::max()));
+	_pcap.reset(pcap_open_dead_with_tstamp_precision(
+		DLT_EN10MB,
+		std::numeric_limits<uint16_t>::max(),
+		PCAP_TSTAMP_PRECISION_NANO));
 	if (!_pcap) {
 		throw std::runtime_error("pcap open failed: " + std::string(pcap_geterr(_pcap.get())));
 	}
@@ -41,12 +44,12 @@ PcapWriter::PcapWriter(const std::string& filename)
 	_fp = fp.release();
 }
 
-void PcapWriter::WritePacket(const std::byte* data, uint32_t length, timeval timestamp)
+void PcapWriter::WritePacket(const std::byte* data, uint32_t length, Timeval timestamp)
 {
 	pcap_pkthdr header;
 	header.caplen = length;
 	header.len = length;
-	header.ts = timestamp;
+	header.ts = {timestamp.SecPart(), timestamp.NanosecPart()};
 
 	pcap_dump(
 		reinterpret_cast<u_char*>(_dumper.get()),

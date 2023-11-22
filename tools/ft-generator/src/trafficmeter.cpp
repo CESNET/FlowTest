@@ -23,10 +23,7 @@ namespace generator {
 
 static std::ostream& operator<<(std::ostream& os, const Timeval& tv)
 {
-	uint64_t usec = tv.ToMicroseconds();
-	uint64_t msec = usec / 1000;
-	uint64_t msecDecimal = usec % 1000;
-	os << msec << "." << std::setfill('0') << std::setw(3) << msecDecimal;
+	os << tv.ToString<TimeUnit::Milliseconds>();
 	return os;
 }
 

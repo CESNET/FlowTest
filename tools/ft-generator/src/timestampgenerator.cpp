@@ -22,9 +22,9 @@
 
 namespace generator {
 
-static constexpr uint64_t USEC_IN_SEC = 1'000'000;
+static constexpr uint64_t NANOSEC_IN_SEC = 1'000'000'000;
 
-static std::vector<uint64_t> GenerateRandomGaps(uint64_t numPackets, uint64_t flowDurationUsec)
+static std::vector<uint64_t> GenerateRandomGaps(uint64_t numPackets, uint64_t flowDurationNsec)
 {
 	auto& rng = RandomGenerator::GetInstance();
 	std::vector<double> tNorm(numPackets);
@@ -38,12 +38,12 @@ static std::vector<uint64_t> GenerateRandomGaps(uint64_t numPackets, uint64_t fl
 	std::vector<uint64_t> gaps(numPackets - 1);
 	uint64_t sum = 0;
 	for (std::size_t i = 0; i < tNorm.size() - 1; i++) {
-		uint64_t value = (tNorm[i + 1] - tNorm[i]) * flowDurationUsec;
+		uint64_t value = (tNorm[i + 1] - tNorm[i]) * flowDurationNsec;
 		sum += value;
 		gaps[i] = value;
 	}
 
-	gaps.front() += flowDurationUsec - sum; // Compensate for rounding error
+	gaps.front() += flowDurationNsec - sum; // Compensate for rounding error
 
 	return gaps;
 }
@@ -100,32 +100,32 @@ std::vector<uint64_t> GenerateTimestamps(
 	std::optional<uint64_t> maxGapSec)
 {
 	// Prepare and check arguments and handle special cases
-	uint64_t startUsec = tsFirst.ToMicroseconds();
-	uint64_t endUsec = tsLast.ToMicroseconds();
-	uint64_t limit = maxGapSec ? OverflowCheckedMultiply(*maxGapSec, USEC_IN_SEC)
+	uint64_t start = tsFirst.ToNanoseconds();
+	uint64_t end = tsLast.ToNanoseconds();
+	uint64_t limit = maxGapSec ? OverflowCheckedMultiply(*maxGapSec, NANOSEC_IN_SEC)
 							   : std::numeric_limits<uint64_t>::max();
 
-	if (startUsec > endUsec) {
+	if (start > end) {
 		throw std::logic_error("start timestamp > end timestamp");
 	}
 
 	if (numPackets == 0) {
 		return {};
 	} else if (numPackets == 1) {
-		if (startUsec != endUsec) {
+		if (start != end) {
 			throw std::logic_error("flow has one packet and start timestamp != end timestamp");
 		}
-		return {startUsec};
+		return {start};
 	}
 
 	// Generate the timestamps
-	std::vector<uint64_t> values = GenerateRandomGaps(numPackets, endUsec - startUsec);
+	std::vector<uint64_t> values = GenerateRandomGaps(numPackets, end - start);
 
 	ApplyLimit(limit, values);
 
 	std::shuffle(values.begin(), values.end(), std::default_random_engine());
 
-	GapsToTimestampsInPlace(startUsec, values);
+	GapsToTimestampsInPlace(start, values);
 
 	return values;
 }

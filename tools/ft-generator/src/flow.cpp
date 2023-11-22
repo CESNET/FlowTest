@@ -53,8 +53,6 @@
 
 namespace generator {
 
-static constexpr uint64_t USEC_IN_SEC = 1'000'000;
-
 static constexpr int ICMP_HDR_SIZE = sizeof(pcpp::icmphdr);
 static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
 static constexpr int IPV4_HDR_SIZE = sizeof(pcpp::iphdr);
@@ -451,7 +449,7 @@ void Flow::PlanPacketsTimestamps()
 
 	auto it = timestamps.begin();
 	for (auto& pkt : _packets) {
-		pkt._timestamp = Timeval(*it / USEC_IN_SEC, *it % USEC_IN_SEC);
+		pkt._timestamp = Timeval::From<TimeUnit::Nanoseconds>(*it);
 		it++;
 	}
 
@@ -461,7 +459,7 @@ void Flow::PlanPacketsTimestamps()
 		ft::LoggerGet("Flow")->info(
 			"Flow (line no. {}) has been trimmed by {}s to satisfy max gap",
 			_profileFileLineNum,
-			(_tsLast - newTsLast).ToMilliseconds() / 1000.0);
+			(_tsLast - newTsLast).ToString<TimeUnit::Seconds>());
 
 		_tsLast = newTsLast;
 	}
