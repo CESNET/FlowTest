@@ -23,7 +23,7 @@ const static std::vector<IntervalInfo> DEFAULT_PACKET_SIZE_PROBABILITIES
 	   {160, 319, 0.0115},
 	   {320, 639, 0.012},
 	   {640, 1279, 0.0092},
-	   {1280, 1500, 0.6119}};
+	   {1280, 1514, 0.6119}};
 
 static constexpr int ETHER_HDR_SIZE = sizeof(pcpp::ether_header);
 
