@@ -14,6 +14,9 @@
 #include "../layer.h"
 #include "../packet.h"
 #include "../pcpppacket.h"
+#include "logger.h"
+
+#include <memory>
 
 namespace generator {
 
@@ -63,6 +66,8 @@ public:
 	size_t SizeUpToIpLayer(Packet& packet) const override;
 
 private:
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("Tcp");
+
 	uint32_t _ackNumber = 0;
 	uint32_t _seqNumber = 0;
 

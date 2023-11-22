@@ -18,7 +18,8 @@ static PayloadProtocol ParsePayloadProtocol(const YAML::Node& node)
 {
 	static std::map<std::string, PayloadProtocol> protocolNameToProtocol {
 		{"http", PayloadProtocol::Http},
-		{"dns", PayloadProtocol::Dns}};
+		{"dns", PayloadProtocol::Dns},
+		{"tls", PayloadProtocol::Tls}};
 	static std::string protocolNames = StringJoin(KeysOfMap(protocolNameToProtocol), ", ");
 
 	std::string value = AsScalar(node);
@@ -57,10 +58,14 @@ bool PayloadProtocolList::Includes(PayloadProtocol value) const
 
 Payload::Payload(const YAML::Node& node)
 {
-	CheckAllowedKeys(node, {"enabled_protocols"});
+	CheckAllowedKeys(node, {"enabled_protocols", "tls_encryption"});
 
 	if (node["enabled_protocols"].IsDefined()) {
 		_enabledProtocols = PayloadProtocolList(node["enabled_protocols"]);
+	}
+
+	if (node["tls_encryption"].IsDefined()) {
+		_tlsEncryption = TlsEncryption(node["tls_encryption"]);
 	}
 }
 

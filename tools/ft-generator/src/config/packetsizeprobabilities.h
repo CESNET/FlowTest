@@ -41,21 +41,27 @@ public:
 
 	/**
 	 * @brief Retrieve the configured sizes and probabilities as a IntervalInfo vector in a
-	 * normalized form.
+	 *        normalized form.
 	 *
-	 * The normalized form assures that all the probabilities sum up to 1, are
-	 * sorted, and that the intervals are continous, in other words that they
-	 * directly follow eachother, i.e. if the first interval is an interval
-	 * from 100 to 200, the next interval is guaranteed to start from 201 (note
-	 * that its probability can be 0 though). This ensures that other
-	 * components that work with these intervals can make certain assumptions
-	 * to simplify their code.
+	 * The normalized form assures that all the probabilities sum up to 1, are sorted, and that the
+	 * intervals are continous, in other words that they directly follow eachother, i.e. if the
+	 * first interval is an interval from 100 to 200, the next interval is guaranteed to start from
+	 * 201 (note that its probability can be 0 though). This ensures that other components that work
+	 * with these intervals can make certain assumptions to simplify their code. The packet sizes
+	 * are also adjusted to not include the ethernet header to be consistent with how flow bytes are
+	 * calculated.
 	 */
 	const std::vector<IntervalInfo>& AsNormalizedIntervals() const { return _normalizedIntervals; }
+
+	/**
+	 * @brief Get the maximum possible packet size
+	 */
+	uint64_t MaxNormalizedPacketSize() const { return _maxNormalizedPacketSize; }
 
 private:
 	std::vector<IntervalInfo> _intervals;
 	std::vector<IntervalInfo> _normalizedIntervals;
+	std::uint64_t _maxNormalizedPacketSize = 0;
 };
 
 } // namespace config

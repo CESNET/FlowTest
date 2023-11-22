@@ -10,6 +10,9 @@ set(FT_GENERATOR_SOURCES
 	config/mac.cpp
 	config/packetsizeprobabilities.cpp
 	config/payload.cpp
+	config/portrange.cpp
+	config/tlsencryption.cpp
+	data/tlskeys.cpp
 	data/words.cpp
 	domainnamegenerator.cpp
 	flow.cpp
@@ -39,6 +42,9 @@ set(FT_GENERATOR_SOURCES
 	layers/mpls.cpp
 	layers/payload.cpp
 	layers/tcp.cpp
+	layers/tls.cpp
+	layers/tlsbuilder.cpp
+	layers/tlssignature.cpp
 	layers/udp.cpp
 	layers/vlan.cpp
 	normalizedflowidentifier.cpp
@@ -66,6 +72,8 @@ set(FT_GENERATOR_LIBS
 	yaml-cpp
 	stdc++fs
 	glpk::glpk
+	OpenSSL::SSL
+	OpenSSL::Crypto
 )
 
 add_executable(ft-generator ${FT_GENERATOR_SOURCES} main.cpp)

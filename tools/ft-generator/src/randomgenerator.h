@@ -64,14 +64,14 @@ public:
 	uint64_t RandomUInt(uint64_t min, uint64_t max);
 
 	/**
-	 * @brief Generate a random float in range from 0.0 to 1.0
+	 * @brief Generate a random float in range <0.0, 1.0)
 	 *
 	 * @return float  The generated random value
 	 */
 	float RandomFloat();
 
 	/**
-	 * @brief Generate a random double in range from 0.0 to 1.0
+	 * @brief Generate a random double in range <0.0, 1.0)
 	 *
 	 * @return double  The generated random value
 	 */

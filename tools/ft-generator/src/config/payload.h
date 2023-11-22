@@ -6,6 +6,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "tlsencryption.h"
+
 #include <yaml-cpp/yaml.h>
 
 #include <initializer_list>
@@ -17,7 +19,7 @@ namespace config {
 /**
  * @brief The possible payload protocols
  */
-enum class PayloadProtocol { Http, Dns };
+enum class PayloadProtocol { Http, Dns, Tls };
 
 /**
  * @brief A list of payload protocols
@@ -69,8 +71,15 @@ public:
 	 */
 	const PayloadProtocolList& GetEnabledProtocols() const { return _enabledProtocols; }
 
+	/**
+	 * @brief Get the TLS encryption configuration
+	 */
+	const TlsEncryption& GetTlsEncryption() const { return _tlsEncryption; }
+
 private:
-	PayloadProtocolList _enabledProtocols = {PayloadProtocol::Http, PayloadProtocol::Dns};
+	PayloadProtocolList _enabledProtocols
+		= {PayloadProtocol::Http, PayloadProtocol::Dns, PayloadProtocol::Tls};
+	TlsEncryption _tlsEncryption;
 };
 
 } // namespace config

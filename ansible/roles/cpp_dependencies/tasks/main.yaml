@@ -43,6 +43,13 @@
     - ansible_os_family == 'RedHat'
     - ansible_distribution_major_version | int > 8
 
+- name: openssl library is installed
+  ansible.builtin.dnf:
+    name:
+      - openssl
+      - openssl-devel
+    state: latest
+
 - name: nfb-framework is installed
   ansible.builtin.dnf:
     name: nfb-framework

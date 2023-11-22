@@ -282,6 +282,9 @@ void Tcp::DetermineIfHandshakesShouldBePlanned(FlowPlanHelper& planner)
 		|| planner.FwdBytesRemaining() < CONN_HANDSHAKE_FWD_BYTES + TERM_HANDSHAKE_FWD_BYTES
 		|| planner.RevBytesRemaining() < CONN_HANDSHAKE_REV_BYTES + TERM_HANDSHAKE_REV_BYTES) {
 		// Not enough bytes or packets in atleast one of the directions for a complete handshake
+		_logger->debug(
+			"Skipping TCP handshake - Not enough bytes or packets in atleast one of the directions "
+			"for a complete handshake");
 		_shouldPlanConnHandshake = false;
 		_shouldPlanTermHandshake = false;
 		return;
@@ -300,6 +303,9 @@ void Tcp::DetermineIfHandshakesShouldBePlanned(FlowPlanHelper& planner)
 	if ((fwdPktsRemaining == 0 && fwdBytesRemaining > 0)
 		|| (revPktsRemaining == 0 && revBytesRemaining > 0)) {
 		// Payload cannot be placed when using handshake
+		_logger->debug(
+			"Skipping TCP handshake - Would not be able to generate the desired size if handshake "
+			"was present");
 		_shouldPlanConnHandshake = false;
 		_shouldPlanTermHandshake = false;
 		return;
@@ -322,6 +328,9 @@ void Tcp::DetermineIfHandshakesShouldBePlanned(FlowPlanHelper& planner)
 	if ((fwdBpp > maxBytesPerPkt && fwdBppAlt <= maxBytesPerPkt)
 		|| (revBpp > maxBytesPerPkt && revBppAlt <= maxBytesPerPkt)) {
 		// It is, skip the handshake
+		_logger->debug(
+			"Skipping TCP handshake - Would not be able to generate the desired size if handshake "
+			"was present");
 		_shouldPlanConnHandshake = false;
 		_shouldPlanTermHandshake = false;
 	}

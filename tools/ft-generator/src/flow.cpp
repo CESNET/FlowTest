@@ -21,21 +21,24 @@
 #include "layers/mpls.h"
 #include "layers/payload.h"
 #include "layers/tcp.h"
+#include "layers/tls.h"
 #include "layers/udp.h"
 #include "layers/vlan.h"
 #include "logger.h"
 #include "packet.h"
 #include "packetflowspan.h"
-#include "packetsizegeneratorslow.h"
+#include "packetsizegenerator.h"
 #include "randomgenerator.h"
 #include "timestampgenerator.h"
 #include "timeval.h"
+#include "utils.h"
 
 #include <pcapplusplus/IPv4Layer.h>
 #include <pcapplusplus/IPv6Layer.h>
 #include <pcapplusplus/IcmpLayer.h>
 #include <pcapplusplus/IcmpV6Layer.h>
 #include <pcapplusplus/Packet.h>
+#include <pcapplusplus/TcpLayer.h>
 #include <pcapplusplus/UdpLayer.h>
 
 #include <algorithm>
@@ -56,6 +59,7 @@ static constexpr int ICMP_HDR_SIZE = sizeof(pcpp::icmphdr);
 static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
 static constexpr int IPV4_HDR_SIZE = sizeof(pcpp::iphdr);
 static constexpr int IPV6_HDR_SIZE = sizeof(pcpp::ip6_hdr);
+static constexpr int TCP_HDR_SIZE = sizeof(pcpp::tcphdr);
 static constexpr int UDP_HDR_SIZE = sizeof(pcpp::udphdr);
 static constexpr int ICMP_UNREACH_PKT_SIZE = ICMP_HDR_SIZE + IPV4_HDR_SIZE + UDP_HDR_SIZE;
 // Unreachable ICMPv6 message includes 4 reserved bytes after the header
@@ -92,6 +96,34 @@ static std::pair<MacAddress, MacAddress> GenerateMacPair(AddressGenerators& addr
 	return {macSrc, macDst};
 }
 
+static bool
+ShouldTlsEncrypt(const config::TlsEncryption& encryptionConfig, const FlowProfile& profile)
+{
+	const auto& never = encryptionConfig.GetNeverEncryptPorts();
+	const auto& always = encryptionConfig.GetAlwaysEncryptPorts();
+	double probability = encryptionConfig.GetOtherwiseEncryptProbability();
+
+	auto includes = [](const auto& ranges, auto value) {
+		return std::any_of(ranges.begin(), ranges.end(), [&](const auto& range) {
+			return range.Includes(value);
+		});
+	};
+
+	if (profile._l4Proto != L4Protocol::Tcp) {
+		return false;
+	}
+
+	if (includes(always, profile._dstPort)) {
+		return true;
+	}
+
+	if (includes(never, profile._dstPort)) {
+		return false;
+	}
+
+	return RandomGenerator::GetInstance().RandomDouble() < probability;
+}
+
 Flow::Flow(
 	uint64_t id,
 	const FlowProfile& profile,
@@ -122,6 +154,8 @@ Flow::Flow(
 		}
 	}
 
+	uint64_t headerLengthsFromIpLayer = 0;
+
 	switch (profile._l3Proto) {
 	case L3Protocol::Unknown:
 		throw std::runtime_error("Unknown L3 protocol");
@@ -149,6 +183,8 @@ Flow::Flow(
 
 		_srcIp = ipSrc;
 		_dstIp = ipDst;
+
+		headerLengthsFromIpLayer += IPV4_HDR_SIZE;
 	} break;
 
 	case L3Protocol::Ipv6: {
@@ -174,6 +210,8 @@ Flow::Flow(
 
 		_srcIp = ipSrc;
 		_dstIp = ipDst;
+
+		headerLengthsFromIpLayer += IPV6_HDR_SIZE;
 	} break;
 	}
 
@@ -188,6 +226,8 @@ Flow::Flow(
 
 		_srcPort = portSrc;
 		_dstPort = portDst;
+
+		headerLengthsFromIpLayer += TCP_HDR_SIZE;
 	} break;
 
 	case L4Protocol::Udp: {
@@ -197,6 +237,8 @@ Flow::Flow(
 
 		_srcPort = portSrc;
 		_dstPort = portDst;
+
+		headerLengthsFromIpLayer += UDP_HDR_SIZE;
 	} break;
 
 	case L4Protocol::Icmp: {
@@ -217,7 +259,14 @@ Flow::Flow(
 
 	const auto& enabledProtocols = _config.GetPayload().GetEnabledProtocols();
 
-	if (enabledProtocols.Includes(config::PayloadProtocol::Http)
+	if (enabledProtocols.Includes(config::PayloadProtocol::Tls)
+		&& ShouldTlsEncrypt(_config.GetPayload().GetTlsEncryption(), profile)) {
+		uint64_t maxTlsPayloadSize = _config.GetPacketSizeProbabilities().MaxNormalizedPacketSize();
+		maxTlsPayloadSize = SafeSub(maxTlsPayloadSize, headerLengthsFromIpLayer);
+		AddLayer(std::make_unique<Tls>(maxTlsPayloadSize));
+
+	} else if (
+		enabledProtocols.Includes(config::PayloadProtocol::Http)
 		&& profile._l4Proto == L4Protocol::Tcp
 		&& (profile._dstPort == 80 || profile._dstPort == 8080)) {
 		AddLayer(std::make_unique<Http>());
