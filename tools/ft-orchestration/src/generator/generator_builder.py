@@ -27,6 +27,7 @@ class GeneratorBuilder(BuilderBase, Generator):
     def __init__(
         self,
         config: Config,
+        disable_ansible: bool,
         alias: str,
         probe_mac_addresses: List[str],
         biflow_export: bool,
@@ -41,6 +42,8 @@ class GeneratorBuilder(BuilderBase, Generator):
         ----------
         config : Config
             Static configuration object.
+        disable_ansible: bool
+            If True, ansible preparation (with ansible_playbook_role) is disabled.
         alias : str
             Unique identifier in static configuration.
         probe_mac_addresses : List[str]
@@ -63,7 +66,7 @@ class GeneratorBuilder(BuilderBase, Generator):
             exist in configuration. Or number of generator interfaces does not match number of probe interfaces.
         """
 
-        super().__init__(config)
+        super().__init__(config, disable_ansible)
 
         if alias not in self._config.generators:
             raise BuilderError(f"Generator '{alias}' not found in generators configuration.")

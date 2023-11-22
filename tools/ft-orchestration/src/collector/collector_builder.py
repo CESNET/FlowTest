@@ -26,6 +26,7 @@ class CollectorBuilder(BuilderBase, Analyzer):
     def __init__(
         self,
         config: Config,
+        disable_ansible: bool,
         alias: str,
         input_plugin: str,
         port: int,
@@ -37,6 +38,8 @@ class CollectorBuilder(BuilderBase, Analyzer):
         ----------
         config : Config
             Static configuration object.
+        disable_ansible: bool
+            If True, ansible preparation (with ansible_playbook_role) is disabled.
         alias : str
             Unique identifier in static configuration.
         input_plugin : str
@@ -53,7 +56,7 @@ class CollectorBuilder(BuilderBase, Analyzer):
             Or alias does not exist in configuration.
         """
 
-        super().__init__(config)  # pylint: disable=too-many-function-args
+        super().__init__(config, disable_ansible)  # pylint: disable=too-many-function-args
 
         if alias not in self._config.collectors:
             raise BuilderError(f"Collector '{alias}' not found in collectors configuration.")
