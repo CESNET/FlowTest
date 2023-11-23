@@ -20,10 +20,10 @@ from lbr_testsuite.executable.rsync import RsyncException
 from src.probe.interface import ProbeException, ProbeInterface
 
 FLOWMONEXP_BIN = "/usr/bin/flowmonexp5"
-FLOWMONEXP_LOG = "/data/components/flowmonexp/log/"
+FLOWMONEXP_LOG = Path("/data/components/flowmonexp/log")
 QUEUE_SIZE = 22
-DPDK_STATS_DIR = "/data/components/dpdk-tools/stats/"
-DPDK_INFO_FILE = Path(DPDK_STATS_DIR) / "ifc_map.csv"
+DPDK_STATS_DIR = Path("/data/components/dpdk-tools/stats/")
+DPDK_INFO_FILE = DPDK_STATS_DIR / "ifc_map.csv"
 
 PLUGIN_PARAMS = {
     "as-helper": "/etc/flowmon/flowmon-as.txt",
@@ -193,7 +193,7 @@ class FlowmonProbe(ProbeInterface):
         self._pidfile = f"/tmp/tmp_probe_{interface}.pidfile"
         self._settings = {}
         self._verbose = verbose
-        self._remote_dir = Rsync(self._executor).get_data_directory()
+        self._remote_dir = Path(Rsync(self._executor).get_data_directory())
         attributes = self._get_appliance_attributes(input_plugin)
         self._set_config(
             QUEUE_SIZE,
@@ -208,12 +208,12 @@ class FlowmonProbe(ProbeInterface):
         self._set_plugins()
         self._set_filters(attributes)
         self._set_output(target)
-        self._probe_json = f"tmp_probe_{interface}.json"
-        self._probe_json_conf = Path(self._remote_dir) / self._probe_json
         self._pid = None
+        startup_conf = f"probe_{interface}.json"
+        self._probe_json_conf = self._remote_dir / startup_conf
 
         local_temp_dir = tempfile.mkdtemp()
-        local_conf_file = Path(local_temp_dir) / self._probe_json
+        local_conf_file = Path(local_temp_dir) / startup_conf
         try:
             with open(local_conf_file, "w", encoding="utf=8") as file:
                 json.dump(self._settings, file, indent=4, separators=(",", ": "))
@@ -224,7 +224,7 @@ class FlowmonProbe(ProbeInterface):
             logging.getLogger().error("Unable to create json configuration file %s", err)
             raise ProbeException(f"Unable to create json configuration file : {err}") from err
 
-        Rsync(executor).push_path(local_conf_file)
+        Rsync(executor).push_path(str(local_conf_file))
         shutil.rmtree(local_temp_dir)
 
     def _get_appliance_attributes(self, input_plugin):
@@ -324,7 +324,7 @@ class FlowmonProbe(ProbeInterface):
         ]
 
         if self._verbose:
-            self._remote_json_output = Path(self._remote_dir) / "probe_output.json"
+            self._remote_json_output = self._remote_dir / "probe_output.json"
             self._settings["OUTPUTS"].append(
                 {
                     "NAME": "json",
@@ -339,41 +339,36 @@ class FlowmonProbe(ProbeInterface):
         Returns
         -------
         List
-            Absolute paths to log files.
+            Paths to log files.
         """
         log_files = [
-            self._probe_json,
+            self._probe_json_conf,  # already present in the working directory
             "flowmonexp.log",
             "flowmonexp_init.log",
         ]
-        if self._verbose:
-            log_files.extend(
-                [
-                    self._remote_json_output,
-                    "flowmonexp_debug.log",
-                ]
-            )
 
-        # get interface statistics in the INPUT plugin is DPDK
-        if self._settings["INPUT"]["NAME"] == "dpdk":
-            log_files.append(Path(DPDK_STATS_DIR) / self._interface)
+        Tool(f"cp {FLOWMONEXP_LOG / 'flowmonexp.log'} {self._remote_dir}", executor=self._executor).run()
 
         # flowmonexp_init.log is not readable by flowmon, need to use this workaround
         # The sudo parameter of the Tool class cannot be used because of selective permission
         # of flowmon user on flowmon probe. Command is transformed to form 'sudo -E sh -c cmd'.
         # User cannot run 'sh' under sudo.
         Tool(
-            f"sudo tail -n 999999 {FLOWMONEXP_LOG}/flowmonexp_init.log > {self._remote_dir}/flowmonexp_init.log",
+            f"sudo tail -n 10000 {FLOWMONEXP_LOG / 'flowmonexp_init.log'} > {self._remote_dir / 'flowmonexp_init.log'}",
             executor=self._executor,
         ).run()
-        Tool(
-            f"sudo tail -n 999999 {FLOWMONEXP_LOG}/flowmonexp.log > {self._remote_dir}/flowmonexp.log",
-            executor=self._executor,
-        ).run()
+
         if self._verbose:
+            log_files.extend([self._remote_json_output, "flowmonexp_debug.log"])
+            # json output is already present in the working directory
+            Tool(f"cp {FLOWMONEXP_LOG / 'flowmonexp_debug.log'} {self._remote_dir}", executor=self._executor).run()
+
+        # get interface statistics in the INPUT plugin is DPDK
+        if self._settings["INPUT"]["NAME"] == "dpdk":
+            stats_file = f"{self._interface}_stats.json"
+            log_files.append(stats_file)
             Tool(
-                f"sudo tail -n 999999 {FLOWMONEXP_LOG}/flowmonexp_debug.log > {self._remote_dir}/flowmonexp_debug.log",
-                executor=self._executor,
+                f"cp {DPDK_STATS_DIR / self._interface} {self._remote_dir / stats_file}", executor=self._executor
             ).run()
 
         return log_files
@@ -473,7 +468,7 @@ class FlowmonProbe(ProbeInterface):
         storage = Rsync(self._executor)
         for log_file in self._prepare_logs():
             try:
-                storage.pull_path(log_file, directory)
+                storage.pull_path(str(log_file), directory)
             except RsyncException as err:
                 logging.getLogger().warning("%s", err)
 
