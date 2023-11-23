@@ -12,6 +12,7 @@
 #include "config/commandlineargs.h"
 #include "config/config.h"
 #include "flow.h"
+#include "flowmaker.h"
 #include "flowprofile.h"
 #include "generators/addressgenerators.h"
 #include "logger.h"
@@ -93,7 +94,7 @@ private:
 	void PrepareProfiles();
 	void CheckEnoughDiskSpace();
 	std::unique_ptr<Flow> GetNextFlow();
-	std::unique_ptr<Flow> MakeNextFlow();
+	std::pair<std::unique_ptr<Flow>, const FlowProfile&> MakeNextFlow();
 	void OnFlowOpened(const Flow& flow, const FlowProfile& profile);
 	void OnFlowClosed(const Flow& flow);
 };

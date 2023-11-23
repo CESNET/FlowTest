@@ -141,7 +141,13 @@ std::unique_ptr<Flow> Generator::GetNextFlow()
 	bool hasProfilesRemaining = (_nextProfileIdx < _profiles.size());
 
 	if (_calendar.IsEmpty()) {
-		return hasProfilesRemaining ? MakeNextFlow() : nullptr;
+		if (hasProfilesRemaining) {
+			auto [flow, profile] = MakeNextFlow();
+			OnFlowOpened(*flow.get(), profile);
+			return std::move(flow);
+		} else {
+			return nullptr;
+		}
 	}
 
 	if (!hasProfilesRemaining) {
@@ -150,10 +156,16 @@ std::unique_ptr<Flow> Generator::GetNextFlow()
 
 	Timestamp nextCalendarTime = _calendar.Top().GetNextPacketTime();
 	Timestamp nextProfileStartTime = _profiles[_nextProfileIdx]._startTime;
-	return (nextCalendarTime > nextProfileStartTime) ? MakeNextFlow() : _calendar.Pop();
+	if (nextCalendarTime > nextProfileStartTime) {
+		auto [flow, profile] = MakeNextFlow();
+		OnFlowOpened(*flow.get(), profile);
+		return std::move(flow);
+	} else {
+		return _calendar.Pop();
+	}
 }
 
-std::unique_ptr<Flow> Generator::MakeNextFlow()
+std::pair<std::unique_ptr<Flow>, const FlowProfile&> Generator::MakeNextFlow()
 {
 	const FlowProfile& profile = _profiles[_nextProfileIdx];
 	_nextProfileIdx++;
@@ -190,8 +202,7 @@ std::unique_ptr<Flow> Generator::MakeNextFlow()
 	}
 
 	_nextFlowId++;
-	OnFlowOpened(*flow.get(), profile);
-	return flow;
+	return {std::move(flow), profile};
 }
 
 void Generator::OnFlowOpened(const Flow& flow, const FlowProfile& profile)
