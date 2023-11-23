@@ -19,9 +19,6 @@ namespace generator {
 // Progress is logged after at most this many seconds
 static constexpr int PROGRESS_TIMEOUT_SECS = 10;
 
-// Number of attempts to try to create a flow with unique addresses before failing
-static constexpr int UNIQUE_FLOW_NUM_ATTEMPTS = 10;
-
 /**
  * Minimal value for a port to be considered "ephemeral" or "local" as opposed to a port used by a
  * service
@@ -46,10 +43,6 @@ Generator::Generator(
 	const config::CommandLineArgs& args)
 	: _trafficMeter(trafficMeter)
 	, _config(config)
-	, _addressGenerators(
-		  config.GetIPv4().GetIpRange(),
-		  config.GetIPv6().GetIpRange(),
-		  config.GetMac().GetMacRange())
 	, _args(args)
 {
 	profilesProvider.Provide(_profiles);
@@ -60,6 +53,9 @@ Generator::Generator(
 	if (!args.ShouldNotCheckDiskSpace()) {
 		CheckEnoughDiskSpace();
 	}
+
+	_flowMaker
+		= std::make_unique<FlowMaker>(_profiles, _config, !_args.ShouldNotCheckFlowCollisions());
 }
 
 void Generator::PrepareProfiles()
@@ -138,11 +134,9 @@ std::optional<GeneratorPacket> Generator::GenerateNextPacket()
 
 std::unique_ptr<Flow> Generator::GetNextFlow()
 {
-	bool hasProfilesRemaining = (_nextProfileIdx < _profiles.size());
-
 	if (_calendar.IsEmpty()) {
-		if (hasProfilesRemaining) {
-			auto [flow, profile] = MakeNextFlow();
+		if (_flowMaker->HasProfilesRemaining()) {
+			auto [flow, profile] = _flowMaker->MakeNextFlow();
 			OnFlowOpened(*flow.get(), profile);
 			return std::move(flow);
 		} else {
@@ -150,59 +144,19 @@ std::unique_ptr<Flow> Generator::GetNextFlow()
 		}
 	}
 
-	if (!hasProfilesRemaining) {
+	if (!_flowMaker->HasProfilesRemaining()) {
 		return _calendar.Pop();
 	}
 
 	Timestamp nextCalendarTime = _calendar.Top().GetNextPacketTime();
-	Timestamp nextProfileStartTime = _profiles[_nextProfileIdx]._startTime;
+	Timestamp nextProfileStartTime = _flowMaker->GetNextProfileStartTime();
 	if (nextCalendarTime > nextProfileStartTime) {
-		auto [flow, profile] = MakeNextFlow();
+		auto [flow, profile] = _flowMaker->MakeNextFlow();
 		OnFlowOpened(*flow.get(), profile);
 		return std::move(flow);
 	} else {
 		return _calendar.Pop();
 	}
-}
-
-std::pair<std::unique_ptr<Flow>, const FlowProfile&> Generator::MakeNextFlow()
-{
-	const FlowProfile& profile = _profiles[_nextProfileIdx];
-	_nextProfileIdx++;
-
-	std::unique_ptr<Flow> flow;
-
-	if (!_args.ShouldNotCheckFlowCollisions()) {
-		std::unique_ptr<Flow> tmp;
-
-		// Check for flow collisions, i.e. that the address 5-tuple of the generated flow is unique
-		for (int i = 0; i < UNIQUE_FLOW_NUM_ATTEMPTS; i++) {
-			tmp = std::make_unique<Flow>(_nextFlowId, profile, _addressGenerators, _config);
-			const auto& ident = tmp->GetNormalizedFlowIdentifier();
-			const auto [_, inserted] = _seenFlowIdentifiers.insert(ident);
-			if (inserted) {
-				flow = std::move(tmp);
-				break;
-			}
-
-			_logger->debug("Flow collision detected ({})! (attempt {})", ident.ToString(), i);
-		}
-
-		if (!flow) {
-			throw std::runtime_error(
-				"Flow collision detected (" + tmp->GetNormalizedFlowIdentifier().ToString() + ")! "
-				"Could not create a flow with unique addresses "
-				"(" + std::to_string(UNIQUE_FLOW_NUM_ATTEMPTS) + " attempts). "
-				"Run with --no-collision-check to override this behavior and proceed anyway.");
-		}
-
-	} else {
-		// Ignore check collisions because --no-collision-check was specified
-		flow = std::make_unique<Flow>(_nextFlowId, profile, _addressGenerators, _config);
-	}
-
-	_nextFlowId++;
-	return {std::move(flow), profile};
 }
 
 void Generator::OnFlowOpened(const Flow& flow, const FlowProfile& profile)

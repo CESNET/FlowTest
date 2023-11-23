@@ -14,7 +14,6 @@
 #include "flow.h"
 #include "flowmaker.h"
 #include "flowprofile.h"
-#include "generators/addressgenerators.h"
 #include "logger.h"
 #include "timestamp.h"
 #include "trafficmeter.h"
@@ -71,13 +70,10 @@ public:
 private:
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("Generator"); //< The logger
 	std::vector<FlowProfile> _profiles; //< The flow profiles
-	std::size_t _nextProfileIdx = 0; //< The index of the next flow profile to use to create a flow
 	Calendar _calendar; //< The calendar of active flows
-	uint64_t _nextFlowId = 0; //< ID of the next constructed flow
 	PcppPacket _packet; //< The current packet instance
 	TrafficMeter& _trafficMeter; //< Traffic statistics
 	const config::Config& _config; //< The configuration
-	AddressGenerators _addressGenerators; //< The address generators
 	const config::CommandLineArgs& _args; //< The command line args
 
 	struct {
@@ -89,12 +85,11 @@ private:
 		int _prevProgressPercent = 0; //< Last progress percent printed
 	} _stats;
 
-	std::set<NormalizedFlowIdentifier> _seenFlowIdentifiers;
+	std::unique_ptr<FlowMaker> _flowMaker;
 
 	void PrepareProfiles();
 	void CheckEnoughDiskSpace();
 	std::unique_ptr<Flow> GetNextFlow();
-	std::pair<std::unique_ptr<Flow>, const FlowProfile&> MakeNextFlow();
 	void OnFlowOpened(const Flow& flow, const FlowProfile& profile);
 	void OnFlowClosed(const Flow& flow);
 };
