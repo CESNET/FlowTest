@@ -54,8 +54,12 @@ Generator::Generator(
 		CheckEnoughDiskSpace();
 	}
 
-	_flowMaker
-		= std::make_unique<FlowMaker>(_profiles, _config, !_args.ShouldNotCheckFlowCollisions());
+	_flowMaker = std::make_unique<FlowMaker>(
+		_profiles,
+		_config,
+		args.GetSeed(),
+		!_args.ShouldNotCheckFlowCollisions(),
+		args.GetPrepareQueueSize());
 }
 
 void Generator::PrepareProfiles()
