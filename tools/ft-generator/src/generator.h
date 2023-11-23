@@ -15,7 +15,7 @@
 #include "flowprofile.h"
 #include "generators/addressgenerators.h"
 #include "logger.h"
-#include "timeval.h"
+#include "timestamp.h"
 #include "trafficmeter.h"
 
 #include <algorithm>

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "logger.h"
-#include "timeval.h"
+#include "timestamp.h"
 
 #include <pcapplusplus/IpAddress.h>
 #include <sys/time.h>

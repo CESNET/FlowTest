@@ -29,8 +29,8 @@
 #include "packetflowspan.h"
 #include "packetsizegenerator.h"
 #include "randomgenerator.h"
+#include "timestamp.h"
 #include "timestampgenerator.h"
-#include "timeval.h"
 #include "utils.h"
 
 #include <pcapplusplus/IPv4Layer.h>

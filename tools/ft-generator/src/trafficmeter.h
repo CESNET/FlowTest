@@ -12,7 +12,7 @@
 #include "logger.h"
 #include "packet.h"
 #include "pcpppacket.h"
-#include "timeval.h"
+#include "timestamp.h"
 
 #include <pcapplusplus/EthLayer.h>
 #include <pcapplusplus/IPv4Layer.h>

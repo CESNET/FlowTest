@@ -9,7 +9,7 @@
 #pragma once
 
 #include "randomgenerator.h"
-#include "timeval.h"
+#include "timestamp.h"
 
 #include <cstdint>
 #include <optional>

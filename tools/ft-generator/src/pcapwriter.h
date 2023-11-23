@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "timeval.h"
+#include "timestamp.h"
 
 #include <pcap/pcap.h>
 

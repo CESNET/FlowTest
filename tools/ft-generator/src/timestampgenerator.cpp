@@ -8,7 +8,7 @@
 
 #include "timestampgenerator.h"
 #include "randomgenerator.h"
-#include "timeval.h"
+#include "timestamp.h"
 #include "utils.h"
 
 #include <algorithm>

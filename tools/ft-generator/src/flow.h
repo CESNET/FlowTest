@@ -16,7 +16,7 @@
 #include "packet.h"
 #include "packetsizegenerator.h"
 #include "pcpppacket.h"
-#include "timeval.h"
+#include "timestamp.h"
 
 #include <ctime>
 #include <iostream>
