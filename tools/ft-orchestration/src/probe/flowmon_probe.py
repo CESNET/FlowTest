@@ -339,41 +339,36 @@ class FlowmonProbe(ProbeInterface):
         Returns
         -------
         List
-            Absolute paths to log files.
+            Paths to log files.
         """
         log_files = [
             self._probe_json_conf,  # already present in the working directory
             "flowmonexp.log",
             "flowmonexp_init.log",
         ]
-        if self._verbose:
-            log_files.extend(
-                [
-                    self._remote_json_output,
-                    "flowmonexp_debug.log",
-                ]
-            )
 
-        # get interface statistics in the INPUT plugin is DPDK
-        if self._settings["INPUT"]["NAME"] == "dpdk":
-            log_files.append(Path(DPDK_STATS_DIR) / self._interface)
+        Tool(f"cp {FLOWMONEXP_LOG / 'flowmonexp.log'} {self._remote_dir}", executor=self._executor).run()
 
         # flowmonexp_init.log is not readable by flowmon, need to use this workaround
         # The sudo parameter of the Tool class cannot be used because of selective permission
         # of flowmon user on flowmon probe. Command is transformed to form 'sudo -E sh -c cmd'.
         # User cannot run 'sh' under sudo.
         Tool(
-            f"sudo tail -n 999999 {FLOWMONEXP_LOG}/flowmonexp_init.log > {self._remote_dir}/flowmonexp_init.log",
+            f"sudo tail -n 10000 {FLOWMONEXP_LOG / 'flowmonexp_init.log'} > {self._remote_dir / 'flowmonexp_init.log'}",
             executor=self._executor,
         ).run()
-        Tool(
-            f"sudo tail -n 999999 {FLOWMONEXP_LOG}/flowmonexp.log > {self._remote_dir}/flowmonexp.log",
-            executor=self._executor,
-        ).run()
+
         if self._verbose:
+            log_files.extend([self._remote_json_output, "flowmonexp_debug.log"])
+            # json output is already present in the working directory
+            Tool(f"cp {FLOWMONEXP_LOG / 'flowmonexp_debug.log'} {self._remote_dir}", executor=self._executor).run()
+
+        # get interface statistics in the INPUT plugin is DPDK
+        if self._settings["INPUT"]["NAME"] == "dpdk":
+            stats_file = f"{self._interface}_stats.json"
+            log_files.append(stats_file)
             Tool(
-                f"sudo tail -n 999999 {FLOWMONEXP_LOG}/flowmonexp_debug.log > {self._remote_dir}/flowmonexp_debug.log",
-                executor=self._executor,
+                f"cp {DPDK_STATS_DIR / self._interface} {self._remote_dir / stats_file}", executor=self._executor
             ).run()
 
         return log_files
