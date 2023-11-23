@@ -50,7 +50,7 @@ public:
 	using layer = std::pair<Layer*, layerParams>;
 
 	Direction _direction = Direction::Unknown; //< Packet direction
-	Timeval _timestamp; //< Timestamp
+	Timestamp _timestamp; //< Timestamp
 	size_t _size = 0; //< Planned packet size (IP header and above)
 	bool _isFinished = false; //< Do not add more layers to packet
 	std::vector<layer> _layers; //< Packet protocol layers in order

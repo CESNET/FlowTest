@@ -197,13 +197,13 @@ std::optional<FlowProfile> FlowProfileReader::ParseProfile(const std::string& li
 	if (!startTime) {
 		ThrowParseError(line, "bad START_TIME");
 	}
-	profile._startTime = Timeval::From<TimeUnit::Milliseconds>(*startTime);
+	profile._startTime = Timestamp::From<TimeUnit::Milliseconds>(*startTime);
 
 	std::optional<int64_t> endTime = ParseValue<int64_t>(pieces[_order[EndTime]]);
 	if (!endTime) {
 		ThrowParseError(line, "bad END_TIME");
 	}
-	profile._endTime = Timeval::From<TimeUnit::Milliseconds>(*endTime);
+	profile._endTime = Timestamp::From<TimeUnit::Milliseconds>(*endTime);
 
 	std::optional<uint8_t> l3ProtoNum = ParseValue<uint8_t>(pieces[_order[L3Proto]]);
 	if (!l3ProtoNum) {

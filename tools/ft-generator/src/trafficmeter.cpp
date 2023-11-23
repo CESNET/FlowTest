@@ -21,9 +21,9 @@
 
 namespace generator {
 
-static std::ostream& operator<<(std::ostream& os, const Timeval& tv)
+static std::ostream& operator<<(std::ostream& os, const Timestamp& ts)
 {
-	os << tv.ToString<TimeUnit::Milliseconds>();
+	os << ts.ToString<TimeUnit::Milliseconds>();
 	return os;
 }
 
@@ -175,7 +175,7 @@ static uint64_t GetPacketSizeFromIPLayer(const PcppPacket& packet)
 
 void TrafficMeter::RecordPacket(
 	uint64_t flowId,
-	Timeval time,
+	Timestamp time,
 	Direction dir,
 	const PcppPacket& packet)
 {

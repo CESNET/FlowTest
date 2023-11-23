@@ -35,8 +35,8 @@ namespace generator {
  */
 std::vector<uint64_t> GenerateTimestamps(
 	uint64_t numPackets,
-	const Timeval& tsFirst,
-	const Timeval& tsLast,
+	const Timestamp& tsFirst,
+	const Timestamp& tsLast,
 	std::optional<uint64_t> maxGapSec = std::nullopt);
 
 } // namespace generator

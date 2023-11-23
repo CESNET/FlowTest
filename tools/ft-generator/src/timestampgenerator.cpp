@@ -95,8 +95,8 @@ static void GapsToTimestampsInPlace(uint64_t startUsec, std::vector<uint64_t>& v
 
 std::vector<uint64_t> GenerateTimestamps(
 	uint64_t numPackets,
-	const Timeval& tsFirst,
-	const Timeval& tsLast,
+	const Timestamp& tsFirst,
+	const Timestamp& tsLast,
 	std::optional<uint64_t> maxGapSec)
 {
 	// Prepare and check arguments and handle special cases

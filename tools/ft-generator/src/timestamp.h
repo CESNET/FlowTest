@@ -1,7 +1,7 @@
 /**
  * @file
  * @author Michal Sedlak <sedlakm@cesnet.cz>
- * @brief A wrapper around timeval
+ * @brief A timestamp class
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -26,10 +26,9 @@ enum class TimeUnit : int {
 };
 
 /**
- * @brief Class providing a wrapper around timeval with bounds checking,
- *        operators and additional functionality
+ * @brief Class providing a timestamp representation with operators and additional functionality
  */
-class Timeval {
+class Timestamp {
 private:
 	static constexpr int UnitsInSecond(TimeUnit unit)
 	{
@@ -69,17 +68,19 @@ public:
 	/**
 	 * @brief Construct a new zero timeval object
 	 */
-	Timeval() = default;
+	Timestamp() = default;
 
 	/**
-	 * @brief Construct a new Timeval object
+	 * @brief Construct a new Timestamp object
 	 *
 	 * @param sec The second part
 	 * @param nanosec The secondary unit part, between 0 and 1'000'000'000
 	 *
 	 * @throw std::invalid_argument when out of range
 	 */
-	Timeval(int64_t sec, int64_t nanosec) : _sec(sec), _nanosec(nanosec)
+	Timestamp(int64_t sec, int64_t nanosec)
+		: _sec(sec)
+		, _nanosec(nanosec)
 	{
 		if (nanosec < 0 || nanosec >= UnitsInSecond(TimeUnit::Nanoseconds)) {
 			throw std::invalid_argument("nanosec out of range");
@@ -87,10 +88,10 @@ public:
 	}
 
 	/**
-	 * @brief Construct a new Timeval object from a value of the specified time unit
+	 * @brief Construct a new Timestamp object from a value of the specified time unit
 	 */
 	template <TimeUnit SourceUnit>
-	static Timeval From(int64_t value)
+	static Timestamp From(int64_t value)
 	{
 		int multiplier = UnitsInSecond(TimeUnit::Nanoseconds) / UnitsInSecond(SourceUnit);
 		int64_t sec = value / UnitsInSecond(SourceUnit);
@@ -115,20 +116,20 @@ public:
 	/**
 	 * @brief Compare timevals for equality
 	 */
-	friend bool operator==(const Timeval& a, const Timeval& b)
+	friend bool operator==(const Timestamp& a, const Timestamp& b)
 	{
 		return a._sec == b._sec && a._nanosec == b._nanosec;
 	}
 
 	/**
-	 * @brief Compare timevals for non-equality
+	 * @brief Compare timestamps for non-equality
 	 */
-	friend bool operator!=(const Timeval& a, const Timeval& b) { return !(a == b); }
+	friend bool operator!=(const Timestamp& a, const Timestamp& b) { return !(a == b); }
 
 	/**
-	 * @brief Less than comparison of timevals
+	 * @brief Less than comparison of timestamps
 	 */
-	friend bool operator<(const Timeval& a, const Timeval& b)
+	friend bool operator<(const Timestamp& a, const Timestamp& b)
 	{
 		if (a._sec == b._sec) {
 			return a._nanosec < b._nanosec;
@@ -138,9 +139,9 @@ public:
 	}
 
 	/**
-	 * @brief Greater than comparison of timevals
+	 * @brief Greater than comparison of timestamps
 	 */
-	friend bool operator>(const Timeval& a, const Timeval& b)
+	friend bool operator>(const Timestamp& a, const Timestamp& b)
 	{
 		if (a._sec == b._sec) {
 			return a._nanosec > b._nanosec;
@@ -150,19 +151,19 @@ public:
 	}
 
 	/**
-	 * @brief Lesser or equal comparison of timevals
+	 * @brief Lesser or equal comparison of timestamps
 	 */
-	friend bool operator<=(const Timeval& a, const Timeval& b) { return !(a > b); }
+	friend bool operator<=(const Timestamp& a, const Timestamp& b) { return !(a > b); }
 
 	/**
-	 * @brief Greater or equal comparison of timevals
+	 * @brief Greater or equal comparison of timestamps
 	 */
-	friend bool operator>=(const Timeval& a, const Timeval& b) { return !(a < b); }
+	friend bool operator>=(const Timestamp& a, const Timestamp& b) { return !(a < b); }
 
 	/**
-	 * @brief Subtract two timevals
+	 * @brief Subtract two timestamps
 	 */
-	friend Timeval operator-(Timeval a, Timeval b)
+	friend Timestamp operator-(Timestamp a, Timestamp b)
 	{
 		int64_t sec = a._sec - b._sec;
 		int64_t nanosec = a._nanosec - b._nanosec;
@@ -174,16 +175,16 @@ public:
 	}
 
 	/**
-	 * @brief Subtract timeval
+	 * @brief Subtract timestamp
 	 */
-	friend Timeval& operator-=(Timeval& a, const Timeval& b)
+	friend Timestamp& operator-=(Timestamp& a, const Timestamp& b)
 	{
 		a = a - b;
 		return a;
 	}
 
 	/**
-	 * @brief Convert timeval to string
+	 * @brief Convert timestamp to string
 	 */
 	template <TimeUnit PrintUnit>
 	std::string ToString() const
@@ -213,7 +214,8 @@ public:
 	int64_t SecPart() const { return _sec; }
 
 	/**
-	 * @brief Get the nanosecond part of the value, returned value will be in range <0, 1'000'000'000)
+	 * @brief Get the nanosecond part of the value, returned value will be in range
+	 *        <0, 1'000'000'000)
 	 */
 	int64_t NanosecPart() const { return _nanosec; }
 
