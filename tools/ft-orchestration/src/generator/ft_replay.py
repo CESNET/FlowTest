@@ -230,7 +230,7 @@ class FtReplay(Replicator):
         self._dst_mac = None
         self._process = None
         self._mtu = mtu
-        self._rsync = Rsync(executor, data_dir=cache_path)
+        self._rsync = Rsync(executor)
 
         self._replication_units = []
         self._srcip_offset = None
@@ -456,7 +456,8 @@ class FtReplay(Replicator):
 
         self.start(pcap, speed, loop_count, remote_pcap=True)
 
-        report = self._rsync.pull_path(report, self._work_dir)
+        cache_rsync = Rsync(self._executor, data_dir=path.dirname(report))
+        report = cache_rsync.pull_path(report, self._work_dir)
         shutil.copy(report, report_path)
 
     def stop(self, timeout=None) -> None:
@@ -512,6 +513,9 @@ class FtReplay(Replicator):
 
         self._process.wait_or_kill()
         output = Path(self._log_file).read_text(encoding="utf-8")
+
+        logging.getLogger().info("Ft-replay output:")
+        logging.getLogger().info(output)
 
         pkts = int(re.findall(r"(\d+) packets", output)[-1])
         bts = int(re.findall(r"(\d+) bytes", output)[-1])

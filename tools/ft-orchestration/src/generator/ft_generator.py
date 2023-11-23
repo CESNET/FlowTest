@@ -181,7 +181,7 @@ class FtGeneratorCache:
 
     INDEX_FILENAME = "ft-generator-cache.pickle"
 
-    def __init__(self, executor: Executor, cache_dir: str) -> None:
+    def __init__(self, executor: Executor, cache_dir: str, biflow_export: bool) -> None:
         """Cache init.
 
         Parameters
@@ -190,6 +190,9 @@ class FtGeneratorCache:
             Executor for command execution.
         cache_dir: str, optional
             Path to save PCAPs on (remote) host.
+        biflow_export: bool
+            Flag indicating whether the tested probe exports biflows.
+            Flag is part of the cache record key (config hash).
         """
 
         self._executor = executor
@@ -197,6 +200,7 @@ class FtGeneratorCache:
         self._cache_dir = cache_dir
         self._tmp_dir = tempfile.mkdtemp()
         self._tmp_index = path.join(self._tmp_dir, self.INDEX_FILENAME)
+        self._biflow_export = biflow_export
 
     def get(self, profile_path: str, config: Optional[FtGeneratorConfig]) -> Optional[tuple[str, str]]:
         """Get PCAP path and CSV report path in cache generated with given profile and config.
@@ -365,6 +369,7 @@ class FtGeneratorCache:
             config_hash = hashlib.md5(config.to_json().encode("utf-8")).hexdigest()
         else:
             config_hash = ""
+        config_hash += str(self._biflow_export)
 
         return self._Key(
             profile_name=path.basename(profile_path),
@@ -474,12 +479,13 @@ class FtGenerator:
         self._local_workdir = tempfile.mkdtemp()
         self._biflow_export = biflow_export
         self._verbose = verbose
-        self._rsync = Rsync(executor, data_dir=cache_dir)
+        self._tmp_rsync = Rsync(executor)
+        self._cache_rsync = Rsync(executor, data_dir=cache_dir)
 
         if cache_dir:
-            self._cache = FtGeneratorCache(executor, cache_dir)
+            self._cache = FtGeneratorCache(executor, cache_dir, biflow_export)
         else:
-            self._cache = FtGeneratorCache(executor, self._rsync.get_data_directory())
+            self._cache = FtGeneratorCache(executor, self._cache_rsync.get_data_directory(), biflow_export)
 
         assert_tool_is_installed(self._bin, executor)
 
@@ -520,12 +526,12 @@ class FtGenerator:
         if config:
             local_config = path.join(self._local_workdir, "config.yaml")
             config.to_yaml_file(local_config, encoder=_custom_dump)
-            config_path = self._rsync.push_path(local_config)
+            config_path = self._tmp_rsync.push_path(local_config)
             config_arg = f"-c {config_path}"
 
         pcap_path, csv_path = self._cache.generate_unique_paths(Path(profile_path).stem)
 
-        remote_profile_path = self._rsync.push_path(profile_path)
+        remote_profile_path = self._tmp_rsync.push_path(profile_path)
         verbosity = ""
         if self._verbose:
             verbosity = "-v"
@@ -566,17 +572,12 @@ class FtGenerator:
             When pandas is unable to read source CSV.
         """
 
-        local_csv_path = self._rsync.pull_path(csv_path, self._local_workdir)
+        local_csv_path = self._cache_rsync.pull_path(csv_path, self._local_workdir)
 
         try:
             biflows = pd.read_csv(local_csv_path, engine="pyarrow", dtype=self.CSV_COLUMN_TYPES)
         except Exception as err:
             raise FtGeneratorException("Unable to read ft-generator output CSV.") from err
-
-        # when probe exports biflows, it cannot be detected correct timestamps for a single direction
-        if self._biflow_export:
-            biflows["START_TIME"] = biflows.loc[:, ["START_TIME", "START_TIME_REV"]].min(axis=1)
-            biflows["END_TIME"] = biflows.loc[:, ["END_TIME", "END_TIME_REV"]].max(axis=1)
 
         reverse_biflows = biflows.copy()
         reverse_biflows["SRC_IP"] = biflows["DST_IP"]
@@ -586,15 +587,29 @@ class FtGenerator:
         reverse_biflows["PACKETS"] = biflows["PACKETS_REV"]
         reverse_biflows["BYTES"] = biflows["BYTES_REV"]
 
-        # report contains timestamps from reverse direction
-        if not self._biflow_export:
-            reverse_biflows["START_TIME"] = biflows["START_TIME_REV"]
-            reverse_biflows["END_TIME"] = biflows["END_TIME_REV"]
+        # timestamp columns need to be swapped for aggregation purposes
+        # biflows export aggregation is located below filtering
+        reverse_biflows["START_TIME"] = biflows["START_TIME_REV"]
+        reverse_biflows["START_TIME_REV"] = biflows["START_TIME"]
+        reverse_biflows["END_TIME"] = biflows["END_TIME_REV"]
+        reverse_biflows["END_TIME_REV"] = biflows["END_TIME"]
+        # reverse packets information to filter biflows
+        reverse_biflows["PACKETS_REV"] = biflows["PACKETS"]
 
         biflows = pd.concat([biflows, reverse_biflows], axis=0, ignore_index=True)
         biflows = biflows.loc[biflows["PACKETS"] > 0]
 
+        # If a probe exports a biflow, both flow directions have the same start and end timestamps.
+        # However, in the report by ft-generator, the timestamps are provided separately for both
+        # directions. For the purpose of comparing the biflow records, the start and end of both
+        # directions need to be adjusted to their minimums and maximums, respectively.
+        # Aggregated are only flows which has non-zero reverse direction (to avoid zero timestamps).
+        if self._biflow_export:
+            condition = biflows["PACKETS_REV"] > 0
+            biflows["START_TIME"].loc[condition] = biflows.loc[condition, ["START_TIME", "START_TIME_REV"]].min(axis=1)
+            biflows["END_TIME"].loc[condition] = biflows.loc[condition, ["END_TIME", "END_TIME_REV"]].max(axis=1)
+
         biflows.rename(columns=self.CSV_COLUMN_RENAME, inplace=True)
         biflows.loc[:, self.CSV_OUT_COLUMN_NAMES].to_csv(local_csv_path, index=False)
 
-        self._rsync.push_path(local_csv_path)
+        self._cache_rsync.push_path(local_csv_path)
