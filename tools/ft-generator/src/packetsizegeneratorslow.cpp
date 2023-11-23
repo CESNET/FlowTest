@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <cassert>
 #include <numeric>
-#include <random>
 
 namespace generator {
 
@@ -195,7 +194,7 @@ void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredByt
 	}
 
 	_values = std::move(bestValues);
-	std::shuffle(_values.begin(), _values.end(), std::default_random_engine());
+	RandomGenerator::GetInstance().Shuffle(_values);
 }
 
 uint64_t PacketSizeGeneratorSlow::GetValue()

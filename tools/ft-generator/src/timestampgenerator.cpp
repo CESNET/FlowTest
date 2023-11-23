@@ -16,7 +16,6 @@
 #include <cstdint>
 #include <limits>
 #include <optional>
-#include <random>
 #include <vector>
 
 namespace generator {
@@ -125,7 +124,7 @@ std::vector<uint64_t> GenerateTimestamps(
 
 	ApplyLimit(limit, values);
 
-	std::shuffle(values.begin(), values.end(), std::default_random_engine());
+	RandomGenerator::GetInstance().Shuffle(values);
 
 	GapsToTimestampsInPlace(start, values);
 

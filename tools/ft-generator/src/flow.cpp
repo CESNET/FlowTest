@@ -45,7 +45,6 @@
 #include <cassert>
 #include <iostream>
 #include <numeric>
-#include <random>
 #include <stdexcept>
 #include <utility>
 #include <variant>
@@ -429,7 +428,7 @@ void Flow::PlanPacketsDirections()
 	directions.insert(directions.end(), fwd, Direction::Forward);
 	directions.insert(directions.end(), rev, Direction::Reverse);
 
-	std::shuffle(directions.begin(), directions.end(), std::default_random_engine());
+	RandomGenerator::GetInstance().Shuffle(directions);
 
 	size_t id = 0;
 	for (auto& packet : packetsSpan) {

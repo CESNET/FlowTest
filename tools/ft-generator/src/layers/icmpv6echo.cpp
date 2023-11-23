@@ -15,7 +15,6 @@
 
 #include <cstdlib>
 #include <functional>
-#include <random>
 #include <utility>
 
 namespace generator {
@@ -94,9 +93,7 @@ void Icmpv6Echo::Build(PcppPacket& packet, Packet::layerParams& params, Packet& 
 	plan._size -= sizeof(pcpp::icmpv6_echo_hdr);
 
 	if (_data.size() != plan._size) {
-		std::independent_bits_engine<std::default_random_engine, 8, uint8_t> rbe;
-		_data.resize(plan._size);
-		std::generate(_data.begin(), _data.end(), std::ref(rbe));
+		_data = RandomGenerator::GetInstance().RandomBytes(plan._size);
 	}
 	plan._size = 0;
 
