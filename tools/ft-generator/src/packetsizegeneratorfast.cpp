@@ -217,8 +217,6 @@ PacketSizeGeneratorFast::PacketSizeGeneratorFast(
 
 void PacketSizeGeneratorFast::GetValueExact(uint64_t value)
 {
-	_logger->trace("GetValueExact({})", value);
-
 	unsigned int idx;
 
 	if (value < _intervals.front()._from) {
@@ -293,7 +291,6 @@ void PacketSizeGeneratorFast::PlanRemaining()
 		} else {
 			_availCount.back() = remPkts;
 		}
-		_logger->trace("No solution found... RemAvg={}", remAvg);
 		return;
 	}
 
@@ -301,12 +298,6 @@ void PacketSizeGeneratorFast::PlanRemaining()
 	assert(_availCount.size() == solution.size());
 	for (unsigned int i = 0; i < _availCount.size(); i++) {
 		_availCount[i] = solution[i] * remPkts;
-	}
-
-	_logger->trace("Solution:");
-	for (unsigned int i = 0; i < _availCount.size(); i++) {
-		auto& iv = _intervals[i];
-		_logger->trace("  {}-{}: {}", iv._from, iv._to, _availCount[i]);
 	}
 }
 
@@ -339,14 +330,6 @@ uint64_t PacketSizeGeneratorFast::GetValue()
 	}
 	_assignedPkts++;
 	_assignedBytes += value;
-
-	_logger->trace(
-		"GetValue() -> {}, desiredSum={} desiredPkts={} assignedSum={} assignedPkts={}",
-		value,
-		_numBytes,
-		_numPkts,
-		_assignedBytes,
-		_assignedPkts);
 
 	return value;
 }

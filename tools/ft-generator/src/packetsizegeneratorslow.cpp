@@ -101,11 +101,6 @@ void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredByt
 	uint64_t targetMin = maxDiff < desiredBytes ? desiredBytes - maxDiff : 0;
 	uint64_t targetMax = desiredBytes + maxDiff;
 
-	_logger->trace("VALUES sum={} desired={}", valuesSum, desiredBytes);
-	for (auto value : _values) {
-		_logger->trace(value);
-	}
-
 	int numAttempts = MAX_ATTEMPTS;
 	uint64_t bestDiff
 		= valuesSum > desiredBytes ? valuesSum - desiredBytes : desiredBytes - valuesSum;
@@ -149,11 +144,6 @@ void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredByt
 			}
 		}
 
-		_logger->trace("VALUES sum={} desired={}", valuesSum, desiredBytes);
-		for (auto value : _values) {
-			_logger->trace(value);
-		}
-
 		intervals = origIntervals;
 
 		uint64_t diff
@@ -165,8 +155,6 @@ void PacketSizeGeneratorSlow::Generate(uint64_t desiredPkts, uint64_t desiredByt
 	}
 
 	double finalDiffRatio = double(bestDiff) / double(desiredBytes);
-	_logger
-		->trace("Final diff: {}, ratio: {}, desired: {}", bestDiff, finalDiffRatio, desiredBytes);
 
 	if (finalDiffRatio > DIFF_RATIO_FALLBACK_TO_UNIFORM) {
 		// The target average if uniform distribution was used constrained to the intervals

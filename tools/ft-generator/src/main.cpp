@@ -77,7 +77,6 @@ int main(int argc, char* argv[])
 		Generator generator(profileReader, trafficMeter, config, args);
 
 		while (auto packet = generator.GenerateNextPacket()) {
-			logger->trace("Generating packet");
 			pcapWriter.WritePacket(packet->_data, packet->_size, packet->_time);
 		}
 
