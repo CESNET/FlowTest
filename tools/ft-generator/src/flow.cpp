@@ -455,7 +455,7 @@ void Flow::PlanPacketsTimestamps()
 	if (_packets.size() > 0 && _packets.back()._timestamp != _tsLast) {
 		Timestamp newTsLast = _packets.back()._timestamp;
 
-		ft::LoggerGet("Flow")->info(
+		_logger->info(
 			"Flow (line no. {}) has been trimmed by {}s to satisfy max gap",
 			_profileFileLineNum,
 			(_tsLast - newTsLast).ToString<TimeUnit::Seconds>());

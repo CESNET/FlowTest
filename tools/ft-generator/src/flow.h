@@ -119,6 +119,8 @@ private:
 	friend class PacketFlowSpan;
 	friend class Layer;
 
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("Flow");
+
 	uint64_t _profileFileLineNum;
 
 	uint64_t _id;

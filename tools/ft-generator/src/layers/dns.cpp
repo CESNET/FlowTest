@@ -133,7 +133,7 @@ void Dns::PostPlanFlow(Flow& flow)
 	}
 
 	if (_generateRandomPayloadInsteadOfDns) {
-		ft::LoggerGet("Dns")->debug("Generating random payload instead of DNS traffic for flow");
+		_logger->debug("Generating random payload instead of DNS traffic for flow");
 	}
 }
 
