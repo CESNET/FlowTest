@@ -98,20 +98,35 @@ def validate(
     return stats_report, precise_report
 
 
-def setup_replicator(generator_instance: Replicator):
+def setup_replicator(generator_instance: Replicator, sampling: float):
     """Setup replication units and loops offsets.
 
     Parameters
     ----------
     generator_instance : Replicator
         Object to setup (replicator connector).
+    sampling : float
+        Sampling rate (interval 0-1). Used to find out number of
+        replication units to simulate original traffic.
 
     Returns
     -------
     dict
         Used replicator configuration.
     """
+
+    units_count = int(1 / sampling)
+
+    assert units_count <= 2 ** (LOOP_SUBNET_BITS - UNIT_SUBNET_BITS)
+
+    for unit_n in range(units_count):
+        generator_instance.add_replication_unit(
+            srcip=Replicator.AddConstant(unit_n * 2**UNIT_SUBNET_BITS),
+            dstip=Replicator.AddConstant(unit_n * 2**UNIT_SUBNET_BITS),
+        )
+
     assert LOOPS <= 2 ** (32 - LOOP_SUBNET_BITS)
+
     generator_instance.set_loop_modifiers(srcip_offset=2**LOOP_SUBNET_BITS, dstip_offset=2**LOOP_SUBNET_BITS)
 
     return generator_instance.get_replicator_config()
@@ -186,7 +201,7 @@ def test_simulation_dropless(
     probe_instance.start()
 
     generator_instance = generator.get()
-    replicator_config = setup_replicator(generator_instance)
+    replicator_config = setup_replicator(generator_instance, scenario.sampling)
 
     # file to save replication report from ft-generator (flows reference)
     ref_file = os.path.join(tmp_dir, "reference.csv")
