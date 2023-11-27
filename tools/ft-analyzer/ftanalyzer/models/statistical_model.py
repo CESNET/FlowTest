@@ -53,6 +53,13 @@ class StatisticalModel:
     # pylint: disable=too-few-public-methods
     TIME_EPSILON = 1000
     FLOW_KEY = ["SRC_IP", "DST_IP", "SRC_PORT", "DST_PORT", "PROTOCOL"]
+    DIR_INVARIANT_FLOW_KEY = [
+        "INV_SRC_IP",
+        "INV_DST_IP",
+        "INV_SRC_PORT",
+        "INV_DST_PORT",
+        "PROTOCOL",
+    ]
     CSV_COLUMN_TYPES = {
         "START_TIME": np.int64,
         "END_TIME": np.int64,
@@ -72,7 +79,14 @@ class StatisticalModel:
         "BYTES": "sum",
     }
 
-    def __init__(self, flows: str, reference: str, start_time: int = 0, merge: bool = False) -> None:
+    def __init__(
+        self,
+        flows: str,
+        reference: str,
+        start_time: int = 0,
+        merge: bool = False,
+        biflows_ts_correction: bool = False,
+    ) -> None:
         """Read provided files and converts it to data frames.
 
         Parameters
@@ -87,6 +101,9 @@ class StatisticalModel:
         merge : bool
             Merge probe flows with the same flow key (SRC_IP, DST_IP, SRC_PORT, DST_PORT, PROTOCOL).
             Merging flows is allowed only if the flow key is unique in the reference data.
+        biflows_ts_correction : bool
+            Value should be True when probe exporting biflows and precision model is used.
+            Timestamps in reverse direction flows are corrected.
 
         Raises
         ------
@@ -112,7 +129,7 @@ class StatisticalModel:
             self._ref["END_TIME"] = self._ref["END_TIME"] + start_time
 
         if merge:
-            self._merge_flows()
+            self._merge_flows(biflows_ts_correction)
 
         self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(ipaddress.ip_address)
         self._flows.loc[:, "DST_IP"] = self._flows["DST_IP"].apply(ipaddress.ip_address)
@@ -162,11 +179,17 @@ class StatisticalModel:
 
         return report
 
-    def _merge_flows(self) -> None:
+    def _merge_flows(self, biflows_ts_correction: bool) -> None:
         """
         Merge flows with the same flow key.
         Allowed only if the flow key is unique in the reference data.
         Add 'FLOW_COUNT' column to the data from probe to indicate how many flows were merged together.
+
+        Parameters
+        ----------
+        biflows_ts_correction : bool
+            Value should be True when probe exporting biflows and precision model is used.
+            Timestamps in reverse direction flows is corrected.
         """
 
         assert len(self._ref.index) == self._ref.groupby(self.FLOW_KEY).ngroups, "Cannot merge flows, duplicated key."
@@ -174,6 +197,23 @@ class StatisticalModel:
         flows = self._flows.groupby(self.FLOW_KEY).aggregate(self.AGGREGATE_FLOWS)
         flows["FLOW_COUNT"] = self._flows.groupby(self.FLOW_KEY).size()
         self._flows = flows.reset_index()
+
+        if biflows_ts_correction:
+            # correct timestamps in reverse direction of flows originating from biflows
+            # using direction invariant flow key
+            flows = self._flows
+
+            swap_cond = flows["SRC_IP"] > flows["DST_IP"]
+            flows["INV_SRC_IP"] = np.where(swap_cond, flows["DST_IP"], flows["SRC_IP"])
+            flows["INV_DST_IP"] = np.where(swap_cond, flows["SRC_IP"], flows["DST_IP"])
+            flows["INV_SRC_PORT"] = np.where(swap_cond, flows["DST_PORT"], flows["SRC_PORT"])
+            flows["INV_DST_PORT"] = np.where(swap_cond, flows["SRC_PORT"], flows["DST_PORT"])
+
+            grouped = flows.groupby(self.DIR_INVARIANT_FLOW_KEY)
+            flows["START_TIME"] = grouped["START_TIME"].transform("min")
+            flows["END_TIME"] = grouped["END_TIME"].transform("max")
+
+            self._flows = flows.loc[:, list(self.CSV_COLUMN_TYPES.keys()) + ["FLOW_COUNT"]]
 
     def _filter_segment(
         self, segment: Optional[Union[SMSubnetSegment, SMTimeSegment]]
