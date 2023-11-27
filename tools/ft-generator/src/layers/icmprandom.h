@@ -9,17 +9,11 @@
 #pragma once
 
 #include "../flow.h"
-#include "../flowplanhelper.h"
 #include "../layer.h"
 #include "../packet.h"
-#include "../packetflowspan.h"
 #include "../pcpppacket.h"
 
 #include <pcapplusplus/IcmpLayer.h>
-
-#include <cstdint>
-#include <queue>
-#include <vector>
 
 namespace generator {
 

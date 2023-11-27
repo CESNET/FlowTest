@@ -18,13 +18,10 @@
 #include "timestamp.h"
 #include "trafficmeter.h"
 
-#include <algorithm>
 #include <cstddef>
 #include <ctime>
-#include <limits>
 #include <memory>
 #include <optional>
-#include <set>
 #include <vector>
 
 namespace generator {

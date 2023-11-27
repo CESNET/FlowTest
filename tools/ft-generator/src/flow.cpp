@@ -24,7 +24,6 @@
 #include "layers/tls.h"
 #include "layers/udp.h"
 #include "layers/vlan.h"
-#include "logger.h"
 #include "packet.h"
 #include "packetflowspan.h"
 #include "packetsizegenerator.h"
@@ -43,8 +42,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>
-#include <numeric>
 #include <stdexcept>
 #include <utility>
 #include <variant>

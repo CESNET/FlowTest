@@ -12,7 +12,6 @@
 #include <cassert>
 #include <ctime>
 #include <memory>
-#include <numeric>
 #include <vector>
 
 namespace generator {
