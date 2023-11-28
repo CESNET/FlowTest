@@ -229,8 +229,13 @@ class FtReplay(Replicator):
         self._interface = None
         self._dst_mac = None
         self._process = None
-        self._mtu = mtu
         self._rsync = Rsync(executor)
+
+        if self._output_plugin.output_plugin == "xdp" and mtu != 2048:
+            logging.getLogger().warning("Xdp output plugin supports only MTU of value 2048. Parameter is ignored.")
+            self._mtu = 2048
+        else:
+            self._mtu = mtu
 
         self._replication_units = []
         self._srcip_offset = None
