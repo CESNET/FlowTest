@@ -398,6 +398,8 @@ class Ipfixprobe(ProbeInterface, ABC):
         logging.getLogger().info("Starting ipfixprobe exporter on %s.", self._ifc_names)
         self._last_run_stats = None
 
+        self._before_start()
+
         # check and stop running ipfixprobe instance
         check_running_cmd = "pidof 'ipfixprobe' 'ipfixprobed'"
         running_processes = Tool(check_running_cmd, executor=self._executor, failure_verbosity="silent").run()[0]
@@ -688,6 +690,9 @@ class Ipfixprobe(ProbeInterface, ABC):
             time.sleep(1)
         logging.getLogger().warning("Unable to stop exporter process with SIGINT, using SIGKILL.")
         Tool(f"kill -9 {pid}", executor=self._executor, failure_verbosity="silent", sudo=True).run()
+
+    def _before_start(self):
+        """Do preparations before the probe start. Override this function in derived class."""
 
 
 class IpfixprobeRaw(Ipfixprobe):
