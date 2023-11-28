@@ -92,8 +92,14 @@ class GeneratorBuilder(BuilderBase, Generator):
         self._class = self._find_class(GENERATOR_IMPORT_PATH, generator_cfg.type, interface)
 
     # pylint: disable=arguments-differ
-    def get(self) -> Union[PcapPlayer, Replicator]:
+    def get(self, mtu: Optional[int] = None) -> Union[PcapPlayer, Replicator]:
         """Create instance of generator by alias.
+
+        Parameters
+        ----------
+        mtu : int, optional
+            The maximum transmission unit to be set at the generator output interface.
+            If None, default value of connector is used.
 
         Returns
         -------
@@ -101,9 +107,11 @@ class GeneratorBuilder(BuilderBase, Generator):
             New generator instance.
         """
 
-        instance = self._class(
-            self._executor, self._add_vlan, biflow_export=self._biflow_export, **self._connector_args
-        )
+        additional_args = self._connector_args
+        if mtu is not None:
+            additional_args.update({"mtu": mtu})
+
+        instance = self._class(self._executor, self._add_vlan, biflow_export=self._biflow_export, **additional_args)
         for i, ifc in enumerate(self._interfaces):
             mac = self._probe_mac_addresses[i] if self._edit_dst_mac else None
             instance.add_interface(ifc.name, mac)
