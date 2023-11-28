@@ -78,12 +78,13 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		case OPT_NO_FLOW_COLLISION_CHECK:
 			_noFlowCollisionCheck = true;
 			break;
-		case OPT_SEED:
-			_seed = ParseValue<uint64_t>(optarg);
-			if (!_seed) {
+		case OPT_SEED: {
+			auto value = ParseValue<uint64_t>(optarg);
+			if (!value) {
 				throw std::invalid_argument("Invalid --seed value");
 			}
-			break;
+			_seed = *value;
+		} break;
 		case '?':
 			ft::CliHandleInvalidOption(current);
 		case ':':

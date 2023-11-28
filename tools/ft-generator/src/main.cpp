@@ -52,9 +52,11 @@ int main(int argc, char* argv[])
 		spdlog::set_level(spdlog::level::err);
 	}
 
-	RandomGenerator::InitInstance(args.GetSeed());
-
 	auto logger = ft::LoggerGet("main");
+
+	uint64_t seed = args.GetSeed();
+	logger->info("Seed: {}", seed);
+	RandomGenerator::InitInstance(seed);
 
 	if (!args.GetConfigFile().empty()) {
 		try {

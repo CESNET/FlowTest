@@ -16,7 +16,9 @@
 int main(int argc, char** argv)
 {
 	ft::LoggerInit();
-	generator::RandomGenerator::InitInstance();
+
+	uint64_t seed = std::time(nullptr);
+	generator::RandomGenerator::InitInstance(seed);
 
 	doctest::Context context;
 	context.applyCommandLine(argc, argv);
