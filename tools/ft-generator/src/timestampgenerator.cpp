@@ -99,6 +99,9 @@ std::vector<uint64_t> GenerateTimestamps(
 	const Timestamp& tsLast,
 	std::optional<uint64_t> maxGapSec)
 {
+	assert(tsFirst >= Timestamp::From<TimeUnit::Seconds>(0));
+	assert(tsLast >= Timestamp::From<TimeUnit::Seconds>(0));
+
 	// Prepare and check arguments and handle special cases
 	uint64_t start = tsFirst.ToNanoseconds();
 	uint64_t end = tsLast.ToNanoseconds();
