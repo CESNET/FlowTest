@@ -15,7 +15,6 @@
 #include <cassert>
 #include <cstdint>
 #include <limits>
-#include <numeric>
 #include <optional>
 #include <random>
 #include <vector>
