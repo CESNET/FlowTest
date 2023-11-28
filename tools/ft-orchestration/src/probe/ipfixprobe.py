@@ -705,12 +705,14 @@ class IpfixprobeRaw(Ipfixprobe):
         protocols: List[str],
         interfaces: List[InterfaceCfg],
         verbose: bool = False,
+        mtu: int = 1522,
         sudo: bool = False,
         **kwargs: dict,
     ):
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeRawSettings(interfaces=interfaces_names, **kwargs)
         super().__init__(executor, target, protocols, interfaces, verbose, settings, sudo)
+        self._mtu = mtu
 
     def _prepare_cmd(self, target: ProbeTarget, protocols: List[str], settings: IpfixprobeSettings) -> str:
         self._check_plugin("raw")
@@ -737,6 +739,11 @@ class IpfixprobeRaw(Ipfixprobe):
         args += self._get_common_args(target, protocols, settings)
         return " ".join(args)
 
+    def _before_start(self):
+        for ifc in self._ifc_names.split(","):
+            Tool(f"ip link set dev {ifc} up", executor=self._executor, sudo=True).run()
+            Tool(f"ip link set dev {ifc} mtu {self._mtu}", executor=self._executor, sudo=True).run()
+
 
 class IpfixprobeDpdk(Ipfixprobe):
     """Implementation of Ipfixprobe connector with dpdk traffic capturing."""
@@ -748,6 +755,7 @@ class IpfixprobeDpdk(Ipfixprobe):
         protocols: List[str],
         interfaces: List[InterfaceCfg],
         verbose: bool = False,
+        mtu: int = 1522,
         sudo: bool = False,
         **kwargs: dict,
     ):
@@ -759,6 +767,11 @@ class IpfixprobeDpdk(Ipfixprobe):
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeDpdkSettings(devices=interfaces_names, **kwargs)
         super().__init__(executor, target, protocols, interfaces, verbose, settings, sudo)
+
+        if mtu != 1522:
+            logging.getLogger().warning(
+                "DPDK input plugin does not support setting MTU size at this time. The value is ignored."
+            )
 
     def _prepare_cmd(self, target: ProbeTarget, protocols: List[str], settings: IpfixprobeSettings) -> str:
         self._check_plugin("dpdk")
@@ -806,12 +819,14 @@ class IpfixprobeNdp(Ipfixprobe):
         protocols: List[str],
         interfaces: List[InterfaceCfg],
         verbose: bool = False,
+        mtu: int = 1522,
         sudo: bool = False,
         **kwargs: dict,
     ):
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeNdpSettings(devices=interfaces_names, **kwargs)
         super().__init__(executor, target, protocols, interfaces, verbose, settings, sudo)
+        self._mtu = mtu
 
     def _prepare_cmd(self, target: ProbeTarget, protocols: List[str], settings: IpfixprobeSettings) -> str:
         self._check_plugin("ndp")
@@ -827,3 +842,7 @@ class IpfixprobeNdp(Ipfixprobe):
 
         args += self._get_common_args(target, protocols, settings)
         return " ".join(args)
+
+    def _before_start(self):
+        for ifc in self._ifc_names.split(","):
+            Tool(f"nfb-eth -d {ifc} -L {self._mtu}", executor=self._executor).run()
