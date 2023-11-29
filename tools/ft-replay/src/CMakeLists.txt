@@ -70,6 +70,7 @@ if (ENABLE_NFB)
 		nfbDeviceTree.cpp
 		nfbCompatible.hpp
 		nfbCompatible.cpp
+		nfbFirmwareComponent.hpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE
