@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e34272896c991af82ac95531fb7a2dd07a77b0722a2f1e30dddbbd3bd4c1ca09"
+            "sha256": "169e66d6494d7575c7f80e63c99fc7398bb098647eeed3ab82b390f6c0fda419"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -15,7 +15,7 @@
             },
             {
                 "name": "liberouter-pypi",
-                "url": "http://cisticka-devel.liberouter.org/piproxy/tmc/pypi-liberouter/simple",
+                "url": "http://cisticka-dev.liberouter.org/piproxy/tmc/pypi-liberouter/simple",
                 "verify_ssl": false
             }
         ]
