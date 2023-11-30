@@ -1,0 +1,16 @@
+---
+# Dictionary of firmwares based on the card name and number of PCIe endpoints.
+# Each entry contains design name and number of application cores to configure.
+# Design name is without "ndp-fw-" prefix and ".nfw" suffix
+ndk_nic_firmwares:
+  N6010:  # card name
+    "1":  # number of endpoints
+      design: n6010-nic-pcie1xgen4x16-100g2
+      cores: 2
+  NFB-200G2QL:
+    "1":
+      design: nfb-200g2ql-nic-pcie1xgen3x16-100g2
+      cores: 2
+    "2":
+      design: nfb-200g2ql-nic-pcie2xgen3x16-100g2
+      cores: 2

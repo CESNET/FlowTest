@@ -1,0 +1,28 @@
+---
+# Directory where FPGA firmwares are installed
+nfb_firmware_dir: /usr/share/ndk-fw
+
+# FPGA card to configure
+# System path to the card. Usually contains "/dev/nfb/{by-pci-slot,by-serial-no}/".
+# For example:
+#   "/dev/nfb0"                             # Specified by card index
+#   "/dev/nfb/by-serial-no/NFB-200G2QL/86"  # Specified by card type and serial number.
+#   "/dev/nfb/by-pci-slot/0000:ca:00.0"     # Specified by PCI endpoint
+nfb_card: "/dev/nfb0"
+
+# Set MTU (Maximum transmission unit) of Ethernet interfaces
+# If empty, no configuration is performed.
+nfb_mtu: 9000
+
+# Set PMA (Physical Medium Attachment) of the Ethernet interface (e.g. LR, SR).
+# For possible option see output of `nfb-eth -Pv`.
+# If empty, no configuration is performed.
+nfb_pma:
+
+# RSS (Receive Side Scaling)
+# Set the range of queues to which packets arriving on the card will be
+# distributed. The number of queues must not exceed the number supported
+# by the firmware. See "RX queues" in `nfb-info` output.
+# For example: To distribute packets to 16 queues, use range 0 - 15.
+rss_queue_min: 0
+rss_queue_max: 15
