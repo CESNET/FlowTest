@@ -3,3 +3,4 @@
 ipfixprobe_package_list:
   - ipfixprobe
   - ipfixprobe-dpdk
+  - ipfixprobe-ndp
