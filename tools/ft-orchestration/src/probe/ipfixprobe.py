@@ -224,9 +224,12 @@ class IpfixprobeNdpSettings(IpfixprobeSettings):
     ----------
     devices: List[str], required
         Paths to device files.
+    dma_channels_map: dict[int, int], optional
+        Binary mask that specifies for which DMA channels to create instance of ndp input plugin.
     """
 
     devices: List[str] = required_field()
+    dma_channels_map: dict[int, int] = field(default_factory=lambda: {0: 1})
 
     def __post_init__(self):
         assert len(self.devices) > 0
@@ -836,9 +839,12 @@ class IpfixprobeNdp(Ipfixprobe):
 
         args = ["ipfixprobe"]
 
-        for dev in settings.devices:
-            ndp_params = [f"dev={dev}"]
-            args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "ndp", ndp_params)
+        for dev_index, dev in enumerate(settings.devices):
+            mask = [int(bit) for bit in f"{settings.dma_channels_map[dev_index]:b}"[::-1]]
+            for i, bit in enumerate(mask):
+                if bit == 1:
+                    ndp_params = [f"dev={dev}:{i}"]
+                    args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "ndp", ndp_params)
 
         args += self._get_common_args(target, protocols, settings)
         return " ".join(args)
