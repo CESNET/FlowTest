@@ -1,0 +1,15 @@
+---
+# NFB kernel module parameters
+#
+# Each key/value entry in this dictionary will be passed to the kernel
+# module during module loading.
+# See `lsmod nfb` for list of all possible options.
+nfb_options:
+  # Size of buffer for one packet in NDP ring [bytes]
+  # In other words, this parameter determines what is the maximum packet size
+  # that can be transferred to the software and thus indirectly limits the MTU.
+  ndp_ctrl_buffer_size: 16k
+  # Size of each NDP ring [bytes]
+  # Note: Each ring requires at least 1024 descriptors, so the value must be at
+  # least >= 1024 * ndp_ctrl_buffer_size.
+  ndp_ring_size: 16M
