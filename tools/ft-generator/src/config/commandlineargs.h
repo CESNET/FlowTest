@@ -74,6 +74,13 @@ public:
 	uint64_t GetSeed() const { return _seed; }
 
 	/**
+	 * @brief Get the size of the prepare queue
+	 *
+	 * @return The size of the prepare queue
+	 */
+	std::size_t GetPrepareQueueSize() const { return _prepareQueueSize; }
+
+	/**
 	 * @brief Whether help should be printer
 	 *
 	 * @return true or false
@@ -107,6 +114,7 @@ private:
 	std::string _configFile;
 	std::optional<std::string> _reportFile;
 	uint64_t _seed = std::time(nullptr);
+	std::size_t _prepareQueueSize = 128;
 	int _verbosity = 0;
 	bool _help = false;
 	bool _skipUnknown = false;
