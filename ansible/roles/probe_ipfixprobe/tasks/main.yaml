@@ -1,5 +1,16 @@
 ---
-- name: ipfixprobe is installed
+- name: Get list of installed packages
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Remove ipfixprobe packages that are in collision
   ansible.builtin.dnf:
-    name: ipfixprobe
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ ipfixprobe_package_list | difference([ipfixprobe_package]) }}"
+  when: "item in ansible_facts.packages"
+
+- name: "{{ ipfixprobe_package }} is installed"
+  ansible.builtin.dnf:
+    name: "{{ ipfixprobe_package }}"
     state: latest
