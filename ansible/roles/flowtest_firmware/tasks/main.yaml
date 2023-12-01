@@ -4,17 +4,17 @@
     name: nfb-framework
     state: latest
 
-- name: FlowTest FPGA Firmware ({{ firmware }}) is installed
+- name: FlowTest FPGA Firmware ({{ nfb_firmware }}) is installed
   ansible.builtin.dnf:
-    name: "ndk-fw-{{ firmware }}"
+    name: "ndk-fw-{{ nfb_firmware }}"
     state: latest
 
 - name: Make sure NFB kernel module is loaded
   ansible.builtin.command: "modprobe nfb"
 
-- name: Make sure the FPGA card ({{ card }}) is available
+- name: Make sure the FPGA card ({{ nfb_card }}) is available
   ansible.builtin.stat:
-    path: "{{ card }}"
+    path: "{{ nfb_card }}"
     follow: true
     get_attributes: false
     get_checksum: false
@@ -22,8 +22,8 @@
   register: card_stat
   failed_when: not card_stat.stat.exists
 
-- name: Determine escaped systemd path of the FPGA card ({{ card }})
-  ansible.builtin.command: "systemd-escape -p {{ card | ansible.builtin.realpath }}"
+- name: Determine escaped systemd path of the FPGA card ({{ nfb_card }})
+  ansible.builtin.command: "systemd-escape -p {{ nfb_card | ansible.builtin.realpath }}"
   register: card_escaped
 
 - name: Install NFB-TSU systemd service
@@ -38,13 +38,13 @@
     name: "nfb-tsu@{{ card_escaped.stdout }}.service"
     state: stopped
 
-- name: Boot the FPGA card ({{ card }}) with the firmware ({{ firmware }})
-  ansible.builtin.command: "nfb-boot -d {{ card }} -b 0 \"{{ firmware_dir }}/{{ firmware }}.nfw\""
+- name: Boot the FPGA card ({{ nfb_card }}) with the firmware ({{ nfb_firmware }})
+  ansible.builtin.command: "nfb-boot -d {{ nfb_card }} -b 0 \"{{ nfb_firmware_dir }}/{{ nfb_firmware }}.nfw\""
 
 - name: Start NFB-TSU systemd service
   ansible.builtin.systemd:
     name: "nfb-tsu@{{ card_escaped.stdout }}.service"
     state: started
 
-- name: Enable Ethernet interfaces on the card ({{ card }})
-  ansible.builtin.command: "nfb-eth -d {{ card }} -e 1"
+- name: Enable Ethernet interfaces on the card ({{ nfb_card }})
+  ansible.builtin.command: "nfb-eth -d {{ nfb_card }} -e 1"

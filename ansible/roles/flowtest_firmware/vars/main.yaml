@@ -1,0 +1,3 @@
+---
+# Firmware name without "ndp-fw-" prefix and ".nfw" suffix
+nfb_firmware: nfb-200g2ql-replicator-100g2
