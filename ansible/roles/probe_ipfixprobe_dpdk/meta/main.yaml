@@ -1,4 +1,0 @@
----
-dependencies:
-  - role: repository_nemea
-  - role: remove_ipfixprobe

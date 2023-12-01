@@ -1,5 +1,0 @@
----
-- name: ipfixprobe dpdk is installed
-  ansible.builtin.dnf:
-    name: ipfixprobe-dpdk
-    state: latest
