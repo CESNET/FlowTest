@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: repository_nfb
+  - role: nfb_kernel_module

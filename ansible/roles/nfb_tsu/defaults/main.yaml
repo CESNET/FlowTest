@@ -1,0 +1,11 @@
+---
+# FPGA card to configure
+# System path to the card. Usually contains "/dev/nfb/{by-pci-slot,by-serial-no}/".
+# For example:
+#   "/dev/nfb0"                             # Specified by card index
+#   "/dev/nfb/by-serial-no/NFB-200G2QL/86"  # Specified by card type and serial number.
+#   "/dev/nfb/by-pci-slot/0000:ca:00.0"     # Specified by PCI endpoint
+nfb_card: "/dev/nfb0"
+
+# Determine whether nfb-tsu service should be running for the given card.
+nfb_tsu_enable: true
