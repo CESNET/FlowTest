@@ -17,6 +17,14 @@
 - name: Boot the FPGA card ({{ nfb_card }}) with the firmware ({{ nfb_firmware }})
   ansible.builtin.command: "nfb-boot -d {{ nfb_card }} -b 0 \"{{ nfb_firmware_dir }}/{{ nfb_firmware }}.nfw\""
 
+- name: Set MTU of Ethernet interfaces
+  ansible.builtin.command: "nfb-eth -d {{ nfb_card }} -L {{ nfb_mtu | int }}"
+  when: nfb_mtu
+
+- name: Set PMA of Ethernet interfaces
+  ansible.builtin.command: "nfb-eth -d {{ nfb_card }} -Pc \"{{ nfb_pma }}\""
+  when: nfb_pma
+
 - name: Start NFB-TSU systemd service
   ansible.builtin.include_role:
     name: nfb_tsu

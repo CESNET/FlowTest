@@ -9,3 +9,12 @@ nfb_firmware_dir: /usr/share/ndk-fw
 #   "/dev/nfb/by-serial-no/NFB-200G2QL/86"  # Specified by card type and serial number.
 #   "/dev/nfb/by-pci-slot/0000:ca:00.0"     # Specified by PCI endpoint
 nfb_card: "/dev/nfb0"
+
+# Set MTU (Maximum transmission unit) of Ethernet interfaces
+# If empty, no configuration is performed.
+nfb_mtu: 9000
+
+# Set PMA (Physical Medium Attachment) of the Ethernet interface (e.g. LR, SR).
+# For possible option see output of `nfb-eth -Pv`.
+# If empty, no configuration is performed.
+nfb_pma:
