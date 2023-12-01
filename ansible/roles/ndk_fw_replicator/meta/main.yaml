@@ -1,4 +1,7 @@
 ---
 dependencies:
-  - role: repository_nfb
   - role: repository_flowtest
+  - role: nfb_kernel_module
+  - role: nfb_tsu
+    # Make sure nfb-tsu daemon is not running as we need to reboot firmware
+    nfb_tsu_enable: false
