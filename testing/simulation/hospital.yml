@@ -1,0 +1,55 @@
+# Profile information which cannot be modified by the orchestration tool.
+name: Hospital 10G
+description: 10G Traffic from a hospital
+marks: [hospitals]
+requirements:
+  speed: 10
+profile: https://liberouter.org/repo/flowtest/profiles/10G_Hospital/profile_trimmed_360s_10s.csv
+mtu: 1522
+sampling: 1.0
+
+# default configuration describing the setup during profile collection
+default:
+  pps: 103500
+  mbps: 721
+  generator:
+    encapsulation: []
+    mac:
+      mac_range: "aa:aa:aa:aa:aa:a0/44"
+    ipv4:
+      fragmentation_probability: 0%
+    ipv6:
+      fragmentation_probability: 0%
+  probe:
+    protocols: [as, dns, ipv4, http, eth, vlan, mpls, tls]
+    active_timeout: 300
+    inactive_timeout: 30
+
+# individual tests for general simulation scenario
+sim_general:
+  - id: hospital_original
+    marks: [original]
+    speed_multiplier: 1.0
+  - id: hospital_speedup_noL7
+    marks: []
+    mbps: 1024
+    probe:
+      protocols: [as, ipv4, eth, vlan, mpls]
+    generator:
+      encapsulation: []
+      ipv4:
+        ip_range: "10.0.0.0/10"
+      ipv6:
+        fragmentation_probability: 0%
+    analysis:
+      model: "statistical"
+      metrics:
+        - key: PACKETS
+          diff: 0.01
+        - key: BYTES
+          diff: 0.01
+  - id: hospital_precise
+    marks: [precise]
+    speed_multiplier: 1.0
+    analysis:
+      model: "precise"
