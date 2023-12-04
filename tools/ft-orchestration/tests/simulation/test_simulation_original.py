@@ -119,12 +119,12 @@ def test_simulation_original(
     objects_to_cleanup.append(collector_instance)
     collector_instance.start()
 
-    probe_instance = device.get(**scenario.probe.get_args(device.get_instance_type()))
+    probe_instance = device.get(mtu=scenario.mtu, **scenario.probe.get_args(device.get_instance_type()))
     objects_to_cleanup.append(probe_instance)
     probe_timeouts = probe_instance.get_timeouts()
     probe_instance.start()
 
-    generator_instance = generator.get()
+    generator_instance = generator.get(scenario.mtu)
 
     # file to save replication report from ft-generator (flows reference)
     ref_file = os.path.join(tmp_dir, "reference.csv")

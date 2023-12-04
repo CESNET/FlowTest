@@ -4,7 +4,7 @@ marks: [simple_test, nightly]
 requirements:
   speed: 10
 profile: profiles/csv_basic_profile.csv
-mtu: 1500
+mtu: 1522
 sampling: 0.1
 pps: 400000
 generator:

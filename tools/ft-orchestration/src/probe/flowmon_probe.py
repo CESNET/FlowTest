@@ -134,6 +134,7 @@ class FlowmonProbe(ProbeInterface):
         protocols,
         interfaces,
         verbose=False,
+        mtu=1522,
         input_plugin="rawnetcap",
         active_timeout=300,
         inactive_timeout=30,
@@ -157,6 +158,9 @@ class FlowmonProbe(ProbeInterface):
         verbose : bool, optional
             If True, set verbosity of probe logs to DEBUG and also output flows
             to JSON, otherwise set verbosity to WARN. Default is False.
+
+        mtu : int
+            The maximum transmission unit to be set at the probe input.
 
         input_plugin : str, optional
             Input plugin - could be either dpdk or rawnetcap.
@@ -193,6 +197,7 @@ class FlowmonProbe(ProbeInterface):
         self._pidfile = f"/tmp/tmp_probe_{interface}.pidfile"
         self._settings = {}
         self._verbose = verbose
+        self._mtu = mtu
         self._remote_dir = Path(Rsync(self._executor).get_data_directory())
         attributes = self._get_appliance_attributes(input_plugin)
         self._set_config(
@@ -289,13 +294,13 @@ class FlowmonProbe(ProbeInterface):
         """Setup input part of flowmon probe configuration."""
 
         if input_plugin == "rawnetcap":
-            input_parameters = f"device={self._interface},sampling=0,cache-size=32768,mtu=9018"
+            input_parameters = f"device={self._interface},sampling=0,cache-size=32768,mtu={self._mtu}"
             self._settings["INPUT"] = {"NAME": input_plugin, "PARAMS": input_parameters}
         elif input_plugin == "dpdk":
             input_parameters = (
                 f'name={attributes["driver_name"]},device={attributes["device"]},'
                 + f'cores={attributes["cores"]},pmd={attributes["pmd"]},'
-                + f"stats=/data/components/dpdk-tools/stats/{self._interface},sampling=0,mtu=9000"
+                + f"stats=/data/components/dpdk-tools/stats/{self._interface},sampling=0,mtu={self._mtu}"
             )
             self._settings["INPUT"] = {"NAME": input_plugin, "PARAMS": input_parameters}
 

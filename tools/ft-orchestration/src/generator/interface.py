@@ -106,6 +106,7 @@ class PcapPlayer(ABC):
         add_vlan: Optional[int] = None,
         verbose: bool = False,
         biflow_export: bool = False,
+        mtu: int = 1522,
         **kwargs,
     ):
         """Init player.
@@ -123,6 +124,9 @@ class PcapPlayer(ABC):
             Flag indicating whether the tested probe exports biflows.
             If the probe exports biflows, the START_TIME resp. END_TIME in the generator
             report contains min(START_TIME,START_TIME_REV) resp. max(END_TIME,END_TIME_REV).
+        mtu : int, optional
+            Mtu size of interface on which traffic will be replayed.
+            Default size is defined by standard MTU with ethernet and VLAN header.
         kwargs : dict
             Additional arguments processed by implementation.
         """

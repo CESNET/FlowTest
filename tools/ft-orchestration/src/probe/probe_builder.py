@@ -85,13 +85,16 @@ class ProbeBuilder(BuilderBase, Device):
         self._class = self._find_class(PROBE_IMPORT_PATH, probe_cfg.type, ProbeInterface)
 
     # pylint: disable=arguments-differ
-    def get(self, protocols: list[str], **kwargs) -> ProbeInterface:
+    def get(self, protocols: list[str], mtu: Optional[int] = None, **kwargs) -> ProbeInterface:
         """Create probe instance from static configuration by alias identifier.
 
         Parameters
         ----------
         protocols : list[str]
             List of the networking protocols which the probe should parse and export.
+        mtu : int, optional
+            The maximum transmission unit to be set at the probe input.
+            If None, default value of connector is used.
         kwargs: dict
             Custom arguments passed to the init function of the probe
 
@@ -101,9 +104,11 @@ class ProbeBuilder(BuilderBase, Device):
             New probe instance.
         """
 
-        return self._class(
-            self._executor, self._target, protocols, self._interfaces, **{**self._connector_args, **kwargs}
-        )
+        additional_args = {**self._connector_args, **kwargs}
+        if mtu is not None:
+            additional_args.update({"mtu": mtu})
+
+        return self._class(self._executor, self._target, protocols, self._interfaces, **additional_args)
 
     def get_enabled_interfaces(self) -> List[InterfaceCfg]:
         """Get list of enabled interfaces.
