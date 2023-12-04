@@ -122,17 +122,19 @@ class SimulationScenario(ScenarioCfg):
         """
         parsed_url = urlparse(self.profile)
         if parsed_url.scheme and parsed_url.netloc:
-            profiles_dir = "profiles"
+            profiles_dir = os.path.join(simulation_tests_dir, "profiles")
+            if not os.path.exists(profiles_dir):
+                os.mkdir(profiles_dir)
             # add hash of URL to downloaded profile
             hash_url = hashlib.md5(self.profile.encode("utf-8")).hexdigest()
             profile_name = os.path.splitext(os.path.basename(scenario_filename))[0]
             profile_name = f"{profile_name}_{hash_url}.csv"
-            profile_path = os.path.join(simulation_tests_dir, profiles_dir, profile_name)
+            profile_path = os.path.join(profiles_dir, profile_name)
 
             # duplicity - check if the profile has been already downloaded in some previous tests
             csv_list = [f for f in os.listdir(os.path.dirname(profile_path)) if hash_url in f]
             if csv_list:
-                return os.path.join(simulation_tests_dir, profiles_dir, csv_list[0])
+                return os.path.join(profiles_dir, csv_list[0])
 
             # profile does not exist - download it
             try:
