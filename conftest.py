@@ -18,5 +18,5 @@ pytest_plugins = [
     "src.topology.pcap_player",
     "src.topology.replicator",
     "tests.validation.test_validation",
-    "tests.simulation.test_simulation_original",
+    "tests.simulation.test_simulation_general",
 ]
