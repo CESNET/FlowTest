@@ -79,13 +79,13 @@ def tmp_dir() -> str:
 
 
 @pytest.fixture(scope="function")
-def check_requirements(scenario: SimulationScenario, device: ProbeBuilder, generator: GeneratorBuilder) -> None:
+def check_requirements(scenario: ScenarioCfg, device: ProbeBuilder, generator: GeneratorBuilder) -> None:
     """Fixture to check requirements given by the test scenario.
     Interface speed is checked on generator and probe. The protocols supported by the probe are also checked.
 
     Parameters
     ----------
-    scenario : SimulationScenario
+    scenario : ScenarioCfg
         Test scenario dataclass.
     device : ProbeBuilder
         Probe builder to gather interfaces speed and supported protocols.
