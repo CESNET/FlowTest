@@ -141,7 +141,6 @@ class Fdsdump(CollectorOutputReaderInterface):
             logging.getLogger().error("fdsdump runtime error: %s, error: %s", self._process.returncode(), err)
             raise CollectorOutputReaderException("fdsdump runtime error")
 
-        self._executor.reset_process()
         self._process = None
         self._buf = None
         self._idx = 0
