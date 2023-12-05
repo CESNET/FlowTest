@@ -444,7 +444,6 @@ class FlowmonProbe(ProbeInterface):
         Tool(f"kill -2 {pid}", executor=self._executor, failure_verbosity="silent").run()
         ps_cmd = Tool(f"ps -p {pid}", executor=self._executor, failure_verbosity="silent")
         for _ in range(5):
-            self._executor.reset_process()
             ps_cmd.run()
             if ps_cmd.returncode() > 0:
                 return
