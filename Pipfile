@@ -3,11 +3,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
-[[source]]
-url = "http://cisticka-dev.liberouter.org/piproxy/tmc/pypi-liberouter/simple"
-verify_ssl = false
-name = "liberouter-pypi"
-
 [packages]
 cppcheck-junit = "*"
 fabric = "*"
@@ -21,8 +16,7 @@ pytest = "*"
 pytest-cases = "*"
 pytest-html = "==3.2.0"
 py = "*"
-lbr-trex-client = {version = ">=2.0.1", index = "liberouter-pypi"}
-lbr-testsuite = {version = ">=4.15", index = "liberouter-pypi"}
+lbr-testsuite = ">=5.0"
 scapy = "*"
 matplotlib = "*"
 
