@@ -12,11 +12,10 @@ import os
 import time
 
 import pytest
+from lbr_testsuite.executable import RemoteExecutor
 from src.config.authentication import AuthenticationCfg
 from src.config.config import Config
 from src.generator.tcpreplay import TcpReplay
-from src.host.host import Host
-from src.host.storage import RemoteStorage
 
 FILES_DIR = f"{os.getcwd()}/tools/ft-orchestration/conf/"
 PCAP_FILE = f"{os.getcwd()}/tools/ft-orchestration/tests/dev/tcpreplay/NTP_sync.pcap"
@@ -38,12 +37,8 @@ def fixture_get_generator(create_config):
     """Fixture to get generator"""
     auth: AuthenticationCfg = create_config.authentications["validation-xsobol02"]
     gen = create_config.generators["validation-gen"]
-    storage = RemoteStorage(gen.name, None, auth.username, auth.password)
-    host = Host(gen.name, storage, auth.username, auth.password)
-    return TcpReplay(
-        host=host,
-        verbose=True,
-    )
+    executor = RemoteExecutor(gen.name, auth.username, auth.password)
+    return TcpReplay(executor)
 
 
 @pytest.mark.skip("Need a specific tcpreplay generator. Use it as a template.")

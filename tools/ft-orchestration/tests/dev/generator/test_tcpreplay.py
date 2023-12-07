@@ -12,9 +12,9 @@ import time
 
 import pytest
 from lbr_testsuite.executable import RemoteExecutor
+from lbr_testsuite.executable.remote_executor import ssh_agent_enabled
 from src.generator.interface import GeneratorException
 from src.generator.tcpreplay import TcpReplay
-from src.host.common import ssh_agent_enabled
 
 HOST = os.environ.get("PYTEST_TEST_HOST")
 HOST_INTERFACE = (
