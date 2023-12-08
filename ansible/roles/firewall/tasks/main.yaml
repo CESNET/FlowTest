@@ -10,7 +10,12 @@
     state: "reloaded"
   when: nftables_service.status.ActiveState == 'active'
 
+- name: Detect input chain name (OL8)
+  set_fact:
+    input_chain: "INPUT"
+  when: ansible_distribution_major_version == "8"
+
 - name: Allow ports in nftables
-  ansible.builtin.shell: nft add rule inet firewall INPUT tcp dport {{ item }} accept
+  ansible.builtin.shell: nft add rule inet firewall {{ input_chain }} tcp dport {{ item }} accept
   with_items: "{{ firewall_enabled_ports }}"
   when: nftables_service.status.ActiveState == 'active'
