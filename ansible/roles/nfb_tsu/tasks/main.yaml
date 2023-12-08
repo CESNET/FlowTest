@@ -1,0 +1,25 @@
+---
+- name: Make sure the FPGA card ({{ nfb_card }}) is available
+  ansible.builtin.stat:
+    path: "{{ nfb_card }}"
+    follow: true
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: card_stat
+  failed_when: not card_stat.stat.exists
+
+- name: Determine escaped systemd path of the FPGA card ({{ nfb_card }})
+  ansible.builtin.command: "systemd-escape -p {{ nfb_card | ansible.builtin.realpath }}"
+  register: card_escaped
+
+- name: Install NFB-TSU systemd service (if not already present)
+  ansible.builtin.copy:
+    src: flowtest-nfb-tsu@.service
+    dest: /run/systemd/system/flowtest-nfb-tsu@.service
+
+- name: "{{ nfb_tsu_enable | ternary(\"Enable\", \"Disable\") }} NFB-TSU systemd service"
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: "flowtest-nfb-tsu@{{ card_escaped.stdout }}.service"
+    state: "{{ nfb_tsu_enable | ternary(\"started\", \"stopped\") }}"

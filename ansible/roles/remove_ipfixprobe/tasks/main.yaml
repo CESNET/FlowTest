@@ -1,7 +1,0 @@
----
-- name: Remove previously installed ipfixprobe packages
-  ansible.builtin.dnf:
-    name:
-      - ipfixprobe
-      - ipfixprobe-dpdk
-    state: absent

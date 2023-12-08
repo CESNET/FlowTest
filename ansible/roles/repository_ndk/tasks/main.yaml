@@ -1,0 +1,22 @@
+---
+- name: Liberouter NDK SmartNic SW repository is installed
+  ansible.builtin.yum_repository:
+    name: liberouter-ndk-app-nic-sw
+    file: ndk-app-nic
+    description: Liberouter NDK SmartNIC SW repository
+    baseurl: "https://www.liberouter.org/repo/ndk-app/nic/sw/$releasever"
+    skip_if_unavailable: yes
+    gpgcheck: no
+    repo_gpgcheck: no
+    enabled: yes
+
+- name: Liberouter NDK SmartNic FW repository is installed
+  ansible.builtin.yum_repository:
+    name: liberouter-ndk-app-nic-fw
+    file: ndk-app-nic
+    description: Liberouter NDK SmartNIC FW repository
+    baseurl: "https://www.liberouter.org/repo/ndk-app/nic/fw"
+    skip_if_unavailable: yes
+    gpgcheck: no
+    repo_gpgcheck: no
+    enabled: yes

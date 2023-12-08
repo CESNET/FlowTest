@@ -1,0 +1,39 @@
+# You can have only one RSS configuration in the YAML configuration file!
+rss:
+  # You can use one configuration for all ETH IFCs (keyword "all"),
+  # or use a configuration for a specific ETH IFC number (for example: 3).
+  ifc: all
+
+  # Possible values of INPUT_CONF:
+  # ------------------------------
+  # ipv4               => for all IPv4 packets compute hash from IP addresses
+  # frag_ipv4          => for fragmented IPv4 packets compute hash from IP addresses
+  # nonfrag_ipv4_tcp   => for nonfragmented IPv4+TCP packets compute hash from IP addresses and ports
+  # nonfrag_ipv4_udp   => for nonfragmented IPv4+UDP packets compute hash from IP addresses and ports
+  # nonfrag_ipv4_sctp  => for nonfragmented IPv4+SCTP packets compute hash from IP addresses and ports
+  # nonfrag_ipv4_other => for nonfragmented other IPv4 (without TCP, UDP or SCTP) packets compute hash from IP addresses
+  # ipv6               => for all IPv6 packets compute hash from IP addresses
+  # frag_ipv6          => for fragmented IPv6 packets compute hash from IP addresses
+  # nonfrag_ipv6_tcp   => for nonfragmented IPv6+TCP packets compute hash from IP addresses and ports
+  # nonfrag_ipv6_udp   => for nonfragmented IPv6+UDP packets compute hash from IP addresses and ports
+  # nonfrag_ipv6_sctp  => for nonfragmented IPv6+SCTP packets compute hash from IP addresses and ports
+  # nonfrag_ipv6_other => for nonfragmented other IPv6 (without TCP, UDP or SCTP) packets compute hash from IP addresses
+  # l4_dst_only        => use only DST ports to compute the hash
+  # l4_src_only        => use only SRC ports to compute the hash
+  # l3_dst_only        => use only DST IP adress to compute the hash
+  # l3_src_only        => use only SRC IP adress to compute the hash
+  input_conf:
+    - ipv4
+    - ipv6
+
+  # HASH_TYPE possible values: toeplitz or simple_xor
+  hash_type: toeplitz
+
+  # HASH_KEY possible values: default or symmetric
+  hash_key: symmetric
+
+  # RETA table configuration
+  reta:
+    # automatic distribution on the selected queue range
+    queue_min: {{ rss_queue_min }}
+    queue_max: {{ rss_queue_max }}

@@ -1,0 +1,36 @@
+---
+- name: NFB framework is installed
+  ansible.builtin.dnf:
+    name: nfb-framework
+    state: latest
+
+- name: Determine whether NFB kernel module is already loaded
+  ansible.builtin.shell: "lsmod | grep ^nfb | wc -l"
+  register: nfb_count
+
+- name: Create modprobe.d file with NFB module configuration
+  ansible.builtin.template:
+    src: files/nfb.conf
+    dest: /etc/modprobe.d/nfb.conf
+  register: nfb_config
+
+# If modprobe.d configuration has changed, reload the module
+- name: Reload NFB kernel module (if the configuration has changed)
+  when: nfb_count != "0" and nfb_config.changed
+  block:
+    #  Running nfb-tsu would prevent the module unloading, stop them...
+    - name: List all active NFB-TSU services started by FlowTest
+      ansible.builtin.shell: "systemctl list-units --state=active | grep flowtest-nfb-tsu@ | cut -f 1 -d \" \""
+      register: tsu_services
+
+    - name: Stop all active NFB-TSU services started by FlowTest
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: stopped
+      loop: "{{ tsu_services.stdout_lines }}"
+
+    - name: Unload NFB kernel module to reload configuration
+      ansible.builtin.shell: rmmod nfb
+
+- name: Make sure NFB kernel module is loaded
+  ansible.builtin.command: modprobe nfb

@@ -1,0 +1,6 @@
+---
+# List of ipfixprobe packages that are in collision
+ipfixprobe_package_list:
+  - ipfixprobe
+  - ipfixprobe-dpdk
+  - ipfixprobe-ndp

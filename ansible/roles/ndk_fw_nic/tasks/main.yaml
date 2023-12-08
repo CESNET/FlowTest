@@ -1,0 +1,61 @@
+---
+- name: Make sure the FPGA card ({{ nfb_card }}) is available
+  ansible.builtin.stat:
+    path: "{{ nfb_card }}"
+    follow: true
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: card_stat
+  failed_when: not card_stat.stat.exists
+
+- name: Determine FPGA card name ({{ nfb_card }})
+  ansible.builtin.command: "nfb-info -d {{ nfb_card }} -q card"
+  register: card_name
+
+- name: Determine number of PCIe endpoints of the FPGA card ({{ nfb_card }})
+  ansible.builtin.shell: "nfb-info -d {{ nfb_card }} | grep \"PCIe Endpoint\" | wc -l"
+  register: card_endpoints
+
+- name: Determine required firmware for FPGA card ({{ nfb_card }})
+  ansible.builtin.set_fact:
+    card_firmware: "{{ ndk_nic_firmwares[card_name.stdout][card_endpoints.stdout]['design'] }}"
+    card_cores: "{{ ndk_nic_firmwares[card_name.stdout][card_endpoints.stdout]['cores'] }}"
+
+- name: Install NDK control tool and FPGA firwmare ({{ card_firmware }})
+  ansible.builtin.dnf:
+    name:
+      - ndk-nic-ctl
+      - "ndk-fw-{{ card_firmware }}"
+    state: latest
+
+- name: Boot the FPGA card ({{ nfb_card }}) with the firmware ({{ card_firmware }})
+  ansible.builtin.command: "nfb-boot -d {{ nfb_card }} -b 0 \"{{ firmware_path }}\""
+  vars:
+    firmware_path: "{{ nfb_firmware_dir }}/{{ card_firmware }}.nfw"
+
+- name: Set MTU of Ethernet interfaces
+  ansible.builtin.command: "nfb-eth -d {{ nfb_card }} -L {{ nfb_mtu | int }}"
+  when: nfb_mtu
+
+- name: Set PMA of Ethernet interfaces
+  ansible.builtin.command: "nfb-eth -d {{ nfb_card }} -Pc \"{{ nfb_pma }}\""
+  when: nfb_pma
+
+- name: Prepare RSS configuration for FPGA card ({{ nfb_card }})
+  ansible.builtin.template:
+    src: files/rss_conf.yaml
+    dest: /tmp/rss_conf.yaml
+
+- name: Configure RSS of FPGA card ({{ nfb_card }})
+  ansible.builtin.command: "ndk-nic-ctl -d {{ nfb_card }} -i {{ item }} --rss_conf /tmp/rss_conf.yaml"
+  loop: "{{ range(0, card_cores|int) | list }}"
+
+- name: Start NFB-TSU systemd service
+  ansible.builtin.include_role:
+    name: nfb_tsu
+  vars:
+    nfb_tsu_enable: true
+
+- name: Enable Ethernet interfaces on the card ({{ nfb_card }})
+  ansible.builtin.command: "nfb-eth -d {{ nfb_card }} -e 1"

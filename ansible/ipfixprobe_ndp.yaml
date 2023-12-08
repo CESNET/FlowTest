@@ -2,6 +2,6 @@
 - hosts: all
   become: yes
   roles:
-    - hugepages
+    - ndk_fw_nic
     - role: probe_ipfixprobe
-      ipfixprobe_package: ipfixprobe-dpdk
+      ipfixprobe_package: ipfixprobe-ndp
