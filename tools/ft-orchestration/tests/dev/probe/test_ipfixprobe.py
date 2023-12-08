@@ -275,7 +275,7 @@ class TestWithFakeHost:
     def test_prepare_cmd_ndp_plugin(fake_host):
         """Test command format with ndp input plugin parameters."""
 
-        probe = IpfixprobeNdp(fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("/dev/nfb0:0", 10)])
+        probe = IpfixprobeNdp(fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [InterfaceCfg("/dev/nfb0", 10)])
 
         probe.start()
         probe.stop()
@@ -287,7 +287,8 @@ class TestWithFakeHost:
             fake_host,
             ProbeTarget("127.0.0.1", 4739, "tcp"),
             [],
-            [InterfaceCfg("/dev/nfb0:0", 10), InterfaceCfg("/dev/nfb0:1", 10), InterfaceCfg("/dev/nfb0:2", 10)],
+            [InterfaceCfg("/dev/nfb0", 10), InterfaceCfg("/dev/nfb1", 10)],
+            dma_channels_map={0: 0xF, 1: 0xF0},
         )
 
         probe.start()
@@ -295,6 +296,8 @@ class TestWithFakeHost:
 
         regex = (
             'ipfixprobe -i "ndp;dev=/dev/nfb0:0" -i "ndp;dev=/dev/nfb0:1" -i "ndp;dev=/dev/nfb0:2"'
+            ' -i "ndp;dev=/dev/nfb0:3" -i "ndp;dev=/dev/nfb1:4" -i "ndp;dev=/dev/nfb1:5" -i "ndp;dev=/dev/nfb1:6"'
+            ' -i "ndp;dev=/dev/nfb1:7"'
             ' -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
         )
         assert re.search(regex, fake_host.last_command)

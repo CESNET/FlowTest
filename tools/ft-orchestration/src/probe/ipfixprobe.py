@@ -102,6 +102,7 @@ class IpfixprobePluginType(Enum):
 
 @typed_dataclass
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class IpfixprobeSettings(ABC):
     """Structure used to hold ipfixprobe settings which are passed to Ipfixprobe class.
 
@@ -115,6 +116,8 @@ class IpfixprobeSettings(ABC):
         Active timeout in seconds.
     inactive_timeout: int, optional
         Inactive timeout in seconds.
+    split_biflows: bool, optional
+        When True, biflows are splitted into single flows before export.
     mtu_size: int, optional
         Maximum size of ipfix packet payload sent.
     exporter_id: int, optional
@@ -134,6 +137,7 @@ class IpfixprobeSettings(ABC):
     cache_line_size: Optional[int] = None
     active_timeout: int = 300
     inactive_timeout: int = 30
+    split_biflows: bool = False
 
     # output plugin (ipfix) settings
     mtu_size: Optional[int] = None
@@ -224,9 +228,12 @@ class IpfixprobeNdpSettings(IpfixprobeSettings):
     ----------
     devices: List[str], required
         Paths to device files.
+    dma_channels_map: dict[int, int], optional
+        Binary mask that specifies for which DMA channels to create instance of ndp input plugin.
     """
 
     devices: List[str] = required_field()
+    dma_channels_map: dict[int, int] = field(default_factory=lambda: {0: 1})
 
     def __post_init__(self):
         assert len(self.devices) > 0
@@ -646,6 +653,8 @@ class Ipfixprobe(ProbeInterface, ABC):
             cache_params.append(f"a={settings.active_timeout}")
         if settings.inactive_timeout:
             cache_params.append(f"i={settings.inactive_timeout}")
+        if settings.split_biflows:
+            cache_params.append("split")
 
         if len(cache_params) > 0:
             args += self._get_plugin_arg(IpfixprobePluginType.STORAGE, "cache", cache_params)
@@ -836,9 +845,12 @@ class IpfixprobeNdp(Ipfixprobe):
 
         args = ["ipfixprobe"]
 
-        for dev in settings.devices:
-            ndp_params = [f"dev={dev}"]
-            args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "ndp", ndp_params)
+        for dev_index, dev in enumerate(settings.devices):
+            mask = [int(bit) for bit in f"{settings.dma_channels_map[dev_index]:b}"[::-1]]
+            for i, bit in enumerate(mask):
+                if bit == 1:
+                    ndp_params = [f"dev={dev}:{i}"]
+                    args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "ndp", ndp_params)
 
         args += self._get_common_args(target, protocols, settings)
         return " ".join(args)
