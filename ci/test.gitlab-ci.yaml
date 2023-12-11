@@ -22,7 +22,11 @@ install [Rocky Linux 8]:
 
 pytest:
   stage: test
+  needs: ["rpmbuild [Oracle Linux 8]"]
+  image: $DOCKER_IMAGE:$DOCKER_TAG
+  variables: { DOCKER_TAG: ol8 }
   script:
+    - sudo yum install -y --setopt='tsflags=' $DOCKER_TAG/RPMS/*/*.rpm
     - pipenv run pytest -v -s -m "not dev and not dev_docker" | tee pytest.log
   artifacts:
     paths: [ pytest.log ]
