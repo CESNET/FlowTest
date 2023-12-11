@@ -29,8 +29,8 @@
 #include "packetflowspan.h"
 #include "packetsizegenerator.h"
 #include "randomgenerator.h"
+#include "timestamp.h"
 #include "timestampgenerator.h"
-#include "timeval.h"
 #include "utils.h"
 
 #include <pcapplusplus/IPv4Layer.h>
@@ -52,8 +52,6 @@
 #include <vector>
 
 namespace generator {
-
-static constexpr uint64_t USEC_IN_SEC = 1'000'000;
 
 static constexpr int ICMP_HDR_SIZE = sizeof(pcpp::icmphdr);
 static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
@@ -412,7 +410,7 @@ PacketExtraInfo Flow::GenerateNextPacket(PcppPacket& packet)
 	return extra;
 }
 
-Timeval Flow::GetNextPacketTime() const
+Timestamp Flow::GetNextPacketTime() const
 {
 	return _packets.front()._timestamp;
 }
@@ -451,17 +449,17 @@ void Flow::PlanPacketsTimestamps()
 
 	auto it = timestamps.begin();
 	for (auto& pkt : _packets) {
-		pkt._timestamp = Timeval(*it / USEC_IN_SEC, *it % USEC_IN_SEC);
+		pkt._timestamp = Timestamp::From<TimeUnit::Nanoseconds>(*it);
 		it++;
 	}
 
 	if (_packets.size() > 0 && _packets.back()._timestamp != _tsLast) {
-		Timeval newTsLast = _packets.back()._timestamp;
+		Timestamp newTsLast = _packets.back()._timestamp;
 
 		ft::LoggerGet("Flow")->info(
 			"Flow (line no. {}) has been trimmed by {}s to satisfy max gap",
 			_profileFileLineNum,
-			(_tsLast - newTsLast).ToMilliseconds() / 1000.0);
+			(_tsLast - newTsLast).ToString<TimeUnit::Seconds>());
 
 		_tsLast = newTsLast;
 	}

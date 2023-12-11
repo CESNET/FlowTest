@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "timestamp.h"
+
 #include <pcap/pcap.h>
 
 #include <cstddef>
@@ -46,7 +48,7 @@ public:
 	 *
 	 * @throws runtime_error  When file write failed
 	 */
-	void WritePacket(const std::byte* data, uint32_t length, timeval timestamp);
+	void WritePacket(const std::byte* data, uint32_t length, Timestamp timestamp);
 
 private:
 	std::unique_ptr<pcap_t, decltype(&pcap_close)> _pcap {nullptr, pcap_close};

@@ -71,14 +71,14 @@ void Generator::PrepareProfiles()
 
 	// Adjust profile timestamps to start from zero
 	if (!_profiles.empty()) {
-		Timeval minTime = _profiles[0]._startTime;
+		Timestamp minTime = _profiles[0]._startTime;
 		for (auto& profile : _profiles) {
 			profile._startTime -= minTime;
 			profile._endTime -= minTime;
 
 			assert(profile._startTime <= profile._endTime);
-			assert(profile._startTime >= Timeval(0, 0));
-			assert(profile._endTime >= Timeval(0, 0));
+			assert(profile._startTime >= Timestamp(0, 0));
+			assert(profile._endTime >= Timestamp(0, 0));
 		}
 	}
 
@@ -148,8 +148,8 @@ std::unique_ptr<Flow> Generator::GetNextFlow()
 		return _calendar.Pop();
 	}
 
-	Timeval nextCalendarTime = _calendar.Top().GetNextPacketTime();
-	Timeval nextProfileStartTime = _profiles[_nextProfileIdx]._startTime;
+	Timestamp nextCalendarTime = _calendar.Top().GetNextPacketTime();
+	Timestamp nextProfileStartTime = _profiles[_nextProfileIdx]._startTime;
 	return (nextCalendarTime > nextProfileStartTime) ? MakeNextFlow() : _calendar.Pop();
 }
 

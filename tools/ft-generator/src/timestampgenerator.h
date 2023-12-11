@@ -9,7 +9,7 @@
 #pragma once
 
 #include "randomgenerator.h"
-#include "timeval.h"
+#include "timestamp.h"
 
 #include <cstdint>
 #include <optional>
@@ -35,8 +35,8 @@ namespace generator {
  */
 std::vector<uint64_t> GenerateTimestamps(
 	uint64_t numPackets,
-	const Timeval& tsFirst,
-	const Timeval& tsLast,
+	const Timestamp& tsFirst,
+	const Timestamp& tsLast,
 	std::optional<uint64_t> maxGapSec = std::nullopt);
 
 } // namespace generator

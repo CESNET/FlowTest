@@ -15,7 +15,7 @@
 #include "flowprofile.h"
 #include "generators/addressgenerators.h"
 #include "logger.h"
-#include "timeval.h"
+#include "timestamp.h"
 #include "trafficmeter.h"
 
 #include <algorithm>
@@ -33,7 +33,7 @@ namespace generator {
  * @brief A generated packet
  */
 struct GeneratorPacket {
-	Timeval _time; //< The flow time of the packet
+	Timestamp _time; //< The flow time of the packet
 	uint64_t _size; //< The number of bytes of the packet
 	const std::byte* _data; //< The bytes of the packet
 };

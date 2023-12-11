@@ -9,7 +9,7 @@
 #pragma once
 
 #include "logger.h"
-#include "timeval.h"
+#include "timestamp.h"
 
 #include <pcapplusplus/IpAddress.h>
 #include <sys/time.h>
@@ -47,8 +47,8 @@ std::string L4ProtocolToString(L4Protocol protocol);
  * @brief Struct representing a flow profile entry in the input file
  */
 struct FlowProfile {
-	Timeval _startTime;
-	Timeval _endTime;
+	Timestamp _startTime;
+	Timestamp _endTime;
 	L3Protocol _l3Proto;
 	L4Protocol _l4Proto;
 	uint16_t _srcPort;
