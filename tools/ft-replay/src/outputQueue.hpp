@@ -10,6 +10,7 @@
 
 #include "config.hpp"
 #include "logger.h"
+#include "packet.hpp"
 #include "rateLimiter.hpp"
 
 #include <cstddef>
@@ -24,6 +25,7 @@ struct PacketBuffer {
 	std::byte* _data;
 	size_t _len;
 	uint64_t _timestamp;
+	PacketInfo* _info;
 };
 
 /**

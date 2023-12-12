@@ -153,6 +153,7 @@ void Replicator::FillPacketBuffers(uint64_t replicatedPackets, uint64_t burstSiz
 	for (uint64_t idx = 0; idx < burstSize; idx++) {
 		uint64_t packetQueueIndex = GetIndexToPacketQueue(idx + replicatedPackets);
 		_packetBuffers[idx]._len = _packetQueue[packetQueueIndex]->dataLen;
+		_packetBuffers[idx]._info = &_packetQueue[packetQueueIndex]->info;
 	}
 }
 
