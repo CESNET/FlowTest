@@ -45,11 +45,16 @@ void PacketBuilder::SetDstMac(const std::optional<MacAddress>& address)
 	_dstMac = address;
 }
 
+void PacketBuilder::SetTimeMultiplier(double timeMultiplier)
+{
+	_timeMultiplier = timeMultiplier;
+}
+
 std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 {
 	Packet packet;
-	packet.timestamp = rawPacket->timestamp;
 	packet.dataLen = rawPacket->dataLen;
+	packet.timestamp = rawPacket->timestamp * _timeMultiplier;
 	packet.info = GetPacketInfo(rawPacket);
 
 	if (_vlanID) {

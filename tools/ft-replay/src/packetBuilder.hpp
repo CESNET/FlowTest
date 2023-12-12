@@ -59,12 +59,20 @@ public:
 	 */
 	void SetDstMac(const std::optional<MacAddress>& address);
 
+	/**
+	 * @brief Set the Time Multiplier value
+	 *
+	 * Packet timestamp is multiplied by this value.
+	 */
+	void SetTimeMultiplier(double timeMultiplier);
+
 private:
 	PacketInfo GetPacketInfo(const RawPacket* rawPacket) const;
 	std::unique_ptr<std::byte[]> GetDataCopy(const std::byte* rawData, uint16_t dataLen);
 	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen);
 
 	uint16_t _vlanID = 0;
+	double _timeMultiplier = 1.0;
 	std::optional<MacAddress> _srcMac = std::nullopt;
 	std::optional<MacAddress> _dstMac = std::nullopt;
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketBuilder");
