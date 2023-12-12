@@ -164,7 +164,7 @@ def setup_replicator(generator_instance: Replicator, sampling: float) -> dict:
 
 @pytest.mark.simulation
 @pytest.mark.parametrize(
-    "scenario, scenario_filename", collect_scenarios(SIMULATION_TESTS_DIR, SimulationScenario, name="sm_overload")
+    "scenario, test_id", collect_scenarios(SIMULATION_TESTS_DIR, SimulationScenario, name="sm_overload")
 )
 # pylint: disable=too-many-locals
 # pylint: disable=unused-argument
@@ -174,7 +174,7 @@ def test_simulation_overload(
     device: ProbeBuilder,
     analyzer: CollectorBuilder,
     scenario: SimulationScenario,
-    scenario_filename: str,
+    test_id: str,
     log_dir: str,
     tmp_dir: str,
     check_requirements,
@@ -199,7 +199,7 @@ def test_simulation_overload(
         Collector builder.
     scenario: SimulationScenario
         Scenario configration.
-    scenario_filename: str
+    test_id: str
         Path to scenario filename.
     log_dir: str
         Directory for storing logs.
@@ -249,7 +249,7 @@ def test_simulation_overload(
     scenario.generator.max_flow_inter_packet_gap = probe_timeouts[1]
 
     generator_instance.start_profile(
-        scenario.get_profile(scenario_filename, SIMULATION_TESTS_DIR),
+        scenario.get_profile(scenario.filename, SIMULATION_TESTS_DIR),
         ref_file,
         speed=PpsSpeed(scenario.pps),
         loop_count=LOOPS,
@@ -282,4 +282,4 @@ def test_simulation_overload(
     report.print_results()
 
     if not report.is_passing():
-        assert False, f"Validation of test {request.node.name} failed"
+        assert False, f"evaluation of test: {request.function.__name__}[{test_id}] failed"

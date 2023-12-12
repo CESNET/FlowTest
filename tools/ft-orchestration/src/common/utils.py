@@ -63,9 +63,7 @@ def collect_scenarios(path: str, target: ScenarioCfg, name: Optional[str] = None
     target: ScenarioCfg
         Configuration class which inherits from ScenarioCfg class.
     name: str, None
-        Name of the current test type to be collected. Used to determine
-        if a scenario should be excluded from this test (based on the 'exclude'
-        list in the scenario configuration). If None, no scenario will be excluded.
+        Name of the test scenario. Used for selecting tests for the specific scenario.
 
     Returns
     -------
@@ -88,15 +86,11 @@ def collect_scenarios(path: str, target: ScenarioCfg, name: Optional[str] = None
         abspath = os.path.join(path, file)
         logging.getLogger().info("Loading test scenario from file: %s", abspath)
         try:
-            test = target.from_yaml_file(abspath)
-            test.check()
-            marks = []
-            if name is not None:
-                if name in test.exclude:
-                    continue
-                marks.append(getattr(pytest.mark, name))
-            marks += [getattr(pytest.mark, mark) for mark in test.marks]
-            tests.append(pytest.param(test, file, marks=marks, id=file))
+            scenario = target.from_yaml_file(abspath)
+            scenario.check()
+            for test_cfg, test_marks, test_id in scenario.get_tests(file, name):
+                marks = [getattr(pytest.mark, mark) for mark in test_marks]
+                tests.append(pytest.param(test_cfg, test_id, marks=marks, id=test_id))
         except (
             OSError,
             TypeError,
@@ -109,6 +103,6 @@ def collect_scenarios(path: str, target: ScenarioCfg, name: Optional[str] = None
             logging.getLogger().error("Loading test scenario from file: %s, error: %s", abspath, err)
             # We cannot mark test as failed at this point, therefore use skip.
             marks = pytest.mark.skip(reason=f"ERROR: {err}, file: {abspath}")
-            tests.append(pytest.param(None, file, marks=marks, id=file))
+            tests.append(pytest.param(None, file, marks=marks, id=file.removesuffix(".yml")))
 
     return tests

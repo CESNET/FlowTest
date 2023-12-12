@@ -381,7 +381,7 @@ select_topologies(["pcap_player"])
 
 
 @pytest.mark.validation
-@pytest.mark.parametrize("scenario, scenario_filename", collect_scenarios(VALIDATION_TESTS_DIR, ValidationScenario))
+@pytest.mark.parametrize("scenario, test_id", collect_scenarios(VALIDATION_TESTS_DIR, ValidationScenario))
 # pylint: disable=too-many-locals
 # pylint: disable=unused-argument
 def test_validation(
@@ -391,6 +391,7 @@ def test_validation(
     device: ProbeBuilder,
     analyzer: CollectorBuilder,
     log_dir: str,
+    test_id: str,
     xfail_by_probe,
     check_requirements,
 ):
@@ -442,6 +443,6 @@ def test_validation(
     pytest.summary_report.update_flows_stats(report.flows_stats)
 
     if not report.is_passing():
-        assert False, f"Validation of test {request.node.name} failed"
+        assert False, f"validation test: {request.function.__name__}[{test_id}] failed"
 
     check_required_fields(scenario.at_least_one, report)

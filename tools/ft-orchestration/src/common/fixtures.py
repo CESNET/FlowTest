@@ -12,7 +12,7 @@ import os
 import tempfile
 
 import pytest
-from src.config.scenario import SimulationScenario
+from src.config.scenario import ScenarioCfg
 from src.generator.generator_builder import GeneratorBuilder
 from src.probe.probe_builder import ProbeBuilder
 
@@ -36,15 +36,15 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 @pytest.fixture(scope="function")
-def log_dir(request: pytest.FixtureRequest, scenario_filename: str) -> str:
-    """Create logging directory from test start time, test function name and name of the scenario file.
+def log_dir(request: pytest.FixtureRequest, test_id: str) -> str:
+    """Create logging directory from test start time, test function name and test id.
 
     Parameters
     ----------
     request: pytest.FixtureRequest
         Pytest fixture request object.
-    scenario_filename: str
-        Name of the testing scenario file.
+    test_id: str
+        ID of the performed test.
 
     Returns
     -------
@@ -55,9 +55,7 @@ def log_dir(request: pytest.FixtureRequest, scenario_filename: str) -> str:
     # pylint: disable=global-variable-not-assigned
     global START_TIME
 
-    logs = os.path.join(
-        os.getcwd(), f"logs/{START_TIME}/{request.function.__name__}/{scenario_filename.removesuffix('.yml')}"
-    )
+    logs = os.path.join(os.getcwd(), f"logs/{START_TIME}/{request.function.__name__}/{test_id}")
     os.makedirs(logs, exist_ok=True)
 
     yield logs
@@ -79,13 +77,13 @@ def tmp_dir() -> str:
 
 
 @pytest.fixture(scope="function")
-def check_requirements(scenario: SimulationScenario, device: ProbeBuilder, generator: GeneratorBuilder) -> None:
+def check_requirements(scenario: ScenarioCfg, device: ProbeBuilder, generator: GeneratorBuilder) -> None:
     """Fixture to check requirements given by the test scenario.
     Interface speed is checked on generator and probe. The protocols supported by the probe are also checked.
 
     Parameters
     ----------
-    scenario : SimulationScenario
+    scenario : ScenarioCfg
         Test scenario dataclass.
     device : ProbeBuilder
         Probe builder to gather interfaces speed and supported protocols.
@@ -114,7 +112,7 @@ def check_requirements(scenario: SimulationScenario, device: ProbeBuilder, gener
 
 
 @pytest.fixture(name="xfail_by_probe")
-def fixture_xfail_by_probe(request: pytest.FixtureRequest, scenario_filename: str, device: ProbeBuilder):
+def fixture_xfail_by_probe(request: pytest.FixtureRequest, test_id: str, device: ProbeBuilder):
     """The fixture_xfail_by_probe function is a pytest fixture that marks
     the test as xfail if it's in the whitelist. Whitelist must be
     associated in probe static configuration.
@@ -123,8 +121,8 @@ def fixture_xfail_by_probe(request: pytest.FixtureRequest, scenario_filename: st
     ----------
     request: pytest.FixtureRequest
         Request from pytest.
-    scenario_filename: str
-        Get the name of the test file.
+    test_id: str
+        Test id.
     device: ProbeBuilder
         Get the whitelist for the device.
     """
@@ -135,5 +133,5 @@ def fixture_xfail_by_probe(request: pytest.FixtureRequest, scenario_filename: st
             if mark.name == "parametrize":
                 continue
             whitelist_segment = whitelist.get_items(mark.name)
-            if whitelist_segment and scenario_filename in whitelist_segment:
-                request.applymarker(pytest.mark.xfail(run=True, reason=whitelist_segment[scenario_filename] or ""))
+            if whitelist_segment and test_id in whitelist_segment:
+                request.applymarker(pytest.mark.xfail(run=True, reason=whitelist_segment[test_id] or ""))

@@ -12,7 +12,7 @@ import logging
 import pickle
 import tempfile
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from os import path
 from pathlib import Path
 from typing import Any, Optional, TextIO, Union
@@ -111,6 +111,25 @@ class FtGeneratorConfig(YAMLWizard, JSONWizard, key_transform="SNAKE"):
         min_packet_size_to_fragment: Optional[int] = None
         ip_range: Optional[Union[list[str], str]] = None
 
+        def update(self, other: "IP") -> None:
+            """
+            Update values in this configuration with non-default values from the provided configuration.
+
+            Parameters
+            ----------
+            other: IP
+                IP configuration.
+            """
+
+            if other.fragmentation_probability is not None:
+                self.fragmentation_probability = other.fragmentation_probability
+
+            if other.min_packet_size_to_fragment is not None:
+                self.min_packet_size_to_fragment = other.min_packet_size_to_fragment
+
+            if other.ip_range is not None:
+                self.ip_range = other.ip_range
+
     @dataclass
     class Mac:
         """Definition of range(s) from which MAC addresses are generated.
@@ -125,12 +144,37 @@ class FtGeneratorConfig(YAMLWizard, JSONWizard, key_transform="SNAKE"):
 
         mac_range: Union[list[str], str]
 
-    encapsulation: list[Encapsulation] = field(default_factory=list)
     ipv4: IP = IP()
     ipv6: IP = IP()
     mac: Optional[Mac] = None
+    encapsulation: Optional[list[Encapsulation]] = None
     packet_size_probabilities: Optional[dict[str, float]] = None
     max_flow_inter_packet_gap: Optional[int] = None
+
+    def update(self, other: "FtGeneratorConfig") -> None:
+        """
+        Update values in this configuration with non-default values from the provided configuration.
+
+        Parameters
+        ----------
+        other: FtGeneratorConfig
+            Generator configuration.
+        """
+
+        self.ipv4.update(other.ipv4)
+        self.ipv6.update(other.ipv6)
+
+        if other.encapsulation is not None:
+            self.encapsulation = other.encapsulation
+
+        if other.mac is not None:
+            self.mac = other.mac
+
+        if other.packet_size_probabilities is not None:
+            self.packet_size_probabilities = other.packet_size_probabilities
+
+        if other.max_flow_inter_packet_gap is not None:
+            self.max_flow_inter_packet_gap = other.max_flow_inter_packet_gap
 
 
 def _custom_dump(data: Any, stream: TextIO = None, **kwds) -> Optional[str]:
