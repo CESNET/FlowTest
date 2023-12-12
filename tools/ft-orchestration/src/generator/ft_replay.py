@@ -563,11 +563,11 @@ class FtReplay(Replicator):
         """
 
         if isinstance(speed, MultiplierSpeed):
-            return f"--multiplier={speed.multiplier}"
+            return f"--multiplier={speed.speed}"
         if isinstance(speed, MbpsSpeed):
-            return f"--mbps={speed.mbps}"
+            return f"--mbps={speed.speed}"
         if isinstance(speed, PpsSpeed):
-            return f"--pps={speed.pps}"
+            return f"--pps={speed.speed}"
         if isinstance(speed, TopSpeed):
             return "-r"
 
