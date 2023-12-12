@@ -26,7 +26,7 @@ void RawPacketProvider::OpenFile(const char* file)
 {
 	char errbuff[PCAP_ERRBUF_SIZE];
 	_handler.reset(
-		pcap_open_offline_with_tstamp_precision(file, PCAP_TSTAMP_PRECISION_MICRO, errbuff));
+		pcap_open_offline_with_tstamp_precision(file, PCAP_TSTAMP_PRECISION_NANO, errbuff));
 
 	if (_handler == nullptr) {
 		throw std::runtime_error("Unable to open pcap file: " + std::string(errbuff));
@@ -81,7 +81,11 @@ void RawPacketProvider::FillRawPacket(const struct pcap_pkthdr* header, const st
 
 uint64_t RawPacketProvider::CalculateTimestamp(const struct pcap_pkthdr* header)
 {
-	uint64_t timestamp = (header->ts.tv_sec * 1000000ULL + header->ts.tv_usec) * 1000;
+	/*
+	 * Since PCAP is opened with PCAP_TSTAMP_PRECISION_NANO flag, tv_usec field
+	 * contains nanoseconds instead of microseconds.
+	 */
+	uint64_t timestamp = header->ts.tv_sec * 1'000'000'000ULL + header->ts.tv_usec;
 
 	ValidateTimestampOrder(timestamp);
 
