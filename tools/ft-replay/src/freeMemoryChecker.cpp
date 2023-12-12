@@ -6,9 +6,10 @@
 
 #include "freeMemoryChecker.hpp"
 
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <sys/stat.h>
-#include <sys/sysinfo.h>
 
 namespace replay {
 
@@ -32,11 +33,44 @@ uint64_t FreeMemoryChecker::GetFileSize(const std::string& filename) const
 
 uint64_t FreeMemoryChecker::GetFreeMemory() const
 {
-	struct sysinfo info;
-	if (sysinfo(&info)) {
-		throw std::runtime_error("Failed to get sysinfo.");
+	return ParseMemAvailableLine(GetMemAvailableLine());
+}
+
+std::string FreeMemoryChecker::GetMemAvailableLine() const
+{
+	std::string_view keyword {"MemAvailable:"};
+	std::string_view filename {"/proc/meminfo"};
+
+	std::ifstream reader(filename.data());
+	std::string line;
+
+	while (std::getline(reader, line)) {
+		if (line.rfind(keyword, 0) == 0) {
+			// found
+			return line;
+		}
 	}
-	return info.freeram;
+
+	throw std::runtime_error(
+		"Unable to locate '" + std::string(keyword) + "' in " + std::string(filename));
+}
+
+size_t FreeMemoryChecker::ParseMemAvailableLine(std::string_view line) const
+{
+	// Expects format: "MemAvailable:    2617540 kB"
+	std::istringstream stream(line.data());
+	std::string temp;
+	size_t value;
+
+	stream >> temp; // "MemAvailable:"
+	stream >> value;
+	stream >> temp; // "kB"
+
+	if (temp != "kB" || !stream.eof()) {
+		throw std::runtime_error("Unexpected format of /proc/meminfo file");
+	}
+
+	return value * 1024;
 }
 
 } // namespace replay

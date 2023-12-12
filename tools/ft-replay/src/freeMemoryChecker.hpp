@@ -39,6 +39,9 @@ public:
 private:
 	uint64_t GetFileSize(const std::string& filename) const;
 	uint64_t GetFreeMemory() const;
+
+	std::string GetMemAvailableLine() const;
+	size_t ParseMemAvailableLine(std::string_view line) const;
 };
 
 } // namespace replay
