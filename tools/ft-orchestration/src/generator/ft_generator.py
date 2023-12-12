@@ -144,10 +144,10 @@ class FtGeneratorConfig(YAMLWizard, JSONWizard, key_transform="SNAKE"):
 
         mac_range: Union[list[str], str]
 
+    encapsulation: Optional[list[Encapsulation]] = None
     ipv4: IP = IP()
     ipv6: IP = IP()
     mac: Optional[Mac] = None
-    encapsulation: Optional[list[Encapsulation]] = None
     packet_size_probabilities: Optional[dict[str, float]] = None
     max_flow_inter_packet_gap: Optional[int] = None
 
