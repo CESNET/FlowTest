@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "offloads.hpp"
 #include "packet.hpp"
 #include "rawPacketProvider.hpp"
 #include "replicator-core/macAddress.hpp"
@@ -66,13 +67,25 @@ public:
 	 */
 	void SetTimeMultiplier(double timeMultiplier);
 
+	/**
+	 * @brief Set hardware offloads configuration for checksum preset.
+	 *
+	 * This method allows you to set the hardware offloads configuration for checksum preset
+	 * based on the specified `hwChecksumOffloads`.
+	 *
+	 * @param hwChecksumOffloads The hardware offloads configuration for checksum preset.
+	 */
+	void SetHwOffloads(const Offloads hwChecksumOffloads);
+
 private:
 	PacketInfo GetPacketInfo(const RawPacket* rawPacket) const;
 	std::unique_ptr<std::byte[]> GetDataCopy(const std::byte* rawData, uint16_t dataLen);
 	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen);
+	void PresetHwChecksum(Packet& packet);
 
 	uint16_t _vlanID = 0;
 	double _timeMultiplier = 1.0;
+	Offloads _hwOffloads = 0;
 	std::optional<MacAddress> _srcMac = std::nullopt;
 	std::optional<MacAddress> _dstMac = std::nullopt;
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("PacketBuilder");

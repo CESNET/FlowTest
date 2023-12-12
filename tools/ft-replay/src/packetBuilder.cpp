@@ -17,9 +17,12 @@
 #include <memory>
 
 #include <arpa/inet.h>
+#include <netinet/icmp6.h>
 #include <netinet/if_ether.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
 
 namespace replay {
 
@@ -43,6 +46,11 @@ void PacketBuilder::SetSrcMac(const std::optional<MacAddress>& address)
 void PacketBuilder::SetDstMac(const std::optional<MacAddress>& address)
 {
 	_dstMac = address;
+}
+
+void PacketBuilder::SetHwOffloads(const Offloads hwChecksumOffloads)
+{
+	_hwOffloads = hwChecksumOffloads;
 }
 
 void PacketBuilder::SetTimeMultiplier(double timeMultiplier)
@@ -80,7 +88,28 @@ std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 		ref = _dstMac.value();
 	}
 
+	PresetHwChecksum(packet);
+
 	return std::make_unique<Packet>(std::move(packet));
+}
+
+void PacketBuilder::PresetHwChecksum(Packet& packet)
+{
+	if (_hwOffloads & Offload::CHECKSUM_IPV4 && packet.info.l3Type == L3Type::IPv4) {
+		iphdr* ipHeader = reinterpret_cast<iphdr*>(packet.data.get() + packet.info.l3Offset);
+		ipHeader->check = 0;
+	}
+	if (_hwOffloads & Offload::CHECKSUM_UDP && packet.info.l4Type == L4Type::UDP) {
+		udphdr* udpHeader = reinterpret_cast<udphdr*>(packet.data.get() + packet.info.l4Offset);
+		udpHeader->check = htons(CalculatePsedoHeaderChecksum(packet));
+	} else if (_hwOffloads & Offload::CHECKSUM_TCP && packet.info.l4Type == L4Type::TCP) {
+		tcphdr* tcpHeader = reinterpret_cast<tcphdr*>(packet.data.get() + packet.info.l4Offset);
+		tcpHeader->check = htons(CalculatePsedoHeaderChecksum(packet));
+	} else if (_hwOffloads & Offload::CHECKSUM_ICMPV6 && packet.info.l4Type == L4Type::ICMPv6) {
+		icmp6_hdr* icmp6Header
+			= reinterpret_cast<icmp6_hdr*>(packet.data.get() + packet.info.l4Offset);
+		icmp6Header->icmp6_cksum = htons(CalculatePsedoHeaderChecksum(packet));
+	}
 }
 
 static std::optional<size_t> LayersFindFirstOf(

@@ -193,6 +193,7 @@ void ReplicatorExecutor(const Config& config)
 	builder.SetSrcMac(config.GetSrcMacAddress());
 	builder.SetDstMac(config.GetDstMacAddress());
 	builder.SetTimeMultiplier(config.GetTimeMultiplier());
+	builder.SetHwOffloads(configuredHwOffloads);
 
 	while ((rawPacket = packetProvider.Next())) {
 		packetQueueProvider.InsertPacket(builder.Build(rawPacket));
