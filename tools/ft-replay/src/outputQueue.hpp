@@ -23,6 +23,7 @@ namespace replay {
 struct PacketBuffer {
 	std::byte* _data;
 	size_t _len;
+	uint64_t _timestamp;
 };
 
 /**
