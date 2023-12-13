@@ -279,7 +279,7 @@ def test_simulation_general(
         input_file=ref_file,
         output_file=replicated_ref_file,
         loops=scenario.test.loops,
-        speed_multiplier=speed.multiplier if isinstance(speed, MultiplierSpeed) else 1.0,
+        speed_multiplier=speed.speed if isinstance(speed, MultiplierSpeed) else 1.0,
     )
 
     stats_report, precise_report = validate(

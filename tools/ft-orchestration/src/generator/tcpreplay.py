@@ -320,11 +320,14 @@ class TcpReplay(PcapPlayer):
         """
 
         if isinstance(speed, MultiplierSpeed):
-            return f"--multiplier={speed.multiplier}"
-        if isinstance(speed, MbpsSpeed):
-            return f"--mbps={speed.mbps}"
-        if isinstance(speed, PpsSpeed):
-            return f"--pps={speed.pps}"
-        if isinstance(speed, TopSpeed):
-            return "--topspeed"
-        raise TypeError("Unsupported speed type.")
+            param_name = "multiplier"
+        elif isinstance(speed, MbpsSpeed):
+            param_name = "mbps"
+        elif isinstance(speed, PpsSpeed):
+            param_name = "pps"
+        elif isinstance(speed, TopSpeed):
+            param_name = "topspeed"
+        else:
+            raise TypeError("Unsupported speed type.")
+
+        return f"--{param_name}{speed.speed and f'={speed.speed}'}"

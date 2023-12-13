@@ -10,7 +10,7 @@ generator which replays PCAP file on a network interface.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Iterable, Optional, Union
+from typing import Any, Iterable, Optional, Union
 
 from src.generator.ft_generator import FtGeneratorConfig
 
@@ -22,6 +22,8 @@ class GeneratorException(Exception):
 @dataclass(frozen=True)
 class ReplaySpeed(ABC):
     """Base class for replay speed modifier."""
+
+    speed: Any
 
     def __init__(self):
         raise NotImplementedError
@@ -36,11 +38,11 @@ class MultiplierSpeed(ReplaySpeed):
 
     Attributes
     ----------
-    multiplier : float
+    speed : float
         Multiplier constant.
     """
 
-    multiplier: float
+    speed: float
 
 
 @dataclass(frozen=True)
@@ -49,11 +51,11 @@ class MbpsSpeed(ReplaySpeed):
 
     Attributes
     ----------
-    mbps : float
+    speed : float
         Megabits per second rate constant.
     """
 
-    mbps: float
+    speed: float
 
 
 @dataclass(frozen=True)
@@ -62,16 +64,21 @@ class PpsSpeed(ReplaySpeed):
 
     Attributes
     ----------
-    pps : int
+    speed : int
         Packets per second constant.
     """
 
-    pps: int
+    speed: int
 
 
 @dataclass(frozen=True)
 class TopSpeed(ReplaySpeed):
     """Replay at high possible wire speed."""
+
+    speed = None
+
+    def __init__(self):
+        """Override init to ensure speed cannot be changed."""
 
 
 @dataclass(frozen=True)
