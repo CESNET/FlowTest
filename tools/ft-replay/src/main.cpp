@@ -237,15 +237,19 @@ void CheckSufficientMemory(const Config& config)
 
 	constexpr size_t freeMemoryOverheadPercentage = 5;
 
-	FreeMemoryChecker freeMemoryChecker;
-	bool isFreeMemory = freeMemoryChecker.IsFreeMemoryForFile(
-		config.GetInputPcapFile(),
-		freeMemoryOverheadPercentage);
+	try {
+		FreeMemoryChecker freeMemoryChecker;
+		bool isFreeMemory = freeMemoryChecker.IsFreeMemoryForFile(
+			config.GetInputPcapFile(),
+			freeMemoryOverheadPercentage);
 
-	if (!isFreeMemory) {
-		throw std::runtime_error(
-			"Not enough free RAM memory to process the pcap file (supress with "
-			"--no-freeram-check).");
+		if (!isFreeMemory) {
+			throw std::runtime_error("Not enough free RAM memory to process the pcap file");
+		}
+	} catch (std::exception& ex) {
+		// Enrich with suppression option
+		const std::string msg = ex.what();
+		throw std::runtime_error(msg + " (suppress with --no-freeram-check)");
 	}
 }
 
