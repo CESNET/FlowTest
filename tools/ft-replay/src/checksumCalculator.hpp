@@ -27,4 +27,15 @@ namespace replay {
  */
 uint16_t CalculateIPAddressesChecksum(const std::byte* ptr, enum L3Type l3Type, uint16_t l3Offset);
 
+/**
+ * @brief Calculate the IPv4/IPv6 pseudo header checksum for the given packet.
+ *
+ * This function calculates the pseudo header checksum for a packet using the pseudo header
+ * information contained in the packet structure.
+ *
+ * @param packet The packet for which to calculate the pseudo header checksum.
+ * @return The calculated pseudo header checksum as a 16-bit unsigned integer.
+ */
+uint16_t CalculatePsedoHeaderChecksum(const Packet& packet);
+
 } // namespace replay

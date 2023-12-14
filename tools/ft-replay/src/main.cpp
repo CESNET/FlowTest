@@ -161,7 +161,7 @@ void PrintConfiguredHwOffloads(const Offloads& configuredHwOffloads)
 
 	// remove unwanted ", " at the end of the string
 	std::size_t pos = enabledOffloads.find_last_of(", ");
-	if (pos != std::string::npos && pos == enabledOffloads.length() - 2) {
+	if (pos != std::string::npos && pos == enabledOffloads.length() - 1) {
 		enabledOffloads.erase(pos, 2);
 	}
 
@@ -192,6 +192,8 @@ void ReplicatorExecutor(const Config& config)
 	builder.SetVlan(config.GetVlanID());
 	builder.SetSrcMac(config.GetSrcMacAddress());
 	builder.SetDstMac(config.GetDstMacAddress());
+	builder.SetTimeMultiplier(config.GetTimeMultiplier());
+	builder.SetHwOffloads(configuredHwOffloads);
 
 	while ((rawPacket = packetProvider.Next())) {
 		packetQueueProvider.InsertPacket(builder.Build(rawPacket));

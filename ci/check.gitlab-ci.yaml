@@ -19,7 +19,7 @@ cppcheck-style:
 cppcheck-errors:
   stage: check
   script:
-    - "cppcheck --error-exitcode=2 --std=c++17 --xml-version=2 --enable=warning,performance,portability,information,missingInclude tools/ 2> cppcheck-errors.xml | tee cppcheck-errors.log"
+    - "cppcheck --inline-suppr --error-exitcode=2 --std=c++17 --xml-version=2 --enable=warning,performance,portability,information,missingInclude tools/ 2> cppcheck-errors.xml | tee cppcheck-errors.log"
   after_script:
     - pipenv run cppcheck_junit cppcheck-errors.xml cppcheck-errors-junit.xml
   artifacts:

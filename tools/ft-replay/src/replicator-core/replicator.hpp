@@ -86,7 +86,8 @@ private:
 	void SetDefaultReplicatorStrategy();
 	void SetPacketModifierChecksumOffloads();
 	void SetRateLimiter(const Config::RateLimit& rateLimiterConfig);
-	void FillPacketBuffers(uint64_t replicatedPackets, size_t burstSize);
+	void
+	FillPacketBuffers(uint64_t replicatedPackets, size_t burstSize, uint64_t replicationLoopId);
 	uint64_t GetBurstSize(uint64_t replicatedPackets);
 	uint64_t GetNumberOfPacketToReplicate() const noexcept;
 	uint64_t GetMinimumRequiredTokens(uint64_t replicatedPackets);

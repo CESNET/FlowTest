@@ -66,8 +66,27 @@ add_executable(ft-replay
 
 if (ENABLE_NFB)
 	target_sources(ft-replay PRIVATE
-		nfb.cpp
-		nfb.hpp
+		nfbDeviceTree.hpp
+		nfbDeviceTree.cpp
+		nfbCompatible.hpp
+		nfbCompatible.cpp
+		nfbFirmwareComponent.hpp
+		nfbReplicatorCore.hpp
+		nfbReplicatorCore.cpp
+		nfbFrameUnpacker.hpp
+		nfbFrameUnpacker.cpp
+		nfbTimestampLimiter.hpp
+		nfbTimestampLimiter.cpp
+		nfbRateLimiter.hpp
+		nfbRateLimiter.cpp
+		nfbReplicatorFirmware.hpp
+		nfbReplicatorFirmware.cpp
+		nfbQueue.hpp
+		nfbQueue.cpp
+		nfbQueueBuilder.hpp
+		nfbQueueBuilder.cpp
+		nfbPlugin.hpp
+		nfbPlugin.cpp
 	)
 
 	target_link_libraries(ft-replay PRIVATE

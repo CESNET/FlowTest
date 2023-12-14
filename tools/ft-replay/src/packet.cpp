@@ -17,26 +17,26 @@
 
 namespace replay {
 
-uint32_t Packet::GetHash() const
+uint32_t PacketHashCalculator::GetHash(const Packet& packet) const
 {
-	if (info.l3Type == L3Type::IPv4) {
-		return CalculateIpv4Hash();
+	if (packet.info.l3Type == L3Type::IPv4) {
+		return CalculateIpv4Hash(packet);
 	} else {
-		return CalculateIpv6Hash();
+		return CalculateIpv6Hash(packet);
 	}
 }
 
-uint32_t Packet::CalculateIpv4Hash() const
+uint32_t PacketHashCalculator::CalculateIpv4Hash(const Packet& packet) const
 {
-	iphdr* ipHeader = reinterpret_cast<iphdr*>(data.get() + info.l3Offset);
+	iphdr* ipHeader = reinterpret_cast<iphdr*>(packet.data.get() + packet.info.l3Offset);
 	uint32_t hashSrcIp = XXH32(&ipHeader->saddr, sizeof(ipHeader->saddr), 0);
 	uint32_t hashDstIp = XXH32(&ipHeader->daddr, sizeof(ipHeader->daddr), 0);
 	return hashSrcIp ^ hashDstIp;
 }
 
-uint32_t Packet::CalculateIpv6Hash() const
+uint32_t PacketHashCalculator::CalculateIpv6Hash(const Packet& packet) const
 {
-	ip6_hdr* ipHeader = reinterpret_cast<ip6_hdr*>(data.get() + info.l3Offset);
+	ip6_hdr* ipHeader = reinterpret_cast<ip6_hdr*>(packet.data.get() + packet.info.l3Offset);
 	uint32_t hashSrcIp = XXH32(&ipHeader->ip6_src, sizeof(ipHeader->ip6_src), 0);
 	uint32_t hashDstIp = XXH32(&ipHeader->ip6_dst, sizeof(ipHeader->ip6_dst), 0);
 	return hashSrcIp ^ hashDstIp;

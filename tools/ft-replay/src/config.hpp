@@ -121,6 +121,8 @@ public:
 	bool GetFreeRamCheck() const;
 	/** @brief Get whether hardware offloads should be enabled. */
 	bool GetHwOffloadsSupport() const;
+	/** @brief Get the time multiplier. */
+	float GetTimeMultiplier() const;
 	/** @brief Get the address that should overwrite all source MAC addresses */
 	std::optional<MacAddress> GetSrcMacAddress() const;
 	/** @brief Get the address that should overwrite all destination MAC addresses */
@@ -143,6 +145,7 @@ private:
 	std::string _outputPlugin;
 	std::string _pcapFile;
 	bool _hwOffloadsSupport;
+	float _timeMultiplier;
 
 	std::optional<RateLimit> _rateLimit;
 	uint16_t _vlanID;

@@ -50,11 +50,12 @@ void Config::Parse(int argc, char** argv)
 			_hwOffloadsSupport = false;
 			break;
 		case 'x': {
-			float timeMultiplier = std::atof(optarg);
-			if (timeMultiplier <= 0.0) {
+			float value = std::atof(optarg);
+			if (value <= 0.0) {
 				throw std::runtime_error("Option -x cannot be zero or negative.");
 			}
-			uint64_t timeTokensLimit = RateLimitTimeUnit::NANOSEC_IN_SEC * timeMultiplier;
+			_timeMultiplier = 1.0 / value;
+			uint64_t timeTokensLimit = RateLimitTimeUnit::NANOSEC_IN_SEC;
 			SetRateLimit(RateLimitTimeUnit {timeTokensLimit});
 			break;
 		}
@@ -118,6 +119,7 @@ void Config::SetDefaultValues()
 	_outputPlugin.clear();
 	_pcapFile.clear();
 
+	_timeMultiplier = 1.0;
 	_hwOffloadsSupport = true;
 	_rateLimit = std::nullopt;
 	_vlanID = 0;
@@ -220,6 +222,11 @@ size_t Config::GetLoopsCount() const
 bool Config::GetFreeRamCheck() const
 {
 	return !_noFreeRamCheck;
+}
+
+float Config::GetTimeMultiplier() const
+{
+	return _timeMultiplier;
 }
 
 std::optional<MacAddress> Config::GetSrcMacAddress() const

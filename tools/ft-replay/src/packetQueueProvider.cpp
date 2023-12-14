@@ -41,7 +41,7 @@ void PacketQueueProvider::UpdateQueueDistribution(
 
 uint8_t PacketQueueProvider::GetPacketQueueId(const Packet& packet)
 {
-	return packet.GetHash() % _queueCount;
+	return std::hash<Packet> {}(packet) % _queueCount;
 }
 
 PacketQueueProvider::QueueDistribution

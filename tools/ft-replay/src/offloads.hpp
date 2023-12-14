@@ -42,7 +42,7 @@ enum class Offload {
 	CHECKSUM_ICMPV6 = 0x8, ///< Support ICMPv6 checksum offload.
 	RATE_LIMIT_PACKETS = 0x10, ///< Support rate limiting based on packets.
 	RATE_LIMIT_BYTES = 0x20, ///< Support rate limiting based on bytes.
-	RATE_LIMIT_TIME = 0x30 ///< Support rate limiting based on time intervals.
+	RATE_LIMIT_TIME = 0x40 ///< Support rate limiting based on time intervals.
 };
 
 /**
