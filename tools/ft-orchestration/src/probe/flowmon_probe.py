@@ -135,7 +135,6 @@ class FlowmonProbe(ProbeInterface):
         interfaces,
         verbose=False,
         mtu=1522,
-        input_plugin="rawnetcap",
         active_timeout=300,
         inactive_timeout=30,
     ):
@@ -162,9 +161,6 @@ class FlowmonProbe(ProbeInterface):
         mtu : int
             The maximum transmission unit to be set at the probe input.
 
-        input_plugin : str, optional
-            Input plugin - could be either dpdk or rawnetcap.
-
         active_timeout : int, optional
             Maximum duration of an ongoing flow before the probe exports it (in seconds).
 
@@ -183,13 +179,9 @@ class FlowmonProbe(ProbeInterface):
         )
         dpdk_is_active.run()
         if dpdk_is_active.returncode() == 0:
-            if input_plugin == "rawnetcap":
-                logging.getLogger().error("DPDK controller should not be running when rawnetcap input is used.")
-                raise ProbeException("DPDK controller should not be running when rawnetcap input is used.")
+            input_plugin = "dpdk"
         else:
-            if input_plugin == "dpdk":
-                logging.getLogger().error("DPDK controller should be running when DPDK input is used.")
-                raise ProbeException("DPDK controller should be running when DPDK input is used.")
+            input_plugin = "rawnetcap"
 
         self._plugins = list({PROTOCOLS_TO_PLUGINS[p] for p in protocols if p in PROTOCOLS_TO_PLUGINS})
 
