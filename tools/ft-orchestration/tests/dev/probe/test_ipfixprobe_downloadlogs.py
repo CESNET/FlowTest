@@ -12,12 +12,11 @@ import os
 import time
 
 import pytest
+from lbr_testsuite.executable import RemoteExecutor
 from src.config.authentication import AuthenticationCfg
 from src.config.common import InterfaceCfg
 from src.config.config import Config
 from src.config.probe import ProbeCfg
-from src.host.host import Host
-from src.host.storage import RemoteStorage
 from src.probe.ipfixprobe import IpfixprobeRaw
 from src.probe.probe_target import ProbeTarget
 
@@ -40,10 +39,8 @@ def fixture_get_probe(create_config):
     """Fixture to get probe"""
     auth: AuthenticationCfg = create_config.authentications["validation-xsobol02"]
     probe: ProbeCfg = create_config.probes["ipfixprobe-raw"]
-    storage = RemoteStorage(probe.name, None, auth.username, auth.password)
-    host = Host(probe.name, storage, auth.username, auth.password)
     return IpfixprobeRaw(
-        host=host,
+        executor=RemoteExecutor(probe.name, auth.username, auth.password),
         target=ProbeTarget("127.0.0.1", 3000, "udp"),
         protocols=[],
         interfaces=[InterfaceCfg(name="eno1", speed=10)],

@@ -16,6 +16,7 @@ from abc import ABC, abstractmethod
 from os import path
 from typing import Union
 
+import lbr_testsuite
 import yaml
 from lbr_testsuite.executable import AsyncTool, LocalExecutor, RemoteExecutor, Tool
 from src.common.utils import get_project_root
@@ -24,7 +25,6 @@ from src.config.collector import CollectorCfg
 from src.config.config import Config
 from src.config.generator import GeneratorCfg
 from src.config.probe import ProbeCfg
-from src.host.common import get_real_user
 
 ANSIBLE_PATH = path.join(get_project_root(), "ansible")
 
@@ -153,7 +153,7 @@ class BuilderBase(ABC):
             Object with authentication method, used in ansible inventory.
         """
 
-        user = auth.username if auth.username else get_real_user()
+        user = auth.username if auth.username else lbr_testsuite.get_real_user()
         remote_tmp = f"/tmp/ansible-{user}/tmp"
 
         host_vars = {"ansible_user": user}

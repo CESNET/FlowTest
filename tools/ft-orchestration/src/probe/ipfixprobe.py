@@ -307,8 +307,8 @@ class Ipfixprobe(ProbeInterface, ABC):
 
     Attributes
     ----------
-    _host: Host
-        Host class with established connection.
+    _executor : lbr_testsuite.executable.Executor
+        Initialized executor object with the deployed probe.
     _cmd: string
         Ipfixprobe command for startup.
     _process: invoke.runners.Promise

@@ -12,14 +12,13 @@ import os
 import time
 
 import pytest
+from lbr_testsuite.executable import RemoteExecutor
 from src.config.authentication import AuthenticationCfg
 from src.config.common import InterfaceCfg
 from src.config.config import Config
 from src.config.generator import GeneratorCfg
 from src.config.probe import ProbeCfg
 from src.generator.tcpreplay import TcpReplay
-from src.host.host import Host
-from src.host.storage import RemoteStorage
 from src.probe.flowmon_probe import FlowmonProbe
 from src.probe.probe_target import ProbeTarget
 
@@ -56,10 +55,8 @@ def fixture_probe(create_config):
     """Fixture to get probe"""
     auth: AuthenticationCfg = create_config.authentications["validation-auth"]
     probe: ProbeCfg = create_config.probes["validation-probe-flowmon"]
-    storage = RemoteStorage(probe.name, None, auth.username, auth.password)
-    host = Host(probe.name, storage, auth.username, auth.password)
     return FlowmonProbe(
-        host=host,
+        executor=RemoteExecutor(probe.name, auth.username, auth.password),
         target=ProbeTarget("127.0.0.1", 3000, "udp"),
         protocols=[],
         interfaces=[InterfaceCfg(name=PROBE_INTERFACE, speed=10)],
@@ -74,9 +71,8 @@ def fixture_gen(create_config):
     """Fixture to get generator"""
     auth: AuthenticationCfg = create_config.authentications["validation-xsobol02"]
     gen: GeneratorCfg = create_config.generators["validation-gen"]
-    storage = RemoteStorage(gen.name, None, auth.username, auth.password)
-    host = Host(gen.name, storage, auth.username, auth.password)
-    return TcpReplay(host=host, add_vlan=90)
+    executor = RemoteExecutor(gen.name, auth.username, auth.password)
+    return TcpReplay(executor, add_vlan=90)
 
 
 @pytest.mark.skip("Need a specific Flowmon and a generator. Use it as a template.")
