@@ -3,4 +3,4 @@
   become: yes
   roles:
     - flowtest_tools
-    - ndk_fw_replicator
+    - ndk_fw_nic
