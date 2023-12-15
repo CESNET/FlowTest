@@ -23,6 +23,7 @@ from ftanalyzer.reports.precise_report import PreciseReport
 from ftanalyzer.reports.statistical_report import StatisticalReport
 from lbr_testsuite.topology.topology import select_topologies
 from src.collector.collector_builder import CollectorBuilder
+from src.common.html_report_plugin import HTMLReportData
 from src.common.utils import collect_scenarios, download_logs, get_project_root
 from src.config.scenario import AnalysisCfg, SimulationScenario
 from src.generator.ft_generator import FtGeneratorConfig
@@ -295,6 +296,8 @@ def test_simulation_general(
     stats_report.print_results()
     if precise_report is not None:
         precise_report.print_results()
+
+    HTMLReportData.simulation_summary_report.update_stats(stats_report)
 
     if not stats_report.is_passing() or (precise_report is not None and not precise_report.is_passing()):
         shutil.move(tmp_dir, os.path.join(log_dir, "data"))

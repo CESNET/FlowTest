@@ -29,6 +29,8 @@ class ValidationReportSummary:
         Fields which could not be recognized by Normalizer.
     unmapped_fields : set
         Fields which could not be mapped by Mapper.
+    _empty: bool
+        True if no test has been aggregated.
     """
 
     def __init__(self) -> None:
@@ -38,6 +40,7 @@ class ValidationReportSummary:
         self.flows = ValidationStats()
         self.unknown_fields = set()
         self.unmapped_fields = set()
+        self._empty = True
 
     def update_fields_stats(self, fields: Dict[str, ValidationStats]) -> None:
         """Update field statistics with a dictionary of ValidationStats object.
@@ -59,6 +62,7 @@ class ValidationReportSummary:
             Flow statistics from a validation report.
         """
         self.flows.update(stats)
+        self._empty = False
 
     def update_unknown_fields(self, fields: Set[str]) -> None:
         """Update the set of unknown fields.
@@ -94,6 +98,17 @@ class ValidationReportSummary:
             summary.update(stats)
 
         return summary
+
+    def is_empty(self) -> bool:
+        """Get information about usage of summary.
+
+        Returns
+        -------
+        bool
+            True if no test has been aggregated.
+        """
+
+        return self._empty
 
 
 @dataclass

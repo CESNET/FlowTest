@@ -107,3 +107,59 @@ class StatisticalReport:
                 test_str += f"{self.RST_CLR}"
 
             print(test_str)
+
+
+class StatisticalReportSummary:
+    """Class for merging data from multiple StatisticalReport objects
+    to provide summarized statistics across multiple simulation tests.
+
+    Attributes
+    ----------
+    _empty: bool
+        True if no test has been aggregated.
+    _summary: dict
+        Dict to collect tests metrics and results (diffs).
+    """
+
+    def __init__(self) -> None:
+        self._empty = True
+        self._summary = {}
+
+    def update_stats(self, stats: StatisticalReport):
+        """Update statistics. Aggregate StatisticalReport into summary.
+
+        Parameters
+        ----------
+        stats: StatisticalReport
+            Report from single test.
+        """
+
+        self._empty = False
+
+        for test in stats.tests:
+            if test.metric.key in self._summary:
+                self._summary[test.metric.key].append(test.diff)
+            else:
+                self._summary[test.metric.key] = [test.diff]
+
+    def get_summary(self) -> dict[SMMetricType, float]:
+        """Get final summary. It computes averages for diffs.
+
+        Returns
+        -------
+        dict[SMMetricType, float]
+            Average statistic for each used metric.
+        """
+
+        return {metric: sum(value) / len(value) for metric, value in self._summary.items()}
+
+    def is_empty(self) -> bool:
+        """Get information about usage of summary.
+
+        Returns
+        -------
+        bool
+            True if no test has been aggregated.
+        """
+
+        return self._empty

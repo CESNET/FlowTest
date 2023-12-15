@@ -17,6 +17,7 @@ from ftanalyzer.replicator.flow_replicator import FlowReplicator
 from ftanalyzer.reports.statistical_report import StatisticalReport
 from lbr_testsuite.topology.topology import select_topologies
 from src.collector.collector_builder import CollectorBuilder
+from src.common.html_report_plugin import HTMLReportData
 from src.common.utils import collect_scenarios, download_logs, get_project_root
 from src.config.scenario import SimulationScenario
 from src.generator.generator_builder import GeneratorBuilder
@@ -280,6 +281,8 @@ def test_simulation_overload(
 
     print("")
     report.print_results()
+
+    HTMLReportData.simulation_summary_report.update_stats(report)
 
     if not report.is_passing():
         assert False, f"evaluation of test: {request.function.__name__}[{test_id}] failed"
