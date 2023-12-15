@@ -274,8 +274,8 @@ def pytest_runtest_makereport(item: pytest.Function) -> None:
         if logs_path and isinstance(logs_path, str):
             extra = getattr(report, "extra", [])
             html_path = item.config.getoption("htmlpath")
-            assert isinstance(html_path, str)
             if html_path:
+                assert isinstance(html_path, str)
                 relative_logs_path = os.path.relpath(logs_path, os.path.dirname(html_path))
             else:
                 relative_logs_path = logs_path
