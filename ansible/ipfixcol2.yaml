@@ -5,4 +5,5 @@
     - collector_ipfixcol
     - firewall
   vars:
-    - firewall_enabled_ports: [ 4739 ]
+    - firewall_ports:
+      - [4739, tcp]

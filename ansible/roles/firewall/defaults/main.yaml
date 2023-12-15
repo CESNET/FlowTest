@@ -1,3 +1,6 @@
 ---
-firewall_enabled_ports: []
+# List of firewall ports to open in tuple format [<port>, <protocol>].
+# For example: [[80, tcp], [443, tcp]]
+firewall_ports: []
+
 input_chain: "input"

@@ -16,6 +16,6 @@
   when: ansible_distribution_major_version == "8"
 
 - name: Allow ports in nftables
-  ansible.builtin.shell: nft add rule inet firewall {{ input_chain }} tcp dport {{ item }} accept
-  with_items: "{{ firewall_enabled_ports }}"
+  ansible.builtin.shell: nft add rule inet firewall {{ input_chain }} {{ item.1 }} dport {{ item.0 | int }} accept
+  with_list: "{{ firewall_ports }}"
   when: nftables_service.status.ActiveState == 'active'
