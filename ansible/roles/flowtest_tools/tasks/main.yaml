@@ -3,3 +3,8 @@
   ansible.builtin.dnf:
     name: flowtest
     state: latest
+
+- name: tcpreplay is installed
+  ansible.builtin.dnf:
+    name: tcpreplay
+    state: latest
