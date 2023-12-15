@@ -1,0 +1,5 @@
+---
+- name: rsync is installed
+  ansible.builtin.dnf:
+    name: rsync
+    state: latest

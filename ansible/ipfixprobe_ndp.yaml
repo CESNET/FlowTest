@@ -2,6 +2,7 @@
 - hosts: all
   become: yes
   roles:
+    - orchestration_dependencies
     - ndk_fw_nic
     - role: probe_ipfixprobe
       ipfixprobe_package: ipfixprobe-ndp

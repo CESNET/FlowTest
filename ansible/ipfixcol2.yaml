@@ -2,6 +2,7 @@
 - hosts: all
   become: yes
   roles:
+    - orchestration_dependencies
     - collector_ipfixcol
     - firewall
   vars:
