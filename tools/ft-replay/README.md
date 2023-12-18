@@ -127,7 +127,7 @@ The available modification options for the loop configuration are:
 
 The Replicator configuration file follows the YAML format:
 
-```
+``` yaml
 units:
   - srcip: None | addConstant(Value) | addCounter(start,step)
     dstip: None | addConstant(Value) | addCounter(start,step)
@@ -144,7 +144,7 @@ loop:
 
 Consider the following example of a replication configuration:
 
-```
+``` yaml
 units:
   # Use the original packets without modification
   - srcip:  addConstant(0)         # Same as None
