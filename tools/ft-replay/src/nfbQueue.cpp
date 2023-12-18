@@ -70,7 +70,9 @@ void NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 
 	_lastBurstTotalPacketLen = 0;
 
-	if (_queueConfig.superPacketsEnabled) {
+	if (burstSize == 0) {
+		// Do nothing
+	} else if (_queueConfig.superPacketsEnabled) {
 		GetSuperBurst(burst, burstSize);
 	} else {
 		GetRegularBurst(burst, burstSize);
@@ -226,7 +228,9 @@ void NfbQueue::SendBurst(const PacketBuffer* burst)
 {
 	(void) burst;
 
-	ndp_tx_burst_put(_txQueue.get());
+	if (_lastBurstSize != 0) {
+		ndp_tx_burst_put(_txQueue.get());
+	}
 	_isBufferInUse = false;
 
 	_outputQueueStats.transmittedPackets += _lastBurstSize;
