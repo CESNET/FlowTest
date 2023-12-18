@@ -241,10 +241,9 @@ XdpPlugin::XdpPlugin(const std::string& params)
 		throw std::invalid_argument("XdpPlugin::XdpPlugin() has failed");
 	}
 
-	struct EthTool::Driver driver = ethTool.GetDriver();
 	size_t idOffset = 0;
-	if (_cfg._bindFlags == XDP_ZEROCOPY && driver._driver.find("mlx") != std::string::npos) {
-		_logger->info("Mellanox driver detected, added channels id offset");
+	if (_cfg._bindFlags == XDP_ZEROCOPY && _cfg._mlx_legacy) {
+		_logger->info("Using the legacy Mellanox driver configuration with shifted queues.");
 		idOffset = devQueueCount;
 	}
 
@@ -354,6 +353,8 @@ void XdpPlugin::ParseMap(const std::map<std::string, std::string>& argMap)
 			} else {
 				_cfg._xdpFlags = XDP_FLAGS_SKB_MODE;
 			}
+		} else if (key == "mlx_legacy") {
+			_cfg._mlx_legacy = StrToBool(value);
 		} else {
 			_logger->error("Unknown parameter {}", key);
 			throw std::runtime_error("XdpPlugin::ParseMap() has failed");
