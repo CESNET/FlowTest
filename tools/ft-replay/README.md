@@ -255,6 +255,7 @@ firmware for high-speed playback and hardware offloads. Suitable for speeds of 1
 
 | Parameter | Description   |
 |---	|---	|
+| device | Path to the NFB device to be used. Typically `/dev/nfbX` or `/dev/nfb/by-pci-slot/...`. [value: path]  |
 | queueCount | Specifies the queue numbers to use. [value: number, default: allPossible]  |
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 64] |
 | superPacket | Enable Super Packet feature (merging of small packets into larger ones). <br>[value: no, yes, auto, default: auto (enabled if available)] |
