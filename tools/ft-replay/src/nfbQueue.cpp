@@ -76,6 +76,7 @@ void NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 		GetRegularBurst(burst, burstSize);
 	}
 
+	_lastBurstSize = burstSize;
 	_isBufferInUse = true;
 }
 
@@ -136,8 +137,6 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 		}
 		offset += alignedLength - HEADER_LEN; // move offset to next packet
 	}
-
-	_lastBurstSize = burstSize;
 }
 
 void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
@@ -176,7 +175,6 @@ void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 				0);
 		}
 	}
-	_lastBurstSize = burstSize;
 }
 
 void NfbQueue::FillReplicatorHeader(const PacketBuffer& packetBuffer, NfbReplicatorHeader& header)
