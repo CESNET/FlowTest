@@ -8,6 +8,8 @@
 
 #include "nfbQueue.hpp"
 
+#include <cassert>
+
 namespace replay {
 
 NfbQueue::NfbQueue(const NfbQueueConfig& queueConfig, nfb_device* nfbDevice, unsigned queueId)
@@ -88,6 +90,8 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 	size_t packetsInSuperPacket = 0;
 	_txPacket[0].data_length = 0;
 
+	assert(burstSize > 0 && "Zero-size burst is not allowed");
+
 	for (size_t idx = 0; idx < burstSize; idx++) {
 		size_t packetTotalLength = HEADER_LEN + std::max(burst[idx]._len, MIN_PACKET_SIZE);
 		size_t alignedLength = AlignBlockSize(packetTotalLength);
@@ -143,6 +147,8 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 
 void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 {
+	assert(burstSize > 0 && "Zero-size burst is not allowed");
+
 	for (size_t idx = 0; idx < burstSize; idx++) {
 		size_t packetLength = std::max(burst[idx]._len, MIN_PACKET_SIZE);
 		_txPacket[idx].data_length = packetLength;
