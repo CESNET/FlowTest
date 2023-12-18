@@ -1,21 +1,59 @@
 ---
-- name: Detect running nftables
-  ansible.builtin.systemd:
-    name: "nftables.service"
-  register: nftables_service
-
-- name: Reset nftables (reload ruleset)
-  ansible.builtin.systemd:
-    name: "nftables.service"
-    state: "reloaded"
-  when: nftables_service.status.ActiveState == 'active'
-
-- name: Detect input chain name (OL8)
-  set_fact:
-    input_chain: "INPUT"
+# TODO: Remove this step when support for extra-vars is added to pytest
+- name: Detect Liberouter input chain name (OL8)
+  ansible.builtin.set_fact:
+    firewall_nftables_ruleset: "inet firewall INPUT"
   when: ansible_distribution_major_version == "8"
 
-- name: Allow ports in nftables
-  ansible.builtin.shell: nft add rule inet firewall {{ input_chain }} tcp dport {{ item }} accept
-  with_items: "{{ firewall_enabled_ports }}"
-  when: nftables_service.status.ActiveState == 'active'
+- name: Detect firewall controller
+  when: firewall_controller == "auto"
+  block:
+    - name: Detect running nftables service
+      ansible.builtin.systemd:
+        name: nftables
+      register: nftables_state
+
+    - name: Detect running firewalld service
+      ansible.builtin.systemd:
+        name: firewalld
+      register: firewalld_state
+
+    - name: Determine firewall controller
+      ansible.builtin.set_fact:
+        firewall_controller: "{{ 'firewalld' if fwd_found else 'nftables' if nft_found else 'none' }}"
+      vars:
+        fwd_found: "{{ firewalld_state.status.ActiveState == 'active' }}"
+        nft_found: "{{ nftables_state.status.ActiveState == 'active' }}"
+
+- name: nftables controller
+  when: firewall_controller == "nftables"
+  block:
+    - name: Reload nftables rules
+      ansible.builtin.systemd:
+        name: nftables
+        state: reloaded
+      when: firewall_reload
+
+    - name: "Open port(s) in nftables"
+      ansible.builtin.command: >
+        nft add rule
+        {{ firewall_nftables_ruleset }}
+        {{ item.1 }} dport {{ item.0 | int }}
+        accept
+      with_list: "{{ firewall_ports }}"
+
+- name: firewalld controller
+  when: firewall_controller == "firewalld"
+  block:
+    - name: Reload firewalld rules
+      ansible.builtin.systemd:
+        name: firewalld
+        state: reloaded
+      when: firewall_reload
+
+    - name: "Open port(s) in firewalld"
+      ansible.builtin.command: >
+        firewall-cmd
+        --zone="{{ firewall_firewalld_zone }}"
+        --add-port="{{ item.0 | int }}/{{ item.1 }}"
+      with_list: "{{ firewall_ports }}"

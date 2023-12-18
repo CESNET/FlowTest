@@ -1,3 +1,29 @@
 ---
-firewall_enabled_ports: []
-input_chain: "input"
+# Choose controller for firewall configuration.
+# By default (i.e. "auto"), the role tries to detect running controller
+# automatically. If no supported controller is found, all firewall actions
+# are skipped.
+# If no firewall should be configured, set controller to "none".
+# Supported values: auto/nftables/firewalld/none
+firewall_controller: auto
+
+# Reload firewall rules before configuration.
+# Any previously defined non-permanent rules will be removed.
+firewall_reload: true
+
+# List of firewall ports to open in tuple format [<port>, <protocol>].
+# Newly added rules are NOT permanent and they will be removed when
+# the firewall is reloaded next time.
+# For example: [[80, tcp], [443, tcp]]
+firewall_ports: []
+
+# -- nftable controller specific variables --
+
+# Ruleset where to append new firewall rules.
+# Expected format: "<family> <table> <chain>"
+firewall_nftables_ruleset: "inet firewall input"
+
+# -- firewalld controller specific variables --
+
+# Firewall zone to configure.
+firewall_firewalld_zone: "public"
