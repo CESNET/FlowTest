@@ -13,10 +13,13 @@
 #include "outputPluginFactoryRegistrator.hpp"
 
 extern "C" {
+#include <netcope/txmac.h>
 #include <nfb/ndp.h>
 }
 
+#include <chrono>
 #include <stdexcept>
+#include <thread>
 
 namespace replay {
 
@@ -28,6 +31,7 @@ NfbPlugin::NfbPlugin(const std::string& params)
 		ParseArguments(params);
 		OpenDevice();
 		ValidateQueueCount();
+		ResetTxMacCounters();
 		CreateNfbQueues();
 	} catch (const std::exception& ex) {
 		_logger->error(ex.what());
@@ -124,6 +128,47 @@ void NfbPlugin::CreateNfbQueues()
 		auto nfbQueue = builder.Build(_nfbDevice.get(), queueId);
 		_queues.emplace_back(std::move(nfbQueue));
 	}
+}
+
+void NfbPlugin::ResetTxMacCounters()
+{
+	size_t txCount = nfb_comp_count(_nfbDevice.get(), COMP_NETCOPE_TXMAC);
+	for (size_t txIndex = 0; txIndex < txCount; txIndex++) {
+		std::unique_ptr<nc_txmac, decltype(&nc_txmac_close)> txmac {
+			nc_txmac_open_index(_nfbDevice.get(), txIndex),
+			&nc_txmac_close};
+		if (!txmac) {
+			_logger->error("nc_txmac_open_index() has failed");
+			throw std::runtime_error("NfbPlugin::ResetTxMacCounters() has failed");
+		}
+		if (nc_txmac_reset_counters(txmac.get())) {
+			_logger->error("nc_txmac_reset_counters() has failed");
+			throw std::runtime_error("NfbPlugin::ResetTxMacCounters() has failed");
+		}
+	}
+}
+
+uint64_t NfbPlugin::GetTxMacProcessedPacketsCount()
+{
+	size_t txCount = nfb_comp_count(_nfbDevice.get(), COMP_NETCOPE_TXMAC);
+	uint64_t processedPacketsCount = 0;
+	for (size_t txIndex = 0; txIndex < txCount; txIndex++) {
+		std::unique_ptr<nc_txmac, decltype(&nc_txmac_close)> txmac {
+			nc_txmac_open_index(_nfbDevice.get(), txIndex),
+			&nc_txmac_close};
+		if (!txmac) {
+			_logger->error("nc_txmac_open_index() has failed");
+			throw std::runtime_error("NfbPlugin::GetTxMacProcessedPacketsCount() has failed");
+		}
+		struct nc_txmac_counters counters = {};
+		if (nc_txmac_read_counters(txmac.get(), &counters)) {
+			_logger->error("nc_txmac_read_counters() has failed");
+			throw std::runtime_error("NfbPlugin::GetTxMacProcessedPacketsCount() has failed");
+		}
+
+		processedPacketsCount += counters.cnt_total;
+	}
+	return processedPacketsCount;
 }
 
 void NfbPlugin::SetReplicatorFirmareOptionsToQueueBuilder(NfbQueueBuilder& builder)
@@ -245,6 +290,29 @@ void NfbPlugin::SetOffloadsToQueues(Offloads offloads)
 {
 	for (auto& queue : _queues) {
 		queue->SetOffloads(offloads);
+	}
+}
+
+NfbPlugin::~NfbPlugin()
+{
+	uint64_t sentPacketsCount = 0;
+	for (size_t queueId = 0; queueId < _queues.size(); queueId++) {
+		NfbQueue* outputQueue = _queues[queueId].get();
+		sentPacketsCount += outputQueue->GetOutputQueueStats().transmittedPackets;
+		outputQueue->Flush();
+	}
+
+	if (GetTxMacProcessedPacketsCount() == sentPacketsCount) {
+		return;
+	}
+
+	_logger->info(
+		"Waiting for txmac to process all packets. Sent: {}, processed: {}",
+		sentPacketsCount,
+		GetTxMacProcessedPacketsCount());
+
+	while (GetTxMacProcessedPacketsCount() != sentPacketsCount) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 
