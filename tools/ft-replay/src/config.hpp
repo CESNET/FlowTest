@@ -90,7 +90,7 @@ public:
 		 */
 		uint64_t ConvertToBytesPerSecond() const noexcept
 		{
-			static constexpr uint64_t BytesPerMegabit = 1024 * 1024 / 8;
+			static constexpr uint64_t BytesPerMegabit = 1000 * 1000 / 8;
 			return value * BytesPerMegabit;
 		}
 	};

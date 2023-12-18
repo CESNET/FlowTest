@@ -127,7 +127,7 @@ The available modification options for the loop configuration are:
 
 The Replicator configuration file follows the YAML format:
 
-```
+``` yaml
 units:
   - srcip: None | addConstant(Value) | addCounter(start,step)
     dstip: None | addConstant(Value) | addCounter(start,step)
@@ -144,7 +144,7 @@ loop:
 
 Consider the following example of a replication configuration:
 
-```
+``` yaml
 units:
   # Use the original packets without modification
   - srcip:  addConstant(0)         # Same as None
@@ -248,6 +248,7 @@ transmission rates in the order of tens of Gbps.
 | xskQueueSize | Size of TX and Completion queue, used to transfer UMEM descriptors between kernel and user space. [value: number, default: 2048]  |
 | zeroCopy | Use Zero Copy mode. [value: bool, default: true]  |
 | nativeMode | Use Native driver mode. [value: bool, default: true]  |
+| mlx_legacy | Enable support for legacy Mellanox/NVIDIA drivers with shifted zero-copy queues. [value: bool, default: false] |
 
 ### **nfb**
 Send packets over nfb (*Netcope FPGA Board*). Requires a special network card with compatible
@@ -255,6 +256,7 @@ firmware for high-speed playback and hardware offloads. Suitable for speeds of 1
 
 | Parameter | Description   |
 |---	|---	|
+| device | Path to the NFB device to be used. Typically `/dev/nfbX` or `/dev/nfb/by-pci-slot/...`. [value: path]  |
 | queueCount | Specifies the queue numbers to use. [value: number, default: allPossible]  |
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 64] |
 | superPacket | Enable Super Packet feature (merging of small packets into larger ones). <br>[value: no, yes, auto, default: auto (enabled if available)] |
