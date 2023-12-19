@@ -212,6 +212,17 @@ class SimGeneral(SimTest, SimConfig):
 
 
 @dataclass
+class SimThreshold(SimTest, SimConfig):
+    """Configuration of an individual test in threshold simulation test scenario."""
+
+    mbps_accuracy: int = required_field()
+    speed_min: int = 0
+    speed_max: Optional[int] = None
+    mbps_required: int = 0
+    analysis: AnalysisCfg = AnalysisCfg()
+
+
+@dataclass
 class ScenarioCfg(YAMLWizard):
     """Test scenario configuration."""
 
@@ -242,6 +253,7 @@ class SimulationScenario(ScenarioCfg):
 
     # configuration of individual tests for different simulation scenarios
     sim_general: Optional[list[SimGeneral]] = None
+    sim_threshold: Optional[list[SimThreshold]] = None
 
     def check(self) -> None:
         """Check validity of the configuration."""

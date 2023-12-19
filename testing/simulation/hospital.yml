@@ -53,3 +53,9 @@ sim_general:
     speed_multiplier: 1.0
     analysis:
       model: "precise"
+
+sim_threshold:
+  - id: hospital_max_throughput
+    marks: []
+    mbps_accuracy: 50
+    mbps_required: 1500
