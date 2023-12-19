@@ -16,7 +16,7 @@
 
 # If modprobe.d configuration has changed, reload the module
 - name: Reload NFB kernel module (if the configuration has changed)
-  when: nfb_count != "0" and nfb_config.changed
+  when: nfb_count.stdout != "0" and nfb_config.changed
   block:
     #  Running nfb-tsu would prevent the module unloading, stop them...
     - name: List all active NFB-TSU services started by FlowTest
