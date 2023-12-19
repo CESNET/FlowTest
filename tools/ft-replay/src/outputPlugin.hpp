@@ -56,6 +56,11 @@ public:
 	 */
 	virtual Offloads ConfigureOffloads(const OffloadRequests& offloads);
 
+	/**
+	 * @brief Get MTU of the output interface
+	 */
+	virtual size_t GetMTU() const noexcept = 0;
+
 protected:
 	/**
 	 * @brief Split arguments into map

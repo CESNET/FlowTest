@@ -96,7 +96,7 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 		size_t packetTotalLength = HEADER_LEN + std::max(burst[idx]._len, MIN_PACKET_SIZE);
 		size_t alignedLength = AlignBlockSize(packetTotalLength);
 
-		if (_txPacket[usedSuperPackets].data_length + alignedLength <= _queueConfig.superPacketSize
+		if (_txPacket[usedSuperPackets].data_length + alignedLength <= _queueConfig.maxPacketSize
 			&& packetsInSuperPacket < _queueConfig.superPacketLimit) {
 			_txPacket[usedSuperPackets].data_length += alignedLength;
 			packetsInSuperPacket++;

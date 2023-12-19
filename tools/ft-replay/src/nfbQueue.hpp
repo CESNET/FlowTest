@@ -28,7 +28,7 @@ namespace replay {
  */
 struct NfbQueueConfig {
 	size_t maxBurstSize = 64;
-	size_t superPacketSize;
+	size_t maxPacketSize;
 	size_t superPacketLimit;
 	bool superPacketsEnabled = false;
 	bool replicatorHeaderEnabled = false;

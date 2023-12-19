@@ -109,6 +109,11 @@ public:
 	size_t GetQueueCount() const noexcept override;
 
 	/**
+	 * @brief Get MTU of the raw interface
+	 */
+	size_t GetMTU() const noexcept override;
+
+	/**
 	 * @brief Get pointer to ID-specific OutputQueue
 	 *
 	 * @param[in] queueID  Has to be in range of 0 - GetQueueCount()-1
@@ -136,10 +141,13 @@ private:
 	 */
 	int ParseArguments(const std::string& args);
 
+	void DeterminePacketSize();
+	uint16_t GetInterfaceMTU();
+
 	std::unique_ptr<RawQueue> _queue;
 	std::string _ifcName;
 	size_t _burstSize = 1024;
-	size_t _packetSize = 2048;
+	size_t _packetSize = 0;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("RawPlugin");
 };

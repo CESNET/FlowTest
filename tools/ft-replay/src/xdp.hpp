@@ -236,6 +236,11 @@ public:
 	size_t GetQueueCount() const noexcept override;
 
 	/**
+	 * @brief Get MTU of the xdp interface
+	 */
+	size_t GetMTU() const noexcept override;
+
+	/**
 	 * @brief Get pointer to ID-specific OutputQueue
 	 *
 	 * @param[in] queueID  Has to be in range of 0 - GetQueueCount()-1

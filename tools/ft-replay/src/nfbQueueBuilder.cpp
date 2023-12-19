@@ -37,14 +37,18 @@ void NfbQueueBuilder::SetBurstSize(size_t burstSize)
 	_queueConfig.maxBurstSize = burstSize;
 }
 
+void NfbQueueBuilder::SetPacketSize(size_t packetSize)
+{
+	_queueConfig.maxPacketSize = packetSize;
+}
+
 void NfbQueueBuilder::EnableReplicatorHeader()
 {
 	_queueConfig.replicatorHeaderEnabled = true;
 }
 
-void NfbQueueBuilder::SetSuperPackets(size_t superPacketSize, size_t superPacketLimit)
+void NfbQueueBuilder::SetSuperPacketLimit(size_t superPacketLimit)
 {
-	_queueConfig.superPacketSize = superPacketSize;
 	_queueConfig.superPacketLimit = superPacketLimit;
 	_queueConfig.superPacketsEnabled = true;
 }

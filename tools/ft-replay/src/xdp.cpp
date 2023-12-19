@@ -271,6 +271,11 @@ size_t XdpPlugin::GetQueueCount() const noexcept
 	return _cfg._queueCount;
 }
 
+size_t XdpPlugin::GetMTU() const noexcept
+{
+	return _cfg._packetSize;
+}
+
 OutputQueue* XdpPlugin::GetQueue(uint16_t queueId)
 {
 	return _queues.at(queueId).get();

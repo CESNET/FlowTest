@@ -137,6 +137,11 @@ OutputQueue* PcapFilePlugin::GetQueue(uint16_t queueId)
 	return _queues.at(queueId).get();
 }
 
+size_t PcapFilePlugin::GetMTU() const noexcept
+{
+	return _packetSize;
+}
+
 void PcapFilePlugin::ParseMap(const std::map<std::string, std::string>& argMap)
 {
 	for (const auto& [key, value] : argMap) {
