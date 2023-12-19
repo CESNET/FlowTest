@@ -90,6 +90,11 @@ public:
 	 */
 	void SetOffloads(Offloads offloads) noexcept;
 
+	/**
+	 * @brief Flush output buffer
+	 */
+	void Flush();
+
 private:
 	void SetupNdpQueue(unsigned queueId);
 
@@ -102,8 +107,6 @@ private:
 	void FillReplicatorHeader(const PacketBuffer& packetBuffer, NfbReplicatorHeader& header);
 
 	size_t AlignBlockSize(size_t size);
-
-	void Flush();
 
 	std::unique_ptr<ndp_tx_queue_t, decltype(&ndp_close_tx_queue)> _txQueue {
 		nullptr,

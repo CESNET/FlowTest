@@ -50,10 +50,7 @@ public:
 	 */
 	explicit NfbPlugin(const std::string& params);
 
-	/**
-	 * @brief Default destructor
-	 */
-	~NfbPlugin() = default;
+	~NfbPlugin();
 
 	NfbPlugin(const NfbPlugin&) = delete;
 	NfbPlugin(NfbPlugin&&) = delete;
@@ -98,6 +95,8 @@ private:
 	void PrepareNfbDevice();
 	void SetFirmwareCapabilities();
 	void CreateNfbQueues();
+	void ResetTxMacCounters();
+	uint64_t GetTxMacProcessedPacketsCount();
 
 	void SetOffloadsToQueues(Offloads offloads);
 
