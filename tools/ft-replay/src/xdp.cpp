@@ -11,6 +11,7 @@
 #include "ethTool.hpp"
 
 #include <arpa/inet.h>
+#include <chrono>
 #include <linux/if_link.h>
 #include <linux/if_packet.h>
 #include <linux/sockios.h>
@@ -20,6 +21,8 @@
 #include <unistd.h>
 
 namespace replay {
+
+constexpr auto QUEUE_FLUSH_TIMEOUT = 3s;
 
 Umem::Umem(const QueueConfig& cfg)
 	: _bufferSize(cfg._packetSize * cfg._umemSize)
@@ -126,7 +129,8 @@ int XdpSocket::GetDescriptor()
 }
 
 XdpQueue::XdpQueue(const QueueConfig& cfg, size_t id)
-	: _pktSize(cfg._packetSize)
+	: _id(id)
+	, _pktSize(cfg._packetSize)
 	, _bufferSize(cfg._umemSize * cfg._packetSize)
 	, _burstSize(cfg._burstSize)
 	, _lastBurstTotalPacketLen(0)
@@ -144,8 +148,16 @@ XdpQueue::XdpQueue(const QueueConfig& cfg, size_t id)
 
 XdpQueue::~XdpQueue()
 {
-	while (_outstandingTx != 0) {
+	auto start {std::chrono::steady_clock::now()};
+	auto end = start;
+
+	while (_outstandingTx != 0 && end - start > QUEUE_FLUSH_TIMEOUT) {
 		CollectSlots();
+		end = std::chrono::steady_clock::now();
+	}
+
+	if (_outstandingTx > 0) {
+		_logger->warn("Queue (ID {}) did not return all remaining packet buffers.", _id);
 	}
 }
 

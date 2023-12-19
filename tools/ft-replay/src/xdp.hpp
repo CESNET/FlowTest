@@ -189,6 +189,7 @@ public:
 private:
 	void CollectSlots();
 
+	size_t _id;
 	size_t _pktSize;
 	size_t _bufferSize;
 	size_t _burstSize;
