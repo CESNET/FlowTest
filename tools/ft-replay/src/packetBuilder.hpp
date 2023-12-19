@@ -8,12 +8,15 @@
 
 #pragma once
 
+#include "logger.h"
 #include "offloads.hpp"
 #include "packet.hpp"
 #include "rawPacketProvider.hpp"
 #include "replicator-core/macAddress.hpp"
 
+#include <limits>
 #include <memory>
+#include <optional>
 
 namespace replay {
 
@@ -77,14 +80,26 @@ public:
 	 */
 	void SetHwOffloads(const Offloads hwChecksumOffloads);
 
+	/**
+	 * @brief Set the Maximum Transmission Unit (MTU) size.
+	 *
+	 * Built packets cannot exceed this size.
+	 * If packet is larger than MTU, exception is thrown.
+	 *
+	 * @param mtu Maximum Transmission Unit (MTU) size to set.
+	 */
+	void SetMTU(uint16_t mtu);
+
 private:
 	PacketInfo GetPacketInfo(const RawPacket* rawPacket) const;
 	std::unique_ptr<std::byte[]> GetDataCopy(const std::byte* rawData, uint16_t dataLen);
 	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen);
+	void ValidatePacketLength(uint16_t packetLength) const;
 	void PresetHwChecksum(Packet& packet);
 
 	uint16_t _vlanID = 0;
 	double _timeMultiplier = 1.0;
+	uint16_t _mtu = std::numeric_limits<uint16_t>::max();
 	Offloads _hwOffloads = 0;
 	std::optional<MacAddress> _srcMac = std::nullopt;
 	std::optional<MacAddress> _dstMac = std::nullopt;

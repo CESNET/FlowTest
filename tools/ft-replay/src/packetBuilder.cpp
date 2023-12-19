@@ -58,6 +58,11 @@ void PacketBuilder::SetTimeMultiplier(double timeMultiplier)
 	_timeMultiplier = timeMultiplier;
 }
 
+void PacketBuilder::SetMTU(uint16_t mtu)
+{
+	_mtu = mtu;
+}
+
 std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 {
 	Packet packet;
@@ -76,6 +81,8 @@ std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 		packet.data = GetDataCopy(rawPacket->data, rawPacket->dataLen);
 	}
 
+	ValidatePacketLength(packet.dataLen);
+
 	if (_srcMac) {
 		ether_header* ethHeader = reinterpret_cast<ether_header*>(packet.data.get());
 		MacAddress ref {reinterpret_cast<MacAddress::MacPtr>(ethHeader->ether_shost)};
@@ -91,6 +98,14 @@ std::unique_ptr<Packet> PacketBuilder::Build(const RawPacket* rawPacket)
 	PresetHwChecksum(packet);
 
 	return std::make_unique<Packet>(std::move(packet));
+}
+
+void PacketBuilder::ValidatePacketLength(uint16_t packetLength) const
+{
+	if (packetLength > _mtu) {
+		_logger->error("Packet length {} exceeds MTU {}", packetLength, _mtu);
+		throw std::runtime_error("PacketBuilder::ValidatePacketLength() has failed");
+	}
 }
 
 void PacketBuilder::PresetHwChecksum(Packet& packet)
