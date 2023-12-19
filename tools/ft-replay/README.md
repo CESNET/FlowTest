@@ -231,7 +231,7 @@ for lower speeds (e.g. 1 Gbps) due to system overhead.
 |---	|---	|
 | ifc | Network interface name to use. [value: name]  |
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 1024] |
-| packetSize | Maximal size (Bytes) of single packet. [value: number, default: 2048]  |
+| packetSize | Maximal size (Bytes) of single packet. [value: number, default: interface MTU]  |
 
 ### **xdp**
 Send packets over XDP (eXpress Data Path). Advanced system interface allowing zero-copy packet
@@ -243,9 +243,9 @@ transmission rates in the order of tens of Gbps.
 | ifc | Network interface name to use. [value: name]  |
 | queueCount | Specifies the queue numbers to use. [value: number, default: allAvailable]  |
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 64] |
-| packetSize | Maximal size (Bytes) of single packet. [value: number, default: 2048]  |
-| umemSize | Size of UMEM array, used to exchange packets between kernel and user space. [value: number, default: 4096]  |
-| xskQueueSize | Size of TX and Completion queue, used to transfer UMEM descriptors between kernel and user space. [value: number, default: 2048]  |
+| packetSize | Maximal size (Bytes) of single packet. [value: number (power of 2), default: 2048]  |
+| umemSize | Size of UMEM array, used to exchange packets between kernel and user space. [value: number (power of 2), default: 4096]  |
+| xskQueueSize | Size of TX and Completion queue, used to transfer UMEM descriptors between kernel and user space. [value: number (power of 2), default: 2048]  |
 | zeroCopy | Use Zero Copy mode. [value: bool, default: true]  |
 | nativeMode | Use Native driver mode. [value: bool, default: true]  |
 | mlx_legacy | Enable support for legacy Mellanox/NVIDIA drivers with shifted zero-copy queues. [value: bool, default: false] |
@@ -260,4 +260,4 @@ firmware for high-speed playback and hardware offloads. Suitable for speeds of 1
 | queueCount | Specifies the queue numbers to use. [value: number, default: allPossible]  |
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 64] |
 | superPacket | Enable Super Packet feature (merging of small packets into larger ones). <br>[value: no, yes, auto, default: auto (enabled if available)] |
-| superPacketSize | Maximal size (Bytes) of single superPacket. [value: number, default: 2048]  |
+| packetSize | Maximal size (Bytes) of single packet. [value: number, default: MTU, max: 14000] |
