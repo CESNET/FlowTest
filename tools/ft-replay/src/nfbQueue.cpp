@@ -8,6 +8,8 @@
 
 #include "nfbQueue.hpp"
 
+#include <cassert>
+
 namespace replay {
 
 NfbQueue::NfbQueue(const NfbQueueConfig& queueConfig, nfb_device* nfbDevice, unsigned queueId)
@@ -70,12 +72,15 @@ void NfbQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 
 	_lastBurstTotalPacketLen = 0;
 
-	if (_queueConfig.superPacketsEnabled) {
+	if (burstSize == 0) {
+		// Do nothing
+	} else if (_queueConfig.superPacketsEnabled) {
 		GetSuperBurst(burst, burstSize);
 	} else {
 		GetRegularBurst(burst, burstSize);
 	}
 
+	_lastBurstSize = burstSize;
 	_isBufferInUse = true;
 }
 
@@ -84,6 +89,8 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 	unsigned usedSuperPackets = 0;
 	size_t packetsInSuperPacket = 0;
 	_txPacket[0].data_length = 0;
+
+	assert(burstSize > 0 && "Zero-size burst is not allowed");
 
 	for (size_t idx = 0; idx < burstSize; idx++) {
 		size_t packetTotalLength = HEADER_LEN + std::max(burst[idx]._len, MIN_PACKET_SIZE);
@@ -136,12 +143,12 @@ void NfbQueue::GetSuperBurst(PacketBuffer* burst, size_t burstSize)
 		}
 		offset += alignedLength - HEADER_LEN; // move offset to next packet
 	}
-
-	_lastBurstSize = burstSize;
 }
 
 void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 {
+	assert(burstSize > 0 && "Zero-size burst is not allowed");
+
 	for (size_t idx = 0; idx < burstSize; idx++) {
 		size_t packetLength = std::max(burst[idx]._len, MIN_PACKET_SIZE);
 		_txPacket[idx].data_length = packetLength;
@@ -176,7 +183,6 @@ void NfbQueue::GetRegularBurst(PacketBuffer* burst, size_t burstSize)
 				0);
 		}
 	}
-	_lastBurstSize = burstSize;
 }
 
 void NfbQueue::FillReplicatorHeader(const PacketBuffer& packetBuffer, NfbReplicatorHeader& header)
@@ -228,7 +234,9 @@ void NfbQueue::SendBurst(const PacketBuffer* burst)
 {
 	(void) burst;
 
-	ndp_tx_burst_put(_txQueue.get());
+	if (_lastBurstSize != 0) {
+		ndp_tx_burst_put(_txQueue.get());
+	}
 	_isBufferInUse = false;
 
 	_outputQueueStats.transmittedPackets += _lastBurstSize;

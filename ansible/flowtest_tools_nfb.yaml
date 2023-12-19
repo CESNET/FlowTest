@@ -4,4 +4,4 @@
   roles:
     - orchestration_dependencies
     - flowtest_tools
-    - ndk_fw_nic
+    - ndk_fw_replicator
