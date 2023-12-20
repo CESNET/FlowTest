@@ -212,6 +212,14 @@ class SimGeneral(SimTest, SimConfig):
 
 
 @dataclass
+class SimOverload(SimTest, SimConfig):
+    """Configuration of an individual test in overload simulation test scenario."""
+
+    multiplier: float = 1.0
+    analysis: AnalysisCfg = AnalysisCfg()
+
+
+@dataclass
 class SimThreshold(SimTest, SimConfig):
     """Configuration of an individual test in threshold simulation test scenario."""
 
@@ -253,6 +261,7 @@ class SimulationScenario(ScenarioCfg):
 
     # configuration of individual tests for different simulation scenarios
     sim_general: Optional[list[SimGeneral]] = None
+    sim_overload: Optional[list[SimOverload]] = None
     sim_threshold: Optional[list[SimThreshold]] = None
 
     def check(self) -> None:
