@@ -151,7 +151,7 @@ XdpQueue::~XdpQueue()
 	auto start {std::chrono::steady_clock::now()};
 	auto end = start;
 
-	while (_outstandingTx != 0 && end - start > QUEUE_FLUSH_TIMEOUT) {
+	while (_outstandingTx != 0 && end - start < QUEUE_FLUSH_TIMEOUT) {
 		CollectSlots();
 		end = std::chrono::steady_clock::now();
 	}
