@@ -12,7 +12,6 @@ import ipaddress
 import logging
 import os
 import shutil
-from typing import Optional
 
 import pytest
 from ftanalyzer.models.sm_data_types import SMRule
@@ -20,7 +19,12 @@ from ftanalyzer.models.statistical_model import StatisticalModel
 from ftanalyzer.replicator.flow_replicator import FlowReplicator
 from lbr_testsuite.topology.topology import select_topologies
 from src.collector.collector_builder import CollectorBuilder
-from src.common.utils import collect_scenarios, download_logs, get_project_root
+from src.common.utils import (
+    collect_scenarios,
+    download_logs,
+    get_project_root,
+    get_replicator_prefix,
+)
 from src.config.scenario import AnalysisCfg, SimulationScenario
 from src.generator.ft_generator import FtGeneratorConfig
 from src.generator.generator_builder import GeneratorBuilder
@@ -68,38 +72,6 @@ def validate(
     return stats_report.is_passing()
 
 
-def get_replicator_prefix(min_prefix: int, ipv4_range: Optional[str], ipv6_range: Optional[str]) -> int:
-    """Determine the value for replicator prefix so that it does not overlap with provided configuration.
-
-    Parameters
-    ----------
-    min_prefix: int
-        Minimum prefix value which is acceptable.
-    ipv4_range: str, None
-        IPv4 range settings for the generator.
-    ipv6_range: str, None
-        IPv6 range settings for the generator.
-
-    Returns
-    -------
-    int
-        Prefix which should be used in the replicator.
-    """
-
-    ipv4_prefix = 32 if ipv4_range is None else int(ipv4_range.split("/")[1])
-    ipv6_prefix = 32 if ipv6_range is None else int(ipv6_range.split("/")[1])
-    configured_prefix = min([ipv4_prefix, ipv6_prefix])
-
-    # check prefixes do not overlap
-    assert configured_prefix >= min_prefix
-
-    # ideally we want to use the default prefix so that we can reuse pcaps from a cache
-    if configured_prefix >= DEFAULT_REPLICATOR_PREFIX >= min_prefix:
-        return DEFAULT_REPLICATOR_PREFIX
-
-    return min_prefix
-
-
 def setup_replicator(generator: Replicator, conf: FtGeneratorConfig, loop_cnt: int, unit_cnt: int) -> FlowReplicator:
     """
     Setup replicator units and loops so that there is enough bits in an IP prefix
@@ -124,7 +96,9 @@ def setup_replicator(generator: Replicator, conf: FtGeneratorConfig, loop_cnt: i
 
     assert loop_cnt > 0 and unit_cnt > 0
 
-    prefix = get_replicator_prefix((loop_cnt * unit_cnt - 1).bit_length(), conf.ipv4.ip_range, conf.ipv6.ip_range)
+    prefix = get_replicator_prefix(
+        (loop_cnt * unit_cnt - 1).bit_length(), DEFAULT_REPLICATOR_PREFIX, conf.ipv4.ip_range, conf.ipv6.ip_range
+    )
     if conf.ipv4.ip_range is None:
         conf.ipv4.ip_range = f"{ipaddress.IPv4Address(2 ** (32 - prefix)):s}/{prefix}"
 

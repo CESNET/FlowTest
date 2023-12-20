@@ -50,6 +50,42 @@ def download_logs(dest: str, **kwargs) -> None:
         device.download_logs(logs_dir)
 
 
+def get_replicator_prefix(
+    min_prefix: int, default_prefix: int, ipv4_range: Optional[str], ipv6_range: Optional[str]
+) -> int:
+    """Determine the value for replicator prefix so that it does not overlap with provided configuration.
+
+    Parameters
+    ----------
+    min_prefix: int
+        Minimum prefix value which is acceptable.
+    default_prefix: int
+        Default prefix value to be used if possible.
+    ipv4_range: str, None
+        IPv4 range settings for the generator.
+    ipv6_range: str, None
+        IPv6 range settings for the generator.
+
+    Returns
+    -------
+    int
+        Prefix which should be used in the replicator.
+    """
+
+    ipv4_prefix = 32 if ipv4_range is None else int(ipv4_range.split("/")[1])
+    ipv6_prefix = 32 if ipv6_range is None else int(ipv6_range.split("/")[1])
+    configured_prefix = min([ipv4_prefix, ipv6_prefix])
+
+    # check prefixes do not overlap
+    assert configured_prefix >= min_prefix
+
+    # ideally we want to use the default prefix so that we can reuse pcaps from a cache
+    if configured_prefix >= default_prefix >= min_prefix:
+        return default_prefix
+
+    return min_prefix
+
+
 def collect_scenarios(path: str, target: ScenarioCfg, name: Optional[str] = None) -> list["ParameterSet"]:
     """
     Collect all scenario files in the provided directory.
