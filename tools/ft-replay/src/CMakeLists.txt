@@ -22,6 +22,8 @@ add_executable(ft-replay
 	outputPluginStatsPrinter.cpp
 	outputQueue.hpp
 	outputQueue.cpp
+	utils.cpp
+	utils.hpp
 	raw.cpp
 	raw.hpp
 	xdp.cpp

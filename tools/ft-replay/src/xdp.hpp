@@ -259,15 +259,7 @@ public:
 
 private:
 	void PrintSettings();
-
-	bool PowerOfTwo(uint64_t value);
-
-	bool CaseInsensitiveCompare(std::string_view lhs, std::string_view rhs);
-
-	bool StrToBool(std::string_view str);
-
 	void ParseMap(const std::map<std::string, std::string>& argMap);
-
 	int ParseArguments(const std::string& args);
 
 	std::vector<std::unique_ptr<XdpQueue>> _queues;

@@ -9,6 +9,7 @@
 #include "xdp.hpp"
 
 #include "ethTool.hpp"
+#include "utils.hpp"
 
 #include <arpa/inet.h>
 #include <chrono>
@@ -312,37 +313,6 @@ void XdpPlugin::PrintSettings()
 	_logger->info(report);
 }
 
-bool XdpPlugin::PowerOfTwo(uint64_t value)
-{
-	return value && (!(value & (value - 1)));
-}
-
-bool XdpPlugin::CaseInsensitiveCompare(std::string_view lhs, std::string_view rhs)
-{
-	const auto cmp = [](char lhsLetter, char rhsLetter) {
-		return std::tolower(lhsLetter) == std::tolower(rhsLetter);
-	};
-
-	return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), cmp);
-}
-
-bool XdpPlugin::StrToBool(std::string_view str)
-{
-	for (const auto& item : {"yes", "true", "on", "1"}) {
-		if (CaseInsensitiveCompare(str, item)) {
-			return true;
-		}
-	}
-
-	for (const auto& item : {"no", "false", "off", "0"}) {
-		if (CaseInsensitiveCompare(str, item)) {
-			return false;
-		}
-	}
-	_logger->error("Unable to convert '{}' to boolean", std::string(str));
-	throw std::invalid_argument("XdpPlugin::StrToBool() has failed");
-}
-
 void XdpPlugin::ParseMap(const std::map<std::string, std::string>& argMap)
 {
 	for (const auto& [key, value] : argMap) {
@@ -359,19 +329,19 @@ void XdpPlugin::ParseMap(const std::map<std::string, std::string>& argMap)
 		} else if (key == "xskQueueSize") {
 			_cfg._xskQueueSize = std::stoul(value);
 		} else if (key == "zeroCopy") {
-			if (StrToBool(value)) {
+			if (utils::StrToBool(value)) {
 				_cfg._bindFlags = XDP_ZEROCOPY;
 			} else {
 				_cfg._bindFlags = XDP_COPY;
 			}
 		} else if (key == "nativeMode") {
-			if (StrToBool(value)) {
+			if (utils::StrToBool(value)) {
 				_cfg._xdpFlags = XDP_FLAGS_DRV_MODE;
 			} else {
 				_cfg._xdpFlags = XDP_FLAGS_SKB_MODE;
 			}
 		} else if (key == "mlxLegacy") {
-			_cfg._mlxLegacy = StrToBool(value);
+			_cfg._mlxLegacy = utils::StrToBool(value);
 		} else {
 			_logger->error("Unknown parameter {}", key);
 			throw std::runtime_error("XdpPlugin::ParseMap() has failed");
@@ -390,8 +360,8 @@ int XdpPlugin::ParseArguments(const std::string& args)
 		throw std::invalid_argument("XdpPlugin::ParseArguments() has failed");
 	}
 
-	if (!PowerOfTwo(_cfg._packetSize) || !PowerOfTwo(_cfg._umemSize)
-		|| !PowerOfTwo(_cfg._xskQueueSize)) {
+	if (!utils::PowerOfTwo(_cfg._packetSize) || !utils::PowerOfTwo(_cfg._umemSize)
+		|| !utils::PowerOfTwo(_cfg._xskQueueSize)) {
 		_logger->error(
 			"Parameter \"packetSize\", \"bufferSize\" or \"xskQueueSize\" is not power of 2");
 		throw std::invalid_argument("XdpPlugin::ParseArguments() has failed");
