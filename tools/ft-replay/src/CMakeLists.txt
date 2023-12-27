@@ -30,6 +30,8 @@ add_executable(ft-replay
 	raw.hpp
 	xdp.cpp
 	xdp.hpp
+	afPacket.cpp
+	afPacket.hpp
 	ethTool.cpp
 	ethTool.hpp
 	socketDescriptor.cpp

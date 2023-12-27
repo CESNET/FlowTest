@@ -233,6 +233,22 @@ for lower speeds (e.g. 1 Gbps) due to system overhead.
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 1024] |
 | packetSize | Maximal size (Bytes) of single packet. [value: number, default: interface MTU]  |
 
+### **packet**
+Sends packets through AF_PACKET (v2) system interface. Widely compatible with network cards.
+Allows simultaneous transmission through multiple queues, but does not support zero-copy data
+transfers. Suitable for transmission rate up to 10 Gbps.
+
+| Parameter | Description   |
+|---	|---	|
+| ifc | Network interface name to use. [value: name]  |
+| queueCount | Specifies the queue numbers to use. [value: number, default: allAvailable]  |
+| burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 32] |
+| blockSize  | PACKET_MMAP block size. Frames/packets are grouped in blocks. [value: number (power of 2), default: 16384] |
+| packetSize | PACKET_MMAP frame size. Corresponds to maximal size (Bytes) of single packet + interface overhead (32 B). [value: number (power of 2), default: 2048]  |
+| frameCount  | PACKET_MMAP frame count. Corresponds to the length of the output queue. [value: number, default: 1024] |
+| qdiskBypass  | Bypass kernel's qdisk (traffic control) layer [value: bool, default: true] |
+| packetLoss  | Ignore malformed packet on a transmit ring [value: bool, default: false] |
+
 ### **xdp**
 Send packets over XDP (eXpress Data Path). Advanced system interface allowing zero-copy packet
 transfers and multiple output queues. Requires a compatible network card and driver. Suitable for
