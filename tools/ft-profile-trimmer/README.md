@@ -18,7 +18,7 @@ For 10-minute simulation, at least three 5-minute slots are needed, etc.
 However when longer interval is used, the obtained profile contains long leading edge
 and falling edge, which negatively affects traffic replaying in loop.
 
-Goal is to create a tool, which trims obtaines profile data, so the leading/falling edge
+Goal is to create a tool, which trims obtained profile data, so the leading/falling edge
 does not negatively affect replaying and the 5-minute slot is better represented.
 
 ## Algorithm
@@ -105,7 +105,7 @@ generation of adjusted ranges with millisecond precision is also considered.
 
 ## Command line interface
 
-Command line paramters:
+Command line parameters:
 
 - -i FILE, --input FILE
     * (required) path to an input csv file where the network profile is stored
