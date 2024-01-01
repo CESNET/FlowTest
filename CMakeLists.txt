@@ -16,6 +16,7 @@ include(cmake/doctest-extras/doctest.cmake)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 option(ENABLE_NFB "Enable support for NFB output interface" OFF)
+option(ENABLE_RPMBUILD "Enable support for building RPM packages" ON)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)

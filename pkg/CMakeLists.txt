@@ -5,4 +5,7 @@ endif()
 set(TGZ_FILE "${CMAKE_CURRENT_BINARY_DIR}/flowtest-${VERSION}-${RELEASE}.tar.gz")
 
 add_subdirectory(tgz)
-add_subdirectory(rpm)
+
+if (ENABLE_RPMBUILD)
+	add_subdirectory(rpm)
+endif()
