@@ -1,4 +1,4 @@
-# Flowtest Orchestration Tool
+# FlowTest Orchestration Tool
 
 ## Production Pytests
 Tests that verify the functionality or performance of network probes are run using pytest. There are always 3 components

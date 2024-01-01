@@ -1,6 +1,6 @@
-# Flowtest Profile Trimmer
+# FlowTest Profile Trimmer
 
-Flowtest Profile Trimmer (further only *trimmer*) is a tool for trimming **network profiles**
+FlowTest Profile Trimmer (further only *trimmer*) is a tool for trimming **network profiles**
 from **ft-profiler** tool.
 Such profiles can contain long-lasting or burst flows that are not suitable for
 network replaying on loop.

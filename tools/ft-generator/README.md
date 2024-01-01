@@ -1,6 +1,6 @@
-# Flowtest Generator
+# FlowTest Generator
 
-Flowtest generator (further only *generator*) is a tool for generating network
+FlowTest Generator (further only *generator*) is a tool for generating network
 traffic based on a provided network profile.
 
 Network profile is an **anonymous list of flow records**. The generator
