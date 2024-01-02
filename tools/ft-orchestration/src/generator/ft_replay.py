@@ -67,6 +67,9 @@ class FtReplayOutputPluginSettings:
         Use Zero Copy mode with xdp plugin.
     native_mode: bool, optional
         Use Native driver mode with xdp plugin.
+    mlx_legacy: bool, optional
+        Enable support for legacy Mellanox/NVIDIA drivers with shifted zero-copy queues.
+        Only for xdp plugin.
     """
 
     output_plugin: str = "raw"
@@ -77,6 +80,7 @@ class FtReplayOutputPluginSettings:
     xsk_queue_size: Optional[int] = field(default=None, metadata={"plugins": ["xdp"]})
     zero_copy: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
     native_mode: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
+    mlx_legacy: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
 
     def __post_init__(self) -> None:
         """Check combination of input plugin and parameters."""
@@ -135,6 +139,9 @@ class FtReplayOutputPluginSettings:
         if self.native_mode is not None:
             str_native_mode = "true" if self.native_mode else "false"
             args.append(f"nativeMode={str_native_mode}")
+        if self.mlx_legacy is not None:
+            str_mlx_legacy = "true" if self.mlx_legacy else "false"
+            args.append(f"mlxLegacy={str_mlx_legacy}")
 
         return f"{self.output_plugin}:{','.join(args)}"
 
