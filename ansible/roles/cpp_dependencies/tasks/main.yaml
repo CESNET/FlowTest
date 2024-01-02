@@ -49,8 +49,3 @@
       - openssl
       - openssl-devel
     state: latest
-
-- name: nfb-framework is installed
-  ansible.builtin.dnf:
-    name: nfb-framework
-    state: latest
