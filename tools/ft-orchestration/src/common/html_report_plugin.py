@@ -8,13 +8,69 @@ Pytest plugin responsible for customizing the HTML report (pytest-html).
 """
 
 import os
+from collections import defaultdict
 
 # pylint: disable=no-name-in-module
 import pytest
 import pytest_html
-from ftanalyzer.reports import StatisticalReportSummary, ValidationReportSummary
+from ftanalyzer.reports import ValidationReportSummary
 from py.xml import html
 from src.config.scenario import ScenarioCfg
+
+
+class SimulationTestsSummary:
+    """Class for aggregating simulation tests results.
+    Statistics are counters for each type of simulation test.
+
+    Attributes
+    ----------
+    _empty: bool
+        True if no test has been aggregated.
+    _summary: defaultdict
+        Dict to collect tests results.
+    """
+
+    def __init__(self) -> None:
+        self._empty = True
+        self._summary = defaultdict(lambda: {"passed": 0, "failed": 0})
+
+    def update_stats(self, test_name: str, passed: bool):
+        """Update statistics with test result.
+
+        Parameters
+        ----------
+        test_name: str
+            Type of test (e.g. sim_general).
+        """
+
+        self._empty = False
+
+        if passed:
+            self._summary[test_name]["passed"] += 1
+        else:
+            self._summary[test_name]["failed"] += 1
+
+    def get_summary(self) -> dict[str, dict[str, int]]:
+        """Get final summary.
+
+        Returns
+        -------
+        dict[str, dict[str, int]]
+            Average statistic for each type of simulation test.
+        """
+
+        return dict(self._summary)
+
+    def is_empty(self) -> bool:
+        """Get information about usage of summary.
+
+        Returns
+        -------
+        bool
+            True if no test has been aggregated.
+        """
+
+        return self._empty
 
 
 # pylint: disable=too-few-public-methods
@@ -30,7 +86,7 @@ class HTMLReportData:
     """
 
     validation_summary_report: ValidationReportSummary
-    simulation_summary_report: StatisticalReportSummary
+    simulation_summary_report: SimulationTestsSummary
 
 
 def pytest_html_report_title(report: "HTMLReport") -> None:
@@ -73,7 +129,7 @@ def pytest_configure(config: pytest.Config) -> None:
     # pylint: disable=protected-access
     config._metadata = meta
     HTMLReportData.validation_summary_report = ValidationReportSummary()
-    HTMLReportData.simulation_summary_report = StatisticalReportSummary()
+    HTMLReportData.simulation_summary_report = SimulationTestsSummary()
 
 
 def validation_summary(summary: list) -> None:
@@ -163,11 +219,14 @@ def simulation_summary(summary: list) -> None:
 
     summary.append(html.h2("Simulation Tests Summary"))
 
-    thead = [html.th("METRIC"), html.th("AVG DIFF")]
+    thead = [html.th("TEST NAME"), html.th("PASSED"), html.th("FAILED")]
 
     stats = HTMLReportData.simulation_summary_report.get_summary()
     thead = html.thead(html.tr(thead))
-    rows = [html.tr(html.td(metric.value), html.td(f"{value:.4f}")) for metric, value in stats.items()]
+    rows = [
+        html.tr(html.td(name), html.td(str(value["passed"])), html.td(str(value["failed"])))
+        for name, value in stats.items()
+    ]
     tbody = html.tbody(rows)
     summary.append(html.table([thead, tbody], id="environment"))
 

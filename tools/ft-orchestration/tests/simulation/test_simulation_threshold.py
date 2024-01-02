@@ -19,6 +19,7 @@ from ftanalyzer.models.statistical_model import StatisticalModel
 from ftanalyzer.replicator.flow_replicator import FlowReplicator
 from lbr_testsuite.topology.topology import select_topologies
 from src.collector.collector_builder import CollectorBuilder
+from src.common.html_report_plugin import HTMLReportData
 from src.common.utils import (
     collect_scenarios,
     download_logs,
@@ -256,5 +257,8 @@ def test_simulation_threshold(
         cleanup()
         objects_to_cleanup = []
 
+    passed = scenario.test.mbps_required <= speed_min
+    HTMLReportData.simulation_summary_report.update_stats("sim_threshold", passed)
+
     logging.getLogger().info("maximum throughput: %s Mbps (accuracy: %s Mbps)", speed_min, scenario.test.mbps_accuracy)
-    assert scenario.test.mbps_required <= speed_min
+    assert passed, f"throughput ({speed_min} Mbps) is less than required ({scenario.test.mbps_required} Mbps)"

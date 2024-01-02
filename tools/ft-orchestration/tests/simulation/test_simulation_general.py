@@ -272,7 +272,9 @@ def test_simulation_general(
     if precise_report is not None:
         precise_report.print_results()
 
-    HTMLReportData.simulation_summary_report.update_stats(stats_report)
+    HTMLReportData.simulation_summary_report.update_stats(
+        "sim_general", stats_report.is_passing() and (not precise_report or precise_report.is_passing())
+    )
 
     if not stats_report.is_passing() or (precise_report is not None and not precise_report.is_passing()):
         shutil.move(tmp_dir, os.path.join(log_dir, "data"))
