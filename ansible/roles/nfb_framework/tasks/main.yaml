@@ -1,0 +1,5 @@
+---
+- name: NFB framework is installed
+  ansible.builtin.dnf:
+    name: nfb-framework
+    state: latest
