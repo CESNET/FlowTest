@@ -41,6 +41,7 @@ from src.generator.interface import (
 )
 
 
+# pylint: disable=too-many-instance-attributes
 @typed_dataclass
 @dataclass
 class FtReplayOutputPluginSettings:
@@ -70,22 +71,38 @@ class FtReplayOutputPluginSettings:
     mlx_legacy: bool, optional
         Enable support for legacy Mellanox/NVIDIA drivers with shifted zero-copy queues.
         Only for xdp plugin.
+    block_size: int, optional
+        PACKET_MMAP block size. Frames/packets are grouped in blocks.
+        Only for "packet" plugin.
+    frame_count: int, optional
+        PACKET_MMAP frame count. Corresponds to the length of the output queue.
+        Only for "packet" plugin.
+    qdisk_bypass: bool, optional
+        Bypass kernel's qdisk (traffic control) layer.
+        Only for "packet" plugin.
+    packet_loss: bool, optional
+        Ignore malformed packet on a transmit ring.
+        Only for "packet" plugin.
     """
 
     output_plugin: str = "raw"
-    queue_count: int = field(default=1, metadata={"plugins": ["pcapFile", "xdp", "nfb"]})
-    burst_size: Optional[int] = field(default=None, metadata={"plugins": ["pcapFile", "raw", "xdp", "nfb"]})
+    queue_count: int = field(default=1, metadata={"plugins": ["pcapFile", "xdp", "nfb", "packet"]})
+    burst_size: Optional[int] = field(default=None, metadata={"plugins": ["pcapFile", "raw", "xdp", "nfb", "packet"]})
     super_packet: Optional[str] = field(default=None, metadata={"plugins": ["nfb"]})
     umem_size: Optional[int] = field(default=None, metadata={"plugins": ["xdp"]})
     xsk_queue_size: Optional[int] = field(default=None, metadata={"plugins": ["xdp"]})
     zero_copy: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
     native_mode: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
     mlx_legacy: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["xdp"]})
+    block_size: Optional[int] = field(default=None, metadata={"plugins": ["packet"]})
+    frame_count: Optional[int] = field(default=None, metadata={"plugins": ["packet"]})
+    qdisk_bypass: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["packet"]})
+    packet_loss: Optional[bool] = field(default=None, metadata={"convert_func": bool_convertor, "plugins": ["packet"]})
 
     def __post_init__(self) -> None:
         """Check combination of input plugin and parameters."""
 
-        if self.output_plugin not in ["pcapFile", "raw", "xdp", "nfb"]:
+        if self.output_plugin not in ["pcapFile", "raw", "xdp", "nfb", "packet"]:
             logging.getLogger().error("FtReplay: Used unknown output plugin '%s'", self.output_plugin)
             raise RuntimeError(f"FtReplay: Used unknown output plugin '{self.output_plugin}'")
 
@@ -95,6 +112,7 @@ class FtReplayOutputPluginSettings:
                 logging.getLogger().error("FtReplay: Used unsupported %s output plugin parameters.", self.output_plugin)
                 raise RuntimeError(f"FtReplay: Used unsupported {self.output_plugin} output plugin parameters.")
 
+    # pylint: disable=too-many-branches
     def get_cmd_args(self, interface: str, mtu: int) -> str:
         """Get output plugin argument for ft-replay.
 
@@ -117,12 +135,12 @@ class FtReplayOutputPluginSettings:
         if self.super_packet:
             args.append(f"superPacket={self.super_packet}")
 
-        if self.output_plugin in ["raw", "xdp", "pcapFile"]:
+        if self.output_plugin in ["raw", "xdp", "pcapFile", "packet"]:
             args.append(f"packetSize={mtu}")
         if self.output_plugin == "nfb":
             args.append(f"superPacketSize={mtu}")
 
-        if self.output_plugin in ["raw", "xdp"]:
+        if self.output_plugin in ["raw", "xdp", "packet"]:
             args.append(f"ifc={interface}")
         if self.output_plugin == "nfb":
             args.append(f"device={interface}")
@@ -142,6 +160,17 @@ class FtReplayOutputPluginSettings:
         if self.mlx_legacy is not None:
             str_mlx_legacy = "true" if self.mlx_legacy else "false"
             args.append(f"mlxLegacy={str_mlx_legacy}")
+
+        if self.block_size is not None:
+            args.append(f"blockSize={self.block_size}")
+        if self.frame_count is not None:
+            args.append(f"frameCount={self.frame_count}")
+        if self.qdisk_bypass is not None:
+            str_qdisk_bypass = "true" if self.qdisk_bypass else "false"
+            args.append(f"qdiskBypass={str_qdisk_bypass}")
+        if self.packet_loss is not None:
+            str_packet_loss = "true" if self.packet_loss else "false"
+            args.append(f"packetLoss={str_packet_loss}")
 
         return f"{self.output_plugin}:{','.join(args)}"
 
