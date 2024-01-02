@@ -1,0 +1,8 @@
+---
+- name: Include dev_machine playbook
+  ansible.builtin.import_playbook: dev_machine.yaml
+
+- hosts: all
+  become: yes
+  roles:
+    - nfb_framework

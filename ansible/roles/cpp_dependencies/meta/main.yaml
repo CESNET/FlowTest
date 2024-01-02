@@ -2,4 +2,3 @@
 dependencies:
   - role: repository_crb
   - role: repository_epel
-  - role: nfb_framework
