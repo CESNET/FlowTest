@@ -57,6 +57,16 @@ class FtReplayOutputPluginSettings:
     super_packet: str, optional
         Enable Super Packet feature (merging of small packets into larger ones).
         Value: no/yes/auto. Only for nfb plugin.
+    umem_size: int, optional
+        Size of UMEM array, used to exchange packets between kernel and user space.
+        Only for xdp plugin.
+    xsk_queue_size: int, optional
+        Size of TX and Completion queue, used to transfer UMEM descriptors between kernel and user space.
+        Only for xdp plugin.
+    zero_copy: bool, optional
+        Use Zero Copy mode with xdp plugin.
+    native_mode: bool, optional
+        Use Native driver mode with xdp plugin.
     """
 
     output_plugin: str = "raw"
