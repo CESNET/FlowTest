@@ -1,6 +1,6 @@
-# Flowtest Generator
+# FlowTest Generator
 
-Flowtest generator (further only *generator*) is a tool for generating network
+FlowTest Generator (further only *generator*) is a tool for generating network
 traffic based on a provided network profile.
 
 Network profile is an **anonymous list of flow records**. The generator
@@ -320,7 +320,7 @@ random payload is generated instead.
 HTTP traffic is generated for flows using port 80 or 8080 over TCP.
 
 Generated HTTP traffic consists of HTTP/1.1 messages using the GET and POST
-methods. The method and headers are selected based on heursitics to best fit
+methods. The method and headers are selected based on heuristics to best fit
 the characteristic of the flow. The body of the HTTP message is randomly
 generated.
 
@@ -388,7 +388,7 @@ The following TLS extensions are supported:
  - `supported_versions`
  - `application_layer_protocol_negotiation`
 
-The certificates used in the TLS handshake are randomly choosen from a pool of
+The certificates used in the TLS handshake are randomly chosen from a pool of
 a number of pregenerated certificates (currently 50). This is done for
 performance reasons, as generating unique certificates on-the-fly would be too
 slow to be a feasible option. A script (`generate_tls_keys.py`) is provided for

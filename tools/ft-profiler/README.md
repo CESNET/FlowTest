@@ -1,6 +1,6 @@
-# Flowtest Profiler
+# FlowTest Profiler
 
-Flowtest profiler (further only *profiler*) is a tool for creating **network profiles** from a certain time period using netflow data.
+FlowTest Profiler (further only *profiler*) is a tool for creating **network profiles** from a certain time period using netflow data.
 Network profile is **anonymous list of flow records** which can be used to replicate network traffic with similar
 characteristics as the original traffic which those flow records are based upon.
 

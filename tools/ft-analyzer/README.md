@@ -1,6 +1,6 @@
-# Flowtest Analyzer
+# FlowTest Analyzer
 
-Flowtest Analyzer (ft-analyzer) is a library for evaluating the quality of flow records.
+FlowTest Analyzer (ft-analyzer) is a library for evaluating the quality of flow records.
 The library provides several evaluation models which can be used to determine differences
 in between tested data and expected result.
 

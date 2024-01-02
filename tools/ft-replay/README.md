@@ -1,6 +1,6 @@
-# Flowtest Replay
+# FlowTest Replay
 
-Flowtest Replay is a high-speed tool designed for replaying input PCAP file with the ability to
+FlowTest Replay is a high-speed tool designed for replaying input PCAP file with the ability to
 replicate and modify packets at the output interface.
 
 The tool offers flexibility in modifying packets during the replay process by enabling users to
@@ -30,7 +30,7 @@ operating memory, as the tool will attempt to prefetch all PCAP content.
 
 # Usage
 
-Start the flowtest replay by running `ft-replay <args>`.
+Start the FlowTest Replay by running `ft-replay <args>`.
 
 For example: `./ft-replay -i input.pcap -o pcapFile:file=output.pcap`
 
@@ -198,7 +198,7 @@ and a behavior configuration for multi-loop playback.
 
 # Output plugins
 
-Flowtest Replay provides various output plugins that can store or forward packets. You need to
+FlowTest Replay provides various output plugins that can store or forward packets. You need to
 select one of the supported plugins.
 
 The configuration format for the output plugins is as follows:
