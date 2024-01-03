@@ -248,7 +248,7 @@ transmission rates in the order of tens of Gbps.
 | xskQueueSize | Size of TX and Completion queue, used to transfer UMEM descriptors between kernel and user space. [value: number, default: 2048]  |
 | zeroCopy | Use Zero Copy mode. [value: bool, default: true]  |
 | nativeMode | Use Native driver mode. [value: bool, default: true]  |
-| mlx_legacy | Enable support for legacy Mellanox/NVIDIA drivers with shifted zero-copy queues. [value: bool, default: false] |
+| mlxLegacy | Enable support for legacy Mellanox/NVIDIA drivers with shifted zero-copy queues. [value: bool, default: false] |
 
 ### **nfb**
 Send packets over nfb (*Netcope FPGA Board*). Requires a special network card with compatible

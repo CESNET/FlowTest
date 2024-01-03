@@ -254,7 +254,7 @@ XdpPlugin::XdpPlugin(const std::string& params)
 	}
 
 	size_t idOffset = 0;
-	if (_cfg._bindFlags == XDP_ZEROCOPY && _cfg._mlx_legacy) {
+	if (_cfg._bindFlags == XDP_ZEROCOPY && _cfg._mlxLegacy) {
 		_logger->info("Using the legacy Mellanox driver configuration with shifted queues.");
 		idOffset = devQueueCount;
 	}
@@ -365,8 +365,8 @@ void XdpPlugin::ParseMap(const std::map<std::string, std::string>& argMap)
 			} else {
 				_cfg._xdpFlags = XDP_FLAGS_SKB_MODE;
 			}
-		} else if (key == "mlx_legacy") {
-			_cfg._mlx_legacy = StrToBool(value);
+		} else if (key == "mlxLegacy") {
+			_cfg._mlxLegacy = StrToBool(value);
 		} else {
 			_logger->error("Unknown parameter {}", key);
 			throw std::runtime_error("XdpPlugin::ParseMap() has failed");
