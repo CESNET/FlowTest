@@ -111,6 +111,8 @@ void Replicator::Replicate(uint64_t replicationLoopId)
 		replicatedPackets += burstSize;
 	}
 
+	_outputQueue->Flush();
+
 	WaitUntilEndOfTheLoop();
 }
 
