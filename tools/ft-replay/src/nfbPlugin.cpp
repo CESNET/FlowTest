@@ -299,7 +299,6 @@ NfbPlugin::~NfbPlugin()
 	for (size_t queueId = 0; queueId < _queues.size(); queueId++) {
 		NfbQueue* outputQueue = _queues[queueId].get();
 		sentPacketsCount += outputQueue->GetOutputQueueStats().transmittedPackets;
-		outputQueue->Flush();
 	}
 
 	if (GetTxMacProcessedPacketsCount() == sentPacketsCount) {
