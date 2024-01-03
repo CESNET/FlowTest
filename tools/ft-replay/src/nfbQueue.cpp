@@ -40,13 +40,17 @@ void NfbQueue::SetupNdpQueue(unsigned queueId)
 
 NfbQueue::~NfbQueue()
 {
-	Flush();
+	FlushBuffers();
 }
 
 void NfbQueue::Flush()
 {
+	FlushBuffers();
+}
+
+void NfbQueue::FlushBuffers()
+{
 	ndp_tx_burst_flush(_txQueue.get());
-	_isBufferInUse = false;
 }
 
 size_t NfbQueue::GetMaxBurstSize() const noexcept

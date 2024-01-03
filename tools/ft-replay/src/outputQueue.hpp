@@ -106,6 +106,11 @@ public:
 	virtual void SendBurst(const PacketBuffer* burst) = 0;
 
 	/**
+	 * @brief Flush output buffer
+	 */
+	virtual void Flush();
+
+	/**
 	 * @brief Default virtual destructor
 	 */
 	virtual ~OutputQueue() = default;
