@@ -3,169 +3,156 @@ Author(s): Jan Sobol <sobol@cesnet.cz>
 
 Copyright: (C) 2023 CESNET, z.s.p.o.
 SPDX-License-Identifier: BSD-3-Clause
+
+Overload simulation scenario focuses on flooding tested probe with a large amount of network flows
+and evaluating the number of processed packets before and after the flooding period.
 """
 
 import ipaddress
 import logging
 import os
-import time
+import shutil
 
 import pytest
-from ftanalyzer.models.sm_data_types import SMMetric, SMRule, SMSubnetSegment
+from ftanalyzer.models.sm_data_types import SMRule, SMSubnetSegment
 from ftanalyzer.models.statistical_model import StatisticalModel
 from ftanalyzer.replicator.flow_replicator import FlowReplicator
-from ftanalyzer.reports.statistical_report import StatisticalReport
 from lbr_testsuite.topology.topology import select_topologies
 from src.collector.collector_builder import CollectorBuilder
-from src.common.html_report_plugin import HTMLReportData
-from src.common.utils import collect_scenarios, download_logs, get_project_root
+from src.common.utils import (
+    collect_scenarios,
+    download_logs,
+    get_project_root,
+    get_replicator_prefix,
+)
 from src.config.scenario import SimulationScenario
+from src.generator.ft_generator import FtGeneratorConfig
 from src.generator.generator_builder import GeneratorBuilder
-from src.generator.interface import PpsSpeed, Replicator
+from src.generator.interface import MultiplierSpeed, Replicator
 from src.probe.probe_builder import ProbeBuilder
 
 PROJECT_ROOT = get_project_root()
 SIMULATION_TESTS_DIR = os.path.join(PROJECT_ROOT, "testing/simulation")
-
-BASE_IPV4 = "64.0.0.0"
-BASE_IPV6 = "4000::"
-UNIT_SUBNET_BITS = 24
-LOOP_SUBNET_BITS = 30
-OVERLOAD_MULTIPLIER = 1
-
-# first loop warm up, second probe overload, third back to normal function
-# first and third is evaluated
-LOOPS = 3
-
+DEFAULT_REPLICATOR_PREFIX = 8
 select_topologies(["replicator"])
 
+# first loop warm up, second probe overload, third back to normal function
+# first and third are evaluated
+LOOPS = 3
 
-def prepare_validation_rules(metrics: list[SMMetric]) -> list[SMRule]:
-    """Create rules to evaluate exported flows.
-    Calculate subnets for loops in which is evaluation is performed.
+
+def create_evaluation_segments(
+    ipv4_range: str, ipv6_range: str, prefix: int, unit_cnt: int, loop_step: int
+) -> list[SMSubnetSegment]:
+    """Create evaluation segments based on the replicator configuration.
 
     Parameters
     ----------
-    metrics : list[SMMetric]
-        Metrics for statistical evaluation.
+    ipv4_range: str
+        PCAP generator IPv4 range.
+    ipv6_range: str
+        PCAP generator IPv6 range.
+    prefix: int
+        Prefix used for replication units.
+    unit_cnt: int
+        Number of replication units for normal loops.
+    loop_step: int
+        Maximum number of subnets in a single loop.
 
     Returns
     -------
-    list[SMRule]
-        Evaluation rules.
+    list[SMSubnetSegment]
+        Evaluation segments.
     """
 
-    network_prefix = 32 - LOOP_SUBNET_BITS
-    network_ipv4 = ipaddress.ip_address(BASE_IPV4)
-    network_ipv6 = ipaddress.ip_address(BASE_IPV6)
+    ipv4_addr = ipaddress.ip_address(ipv4_range.split("/")[0])
+    ipv6_addr = ipaddress.ip_address(ipv6_range.split("/")[0])
+    segments = []
 
-    segment_first_v4 = SMSubnetSegment(f"{network_ipv4}/{network_prefix}", f"{network_ipv4}/{network_prefix}")
-    segment_third_v4 = SMSubnetSegment(
-        f"{network_ipv4+2*2**LOOP_SUBNET_BITS}/{network_prefix}",
-        f"{network_ipv4+2*2**LOOP_SUBNET_BITS}/{network_prefix}",
+    # only first and third loops with normal traffic are evaluated
+    for loop_index in [0, 2]:
+        for unit_n in range(unit_cnt):
+            ipv4_offset = unit_n * 2 ** (32 - prefix) + loop_index * loop_step * 2 ** (32 - prefix)
+            ipv6_offset = unit_n * 2 ** (128 - prefix) + loop_index * loop_step * 2 ** (128 - prefix)
+
+            segments.append(
+                SMSubnetSegment(f"{ipv4_addr + ipv4_offset}/{prefix}", f"{ipv4_addr + ipv4_offset}/{prefix}")
+            )
+            segments.append(
+                SMSubnetSegment(f"{ipv6_addr + ipv6_offset}/{prefix}", f"{ipv6_addr + ipv6_offset}/{prefix}")
+            )
+
+    return segments
+
+
+def setup_replicator(
+    generator: Replicator, conf: FtGeneratorConfig, multiplier: float, unit_cnt: int
+) -> tuple[FlowReplicator, list[SMSubnetSegment]]:
+    """
+    Setup replicator units and loops so that there is enough bits in an IP prefix
+    to perform replication in a way that IP subnets do not overlap.
+
+    Parameters
+    ----------
+    generator: Replicator
+        Generator instance.
+    conf: FtGeneratorConfig
+        Generator configuration.
+    multiplier: float
+        Multiply the number of replication units during overload phase by specified constant.
+    unit_cnt: int
+        Number of replication units.
+
+    Returns
+    -------
+    tuple
+        Flow replicator object to adjust reference flows report form the packet player.
+    """
+
+    assert unit_cnt > 0
+    assert multiplier >= 1.0
+
+    # maximum of replication units running in parallel across all loops (which is the second loop)
+    loop_units = int(multiplier * unit_cnt)
+    prefix = get_replicator_prefix(
+        (loop_units * LOOPS).bit_length(), DEFAULT_REPLICATOR_PREFIX, conf.ipv4.ip_range, conf.ipv6.ip_range
     )
+    if conf.ipv4.ip_range is None:
+        conf.ipv4.ip_range = f"{ipaddress.IPv4Address(2 ** (32 - prefix)):s}/{prefix}"
 
-    segment_first_v6 = SMSubnetSegment(f"{network_ipv6}/{network_prefix}", f"{network_ipv6}/{network_prefix}")
-    segment_third_v6 = SMSubnetSegment(
-        f"{network_ipv6+2*2**(LOOP_SUBNET_BITS+96)}/{network_prefix}",
-        f"{network_ipv6+2*2**(LOOP_SUBNET_BITS+96)}/{network_prefix}",
-    )
-
-    return [
-        SMRule(metrics, segment_first_v4),
-        SMRule(metrics, segment_third_v4),
-        SMRule(metrics, segment_first_v6),
-        SMRule(metrics, segment_third_v6),
-    ]
-
-
-def validate(
-    metrics: list[SMMetric],
-    flows_file: str,
-    ref_file: str,
-    start_time: int,
-    replicator_config: dict,
-    tmp_dir: str,
-) -> StatisticalReport:
-    """Perform statistical model evaluation of the test scenario with provided metrics.
-
-    Parameters
-    ----------
-    metrics : list
-        Metrics for statistical evaluation.
-    flows_file: str
-        Path to a file with flows from collector.
-    ref_file: str
-        Path to a file with reference flows.
-    start_time: int
-        Timestamp of the first packet.
-    replicator_config : dict
-        Config used to replicate flows with FlowReplicator.
-        Probably the same as ft-replay configuration.
-    tmp_dir : str
-        Temporary directory used to save replicated flows CSV.
-
-    Returns
-    -------
-    StatisticalReport
-        Evaluation report.
-    """
-
-    flows_replicator = FlowReplicator(replicator_config, ignore_loops=[1])
-    replicated_ref_file = os.path.join(tmp_dir, "replicated_ref.csv")
-    flows_replicator.replicate(ref_file, replicated_ref_file, loops=LOOPS)
-
-    model = StatisticalModel(flows_file, replicated_ref_file, start_time)
-    return model.validate(prepare_validation_rules(metrics))
-
-
-def setup_replicator(generator_instance: Replicator, sampling: float) -> dict:
-    """Setup replication units and loops offsets.
-
-    Parameters
-    ----------
-    generator_instance : Replicator
-        Object to setup (replicator connector).
-    sampling : float
-        Sampling rate (interval 0-1). Used to find out number of
-        replication units to simulate original traffic.
-
-    Returns
-    -------
-    dict
-        Used replicator configuration.
-    """
-
-    units_count = int(1 / sampling)
-
-    assert units_count <= 2 ** (LOOP_SUBNET_BITS - UNIT_SUBNET_BITS)
+    if conf.ipv6.ip_range is None:
+        conf.ipv6.ip_range = f"{ipaddress.IPv6Address(2 ** (128 - prefix)):s}/{prefix}"
 
     # normal traffic replication units
-    for unit_n in range(units_count):
-        generator_instance.add_replication_unit(
-            srcip=Replicator.AddConstant(unit_n * 2**UNIT_SUBNET_BITS),
-            dstip=Replicator.AddConstant(unit_n * 2**UNIT_SUBNET_BITS),
+    for unit_n in range(unit_cnt):
+        generator.add_replication_unit(
+            srcip=Replicator.AddConstant(unit_n * 2 ** (32 - prefix)),
+            dstip=Replicator.AddConstant(unit_n * 2 ** (32 - prefix)),
             loop_only=[0, 2],
         )
 
     # overload replication units
-    for unit_n in range(OVERLOAD_MULTIPLIER * units_count):
-        generator_instance.add_replication_unit(
-            srcip=Replicator.AddCounter(unit_n * 2**UNIT_SUBNET_BITS, 1),
-            dstip=Replicator.AddCounter(unit_n * 2**UNIT_SUBNET_BITS, 1),
+    for unit_n in range(loop_units):
+        generator.add_replication_unit(
+            srcip=Replicator.AddCounter(unit_n * 2 ** (32 - prefix), 1),
+            dstip=Replicator.AddConstant(unit_n * 2 ** (32 - prefix)),
             loop_only=1,
         )
 
-    assert LOOPS <= 2 ** (32 - LOOP_SUBNET_BITS)
+    # loop offset
+    generator.set_loop_modifiers(
+        srcip_offset=loop_units * 2 ** (32 - prefix), dstip_offset=loop_units * 2 ** (32 - prefix)
+    )
+    segments = create_evaluation_segments(conf.ipv4.ip_range, conf.ipv6.ip_range, prefix, unit_cnt, loop_units)
+    logging.getLogger().info("Generator - ipv4 range: %s, ipv6 range: %s", conf.ipv4.ip_range, conf.ipv6.ip_range)
+    logging.getLogger().info("Replicator - units: %d, overload units: %d, prefix: %d", unit_cnt, loop_units, prefix)
 
-    generator_instance.set_loop_modifiers(srcip_offset=2**LOOP_SUBNET_BITS, dstip_offset=2**LOOP_SUBNET_BITS)
-
-    return generator_instance.get_replicator_config()
+    return FlowReplicator(generator.get_replicator_config(), ignore_loops=[1]), segments
 
 
 @pytest.mark.simulation
 @pytest.mark.parametrize(
-    "scenario, test_id", collect_scenarios(SIMULATION_TESTS_DIR, SimulationScenario, name="sm_overload")
+    "scenario, test_id", collect_scenarios(SIMULATION_TESTS_DIR, SimulationScenario, name="sim_overload")
 )
 # pylint: disable=too-many-locals
 # pylint: disable=unused-argument
@@ -186,7 +173,7 @@ def test_simulation_overload(
     Overload is realized by "addCounter" replication units.
     Test has 3 traffic loops. In first probe getting warmed up, in second
     is attempt to overload probe. Second loop is not evaluated.
-    Third loop is most important for evaluation, traffic is getting back to normal.
+    Third loop is the most important for evaluation, since the traffic is getting back to normal.
 
     Parameters
     ----------
@@ -227,62 +214,60 @@ def test_simulation_overload(
     request.addfinalizer(cleanup)
     request.addfinalizer(finalizer_download_logs)
 
-    logging.info("\t- Starting collector...")
     collector_instance = analyzer.get()
     objects_to_cleanup.append(collector_instance)
     collector_instance.start()
 
-    logging.info("\t- Starting probe...")
-    probe_instance = device.get(mtu=scenario.mtu, **scenario.probe.get_args(device.get_instance_type()))
+    probe_conf = scenario.test.get_probe_conf(device.get_instance_type(), scenario.default.probe)
+    probe_instance = device.get(mtu=scenario.mtu, **probe_conf)
     objects_to_cleanup.append(probe_instance)
-    probe_timeouts = probe_instance.get_timeouts()
+    _, inactive_t = probe_instance.get_timeouts()
     probe_instance.start()
 
-    logging.info("\t- Sending packets via generator to probe...")
+    # initialize generator
+    generator_conf = scenario.test.get_generator_conf(scenario.default.generator)
     generator_instance = generator.get(scenario.mtu)
-    replicator_config = setup_replicator(generator_instance, scenario.sampling)
     # file to save replication report from ft-generator (flows reference)
     ref_file = os.path.join(tmp_dir, "report.csv")
 
-    scenario.generator.ipv4.ip_range = f"{BASE_IPV4}/{32-UNIT_SUBNET_BITS}"
-    # ft-replay can edit only first 32 bits from IPv6 address
-    scenario.generator.ipv6.ip_range = f"{BASE_IPV6}/{32-UNIT_SUBNET_BITS}"
-    scenario.generator.max_flow_inter_packet_gap = probe_timeouts[1]
+    # set max inter packet gap in a profile slightly below configured probe's inactive timeout
+    generator_conf.max_flow_inter_packet_gap = inactive_t - 1
+
+    flow_replicator, segments = setup_replicator(
+        generator_instance, generator_conf, scenario.test.multiplier, int(1 / scenario.sampling)
+    )
+    speed = scenario.test.speed_multiplier if scenario.test.speed_multiplier is not None else MultiplierSpeed(1.0)
+    assert scenario.test.analysis.model == "statistical"
 
     generator_instance.start_profile(
         scenario.get_profile(scenario.filename, SIMULATION_TESTS_DIR),
         ref_file,
-        speed=PpsSpeed(scenario.pps),
+        speed=speed,
         loop_count=LOOPS,
-        generator_config=scenario.generator,
+        generator_config=generator_conf,
     )
-    # start_profile is asynchronous, method stats blocks until traffic is send
-    start_time = generator_instance.stats().start_time
 
-    time.sleep(0.1)
+    # method stats blocks until traffic is sent
+    stats = generator_instance.stats()
 
-    logging.info("\t- Stop probe.")
     probe_instance.stop()
-
-    logging.info("\t- Stop collector.")
     collector_instance.stop()
 
     flows_file = os.path.join(tmp_dir, "flows.csv")
     collector_instance.get_reader().save_csv(flows_file)
 
-    report = validate(
-        scenario.analysis,
-        flows_file,
-        ref_file,
-        start_time,
-        replicator_config,
-        tmp_dir,
+    replicated_ref_file = os.path.join(tmp_dir, "replicated_ref.csv")
+    flow_replicator.replicate(
+        input_file=ref_file,
+        output_file=replicated_ref_file,
+        loops=LOOPS,
+        speed_multiplier=speed.speed if isinstance(speed, MultiplierSpeed) else 1.0,
     )
 
-    print("")
+    model = StatisticalModel(flows_file, replicated_ref_file, stats.start_time)
+    report = model.validate([SMRule(scenario.test.analysis.metrics, segment) for segment in segments])
     report.print_results()
 
-    HTMLReportData.simulation_summary_report.update_stats(report)
-
     if not report.is_passing():
+        shutil.move(tmp_dir, os.path.join(log_dir, "data"))
         assert False, f"evaluation of test: {request.function.__name__}[{test_id}] failed"

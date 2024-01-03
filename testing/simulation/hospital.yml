@@ -59,3 +59,8 @@ sim_threshold:
     marks: []
     mbps_accuracy: 50
     mbps_required: 1500
+
+sim_overload:
+  - id: hospital_overload
+    marks: []
+    multiplier: 2.0
