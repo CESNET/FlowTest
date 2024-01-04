@@ -53,7 +53,7 @@ public:
 	/**
 	 * @brief Destructor for NfbQueue.
 	 */
-	~NfbQueue();
+	~NfbQueue() override;
 
 	NfbQueue(const NfbQueue&) = delete;
 	NfbQueue(NfbQueue&&) = delete;
@@ -93,19 +93,17 @@ public:
 	/**
 	 * @brief Flush output buffer
 	 */
-	void Flush();
+	void Flush() override;
 
 private:
 	void SetupNdpQueue(unsigned queueId);
 
 	void GetRegularBurst(PacketBuffer* burst, size_t burstSize);
-
 	void GetSuperBurst(PacketBuffer* burst, size_t burstSize);
-
 	void GetBuffers(size_t burstSize);
+	void FlushBuffers();
 
 	void FillReplicatorHeader(const PacketBuffer& packetBuffer, NfbReplicatorHeader& header);
-
 	size_t AlignBlockSize(size_t size);
 
 	std::unique_ptr<ndp_tx_queue_t, decltype(&ndp_close_tx_queue)> _txQueue {

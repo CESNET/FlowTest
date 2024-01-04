@@ -22,4 +22,6 @@ void OutputQueueStats::UpdateTime() noexcept
 	}
 }
 
+void OutputQueue::Flush() {}
+
 } // namespace replay

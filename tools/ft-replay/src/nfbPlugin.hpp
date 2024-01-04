@@ -50,7 +50,7 @@ public:
 	 */
 	explicit NfbPlugin(const std::string& params);
 
-	~NfbPlugin();
+	~NfbPlugin() override;
 
 	NfbPlugin(const NfbPlugin&) = delete;
 	NfbPlugin(NfbPlugin&&) = delete;
