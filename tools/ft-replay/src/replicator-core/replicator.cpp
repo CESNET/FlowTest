@@ -14,6 +14,8 @@
 
 namespace replay {
 
+constexpr auto AUTOFLUSH_TIMEOUT = 5ms;
+
 Replicator::Replicator(
 	std::unique_ptr<PacketQueue> packetQueue,
 	OutputQueue* outputQueue,
@@ -171,6 +173,7 @@ void Replicator::WaitUntilEndOfTheLoop()
 	}
 
 	uint64_t timeUntilEndOfLoop = _loopTimeDuration - _lastPacketTimestamp;
+	CheckAutoFlushTimeout(timeUntilEndOfLoop);
 	_rateLimiter.GetAvailableTokens(timeUntilEndOfLoop);
 	_rateLimiter.SetProcessedTokens(timeUntilEndOfLoop);
 }
@@ -183,6 +186,7 @@ uint64_t Replicator::GetNumberOfPacketToReplicate() const noexcept
 uint64_t Replicator::GetBurstSize(uint64_t replicatedPackets)
 {
 	uint64_t minimunRequiredTokens = GetMinimumRequiredTokens(replicatedPackets);
+	CheckAutoFlushTimeout(minimunRequiredTokens);
 	uint64_t availableTokens = _rateLimiter.GetAvailableTokens(minimunRequiredTokens);
 	uint64_t maxNuberOfPacketsToReplicate = GetNumberOfPacketToReplicate();
 	uint64_t maxPossibleBurstSize
@@ -191,6 +195,14 @@ uint64_t Replicator::GetBurstSize(uint64_t replicatedPackets)
 		= ConvertTokensToBurstSize(replicatedPackets, maxPossibleBurstSize, availableTokens);
 	_rateLimiter.SetProcessedTokens(burstInfo.usedTokens);
 	return burstInfo.burstSize;
+}
+
+void Replicator::CheckAutoFlushTimeout(uint64_t minimunRequiredTokens)
+{
+	auto waitingTimeTillTokensAvailable = _rateLimiter.GetWaitingTime(minimunRequiredTokens);
+	if (waitingTimeTillTokensAvailable > AUTOFLUSH_TIMEOUT) {
+		_outputQueue->Flush();
+	}
 }
 
 Replicator::BurstInfo Replicator::ConvertTokensToBurstSize(
