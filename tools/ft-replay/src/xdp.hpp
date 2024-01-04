@@ -37,7 +37,7 @@ struct QueueConfig {
 	size_t _queueCount = 0;
 	size_t _bindFlags = XDP_ZEROCOPY;
 	size_t _xdpFlags = XDP_FLAGS_DRV_MODE;
-	bool _mlx_legacy = false;
+	bool _mlxLegacy = false;
 };
 
 class Umem {
