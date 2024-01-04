@@ -7,11 +7,16 @@
  */
 
 #include "utils.hpp"
+#include "socketDescriptor.hpp"
 
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
+#include <cstring>
+#include <net/if.h>
 #include <stdexcept>
 #include <string>
+#include <sys/ioctl.h>
 
 namespace replay::utils {
 
@@ -44,6 +49,21 @@ bool StrToBool(std::string_view str)
 	}
 
 	throw std::invalid_argument("Unable to convert '" + std::string(str) + "' to boolean");
+}
+
+uint16_t GetInterfaceMTU(const std::string& name)
+{
+	SocketDescriptor socket;
+	socket.OpenSocket(AF_INET, SOCK_DGRAM, 0);
+
+	ifreq ifReq = {};
+	memset(&ifReq, 0, sizeof(ifReq));
+	snprintf(ifReq.ifr_name, IFNAMSIZ, "%s", name.c_str());
+	if (ioctl(socket.GetSocketId(), SIOCGIFMTU, &ifReq) < 0) {
+		throw std::runtime_error("Failed to get MTU of '" + std::string(name) + "' interface");
+	}
+
+	return ifReq.ifr_mtu;
 }
 
 } // namespace replay::utils

@@ -34,4 +34,11 @@ bool PowerOfTwo(uint64_t value);
  */
 bool StrToBool(std::string_view str);
 
+/**
+ * @brief Get MTU of a network interface.
+ * @param[in] name Network interface name.
+ * @throw std::runtime_error if the MTU cannot be obtained.
+ */
+uint16_t GetInterfaceMTU(const std::string& name);
+
 } // namespace replay::utils

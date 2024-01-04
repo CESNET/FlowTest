@@ -7,6 +7,7 @@
  */
 
 #include "raw.hpp"
+#include "utils.hpp"
 
 #include <arpa/inet.h>
 #include <cerrno>
@@ -64,22 +65,6 @@ void RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 	_pktsToSend = burstSize;
 }
 
-uint16_t RawPlugin::GetInterfaceMTU()
-{
-	SocketDescriptor socket;
-	socket.OpenSocket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
-
-	ifreq ifReq = {};
-	memset(&ifReq, 0, sizeof(ifReq));
-	snprintf(ifReq.ifr_name, IFNAMSIZ, "%s", _ifcName.c_str());
-	if (ioctl(socket.GetSocketId(), SIOCGIFMTU, &ifReq) < 0) {
-		_logger->error("Cannot obtain interface MTU");
-		throw std::runtime_error("RawPlugin::GetInterfaceMTU() has failed");
-	}
-
-	return ifReq.ifr_mtu;
-}
-
 void RawQueue::SendBurst(const PacketBuffer* burst)
 {
 	for (unsigned i = 0; i < _pktsToSend; i++) {
@@ -125,7 +110,7 @@ RawPlugin::RawPlugin(const std::string& params)
 
 void RawPlugin::DeterminePacketSize()
 {
-	uint16_t mtu = GetInterfaceMTU();
+	uint16_t mtu = utils::GetInterfaceMTU(_ifcName);
 
 	if (_packetSize && _packetSize > mtu) {
 		_logger->error("Packet size {} is bigger than interface MTU {}", _packetSize, mtu);
