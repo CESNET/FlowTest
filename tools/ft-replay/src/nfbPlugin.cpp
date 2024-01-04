@@ -18,6 +18,8 @@ extern "C" {
 }
 
 #include <chrono>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 
@@ -29,6 +31,7 @@ NfbPlugin::NfbPlugin(const std::string& params)
 {
 	try {
 		ParseArguments(params);
+		DeterminePacketSize();
 		OpenDevice();
 		ValidateQueueCount();
 		ResetTxMacCounters();
@@ -48,7 +51,7 @@ void NfbPlugin::ParseArguments(const std::string& args)
 	} catch (const std::invalid_argument& ia) {
 		_logger->error(
 			"Parameter \"queueCount\", \"burstSize\" or "
-			"\"superPacketSize\" wrong format");
+			"\"packetSize\" wrong format");
 		throw std::invalid_argument("NfbPlugin::ParseArguments() has failed");
 	}
 
@@ -80,12 +83,31 @@ void NfbPlugin::ParsePluginConfiguration(const std::map<std::string, std::string
 				throw std::runtime_error("NfbPlugin::ParsePluginConfiguration() has failed");
 			}
 			_pluginConfig.superPacketsMode = superPacketsMode;
-		} else if (key == "superPacketSize") {
-			_pluginConfig.superPacketSize = std::stoul(value);
+		} else if (key == "packetSize") {
+			_pluginConfig.packetSize = std::stoul(value);
 		} else {
 			_logger->error("Unknown parameter {}", key);
 			throw std::runtime_error("NfbPlugin::ParsePluginConfiguration() has failed");
 		}
+	}
+}
+
+void NfbPlugin::DeterminePacketSize()
+{
+	uint16_t mtu = GetInterfaceMTU();
+
+	if (_pluginConfig.packetSize && _pluginConfig.packetSize > mtu) {
+		_logger->error(
+			"Packet size {} is bigger than interface MTU {}",
+			_pluginConfig.packetSize,
+			mtu);
+		throw std::invalid_argument("NfbPlugin::DeterminePacketSize() has failed");
+	}
+	if (!_pluginConfig.packetSize) {
+		_pluginConfig.packetSize = mtu;
+		_logger->info(
+			"Packet size not specified, using interface MTU {}",
+			_pluginConfig.packetSize);
 	}
 }
 
@@ -184,7 +206,7 @@ void NfbPlugin::SetReplicatorFirmareOptionsToQueueBuilder(NfbQueueBuilder& build
 	bool useSuperPacketsFeature = ShouldUseSuperPacketsFeature(isSuperPacketsFeatureEnabled);
 	if (useSuperPacketsFeature) {
 		size_t superPacketLimit = replicatorFirmware.GetSuperPacketsLimit();
-		builder.SetSuperPackets(_pluginConfig.superPacketSize, superPacketLimit);
+		builder.SetSuperPacketLimit(superPacketLimit);
 	}
 }
 
@@ -215,6 +237,7 @@ NfbQueueBuilder NfbPlugin::CreateQueueBuilder()
 {
 	NfbQueueBuilder builder;
 	builder.SetBurstSize(_pluginConfig.maxBurstSize);
+	builder.SetPacketSize(_pluginConfig.packetSize);
 	SetReplicatorFirmareOptionsToQueueBuilder(builder);
 	return builder;
 }
@@ -222,6 +245,42 @@ NfbQueueBuilder NfbPlugin::CreateQueueBuilder()
 size_t NfbPlugin::GetQueueCount() const noexcept
 {
 	return _pluginConfig.queueCount;
+}
+
+uint16_t NfbPlugin::GetInterfaceMTU()
+{
+	std::string_view filename {"/sys/module/nfb/parameters/ndp_ctrl_buffer_size"};
+
+	std::ifstream reader(filename.data());
+	std::string line;
+
+	if (!reader.is_open()) {
+		_logger->error("Unable to open file {}, nfb module is probably not loaded", filename);
+		throw std::runtime_error("NfbPlugin::GetInterfaceMTU() has failed");
+	}
+
+	std::getline(reader, line);
+
+	std::istringstream stream(line.data());
+	size_t fwBufferSize;
+
+	stream >> fwBufferSize;
+
+	constexpr size_t maxAlignement = 7;
+	constexpr size_t metadataSize = sizeof(NfbReplicatorHeader) + maxAlignement;
+
+	// TODO: this is a workaround for a bug in the firmware. Packet size is limited to max 14kB
+	// bytes.
+	constexpr size_t maxFwPacketSize = 14000 + metadataSize;
+
+	fwBufferSize = std::min(fwBufferSize, maxFwPacketSize);
+
+	return fwBufferSize - metadataSize;
+}
+
+size_t NfbPlugin::GetMTU() const noexcept
+{
+	return _pluginConfig.packetSize;
 }
 
 OutputQueue* NfbPlugin::GetQueue(uint16_t queueId)

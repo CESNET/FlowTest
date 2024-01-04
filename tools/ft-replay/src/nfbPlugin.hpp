@@ -35,7 +35,7 @@ struct NfbPluginConfig {
 	std::string deviceName;
 	size_t queueCount = 0;
 	size_t maxBurstSize = 64;
-	size_t superPacketSize = 2048;
+	size_t packetSize = 0;
 	SuperPacketsMode superPacketsMode = SuperPacketsMode::Auto;
 };
 
@@ -65,6 +65,11 @@ public:
 	size_t GetQueueCount() const noexcept override;
 
 	/**
+	 * @brief Get MTU of the nfb interface
+	 */
+	size_t GetMTU() const noexcept override;
+
+	/**
 	 * @brief Get pointer to ID-specific OutputQueue
 	 *
 	 * @param[in] queueID  Has to be in range of 0 - GetQueueCount()-1
@@ -84,6 +89,9 @@ public:
 private:
 	void ParseArguments(const std::string& args);
 	void ParsePluginConfiguration(const std::map<std::string, std::string>& argMap);
+
+	void DeterminePacketSize();
+	uint16_t GetInterfaceMTU();
 
 	void OpenDevice();
 	void ValidateQueueCount();

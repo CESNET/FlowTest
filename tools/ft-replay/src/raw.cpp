@@ -64,6 +64,22 @@ void RawQueue::GetBurst(PacketBuffer* burst, size_t burstSize)
 	_pktsToSend = burstSize;
 }
 
+uint16_t RawPlugin::GetInterfaceMTU()
+{
+	SocketDescriptor socket;
+	socket.OpenSocket(AF_PACKET, SOCK_RAW, IPPROTO_RAW);
+
+	ifreq ifReq = {};
+	memset(&ifReq, 0, sizeof(ifReq));
+	snprintf(ifReq.ifr_name, IFNAMSIZ, "%s", _ifcName.c_str());
+	if (ioctl(socket.GetSocketId(), SIOCGIFMTU, &ifReq) < 0) {
+		_logger->error("Cannot obtain interface MTU");
+		throw std::runtime_error("RawPlugin::GetInterfaceMTU() has failed");
+	}
+
+	return ifReq.ifr_mtu;
+}
+
 void RawQueue::SendBurst(const PacketBuffer* burst)
 {
 	for (unsigned i = 0; i < _pktsToSend; i++) {
@@ -103,12 +119,32 @@ size_t RawQueue::GetMaxBurstSize() const noexcept
 RawPlugin::RawPlugin(const std::string& params)
 {
 	ParseArguments(params);
+	DeterminePacketSize();
 	_queue = std::make_unique<RawQueue>(_ifcName, _packetSize, _burstSize);
+}
+
+void RawPlugin::DeterminePacketSize()
+{
+	uint16_t mtu = GetInterfaceMTU();
+
+	if (_packetSize && _packetSize > mtu) {
+		_logger->error("Packet size {} is bigger than interface MTU {}", _packetSize, mtu);
+		throw std::invalid_argument("RawPlugin::DeterminePacketSize() has failed");
+	}
+	if (!_packetSize) {
+		_packetSize = mtu;
+		_logger->info("Packet size not specified, using interface MTU {}", _packetSize);
+	}
 }
 
 size_t RawPlugin::GetQueueCount() const noexcept
 {
 	return 1;
+}
+
+size_t RawPlugin::GetMTU() const noexcept
+{
+	return _packetSize;
 }
 
 OutputQueue* RawPlugin::GetQueue(uint16_t queueId)

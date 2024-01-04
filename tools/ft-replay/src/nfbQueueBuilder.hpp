@@ -55,16 +55,22 @@ public:
 	void SetBurstSize(size_t burstSize);
 
 	/**
+	 * @brief Set the maximal Packet Size
+	 *
+	 * @param packetSize maximal packet size
+	 */
+	void SetPacketSize(size_t packetSize);
+
+	/**
 	 * @brief Enables using of the replicator header for the NfbQueue.
 	 */
 	void EnableReplicatorHeader();
 
 	/**
-	 * @brief Sets super packets configuration for the NfbQueue.
-	 * @param superPacketSize Size of the super packet.
+	 * @brief Sets super packet limit configuration for the NfbQueue.
 	 * @param superPacketLimit Limit for super packets.
 	 */
-	void SetSuperPackets(size_t superPacketSize, size_t superPacketLimit);
+	void SetSuperPacketLimit(size_t superPacketLimit);
 
 private:
 	void ValidateOptions() const;
