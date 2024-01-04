@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <ctime>
 
@@ -138,6 +139,20 @@ public:
 	 * @return The number of available tokens for processing (>= minimalRequiredTokens).
 	 */
 	uint64_t GetAvailableTokens(uint64_t minimalRequiredTokens) noexcept;
+
+	/**
+	 * @brief Get the waiting time until the required tokens are available for processing.
+	 *
+	 * This function calculates the waiting time required until the specified number of tokens
+	 * (@p minimalRequiredTokens) are available in the token bucket for processing, considering the
+	 * rate limit set by the user. If the rate limiter is not active (token limit per second is 0),
+	 * or the start time is not initialized, the function returns 0 nanoseconds.
+	 *
+	 * @param[in] minimalRequiredTokens The minimal number of tokens required for processing.
+	 * @return The waiting time in nanoseconds until the required tokens are available
+	 *         (or 0 nanoseconds if no waiting is required).
+	 */
+	std::chrono::nanoseconds GetWaitingTime(uint64_t minimalRequiredTokens) noexcept;
 
 	/**
 	 * @brief Set the number of processed tokens.
