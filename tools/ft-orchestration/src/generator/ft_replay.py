@@ -135,10 +135,7 @@ class FtReplayOutputPluginSettings:
         if self.super_packet:
             args.append(f"superPacket={self.super_packet}")
 
-        if self.output_plugin in ["raw", "xdp", "pcapFile", "packet"]:
-            args.append(f"packetSize={mtu}")
-        if self.output_plugin == "nfb":
-            args.append(f"superPacketSize={mtu}")
+        args.append(f"packetSize={mtu}")
 
         if self.output_plugin in ["raw", "xdp", "packet"]:
             args.append(f"ifc={interface}")
