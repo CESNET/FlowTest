@@ -36,6 +36,8 @@ bool StrToBool(std::string_view str);
 
 /**
  * @brief Get MTU of a network interface.
+ *
+ * Keep on mind that the returned value doesn't contain Ethenet header.
  * @param[in] name Network interface name.
  * @throw std::runtime_error if the MTU cannot be obtained.
  */

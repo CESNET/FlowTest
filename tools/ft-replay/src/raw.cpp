@@ -7,6 +7,7 @@
  */
 
 #include "raw.hpp"
+#include "protocol/ethernet.hpp"
 #include "utils.hpp"
 
 #include <arpa/inet.h>
@@ -110,15 +111,21 @@ RawPlugin::RawPlugin(const std::string& params)
 
 void RawPlugin::DeterminePacketSize()
 {
-	uint16_t mtu = utils::GetInterfaceMTU(_ifcName);
+	const uint16_t maxSize = protocol::Ethernet::HEADER_SIZE + utils::GetInterfaceMTU(_ifcName);
 
-	if (_packetSize && _packetSize > mtu) {
-		_logger->error("Packet size {} is bigger than interface MTU {}", _packetSize, mtu);
+	if (_packetSize && _packetSize > maxSize) {
+		_logger->error(
+			"Packet size ({} bytes) is bigger than interface MTU (+ Ethernet header size) ({} "
+			"bytes)",
+			_packetSize,
+			maxSize);
 		throw std::invalid_argument("RawPlugin::DeterminePacketSize() has failed");
 	}
 	if (!_packetSize) {
-		_packetSize = mtu;
-		_logger->info("Packet size not specified, using interface MTU {}", _packetSize);
+		_packetSize = maxSize;
+		_logger->info(
+			"Packet size not specified, using interface MTU (+ Ethernet header size) ({} bytes)",
+			_packetSize);
 	}
 }
 
