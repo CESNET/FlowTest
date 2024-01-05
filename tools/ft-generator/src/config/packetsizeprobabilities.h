@@ -47,9 +47,8 @@ public:
 	 * intervals are continous, in other words that they directly follow eachother, i.e. if the
 	 * first interval is an interval from 100 to 200, the next interval is guaranteed to start from
 	 * 201 (note that its probability can be 0 though). This ensures that other components that work
-	 * with these intervals can make certain assumptions to simplify their code. The packet sizes
-	 * are also adjusted to not include the ethernet header to be consistent with how flow bytes are
-	 * calculated.
+	 * with these intervals can make certain assumptions to simplify their code.
+	 *
 	 */
 	const std::vector<IntervalInfo>& AsNormalizedIntervals() const { return _normalizedIntervals; }
 
