@@ -93,6 +93,7 @@ private:
 	uint64_t GetMinimumRequiredTokens(uint64_t replicatedPackets);
 	uint64_t GetIndexToPacketQueue(uint64_t replicatedPackets) const noexcept;
 	uint64_t GetReplicationUnitIndex(uint64_t replicatedPackets) const noexcept;
+	void CheckAutoFlushTimeout(uint64_t minimunRequiredTokens);
 	void WaitUntilEndOfTheLoop();
 	void CopyPacketsToBuffer(uint64_t replicatedPackets, uint64_t burstSize);
 	void ModifyPackets(uint64_t replicatedPackets, uint64_t burstSize, uint64_t replicationLoopId);

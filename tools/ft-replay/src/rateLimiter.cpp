@@ -9,7 +9,6 @@
 
 #include "rateLimiter.hpp"
 
-#include <chrono>
 #include <thread>
 
 namespace replay {
@@ -107,6 +106,26 @@ void RateLimiter::Reset() noexcept
 	_tokensInBucket = 0;
 	_startTime = 0;
 	_isStartTimeInitialized = false;
+}
+
+std::chrono::nanoseconds RateLimiter::GetWaitingTime(uint64_t minimalRequiredTokens) noexcept
+{
+	if (!_tokenslimitPerSecond) {
+		return 0ns;
+	}
+
+	if (!_isStartTimeInitialized) {
+		return 0ns;
+	}
+
+	auto currentTimeDelta = GetCurrentTimeDelta();
+	auto expectedOutgouingTime = TokensToTimeDelta(_tokensInBucket + minimalRequiredTokens);
+
+	if (currentTimeDelta < expectedOutgouingTime) {
+		return std::chrono::nanoseconds(expectedOutgouingTime - currentTimeDelta);
+	}
+
+	return 0ns;
 }
 
 uint64_t RateLimiter::GetAvailableTokens(uint64_t minimalRequiredTokens) noexcept
