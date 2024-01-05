@@ -11,7 +11,6 @@
 #include "randomgeneratorengine.h"
 
 #include <cstdint>
-#include <optional>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
@@ -38,7 +37,7 @@ public:
 	 *
 	 * @param seed The random generation seed
 	 */
-	static void InitInstance(std::optional<uint64_t> seed = std::nullopt);
+	static void InitInstance(uint64_t seed);
 
 	/**
 	 * @brief Get the Random Generator instance

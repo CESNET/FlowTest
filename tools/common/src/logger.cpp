@@ -12,9 +12,11 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-using namespace std;
+#include <mutex>
 
 namespace ft {
+
+static std::mutex loggerGetMutex;
 
 void LoggerInit()
 {
@@ -24,7 +26,9 @@ void LoggerInit()
 
 std::shared_ptr<spdlog::logger> LoggerGet(std::string_view name)
 {
-	const string tmp {name};
+	std::lock_guard<std::mutex> guard(loggerGetMutex);
+
+	const std::string tmp {name};
 	auto logger = spdlog::get(tmp);
 
 	if (logger) {

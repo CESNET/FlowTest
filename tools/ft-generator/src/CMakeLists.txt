@@ -16,6 +16,7 @@ set(FT_GENERATOR_SOURCES
 	data/words.cpp
 	domainnamegenerator.cpp
 	flow.cpp
+	flowmaker.cpp
 	flowplanhelper.cpp
 	flowprofile.cpp
 	generator.cpp

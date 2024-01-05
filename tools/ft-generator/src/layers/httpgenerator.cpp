@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <random>
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
@@ -138,10 +137,7 @@ static void TryAddField(
 
 void HttpGeneratePayload(PcppPacket& packet, uint64_t size)
 {
-	std::vector<uint8_t> payload(size);
-	std::independent_bits_engine<std::default_random_engine, 8, uint8_t> rbe;
-	std::generate(payload.begin(), payload.end(), std::ref(rbe));
-
+	std::vector<uint8_t> payload = RandomGenerator::GetInstance().RandomBytes(size);
 	pcpp::PayloadLayer* payloadLayer = new pcpp::PayloadLayer(payload.data(), payload.size(), true);
 	packet.addLayer(payloadLayer, true);
 }

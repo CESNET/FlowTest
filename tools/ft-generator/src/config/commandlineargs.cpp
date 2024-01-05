@@ -13,7 +13,6 @@
 
 #include <getopt.h>
 
-#include <cassert>
 #include <iostream>
 #include <stdexcept>
 
@@ -26,7 +25,8 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		OPT_SKIP_UNKNOWN = 256, // Value that cannot collide with chars
 		OPT_NO_DISKSPACE_CHECK,
 		OPT_NO_FLOW_COLLISION_CHECK,
-		OPT_SEED
+		OPT_SEED,
+		OPT_PREPARE_QUEUE_SIZE,
 	};
 	const option longOpts[]
 		= {{"output", required_argument, nullptr, 'o'},
@@ -39,6 +39,7 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		   {"no-diskspace-check", no_argument, nullptr, OPT_NO_DISKSPACE_CHECK},
 		   {"no-collision-check", no_argument, nullptr, OPT_NO_FLOW_COLLISION_CHECK},
 		   {"seed", required_argument, nullptr, OPT_SEED},
+		   {"prepare-queue-size", required_argument, nullptr, OPT_PREPARE_QUEUE_SIZE},
 		   {nullptr, 0, nullptr, 0}};
 	const char* shortOpts = ":o:p:c:r:vh";
 
@@ -78,12 +79,20 @@ void CommandLineArgs::Parse(int argc, char** argv)
 		case OPT_NO_FLOW_COLLISION_CHECK:
 			_noFlowCollisionCheck = true;
 			break;
-		case OPT_SEED:
-			_seed = ParseValue<uint64_t>(optarg);
-			if (!_seed) {
+		case OPT_SEED: {
+			auto value = ParseValue<uint64_t>(optarg);
+			if (!value) {
 				throw std::invalid_argument("Invalid --seed value");
 			}
-			break;
+			_seed = *value;
+		} break;
+		case OPT_PREPARE_QUEUE_SIZE: {
+			auto value = ParseValue<std::size_t>(optarg);
+			if (!value) {
+				throw std::invalid_argument("Invalid --prepare-queue-size value");
+			}
+			_prepareQueueSize = *value;
+		} break;
 		case '?':
 			ft::CliHandleInvalidOption(current);
 		case ':':
@@ -104,19 +113,20 @@ void CommandLineArgs::Parse(int argc, char** argv)
 
 void CommandLineArgs::PrintUsage()
 {
+	// clang-format off
 	std::cerr << "Usage: ./ft-generator   [options] -p <profiles file> -o <pcap file>\n";
-	std::cerr
-		<< "  -c, --config=str      Optional configuration of generation process (YAML file)\n";
-	std::cerr << "  -p, --profiles=str    Input CSV file with flow profiles\n";
-	std::cerr << "  -o, --output=str      Output PCAP file with generated packets\n";
-	std::cerr << "  -r, --report=str      Output CSV file of actually generated flows\n";
-	std::cerr << "  -v, --verbose         Increase verbosity level. Can be used multiple times.\n";
-	std::cerr << "  -h, --help            Show this help message\n";
-	std::cerr << "  --seed=value          Seed used for random generator\n";
-	std::cerr << "  --skip-unknown        Skip unknown/unsupported profile records\n";
-	std::cerr << "  --no-diskspace-check  Do not check available disk space before generating\n";
-	std::cerr
-		<< "  --no-collision-check  Do not check for flow collisions caused by address reuse\n";
+	std::cerr << "  -c, --config=str            Optional configuration of generation process (YAML file)\n";
+	std::cerr << "  -p, --profiles=str          Input CSV file with flow profiles\n";
+	std::cerr << "  -o, --output=str            Output PCAP file with generated packets\n";
+	std::cerr << "  -r, --report=str            Output CSV file of actually generated flows\n";
+	std::cerr << "  -v, --verbose               Increase verbosity level. Can be used multiple times.\n";
+	std::cerr << "  -h, --help                  Show this help message\n";
+	std::cerr << "  --seed=value                Seed used for random generator\n";
+	std::cerr << "  --prepare-queue-size=value  Number of flows to prepare in advance\n";
+	std::cerr << "  --skip-unknown              Skip unknown/unsupported profile records\n";
+	std::cerr << "  --no-diskspace-check        Do not check available disk space before generating\n";
+	std::cerr << "  --no-collision-check        Do not check for flow collisions caused by address reuse\n";
+	// clang-format on
 }
 
 void CommandLineArgs::CheckValidity()
@@ -131,6 +141,10 @@ void CommandLineArgs::CheckValidity()
 
 	if (_outputFile.empty()) {
 		throw std::invalid_argument("Missing required argument --output");
+	}
+
+	if (_prepareQueueSize == 0) {
+		throw std::invalid_argument("--prepare-queue-size must be >= 1");
 	}
 }
 

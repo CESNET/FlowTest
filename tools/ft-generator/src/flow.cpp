@@ -24,7 +24,6 @@
 #include "layers/tls.h"
 #include "layers/udp.h"
 #include "layers/vlan.h"
-#include "logger.h"
 #include "packet.h"
 #include "packetflowspan.h"
 #include "packetsizegenerator.h"
@@ -43,9 +42,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>
-#include <numeric>
-#include <random>
 #include <stdexcept>
 #include <utility>
 #include <variant>
@@ -82,16 +78,65 @@ ChooseEncaps(const std::vector<config::EncapsulationVariant>& variants)
 	return {};
 }
 
-static std::pair<MacAddress, MacAddress> GenerateMacPair(AddressGenerators& addressGenerators)
+FlowAddresses GenerateAddresses(const FlowProfile& profile, AddressGenerators& addressGenerators)
 {
-	MacAddress macSrc = addressGenerators.GenerateMac();
-	MacAddress macDst = addressGenerators.GenerateMac();
-	while (macSrc == macDst) {
+	FlowAddresses res;
+
+	assert(profile._l3Proto != L3Protocol::Unknown);
+
+	// IP addresses
+	if (profile._l3Proto == L3Protocol::Ipv4) {
+		if (profile._srcIp) {
+			assert(profile._srcIp->getType() == IPAddress::AddressType::IPv4AddressType);
+			res._srcIp = profile._srcIp->getIPv4();
+		} else {
+			res._srcIp = addressGenerators.GenerateIPv4();
+		}
+
+		if (profile._dstIp) {
+			assert(profile._dstIp->getType() == IPAddress::AddressType::IPv4AddressType);
+			res._dstIp = profile._dstIp->getIPv4();
+		} else {
+			res._dstIp = addressGenerators.GenerateIPv4();
+		}
+
+	} else if (profile._l3Proto == L3Protocol::Ipv6) {
+		if (profile._srcIp) {
+			assert(profile._srcIp->getType() == IPAddress::AddressType::IPv6AddressType);
+			res._srcIp = profile._srcIp->getIPv6();
+		} else {
+			res._srcIp = addressGenerators.GenerateIPv6();
+		}
+
+		if (profile._dstIp) {
+			assert(profile._dstIp->getType() == IPAddress::AddressType::IPv6AddressType);
+			res._dstIp = profile._dstIp->getIPv6();
+		} else {
+			res._dstIp = addressGenerators.GenerateIPv6();
+		}
+	}
+
+	// MAC addresses
+	res._srcMac = addressGenerators.GenerateMac();
+	res._dstMac = addressGenerators.GenerateMac();
+	while (res._srcMac == res._dstMac) {
 		// Configuration checks that there are at least 2 unique mac addresses,
 		// so this should always terminate
-		macDst = addressGenerators.GenerateMac();
+		res._dstMac = addressGenerators.GenerateMac();
 	}
-	return {macSrc, macDst};
+
+	return res;
+}
+
+NormalizedFlowIdentifier
+GetNormalizedFlowIdentifier(const FlowProfile& profile, const FlowAddresses& addresses)
+{
+	return NormalizedFlowIdentifier(
+		addresses._srcIp,
+		addresses._dstIp,
+		profile._srcPort,
+		profile._dstPort,
+		profile._l4Proto);
 }
 
 static bool
@@ -125,7 +170,7 @@ ShouldTlsEncrypt(const config::TlsEncryption& encryptionConfig, const FlowProfil
 Flow::Flow(
 	uint64_t id,
 	const FlowProfile& profile,
-	AddressGenerators& addressGenerators,
+	const FlowAddresses& addresses,
 	const config::Config& config)
 	: _fwdPackets(profile._packets)
 	, _revPackets(profile._packetsRev)
@@ -137,9 +182,10 @@ Flow::Flow(
 	, _id(id)
 	, _config(config)
 {
-	auto [macSrc, macDst] = GenerateMacPair(addressGenerators);
-	AddLayer(std::make_unique<Ethernet>(macSrc, macDst));
+	// ==================================== L2 ====================================
+	AddLayer(std::make_unique<Ethernet>(addresses._srcMac, addresses._dstMac));
 
+	// Optional L2 encapsulation
 	const auto& encapsLayers = ChooseEncaps(config.GetEncapsulation().GetVariants());
 	for (size_t i = 0; i < encapsLayers.size(); i++) {
 		const auto& layer = encapsLayers[i];
@@ -152,6 +198,7 @@ Flow::Flow(
 		}
 	}
 
+	// ==================================== L3 ====================================
 	uint64_t headerLengthsFromIpLayer = 0;
 
 	switch (profile._l3Proto) {
@@ -159,83 +206,44 @@ Flow::Flow(
 		throw std::runtime_error("Unknown L3 protocol");
 
 	case L3Protocol::Ipv4: {
-		IPv4Address ipSrc;
-		if (profile._srcIp) {
-			assert(profile._srcIp->getType() == IPAddress::AddressType::IPv4AddressType);
-			ipSrc = profile._srcIp->getIPv4();
-		} else {
-			ipSrc = addressGenerators.GenerateIPv4();
-		}
+		assert(addresses._srcIp.getType() == IPAddress::AddressType::IPv4AddressType);
+		assert(addresses._dstIp.getType() == IPAddress::AddressType::IPv4AddressType);
 
-		IPv4Address ipDst;
-		if (profile._dstIp) {
-			assert(profile._dstIp->getType() == IPAddress::AddressType::IPv4AddressType);
-			ipDst = profile._dstIp->getIPv4();
-		} else {
-			ipDst = addressGenerators.GenerateIPv4();
-		}
-
-		auto fragProb = config.GetIPv4().GetFragmentationProbability();
-		auto minPktSizeToFragment = config.GetIPv4().GetMinPacketSizeToFragment();
-		AddLayer(std::make_unique<IPv4>(ipSrc, ipDst, fragProb, minPktSizeToFragment));
-
-		_srcIp = ipSrc;
-		_dstIp = ipDst;
+		AddLayer(std::make_unique<IPv4>(
+			addresses._srcIp.getIPv4(),
+			addresses._dstIp.getIPv4(),
+			config.GetIPv4().GetFragmentationProbability(),
+			config.GetIPv4().GetMinPacketSizeToFragment()));
 
 		headerLengthsFromIpLayer += IPV4_HDR_SIZE;
 	} break;
 
 	case L3Protocol::Ipv6: {
-		IPv6Address ipSrc;
-		if (profile._srcIp) {
-			assert(profile._srcIp->getType() == IPAddress::AddressType::IPv6AddressType);
-			ipSrc = profile._srcIp->getIPv6();
-		} else {
-			ipSrc = addressGenerators.GenerateIPv6();
-		}
+		assert(addresses._srcIp.getType() == IPAddress::AddressType::IPv6AddressType);
+		assert(addresses._dstIp.getType() == IPAddress::AddressType::IPv6AddressType);
 
-		IPv6Address ipDst;
-		if (profile._dstIp) {
-			assert(profile._dstIp->getType() == IPAddress::AddressType::IPv6AddressType);
-			ipDst = profile._dstIp->getIPv6();
-		} else {
-			ipDst = addressGenerators.GenerateIPv6();
-		}
-
-		auto fragProb = config.GetIPv6().GetFragmentationProbability();
-		auto minPktSizeToFragment = config.GetIPv6().GetMinPacketSizeToFragment();
-		AddLayer(std::make_unique<IPv6>(ipSrc, ipDst, fragProb, minPktSizeToFragment));
-
-		_srcIp = ipSrc;
-		_dstIp = ipDst;
+		AddLayer(std::make_unique<IPv6>(
+			addresses._srcIp.getIPv6(),
+			addresses._dstIp.getIPv6(),
+			config.GetIPv6().GetFragmentationProbability(),
+			config.GetIPv6().GetMinPacketSizeToFragment()));
 
 		headerLengthsFromIpLayer += IPV6_HDR_SIZE;
 	} break;
 	}
 
+	// ==================================== L4 ====================================
 	switch (profile._l4Proto) {
 	case L4Protocol::Unknown:
 		throw std::runtime_error("Unknown L4 protocol");
 
 	case L4Protocol::Tcp: {
-		uint16_t portSrc = profile._srcPort;
-		uint16_t portDst = profile._dstPort;
-		AddLayer(std::make_unique<Tcp>(portSrc, portDst));
-
-		_srcPort = portSrc;
-		_dstPort = portDst;
-
+		AddLayer(std::make_unique<Tcp>(profile._srcPort, profile._dstPort));
 		headerLengthsFromIpLayer += TCP_HDR_SIZE;
 	} break;
 
 	case L4Protocol::Udp: {
-		uint16_t portSrc = profile._srcPort;
-		uint16_t portDst = profile._dstPort;
-		AddLayer(std::make_unique<Udp>(portSrc, portDst));
-
-		_srcPort = portSrc;
-		_dstPort = portDst;
-
+		AddLayer(std::make_unique<Udp>(profile._srcPort, profile._dstPort));
 		headerLengthsFromIpLayer += UDP_HDR_SIZE;
 	} break;
 
@@ -253,8 +261,8 @@ Flow::Flow(
 		AddLayer(MakeIcmpLayer(profile._l3Proto));
 	} break;
 	}
-	_l4Proto = profile._l4Proto;
 
+	// ================================= Payload ==================================
 	const auto& enabledProtocols = _config.GetPayload().GetEnabledProtocols();
 
 	if (enabledProtocols.Includes(config::PayloadProtocol::Tls)
@@ -278,12 +286,9 @@ Flow::Flow(
 		AddLayer(std::make_unique<Payload>());
 	}
 
-	Plan();
-}
+	// ============================================================================
 
-NormalizedFlowIdentifier Flow::GetNormalizedFlowIdentifier() const
-{
-	return NormalizedFlowIdentifier(_srcIp, _dstIp, _srcPort, _dstPort, _l4Proto);
+	Plan();
 }
 
 std::unique_ptr<Layer> Flow::MakeIcmpLayer(L3Protocol l3Proto)
@@ -429,7 +434,7 @@ void Flow::PlanPacketsDirections()
 	directions.insert(directions.end(), fwd, Direction::Forward);
 	directions.insert(directions.end(), rev, Direction::Reverse);
 
-	std::shuffle(directions.begin(), directions.end(), std::default_random_engine());
+	RandomGenerator::GetInstance().Shuffle(directions);
 
 	size_t id = 0;
 	for (auto& packet : packetsSpan) {
@@ -456,7 +461,7 @@ void Flow::PlanPacketsTimestamps()
 	if (_packets.size() > 0 && _packets.back()._timestamp != _tsLast) {
 		Timestamp newTsLast = _packets.back()._timestamp;
 
-		ft::LoggerGet("Flow")->info(
+		_logger->info(
 			"Flow (line no. {}) has been trimmed by {}s to satisfy max gap",
 			_profileFileLineNum,
 			(_tsLast - newTsLast).ToString<TimeUnit::Seconds>());

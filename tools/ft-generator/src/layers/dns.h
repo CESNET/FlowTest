@@ -10,6 +10,7 @@
 
 #include "../layer.h"
 #include "dnsbuilder.h"
+#include "logger.h"
 
 namespace generator {
 
@@ -42,6 +43,8 @@ public:
 	void Build(PcppPacket& packet, Packet::layerParams& params, Packet& plan) override;
 
 private:
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("Dns");
+
 	uint16_t _transactionId;
 	std::string _domainName;
 

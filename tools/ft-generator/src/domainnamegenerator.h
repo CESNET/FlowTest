@@ -39,11 +39,9 @@ private:
 	std::vector<std::size_t> _startIndexForWordLen;
 	std::vector<std::size_t> _endIndexForWordLen;
 
-	RandomGenerator& _rng = RandomGenerator::GetInstance();
-
 	DomainNameGenerator();
 
-	std::string GenerateName(uint64_t length);
+	std::string GenerateName(uint64_t length, RandomGenerator& rng);
 };
 
 } // namespace generator

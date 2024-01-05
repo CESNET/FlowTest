@@ -14,7 +14,6 @@
 #include <cctype>
 #include <cmath>
 #include <memory>
-#include <random>
 #include <sstream>
 #include <string>
 
@@ -145,7 +144,7 @@ std::string HttpBuilder::Build() const
 
 void HttpBuilder::ShuffleFields()
 {
-	std::shuffle(_fields.begin(), _fields.end(), std::default_random_engine());
+	RandomGenerator::GetInstance().Shuffle(_fields);
 }
 
 void HttpBuilder::RandomizeFieldNamesCapitalization()

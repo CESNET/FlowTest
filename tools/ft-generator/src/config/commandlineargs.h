@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstdint>
+#include <ctime>
 #include <optional>
 #include <string>
 
@@ -66,11 +67,18 @@ public:
 	const std::optional<std::string>& GetReportFile() const { return _reportFile; }
 
 	/**
-	 * @brief Get the random generator seed if provided
+	 * @brief Get the random generator seed
 	 *
 	 * @return The seed
 	 */
-	const std::optional<uint64_t>& GetSeed() const { return _seed; }
+	uint64_t GetSeed() const { return _seed; }
+
+	/**
+	 * @brief Get the size of the prepare queue
+	 *
+	 * @return The size of the prepare queue
+	 */
+	std::size_t GetPrepareQueueSize() const { return _prepareQueueSize; }
 
 	/**
 	 * @brief Whether help should be printer
@@ -105,7 +113,8 @@ private:
 	std::string _outputFile;
 	std::string _configFile;
 	std::optional<std::string> _reportFile;
-	std::optional<uint64_t> _seed;
+	uint64_t _seed = std::time(nullptr);
+	std::size_t _prepareQueueSize = 128;
 	int _verbosity = 0;
 	bool _help = false;
 	bool _skipUnknown = false;

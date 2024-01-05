@@ -14,12 +14,9 @@
 #include "generators/addressgenerators.h"
 #include "normalizedflowidentifier.h"
 #include "packet.h"
-#include "packetsizegenerator.h"
 #include "pcpppacket.h"
 #include "timestamp.h"
 
-#include <ctime>
-#include <iostream>
 #include <list>
 #include <memory>
 #include <vector>
@@ -35,6 +32,18 @@ struct PacketExtraInfo {
 	Timestamp _time; //< The timestamp of the packet
 	Direction _direction; //< The direction of the packet
 };
+
+struct FlowAddresses {
+	pcpp::IPAddress _srcIp;
+	pcpp::IPAddress _dstIp;
+	pcpp::MacAddress _srcMac;
+	pcpp::MacAddress _dstMac;
+};
+
+FlowAddresses GenerateAddresses(const FlowProfile& profile, AddressGenerators& addressGenerators);
+
+NormalizedFlowIdentifier
+GetNormalizedFlowIdentifier(const FlowProfile& profile, const FlowAddresses& addresses);
 
 /**
  * @brief Class representing the flow interface
@@ -59,7 +68,7 @@ public:
 	Flow(
 		uint64_t id,
 		const FlowProfile& profile,
-		AddressGenerators& addressGenerators,
+		const FlowAddresses& addresses,
 		const config::Config& config);
 
 	/**
@@ -108,16 +117,11 @@ public:
 	 */
 	bool IsFinished() const;
 
-	/**
-	 * @brief Get a direction-invariant address identifier of the flow
-	 *
-	 * @return The identifier
-	 */
-	NormalizedFlowIdentifier GetNormalizedFlowIdentifier() const;
-
 private:
 	friend class PacketFlowSpan;
 	friend class Layer;
+
+	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("Flow");
 
 	uint64_t _profileFileLineNum;
 
@@ -125,12 +129,6 @@ private:
 	std::vector<std::unique_ptr<Layer>> _layerStack;
 
 	const config::Config& _config; //< Reference to the generator configuration
-
-	pcpp::IPAddress _srcIp;
-	pcpp::IPAddress _dstIp;
-	uint16_t _srcPort = 0;
-	uint16_t _dstPort = 0;
-	L4Protocol _l4Proto;
 
 	/**
 	 * @brief Add new protocol layer.

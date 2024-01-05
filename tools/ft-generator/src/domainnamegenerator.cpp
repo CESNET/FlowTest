@@ -27,11 +27,11 @@ static constexpr int DNS_MAX_LABEL_SIZE = 63;
 
 DomainNameGenerator& DomainNameGenerator::GetInstance()
 {
-	static DomainNameGenerator instance;
+	static thread_local DomainNameGenerator instance;
 	return instance;
 }
 
-std::string DomainNameGenerator::GenerateName(uint64_t length)
+std::string DomainNameGenerator::GenerateName(uint64_t length, RandomGenerator& rng)
 {
 	// Choose random words to make up the domain name
 	std::vector<std::string_view> words;
@@ -45,9 +45,9 @@ std::string DomainNameGenerator::GenerateName(uint64_t length)
 
 		std::string_view word;
 		if (maxNextWordLen >= _maxWordLen) {
-			word = _rng.RandomChoice(WORDS);
+			word = rng.RandomChoice(WORDS);
 		} else if (maxNextWordLen >= _minWordLen) {
-			word = WORDS[_rng.RandomUInt(
+			word = WORDS[rng.RandomUInt(
 				_startIndexForWordLen[maxNextWordLen],
 				_endIndexForWordLen[maxNextWordLen] - 1)];
 		} else {
@@ -75,7 +75,7 @@ std::string DomainNameGenerator::GenerateName(uint64_t length)
 
 	// If we still don't have enough, just add random letters
 	while (lengthSoFar < length) {
-		domain += _rng.RandomChoice(LOWERCASE_LETTERS);
+		domain += rng.RandomChoice(LOWERCASE_LETTERS);
 		lengthSoFar += 1;
 	}
 
@@ -91,6 +91,8 @@ std::string DomainNameGenerator::Generate(std::size_t length)
 			+ std::to_string(DOMAIN_NAME_MAX_SIZE) + " inclusive");
 	}
 
+	RandomGenerator& rng = RandomGenerator::GetInstance();
+
 	// Special case for the minimum size to simplify the process further
 	if (length == DOMAIN_NAME_MIN_SIZE) {
 		// Technically ineffective, but it shouldn't matter here
@@ -100,11 +102,11 @@ std::string DomainNameGenerator::Generate(std::size_t length)
 				eligibleTlds.push_back(tld);
 			}
 		}
-		return _rng.RandomChoice(LOWERCASE_LETTERS) + std::string(_rng.RandomChoice(eligibleTlds));
+		return rng.RandomChoice(LOWERCASE_LETTERS) + std::string(rng.RandomChoice(eligibleTlds));
 	}
 
 	// Choose random TLD
-	std::string_view tld = _rng.RandomChoice(TLDS);
+	std::string_view tld = rng.RandomChoice(TLDS);
 
 	std::string domain;
 	domain.reserve(length);
@@ -114,15 +116,15 @@ std::string DomainNameGenerator::Generate(std::size_t length)
 		auto remaining = length - domain.size();
 
 		if (remaining <= DNS_MAX_LABEL_SIZE) {
-			domain.insert(0, GenerateName(remaining));
+			domain.insert(0, GenerateName(remaining, rng));
 
 		} else if (remaining == DNS_MAX_LABEL_SIZE + 1) {
 			// So we are not left with 0 remaining bytes and a dot at the start
-			std::string tmp = '.' + GenerateName(DNS_MAX_LABEL_SIZE - 1);
+			std::string tmp = '.' + GenerateName(DNS_MAX_LABEL_SIZE - 1, rng);
 			domain.insert(0, tmp);
 
 		} else {
-			std::string tmp = '.' + GenerateName(DNS_MAX_LABEL_SIZE);
+			std::string tmp = '.' + GenerateName(DNS_MAX_LABEL_SIZE, rng);
 			domain.insert(0, tmp);
 		}
 	}
