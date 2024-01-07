@@ -51,7 +51,7 @@ def create_config() -> GeneratorConfig:
     return config
 
 
-def test_mpls(ft_generator: Generator, custom_config: Optional[Path]):
+def test_mpls(ft_generator: Generator, custom_config: Optional[Path], profiles_dir: Path):
     """Test verifies ratio of mpls flows in pcap.
 
     Parameters
@@ -68,7 +68,7 @@ def test_mpls(ft_generator: Generator, custom_config: Optional[Path]):
     else:
         config = create_config()
 
-    pcap_file, _ = ft_generator.generate(config)
+    pcap_file, _ = ft_generator.generate(config, profiles=profiles_dir.joinpath("profiles_1k.csv"))
 
     pcap = parse_pcap(pcap_file)
 
