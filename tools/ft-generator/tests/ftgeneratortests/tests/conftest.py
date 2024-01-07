@@ -119,6 +119,22 @@ def fixture_profiles(request: Parser) -> Path:
     return path
 
 
+@fixture(name="profiles_dir")
+def fixture_profiles_dir() -> Path:
+    """Resolve the profiles directory path.
+
+    Returns
+    -------
+    Path
+        Path to the profiles directory.
+    """
+
+    path = Path(__file__).parent.joinpath("../profiles/").resolve()
+    if not path.exists():
+        raise FileNotFoundError(f"conftest: Profiles directory '{dir}' cannot be found.")
+    return path
+
+
 @fixture(name="tmp")
 def fixture_tmp(request: Parser) -> Path:
     """Fixture parses command line argument 'tmp'.
