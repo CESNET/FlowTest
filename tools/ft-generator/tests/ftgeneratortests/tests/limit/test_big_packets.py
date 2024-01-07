@@ -8,6 +8,7 @@ SPDX-License-Identifier: BSD-3-Clause
 File contains big packets test for ft-generator module.
 """
 
+import pytest
 from ftgeneratortests.src import (
     MTU_SIZE,
     Flow,
@@ -17,6 +18,55 @@ from ftgeneratortests.src import (
     parse_pcap,
     parse_report,
 )
+
+
+def create_vlan_config() -> GeneratorConfig:
+    """Function used to create custom configuration for generator.
+
+    Returns
+    -------
+    GeneratorConfig
+        Created generator configuration.
+    """
+
+    config = GeneratorConfig(
+        [
+            GeneratorConfig.Encapsulation(
+                [
+                    GeneratorConfig.Encapsulation.Layer("vlan", None, 1),
+                    GeneratorConfig.Encapsulation.Layer("vlan", None, 2),
+                ],
+                "100%",
+            ),
+        ],
+        None,
+        None,
+    )
+    return config
+
+
+def create_mpls_config() -> GeneratorConfig:
+    """Function used to create custom configuration for generator.
+
+    Returns
+    -------
+    GeneratorConfig
+        Created generator configuration.
+    """
+
+    config = GeneratorConfig(
+        [
+            GeneratorConfig.Encapsulation(
+                [
+                    GeneratorConfig.Encapsulation.Layer("mpls", 3, None),
+                ],
+                "100%",
+            ),
+        ],
+        None,
+        None,
+    )
+    return config
 
 
 def create_profiles() -> FlowCache:
@@ -46,7 +96,8 @@ def create_profiles() -> FlowCache:
     return flow_cache
 
 
-def test_big_packets(ft_generator: Generator):
+@pytest.mark.parametrize("config", [GeneratorConfig(), create_vlan_config(), create_mpls_config()])
+def test_big_packets(ft_generator: Generator, config: GeneratorConfig):
     """Test verifies if too big packets can be generated.
     Ft-generator should fail or modify packet size.
 
