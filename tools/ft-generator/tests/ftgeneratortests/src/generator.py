@@ -120,7 +120,7 @@ class Generator:
 
         return None
 
-    def prepare_profiles(self, provided_profiles: Union[FlowCache, str, None]):
+    def prepare_profiles(self, provided_profiles: Union[FlowCache, str, Path, None]):
         """Function prepares profiles file for ft-generator.
         Profiles can be provided as Path to file, FlowCache or None, if default profiles are requested.
         In all cases, function created new temporary profiles file, which will be used by generator.
@@ -149,6 +149,8 @@ class Generator:
             self._profiles_file.write_text(self._default_profiles.read_text(encoding="utf-8"))
         elif isinstance(provided_profiles, str):
             self._profiles_file.write_text(provided_profiles)
+        elif isinstance(provided_profiles, Path):
+            self._profiles_file.write_text(provided_profiles.read_text(encoding="utf-8"))
         elif isinstance(provided_profiles, FlowCache):
             provided_profiles.to_csv_profile(self._profiles_file)
         else:
