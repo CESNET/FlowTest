@@ -22,10 +22,16 @@ add_executable(ft-replay
 	outputPluginStatsPrinter.cpp
 	outputQueue.hpp
 	outputQueue.cpp
+	memoryMapping.hpp
+	memoryMapping.cpp
+	utils.cpp
+	utils.hpp
 	raw.cpp
 	raw.hpp
 	xdp.cpp
 	xdp.hpp
+	afPacket.cpp
+	afPacket.hpp
 	ethTool.cpp
 	ethTool.hpp
 	socketDescriptor.cpp

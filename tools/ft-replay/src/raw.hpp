@@ -142,7 +142,6 @@ private:
 	int ParseArguments(const std::string& args);
 
 	void DeterminePacketSize();
-	uint16_t GetInterfaceMTU();
 
 	std::unique_ptr<RawQueue> _queue;
 	std::string _ifcName;
