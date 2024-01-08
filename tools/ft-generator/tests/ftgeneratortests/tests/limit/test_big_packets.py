@@ -67,4 +67,4 @@ def test_big_packets(ft_generator: Generator):
 
     for key, value in pcap.items():
         assert value.compare_content(report.get(key))
-        assert report.get(key).packets == 1 and report.get(key).bytes < MTU_SIZE
+        assert report.get(key).packets == 1 and report.get(key).bytes <= MTU_SIZE
