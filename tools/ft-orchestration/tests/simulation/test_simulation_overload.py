@@ -19,6 +19,7 @@ from ftanalyzer.models.statistical_model import StatisticalModel
 from ftanalyzer.replicator.flow_replicator import FlowReplicator
 from lbr_testsuite.topology.topology import select_topologies
 from src.collector.collector_builder import CollectorBuilder
+from src.common.html_report_plugin import HTMLReportData
 from src.common.utils import (
     collect_scenarios,
     download_logs,
@@ -267,6 +268,8 @@ def test_simulation_overload(
     model = StatisticalModel(flows_file, replicated_ref_file, stats.start_time)
     report = model.validate([SMRule(scenario.test.analysis.metrics, segment) for segment in segments])
     report.print_results()
+
+    HTMLReportData.simulation_summary_report.update_stats("sim_overload", report.is_passing())
 
     if not report.is_passing():
         shutil.move(tmp_dir, os.path.join(log_dir, "data"))
