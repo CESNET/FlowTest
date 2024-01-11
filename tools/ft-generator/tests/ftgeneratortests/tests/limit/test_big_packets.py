@@ -18,6 +18,7 @@ from ftgeneratortests.src import (
     parse_pcap,
     parse_report,
 )
+from scapy.utils import PcapReader
 
 
 def create_vlan_config() -> GeneratorConfig:
@@ -110,6 +111,9 @@ def test_big_packets(ft_generator: Generator, config: GeneratorConfig):
     config = GeneratorConfig()
 
     pcap_file, report_file = ft_generator.generate(config, create_profiles())
+
+    for packet in PcapReader(pcap_file.as_posix()):
+        assert len(packet) <= MTU_SIZE
 
     pcap = parse_pcap(pcap_file)
     report = parse_report(report_file)
