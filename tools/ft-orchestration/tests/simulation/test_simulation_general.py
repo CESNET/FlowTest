@@ -261,7 +261,7 @@ def test_simulation_general(
     stats_report, precise_report = validate(
         analysis=scenario.test.analysis,
         flows_file=flows_file,
-        ref_file=ref_file,
+        ref_file=replicated_ref_file,
         active_timeout=active_t,
         start_time=stats.start_time,
         biflows=device.get_biflow_export(),
