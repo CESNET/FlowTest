@@ -7,10 +7,12 @@ SPDX-License-Identifier: BSD-3-Clause
 """
 import ipaddress
 import logging
+import time
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from ftanalyzer.common.pandas_multiprocessing import PandasMultiprocessingHelper
 from ftanalyzer.models.sm_data_types import (
     SMException,
     SMMetricType,
@@ -131,10 +133,13 @@ class StatisticalModel:
         if merge:
             self._merge_flows(biflows_ts_correction)
 
-        self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(ipaddress.ip_address)
-        self._flows.loc[:, "DST_IP"] = self._flows["DST_IP"].apply(ipaddress.ip_address)
-        self._ref.loc[:, "SRC_IP"] = self._ref["SRC_IP"].apply(ipaddress.ip_address)
-        self._ref.loc[:, "DST_IP"] = self._ref["DST_IP"].apply(ipaddress.ip_address)
+        logging.getLogger().debug("Start applying ip_address...")
+        start = time.time()
+        with PandasMultiprocessingHelper() as pool:
+            pool.apply(self._flows, [("SRC_IP", ipaddress.ip_address, []), ("DST_IP", ipaddress.ip_address, [])])
+            pool.apply(self._ref, [("SRC_IP", ipaddress.ip_address, []), ("DST_IP", ipaddress.ip_address, [])])
+        end = time.time()
+        logging.getLogger().debug("IP address applied in %.2f seconds.", (end - start))
 
     def validate(self, rules: List[SMRule]) -> StatisticalReport:
         """Evaluate data in the statistical model based on the provided evaluation rules.
