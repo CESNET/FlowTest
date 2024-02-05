@@ -13,6 +13,7 @@ import logging
 import os
 import shutil
 
+import pandas as pd
 import pytest
 from ftanalyzer.models.sm_data_types import SMRule
 from ftanalyzer.models.statistical_model import StatisticalModel
@@ -42,7 +43,7 @@ DEFAULT_REPLICATOR_PREFIX = 8
 def validate(
     analysis: AnalysisCfg,
     flows_file: str,
-    ref_file: str,
+    reference: pd.DataFrame,
     start_time: int,
 ) -> bool:
     """Perform statistical and/or precise model evaluation of the test scenario.
@@ -53,8 +54,8 @@ def validate(
         Object describing how the test results should be evaluated.
     flows_file: str
         Path to a file with flows from collector.
-    ref_file: str
-        Path to a file with reference flows.
+    reference: pd.DataFrame
+        Reference flows in DataFrame.
     start_time: int
         Timestamp of the first packet.
 
@@ -65,7 +66,7 @@ def validate(
         precise report is present only if a precise model is selected.
     """
 
-    model = StatisticalModel(flows_file, ref_file, start_time)
+    model = StatisticalModel(flows_file, reference, start_time)
     stats_report = model.validate([SMRule(analysis.metrics)])
     stats_report.print_results()
     print("")
@@ -198,12 +199,12 @@ def test_simulation_threshold(
         collector_instance.stop()
 
         collector_instance.get_reader().save_csv(flows_file)
-        flow_replicator.replicate(input_file=ref_file, output_file=replicated_ref_file, loops=loops)
+        replicated_ref = flow_replicator.replicate(input_file=ref_file, loops=loops)
 
         ret = validate(
             analysis=scenario.test.analysis,
             flows_file=flows_file,
-            ref_file=replicated_ref_file,
+            reference=replicated_ref,
             start_time=stats.start_time,
         )
 
@@ -216,7 +217,6 @@ def test_simulation_threshold(
     replicator_units = int(1 / scenario.sampling)
     ref_file = os.path.join(tmp_dir, "report.csv")
     flows_file = os.path.join(tmp_dir, "flows.csv")
-    replicated_ref_file = os.path.join(tmp_dir, "replicated_ref.csv")
 
     # first run is the original configuration
     speed_min = scenario.test.speed_min

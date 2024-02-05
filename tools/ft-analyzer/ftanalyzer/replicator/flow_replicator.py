@@ -192,12 +192,11 @@ class FlowReplicator:
     def replicate(
         self,
         input_file: str,
-        output_file: str,
         loops: int,
         merge_across_loops: bool = False,
         inactive_timeout: int = -1,
         speed_multiplier: float = 1,
-    ) -> None:
+    ) -> pd.DataFrame:
         """Read source data and replicate source flows based on configuration.
         Save replication result to CSV file. Helper columns like "ORIG_INDEX" are not exported.
 
@@ -259,8 +258,7 @@ class FlowReplicator:
             self._inactive_timeout = inactive_timeout * 1000 if inactive_timeout > -1 else None
             result = self._merge_across_loop(result)
 
-        logging.getLogger().info("Saving replicated flows to %s...", output_file)
-        result.loc[:, self.CSV_COLUMN_TYPES.keys()].to_csv(output_file, index=False)
+        return result.loc[:, self.CSV_COLUMN_TYPES.keys()]
 
     @staticmethod
     def _parse_config_item(item: str, src_dict: dict) -> Optional[IpAddConstant]:
