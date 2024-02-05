@@ -7,6 +7,7 @@
  */
 
 #include "common.h"
+#include "../utils.h"
 
 #include <algorithm>
 #include <fstream>
@@ -35,6 +36,21 @@ std::string StringStrip(std::string s)
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), isNotWhitespace));
 	s.erase(std::find_if(s.rbegin(), s.rend(), isNotWhitespace).base(), s.end());
 	return s;
+}
+
+bool StringCheckStripSuffix(std::string& s, const std::string& suffix)
+{
+	if (s.size() < suffix.size()) {
+		return false;
+	}
+
+	auto startPos = s.size() - suffix.size();
+	if (s.substr(startPos, suffix.size()) != suffix) {
+		return false;
+	}
+
+	s = s.substr(0, startPos);
+	return true;
 }
 
 void ExpectSequence(const YAML::Node& node)
@@ -118,6 +134,64 @@ double ParseProbability(const YAML::Node& node)
 	}
 
 	return result;
+}
+
+uint64_t ParseTimeUnit(const YAML::Node& node)
+{
+	std::string s = AsScalar(node);
+	s = StringStrip(s);
+
+	uint64_t multiplier;
+
+	if (StringCheckStripSuffix(s, "ns")) {
+		multiplier = 1;
+	} else if (StringCheckStripSuffix(s, "us")) {
+		multiplier = 1'000;
+	} else if (StringCheckStripSuffix(s, "ms")) {
+		multiplier = 1'000'000;
+	} else if (StringCheckStripSuffix(s, "s")) {
+		multiplier = 1'000'000'000;
+	} else {
+		throw ConfigError(node, "expected time unit value with ns/us/ms/s suffix");
+	}
+
+	s = StringStrip(s);
+
+	auto value = ParseValue<uint64_t>(s);
+	if (!value) {
+		throw ConfigError(node, "invalid time unit value");
+	}
+
+	return *value * multiplier;
+}
+
+uint64_t ParseSpeedUnit(const YAML::Node& node)
+{
+	std::string s = AsScalar(node);
+	s = StringStrip(s);
+
+	uint64_t multiplier;
+
+	if (StringCheckStripSuffix(s, "gbps")) {
+		multiplier = 1'000'000'000;
+	} else if (StringCheckStripSuffix(s, "mbps")) {
+		multiplier = 1'000'000;
+	} else if (StringCheckStripSuffix(s, "kbps")) {
+		multiplier = 1'000;
+	} else if (StringCheckStripSuffix(s, "bps")) {
+		multiplier = 1;
+	} else {
+		throw ConfigError(node, "expected speed unit value with bps/kbps/mbps/gbps suffix");
+	}
+
+	s = StringStrip(s);
+
+	auto value = ParseValue<uint64_t>(s);
+	if (!value) {
+		throw ConfigError(node, "invalid speed unit value");
+	}
+
+	return OverflowCheckedMultiply(*value, multiplier * 8);
 }
 
 void ConfigError::PrintPrettyError(

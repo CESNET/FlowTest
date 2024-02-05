@@ -50,6 +50,16 @@ std::optional<double> ParseValue(const std::string& s);
 std::string StringStrip(std::string s);
 
 /**
+ * @brief Check if a string ends with a suffix and strip it
+ *
+ * @param s[inout]  The string to check and strip, will be modified in-place
+ * @param suffix  The suffix
+ *
+ * @return true if the suffix was found and stripped, else false
+ */
+bool StringCheckStripSuffix(std::string& s, const std::string& suffix);
+
+/**
  * @brief Expect the node to be a yaml sequence
  *
  * @param node
@@ -115,6 +125,26 @@ void CheckAllowedKeys(const YAML::Node& node, const std::vector<std::string>& al
  * @throw ConfigError on errornous value
  */
 double ParseProbability(const YAML::Node& node);
+
+/**
+ * @brief Parse a time unit as ns/us/ms/s
+ *
+ * @param node YAML node containing the speed unit
+ * @return The value represented in nanoseconds
+ *
+ * @throw ConfigError on errornous value
+ */
+uint64_t ParseTimeUnit(const YAML::Node& node);
+
+/**
+ * @brief Parse a speed unit as bits of kbps/mbps/gbps
+ *
+ * @param node YAML node containing the speed unit
+ * @return The value represented in bits per second
+ *
+ * @throw ConfigError on errornous value
+ */
+uint64_t ParseSpeedUnit(const YAML::Node& node);
 
 /**
  * @brief Parse a YAML sequence into a vector of configuration objects
