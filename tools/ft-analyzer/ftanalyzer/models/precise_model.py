@@ -43,7 +43,7 @@ class PreciseModel(StatisticalModel):
     def __init__(
         self,
         flows: str,
-        reference: str,
+        reference: Union[str, pd.DataFrame],
         active_timeout: int,
         start_time: int = 0,
         biflows_ts_correction: bool = False,
@@ -53,8 +53,9 @@ class PreciseModel(StatisticalModel):
         ----------
         flows : str
             Path to a CSV containing flow records acquired from a network probe.
-        reference : str
+        reference : str or pd.DataFrame
             Path to a CSV containing flow records acting as a reference.
+            Or DataFrame in corresponding format.
         active_timeout : int
             Maximum duration of a flow (in seconds) which was configured on the network
             probe during the monitoring period.
