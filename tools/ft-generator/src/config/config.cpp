@@ -20,7 +20,7 @@ Config::Config(const YAML::Node& node)
 		 "mac",
 		 "encapsulation",
 		 "packet_size_probabilities",
-		 "max_flow_inter_packet_gap",
+		 "timestamps",
 		 "payload"});
 
 	if (node["ipv4"].IsDefined()) {
@@ -43,19 +43,8 @@ Config::Config(const YAML::Node& node)
 		_packetSizeProbabilities = PacketSizeProbabilities(node["packet_size_probabilities"]);
 	}
 
-	const auto& maxFlowInterPacketGapNode = node["max_flow_inter_packet_gap"];
-	if (maxFlowInterPacketGapNode.IsDefined()) {
-		if (maxFlowInterPacketGapNode.IsNull()) {
-			_maxFlowInterPacketGapSecs = std::nullopt;
-		} else {
-			auto value = ParseValue<uint64_t>(AsScalar(maxFlowInterPacketGapNode));
-			if (!value || *value == 0) {
-				throw ConfigError(
-					node,
-					"invalid max flow inter packet gap value, expected integer > 0");
-			}
-			_maxFlowInterPacketGapSecs = *value;
-		}
+	if (node["timestamps"].IsDefined()) {
+		_timestamps = Timestamps(node["timestamps"]);
 	}
 
 	if (node["payload"].IsDefined()) {

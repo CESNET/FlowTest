@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iostream>
 #include <string>
 
 namespace generator {
@@ -114,13 +115,39 @@ void Generator::CheckEnoughDiskSpace()
 
 std::optional<GeneratorPacket> Generator::GenerateNextPacket()
 {
-	std::unique_ptr<Flow> flow = GetNextFlow(); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
-	if (!flow) {
-		return std::nullopt;
+	std::unique_ptr<Flow> flow;
+
+	while (true) {
+		std::unique_ptr<Flow> flowTmp = GetNextFlow();
+
+		if (!flowTmp) {
+			return std::nullopt;
+		}
+
+		if (!_minNextPacketTime) {
+			flow = std::move(flowTmp);
+			break;
+		}
+
+		ft::Timestamp nextPacketTime = flowTmp->GetNextPacketTime();
+		if (nextPacketTime >= *_minNextPacketTime) {
+			flow = std::move(flowTmp);
+			break;
+		}
+
+		ft::Timestamp diff = *_minNextPacketTime - nextPacketTime;
+		flowTmp->ShiftTimestamp(diff.ToNanoseconds());
+		_calendar.Push(std::move(flowTmp));
 	}
 
 	PacketExtraInfo extra = flow->GenerateNextPacket(_packet);
 	_trafficMeter.RecordPacket(flow->GetId(), extra._time, extra._direction, _packet);
+	_minNextPacketTime = extra._time
+		+ ft::Timestamp::From<ft::TimeUnit::Nanoseconds>(
+							 CalcMinGlobalPacketGapPicos(
+								 GetPacketSizeFromIPLayer(_packet),
+								 _config.GetTimestamps())
+							 / 1000);
 
 	if (!flow->IsFinished()) {
 		_calendar.Push(std::move(flow));

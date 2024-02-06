@@ -158,7 +158,7 @@ void TrafficMeter::ExtractPacketParams(
 	}
 }
 
-static uint64_t GetPacketSizeFromIPLayer(const PcppPacket& packet)
+uint64_t GetPacketSizeFromIPLayer(const PcppPacket& packet)
 {
 	const pcpp::Layer* layer = packet.getFirstLayer();
 

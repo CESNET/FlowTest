@@ -15,6 +15,7 @@
 #include "mac.h"
 #include "packetsizeprobabilities.h"
 #include "payload.h"
+#include "timestamps.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -79,12 +80,9 @@ public:
 	}
 
 	/**
-	 * @brief Get the max flow inter packet gap seconds
+	 * @brief Get the timestamps generation config
 	 */
-	std::optional<uint64_t> GetMaxFlowInterPacketGapSecs() const
-	{
-		return _maxFlowInterPacketGapSecs;
-	}
+	const Timestamps& GetTimestamps() const { return _timestamps; }
 
 	/**
 	 * @brief Get the payload config
@@ -105,7 +103,7 @@ private:
 	Mac _mac;
 	Encapsulation _encapsulation;
 	PacketSizeProbabilities _packetSizeProbabilities;
-	std::optional<uint64_t> _maxFlowInterPacketGapSecs;
+	Timestamps _timestamps;
 	Payload _payload;
 };
 
