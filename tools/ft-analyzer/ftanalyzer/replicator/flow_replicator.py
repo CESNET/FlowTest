@@ -374,14 +374,14 @@ class FlowReplicator:
         self._flows["_SRC_IP_OFFSET"] = 0
         self._flows["_DST_IP_OFFSET"] = 0
 
-        res = pd.DataFrame()
+        tmp_dataframes = []
         for loop_n in range(loops):
             logging.getLogger().debug("Processing %d loop...", loop_n)
             if loop_n in self._ignore_loops:
                 continue
-            loop_flows = self._process_single_loop(loop_n, loop_start, loop_length)
-            res = pd.concat([res, loop_flows], axis=0)
+            tmp_dataframes.append(self._process_single_loop(loop_n, loop_start, loop_length))
 
+        res = pd.concat(tmp_dataframes, axis=0)
         return res
 
     def _process_single_loop(self, loop_n: int, global_start: int, loop_length: int) -> pd.DataFrame:
