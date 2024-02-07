@@ -39,7 +39,7 @@ implementations of the object (e.g., the input network interface of a probe) or 
 ```
 
 ### Generator of the PcapPlayer type
-The generator with PCAP file replay capability is used in validation and performance tests. Adding the following
+The generator with PCAP file replay capability is used in **validation tests**. Adding the following
 argument will automatically activate tests that support execution with a PcapPlayer generator. The generator argument
 can be added repeatedly or combined with another generator type. Tests will be executed for each generator
 separately.
@@ -53,7 +53,23 @@ separately.
 ```
 
 ### Generator of the Replicator type
-TBD
+The replicator type generator allows to multiply the network traffic and modify its parameters (modification of
+IP addresses, MAC addresses) during PCAP replaying. These features are used when performing **simulation tests** where
+the source is a sampled network profile of a real network that needs to be replayed in its original size.
+Replication is also used for tests verifying specific properties of the probe, e.g., simulating
+overloading with a network attack.
+
+Adding the following argument will automatically activate tests that support execution with a Replicator generator.
+The ft-replay tool is typically used as a replicator.
+
+```
+--replicator=REPLICATOR     Use 'alias' to identify specific generator from the configuration file generators.yml.
+                            Optionally, you can add generator parameters after the alias.
+                            Standard options are 'vlan' for adding vlan tag to sent packets and 'orig-mac'
+                            for disabling rewriting destination mac address.
+                            Any of connector-specific parameters can be appended after the alias.
+                            E.g.: ftreplay:vlan=90;orig-mac;mtu=3500
+```
 
 ### Validation tests
 Description and annotation of the validation tests can be found in `flowtest_root/testing/validation`. According to the
@@ -75,6 +91,16 @@ test description is used by pytest to limit the set of selected tests.
 pytest ... -m validation -k dns_aaaa.yml
 pytest ... -m validation -k fragmented
 ```
+
+### Simulation tests
+Scenarios of the simulation tests can be found in `flowtest_root/testing/simulation`. According to the
+YAML files in this folder, the tests are dynamically generated and tagged with the `simulation` marker. This can be used
+to run Simulation tests only.
+
+Three basic types of simulation tests are implemented: normal operation simulation, probe overload test and performance
+test to determine the maximum probe throughput. Tests are marked as `sim_general`, `sim_overload` and `sim_threshold`.
+Additional tags are assigned to a test with a specific network profile in the scenario file. For example, identifying
+the speed of the original network or the situation in which the traffic was analyzed (network attack/normal morning).
 
 ### Examples of usage
 Run validation tests. Generator machine and probe are connected via a switch in vlan network 90.
