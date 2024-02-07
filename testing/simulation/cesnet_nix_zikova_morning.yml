@@ -1,0 +1,62 @@
+# Profile information which cannot be modified by the orchestration tool.
+name: NIX Zikova Morning Traffic 100G
+description: CESNET, Geant link, 100 Gbps, Morning rise in traffic
+marks: [nix_zikova, 100G]
+requirements:
+  speed: 100
+profile: https://liberouter.org/repo/flowtest/profiles/100G_CesnetNixZikova_MorningTraffic/profile_trimmed_1-20_360s_10s.csv
+mtu: 9020
+sampling: 0.05
+
+# default configuration describing the setup during profile collection
+default:
+  pps: 998443
+  mbps: 6781
+  generator:
+    mac:
+      mac_range: "aa:aa:aa:aa:aa:a0/44"
+    packet_size_probabilities:
+      "64-64": .1685
+      "65-127": .3770
+      "128-255": .0677
+      "256-511": .0316
+      "512-1023": .0254
+      "1024-1518": .2086
+      "1519-9000": 0.1213
+  probe:
+    protocols: [eth, tcp, ipv4, ipv6, dns, http, tls]
+    active_timeout: 300
+    inactive_timeout: 30
+
+# individual tests for general simulation scenario
+sim_general:
+  - id: nix_zikova_morning_original
+    enabled: False
+    marks: [original]
+    speed_multiplier: 1.0
+  - id: nix_zikova_morning_precise
+    marks: [precise]
+    speed_multiplier: 1.0
+    analysis:
+      model: "precise"
+
+sim_threshold:
+  - id: nix_zikova_morning_throughput_no_plugins
+    marks: []
+    mbps_accuracy: 500
+    mbps_required: 50000
+    speed_max: 100000
+    probe:
+      protocols: []
+  - id: nix_zikova_morning_throughput_l7
+    enabled: False
+    marks: []
+    mbps_accuracy: 500
+    mbps_required: 25000
+    speed_max: 100000
+
+sim_overload:
+  - id: nix_zikova_morning_overload
+    enabled: True
+    marks: []
+    multiplier: 2.0
