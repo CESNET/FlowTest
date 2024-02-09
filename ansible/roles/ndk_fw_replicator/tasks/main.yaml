@@ -1,9 +1,4 @@
 ---
-- name: FlowTest FPGA Firmware ({{ nfb_firmware }}) is installed
-  ansible.builtin.dnf:
-    name: "ndk-fw-{{ nfb_firmware }}"
-    state: latest
-
 - name: Make sure the FPGA card ({{ nfb_card }}) is available
   ansible.builtin.stat:
     path: "{{ nfb_card }}"
@@ -14,8 +9,23 @@
   register: card_stat
   failed_when: not card_stat.stat.exists
 
-- name: Boot the FPGA card ({{ nfb_card }}) with the firmware ({{ nfb_firmware }})
-  ansible.builtin.command: "nfb-boot -d {{ nfb_card }} -b 0 \"{{ nfb_firmware_dir }}/{{ nfb_firmware }}.nfw\""
+- name: Determine FPGA card name ({{ nfb_card }})
+  ansible.builtin.command: "nfb-info -d {{ nfb_card }} -q card"
+  register: card_name
+
+- name: Determine required firmware for FPGA card ({{ nfb_card }})
+  ansible.builtin.set_fact:
+    card_firmware: "{{ ndk_nic_firmwares[card_name.stdout]['design'] }}"
+
+- name: FlowTest FPGA Firmware ({{ card_firmware }}) is installed
+  ansible.builtin.dnf:
+    name: "ndk-fw-{{ card_firmware }}"
+    state: latest
+
+- name: Boot the FPGA card ({{ nfb_card }}) with the firmware ({{ card_firmware }})
+  ansible.builtin.command: "nfb-boot -d {{ nfb_card }} -b 0 \"{{ firmware_path }}\""
+  vars:
+    firmware_path: "{{ nfb_firmware_dir }}/{{ card_firmware }}.nfw"
 
 - name: Set MTU of Ethernet interfaces
   ansible.builtin.command: "nfb-eth -d {{ nfb_card }} -L {{ nfb_mtu | int }}"

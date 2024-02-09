@@ -1,3 +1,9 @@
 ---
-# Firmware name without "ndp-fw-" prefix and ".nfw" suffix
-nfb_firmware: nfb-200g2ql-replicator-100g2
+# Dictionary of supported firmwares based on the card name.
+# Each entry contains design name.
+# Design name is without "ndp-fw-" prefix and ".nfw" suffix
+ndk_nic_firmwares:
+  N6010:  # card name
+    design: n6010-replicator-100g2
+  NFB-200G2QL:
+    design: nfb-200g2ql-replicator-100g2
