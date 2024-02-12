@@ -257,7 +257,8 @@ def test_simulation_threshold(
 
         # cleanup devices
         finalizer_download_logs()
-        shutil.copytree(tmp_dir, os.path.join(current_log_dir, "data"))
+        if request.config.getoption("archive_test_data") == "always":
+            shutil.copytree(tmp_dir, os.path.join(current_log_dir, "data"))
         cleanup()
         objects_to_cleanup = []
         gc.collect()

@@ -11,7 +11,6 @@ Allows to modify most of the configuration options.
 import ipaddress
 import logging
 import os
-import shutil
 from typing import Optional
 
 import pandas as pd
@@ -276,5 +275,4 @@ def test_simulation_general(
     )
 
     if not stats_report.is_passing() or (precise_report is not None and not precise_report.is_passing()):
-        shutil.move(tmp_dir, os.path.join(log_dir, "data"))
         assert False, f"evaluation of test: {request.function.__name__}[{test_id}] failed"
