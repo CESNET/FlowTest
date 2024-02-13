@@ -22,9 +22,14 @@
 #include <ctime>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <vector>
 
 namespace generator {
+
+class DiskSpaceError : public std::runtime_error {
+	using std::runtime_error::runtime_error;
+};
 
 /**
  * @brief A generated packet
