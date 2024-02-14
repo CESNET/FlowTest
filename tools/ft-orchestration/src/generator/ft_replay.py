@@ -461,7 +461,7 @@ class FtReplay(Replicator):
         pcap_path = pcap_path if remote_pcap else self._rsync.push_path(pcap_path)
         cmd_args += ["-i", pcap_path]
 
-        if self._output_plugin.output_plugin in ["raw", "xdp"]:
+        if self._output_plugin.output_plugin in ["raw", "xdp", "packet"]:
             Tool(f"ip link set dev {self._interface} up", executor=self._executor, sudo=True).run()
             Tool(f"ip link set dev {self._interface} mtu {self._mtu}", executor=self._executor, sudo=True).run()
 
