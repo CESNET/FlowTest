@@ -23,6 +23,8 @@
 
 using namespace generator;
 
+static constexpr int EXIT_DISKSPACE_ERROR = 2;
+
 int main(int argc, char* argv[])
 {
 	config::CommandLineArgs args;
@@ -88,6 +90,10 @@ int main(int argc, char* argv[])
 		}
 
 		trafficMeter.PrintComparisonStats();
+
+	} catch (const DiskSpaceError& error) {
+		logger->critical(error.what());
+		return EXIT_DISKSPACE_ERROR;
 
 	} catch (const std::runtime_error& error) {
 		logger->critical(error.what());

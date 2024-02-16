@@ -11,7 +11,6 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <stdexcept>
 #include <string>
 
 namespace generator {
@@ -101,7 +100,7 @@ void Generator::CheckEnoughDiskSpace()
 	}
 
 	if (expectedDiskSize > availableDiskSpace) {
-		throw std::runtime_error(
+		throw DiskSpaceError(
 			"Not enough free disk space in the target location (estimated PCAP size: "
 			+ ToHumanSize(expectedDiskSize)
 			+ ", free disk space: " + ToHumanSize(availableDiskSpace)
