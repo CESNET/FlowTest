@@ -258,7 +258,9 @@ def test_simulation_threshold(
 
         # adjust speed
         speed_current = int((speed_max + speed_min) / 2)
-        speed_current = speed_current + (scenario.test.mbps_accuracy - speed_current % scenario.test.mbps_accuracy)
+        # round up to required accuracy
+        if speed_current % scenario.test.mbps_accuracy > 0:
+            speed_current = speed_current + (scenario.test.mbps_accuracy - speed_current % scenario.test.mbps_accuracy)
 
         # cleanup devices
         finalizer_download_logs()
