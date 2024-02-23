@@ -178,7 +178,7 @@ class TestWithFakeHost:
             IpfixprobeRaw(fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [])
 
         with pytest.raises(AssertionError):
-            IpfixprobeDpdk(fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [], False, core_mask=1)
+            IpfixprobeDpdk(fake_host, ProbeTarget("127.0.0.1", 4739, "tcp"), [], [], False, lcores="1@1")
 
     @staticmethod
     def test_prepare_cmd_plugins(fake_host):
@@ -239,7 +239,7 @@ class TestWithFakeHost:
         """Test command format with dpdk input plugin parameters."""
 
         kwargs = {
-            "core_mask": 0x01,
+            "lcores": "(0-3)@(0-3)",
             "memory": 2048,
             "file_prefix": "ipfixprobe",
             "queues_count": 4,
@@ -254,11 +254,11 @@ class TestWithFakeHost:
         probe.start()
         probe.stop()
 
-        regex = (
-            'ipfixprobe -i "dpdk;p=0;q=4;b=128;m=4096;e=-c 1 -m 2048 --file-prefix ipfixprobe -a 0000:01:00.0"'
-            ' -i "dpdk" -i "dpdk" -i "dpdk" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
+        expected = (
+            'ipfixprobe -i "dpdk;p=0;q=4;b=128;m=4096;e=--lcores (0-3)@(0-3) -m 2048 --file-prefix ipfixprobe'
+            ' -a 0000:01:00.0" -i "dpdk" -i "dpdk" -i "dpdk" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
         )
-        assert re.search(regex, fake_host.last_command)
+        assert expected == fake_host.last_command
 
         # Only 1 input interface is supported by ipfixprobe-dpdk at the time.
         with pytest.raises(ProbeException):
@@ -357,7 +357,7 @@ class TestWithDockerIpfixprobe:
                 [InterfaceCfg("0000:01:00.0", 10)],
                 False,
                 True,
-                core_mask=0x01,
+                lcores="0@0",
             )
 
     @staticmethod

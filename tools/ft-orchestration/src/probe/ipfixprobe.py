@@ -190,8 +190,8 @@ class IpfixprobeDpdkSettings(IpfixprobeSettings):
     ----------
     devices: List[str], required
         Allowed devices in format <[domain:]bus:devid.func>. EAL parameter.
-    core_mask: int, required
-        Hexadecimal bitmask of cores to run on. EAL parameter.
+    lcores: str, optional
+        Map lcore set to physical cpu set. EAL parameter.
     memory: int, optional
         Memory to allocate (MB). EAL parameter.
     file_prefix: str, optional
@@ -206,7 +206,7 @@ class IpfixprobeDpdkSettings(IpfixprobeSettings):
 
     # EAL params
     devices: List[str] = required_field()
-    core_mask: int = required_field()
+    lcores: Optional[str] = None
     memory: Optional[int] = None
     file_prefix: Optional[str] = None
 
@@ -790,7 +790,9 @@ class IpfixprobeDpdk(Ipfixprobe):
 
         args = ["ipfixprobe"]
 
-        eal_params = ["-c", str(settings.core_mask)]
+        eal_params = []
+        if settings.lcores:
+            eal_params += ["--lcores", settings.lcores]
         if settings.memory:
             eal_params += ["-m", str(settings.memory)]
         if settings.file_prefix:
