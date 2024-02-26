@@ -8,6 +8,7 @@ Threshold simulation scenario focuses on finding the maximum link speed that a p
 can be replayed so that the number of lost packets and bytes is below specified threshold.
 """
 
+import gc
 import ipaddress
 import logging
 import os
@@ -201,6 +202,9 @@ def test_simulation_threshold(
         collector_instance.get_reader().save_csv(flows_file)
         replicated_ref = flow_replicator.replicate(input_file=ref_file, loops=loops)
 
+        flow_replicator = None
+        gc.collect()
+
         ret = validate(
             analysis=scenario.test.analysis,
             flows_file=flows_file,
@@ -256,6 +260,7 @@ def test_simulation_threshold(
         shutil.copytree(tmp_dir, os.path.join(current_log_dir, "data"))
         cleanup()
         objects_to_cleanup = []
+        gc.collect()
 
     passed = scenario.test.mbps_required <= speed_min
     HTMLReportData.simulation_summary_report.update_stats("sim_threshold", passed)
