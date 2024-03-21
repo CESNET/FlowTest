@@ -138,15 +138,8 @@ class StatisticalModel:
         if merge:
             self._merge_flows(biflows_ts_correction)
 
-        logging.getLogger().debug("Start applying ip_address...")
-        start = time.time()
-        with PandasMultiprocessingHelper() as pool:
-            pool.apply(self._flows, [("SRC_IP", ipaddress.ip_address, []), ("DST_IP", ipaddress.ip_address, [])])
-            if isinstance(reference, str):
-                # convert to object only when reference is loaded from CSV file
-                pool.apply(self._ref, [("SRC_IP", ipaddress.ip_address, []), ("DST_IP", ipaddress.ip_address, [])])
-        end = time.time()
-        logging.getLogger().debug("IP address applied in %.2f seconds.", (end - start))
+        self._flows_ip_addresses_converted = False
+        self._ref_ip_addresses_converted = isinstance(reference, pd.DataFrame)
 
     def validate(self, rules: List[SMRule]) -> StatisticalReport:
         """Evaluate data in the statistical model based on the provided evaluation rules.
@@ -227,6 +220,24 @@ class StatisticalModel:
 
             self._flows = flows.loc[:, list(self.CSV_COLUMN_TYPES.keys()) + ["FLOW_COUNT"]]
 
+    def _convert_ip_addresses(self) -> None:
+        """Convert str ip addresses to objects (ipaddress library) in DataFrames."""
+
+        if self._flows_ip_addresses_converted and self._ref_ip_addresses_converted:
+            return
+
+        logging.getLogger().debug("Start applying ip_address...")
+        start = time.time()
+        with PandasMultiprocessingHelper() as pool:
+            pool.apply(self._flows, [("SRC_IP", ipaddress.ip_address, []), ("DST_IP", ipaddress.ip_address, [])])
+            if not self._ref_ip_addresses_converted:
+                # convert to object only when reference is loaded from CSV file
+                pool.apply(self._ref, [("SRC_IP", ipaddress.ip_address, []), ("DST_IP", ipaddress.ip_address, [])])
+        end = time.time()
+        logging.getLogger().debug("IP address applied in %.2f seconds.", (end - start))
+
+        self._flows_ip_addresses_converted, self._ref_ip_addresses_converted = (True, True)
+
     def _filter_segment(
         self, segment: Optional[Union[SMSubnetSegment, SMTimeSegment]]
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -244,6 +255,7 @@ class StatisticalModel:
         """
 
         if isinstance(segment, SMSubnetSegment):
+            self._convert_ip_addresses()
             return self._filter_subnet_segment(segment)
 
         if isinstance(segment, SMTimeSegment):

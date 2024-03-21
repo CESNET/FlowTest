@@ -108,6 +108,10 @@ class PreciseModel(StatisticalModel):
         if segments is None:
             segments = [None]
 
+        # precise model compares IP addresses, so the same format is required
+        if self._flows_ip_addresses_converted != self._ref_ip_addresses_converted:
+            self._convert_ip_addresses()
+
         for segment in segments:
             self._report.add_segment(segment)
             flows, refs = self._filter_segment(segment)
