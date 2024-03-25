@@ -316,7 +316,8 @@ class FtReplay(Replicator):
                 "Behavior will be changed with future updates of ft-replay."
             )
         self._interface = ifc_name
-        self._dst_mac = dst_mac
+        if dst_mac:
+            self._dst_mac = [dst_mac]
 
     def add_replication_unit(
         self,
@@ -381,8 +382,16 @@ class FtReplay(Replicator):
 
         if self._dst_mac:
             # override dstmac modifier in replication units in case we need packets with real mac address
-            for unit in config["units"]:
-                unit["dstmac"] = self._dst_mac
+            if len(config["units"]) % len(self._dst_mac) > 0:
+                logging.getLogger().warning(
+                    "Packets distribution to probe interfaces cannot be uniform. "
+                    "Number of replication units %d is not divisible by %d.",
+                    len(config["units"]),
+                    len(self._dst_mac),
+                )
+            for idx, unit in enumerate(config["units"]):
+                mac = self._dst_mac[idx % len(self._dst_mac)]
+                unit["dstmac"] = mac
 
         if self._srcip_offset:
             config["loop"]["srcip"] = f"addOffset({self._srcip_offset})"
