@@ -7,7 +7,6 @@ SPDX-License-Identifier: BSD-3-Clause
 Builder for creating a generator instance based on a static configuration.
 """
 
-import logging
 from os import path
 from typing import Any, Dict, List, Optional, Union
 
@@ -63,7 +62,7 @@ class GeneratorBuilder(BuilderBase, Generator):
         ------
         BuilderError
             Raised when type of generator from static configuration not found in python modules. Or alias does not
-            exist in configuration. Or number of generator interfaces does not match number of probe interfaces.
+            exist in configuration.
         """
 
         super().__init__(config, disable_ansible)
@@ -83,10 +82,6 @@ class GeneratorBuilder(BuilderBase, Generator):
         self._connector_args = generator_cfg.connector if generator_cfg.connector else {}
         # cmd additional arguments has higher priority, update arguments from config
         self._connector_args.update(cmd_connector_args)
-
-        if len(self._probe_mac_addresses) != len(self._interfaces):
-            logging.getLogger().error("Number of generator interfaces should match number of probe interfaces.")
-            raise BuilderError("Number of generator interfaces should match number of probe interfaces.")
 
         interface = Replicator if replicator else PcapPlayer
         self._class = self._find_class(GENERATOR_IMPORT_PATH, generator_cfg.type, interface)
@@ -112,8 +107,8 @@ class GeneratorBuilder(BuilderBase, Generator):
             additional_args.update({"mtu": mtu})
 
         instance = self._class(self._executor, self._add_vlan, biflow_export=self._biflow_export, **additional_args)
-        for i, ifc in enumerate(self._interfaces):
-            mac = self._probe_mac_addresses[i] if self._edit_dst_mac else None
+        for ifc in self._interfaces:
+            mac = self._probe_mac_addresses if self._edit_dst_mac else None
             instance.add_interface(ifc.name, mac)
         return instance
 
