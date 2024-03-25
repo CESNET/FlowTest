@@ -141,15 +141,16 @@ class PcapPlayer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def add_interface(self, ifc_name: str, dst_mac: Optional[str] = None):
+    def add_interface(self, ifc_name: str, dst_mac: Optional[Union[str, list[str]]] = None):
         """Add interface on which traffic will be replayed.
 
         Parameters
         ----------
         ifc_name : str
             String name of interface, e.g. os name or pci address.
-        dst_mac : str, optional
+        dst_mac : str or list, optional
             If specified, destination mac address will be edited in packets which are replayed on interface.
+            Use list of mac addresses to distribute packets to multiple probe interfaces.
         """
 
         raise NotImplementedError

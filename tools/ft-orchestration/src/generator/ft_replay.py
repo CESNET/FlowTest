@@ -294,15 +294,16 @@ class FtReplay(Replicator):
         self._log_file = path.join(self._work_dir, "ft-replay.log")
         self._generator_log_file = path.join(self._work_dir, "ft-generator.log")
 
-    def add_interface(self, ifc_name: str, dst_mac: Optional[str] = None) -> None:
+    def add_interface(self, ifc_name: str, dst_mac: Optional[Union[str, list[str]]] = None) -> None:
         """Add interface on which traffic will be replayed.
 
         Parameters
         ----------
         ifc_name : str
             String name of interface, e.g. os name or pci address.
-        dst_mac : str, optional
+        dst_mac : str or list, optional
             If specified, destination mac address will be edited in packets which are replayed on interface.
+            Use list of mac addresses to distribute packets to multiple probe interfaces.
 
         Raises
         ------
@@ -316,8 +317,12 @@ class FtReplay(Replicator):
                 "Behavior will be changed with future updates of ft-replay."
             )
         self._interface = ifc_name
-        if dst_mac:
+        if isinstance(dst_mac, str):
             self._dst_mac = [dst_mac]
+        elif dst_mac == []:
+            self._dst_mac = None
+        else:
+            self._dst_mac = dst_mac
 
     def add_replication_unit(
         self,
