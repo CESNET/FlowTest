@@ -68,6 +68,8 @@ void NfbPlugin::ParsePluginConfiguration(const std::map<std::string, std::string
 			_pluginConfig.deviceName = value;
 		} else if (key == "queueCount") {
 			_pluginConfig.queueCount = std::stoul(value);
+		} else if (key == "queueOffset") {
+			_pluginConfig.queueOffset = std::stoul(value);
 		} else if (key == "burstSize") {
 			_pluginConfig.maxBurstSize = std::stoul(value);
 		} else if (key == "superPacket") {
@@ -140,13 +142,25 @@ void NfbPlugin::ValidateQueueCount()
 	if (_pluginConfig.queueCount == 0) {
 		_pluginConfig.queueCount = static_cast<size_t>(availableQueueCount);
 	}
+
+	const size_t requiredQueues = _pluginConfig.queueOffset + _pluginConfig.queueCount;
+	if (requiredQueues > static_cast<size_t>(availableQueueCount)) {
+		_logger->error(
+			"Requested queue count ({}) combined with the starting queue offset ({}) exceeds the "
+			"number of available queues ({}).",
+			_pluginConfig.queueCount,
+			_pluginConfig.queueOffset,
+			availableQueueCount);
+		throw std::runtime_error("NfbPlugin::ValidateQueueCount() has failed");
+	}
 }
 
 void NfbPlugin::CreateNfbQueues()
 {
 	NfbQueueBuilder builder = CreateQueueBuilder();
 
-	for (size_t queueId = 0; queueId < _pluginConfig.queueCount; queueId++) {
+	for (size_t i = 0; i < _pluginConfig.queueCount; i++) {
+		const unsigned int queueId = _pluginConfig.queueOffset + i;
 		auto nfbQueue = builder.Build(_nfbDevice.get(), queueId);
 		_queues.emplace_back(std::move(nfbQueue));
 	}
