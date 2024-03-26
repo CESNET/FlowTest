@@ -768,11 +768,6 @@ class IpfixprobeDpdk(Ipfixprobe):
         sudo: bool = False,
         **kwargs: dict,
     ):
-        if len(interfaces) > 1:
-            raise ProbeException(
-                "Only 1 input interface is supported by ipfixprobe-dpdk at the time. "
-                "Behavior will be changed with future updates of ipfixprobe."
-            )
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeDpdkSettings(devices=interfaces_names, **kwargs)
         super().__init__(executor, target, protocols, interfaces, verbose, settings, sudo)
@@ -800,21 +795,21 @@ class IpfixprobeDpdk(Ipfixprobe):
 
         for dev in settings.devices:
             eal_params += ["-a", dev]
+        ports = ",".join(str(i) for i in range(len(settings.devices)))
 
-        for port, dev in enumerate(settings.devices):
-            dpdk_params = [f"p={port}"]
-            dpdk_params.append(f"q={settings.queues_count}")
-            if settings.mbuf_size:
-                dpdk_params.append(f"b={settings.mbuf_size}")
-            if settings.mempool_size:
-                dpdk_params.append(f"m={settings.mempool_size}")
-            eal_params_str = " ".join(eal_params)
-            dpdk_params.append(f"e={eal_params_str}")
+        dpdk_params = [f"p={ports}"]
+        dpdk_params.append(f"q={settings.queues_count}")
+        if settings.mbuf_size:
+            dpdk_params.append(f"b={settings.mbuf_size}")
+        if settings.mempool_size:
+            dpdk_params.append(f"m={settings.mempool_size}")
+        eal_params_str = " ".join(eal_params)
+        dpdk_params.append(f"e={eal_params_str}")
 
-            args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "dpdk", dpdk_params)
+        args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "dpdk", dpdk_params)
 
-            for _ in range(settings.queues_count - 1):
-                args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "dpdk", [])
+        for _ in range(settings.queues_count - 1):
+            args += self._get_plugin_arg(IpfixprobePluginType.INPUT, "dpdk", [])
 
         args += self._get_common_args(target, protocols, settings)
         return " ".join(args)

@@ -260,16 +260,23 @@ class TestWithFakeHost:
         )
         assert expected == fake_host.last_command
 
-        # Only 1 input interface is supported by ipfixprobe-dpdk at the time.
-        with pytest.raises(ProbeException):
-            probe = IpfixprobeDpdk(
-                fake_host,
-                ProbeTarget("127.0.0.1", 4739, "tcp"),
-                [],
-                [InterfaceCfg("0000:01:00.0", 10), InterfaceCfg("0000:01:00.1", 10), InterfaceCfg("0000:01:00.2", 10)],
-                False,
-                **kwargs,
-            )
+        probe = IpfixprobeDpdk(
+            fake_host,
+            ProbeTarget("127.0.0.1", 4739, "tcp"),
+            [],
+            [InterfaceCfg("0000:01:00.0", 10), InterfaceCfg("0000:01:00.1", 10), InterfaceCfg("0000:01:00.2", 10)],
+            False,
+            **kwargs,
+        )
+        probe.start()
+        probe.stop()
+
+        expected = (
+            'ipfixprobe -i "dpdk;p=0,1,2;q=4;b=128;m=4096;e=--lcores (0-3)@(0-3) -m 2048 --file-prefix ipfixprobe'
+            ' -a 0000:01:00.0 -a 0000:01:00.1 -a 0000:01:00.2" -i "dpdk" -i "dpdk" -i "dpdk" -s "cache;a=300;i=30"'
+            ' -o "ipfix;h=127.0.0.1;p=4739"'
+        )
+        assert expected == fake_host.last_command
 
     @staticmethod
     def test_prepare_cmd_ndp_plugin(fake_host):
