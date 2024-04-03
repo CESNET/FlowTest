@@ -257,15 +257,13 @@ def test_simulation_overload(
     flows_file = os.path.join(tmp_dir, "flows.csv")
     collector_instance.get_reader().save_csv(flows_file)
 
-    replicated_ref_file = os.path.join(tmp_dir, "replicated_ref.csv")
-    flow_replicator.replicate(
+    replicated_ref = flow_replicator.replicate(
         input_file=ref_file,
-        output_file=replicated_ref_file,
         loops=LOOPS,
         speed_multiplier=speed.speed if isinstance(speed, MultiplierSpeed) else 1.0,
     )
 
-    model = StatisticalModel(flows_file, replicated_ref_file, stats.start_time)
+    model = StatisticalModel(flows_file, replicated_ref, stats.start_time)
     report = model.validate([SMRule(scenario.test.analysis.metrics, segment) for segment in segments])
     report.print_results()
 

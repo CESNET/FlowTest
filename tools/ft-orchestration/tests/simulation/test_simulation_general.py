@@ -14,6 +14,7 @@ import os
 import shutil
 from typing import Optional
 
+import pandas as pd
 import pytest
 from ftanalyzer.models.precise_model import PreciseModel
 from ftanalyzer.models.sm_data_types import SMMetric, SMMetricType, SMRule
@@ -46,7 +47,7 @@ DEFAULT_REPLICATOR_PREFIX = 8
 def validate(
     analysis: AnalysisCfg,
     flows_file: str,
-    ref_file: str,
+    reference: pd.DataFrame,
     active_timeout: int,
     start_time: int,
     biflows: bool,
@@ -59,8 +60,8 @@ def validate(
         Object describing how the test results should be evaluated.
     flows_file: str
         Path to a file with flows from collector.
-    ref_file: str
-        Path to a file with reference flows.
+    reference: pd.DataFrame
+        Reference flows in DataFrame.
     active_timeout: int
         Active timeout which was used during flow creation process by the probe.
     start_time: int
@@ -76,7 +77,7 @@ def validate(
     """
 
     if analysis.model == "precise":
-        model = PreciseModel(flows_file, ref_file, active_timeout, start_time, biflows)
+        model = PreciseModel(flows_file, reference, active_timeout, start_time, biflows)
         precise_report = model.validate_precise()
 
         # precise model always expects zero faults
@@ -87,7 +88,7 @@ def validate(
         ]
         stats_report = model.validate([SMRule(metrics=metrics)])
     else:
-        model = StatisticalModel(flows_file, ref_file, start_time)
+        model = StatisticalModel(flows_file, reference, start_time)
         stats_report = model.validate([SMRule(analysis.metrics)])
         precise_report = None
 
@@ -250,10 +251,8 @@ def test_simulation_general(
     flows_file = os.path.join(tmp_dir, "flows.csv")
     collector_instance.get_reader().save_csv(flows_file)
 
-    replicated_ref_file = os.path.join(tmp_dir, "replicated_ref.csv")
-    flow_replicator.replicate(
+    replicated_ref = flow_replicator.replicate(
         input_file=ref_file,
-        output_file=replicated_ref_file,
         loops=scenario.test.loops,
         speed_multiplier=speed.speed if isinstance(speed, MultiplierSpeed) else 1.0,
     )
@@ -261,7 +260,7 @@ def test_simulation_general(
     stats_report, precise_report = validate(
         analysis=scenario.test.analysis,
         flows_file=flows_file,
-        ref_file=replicated_ref_file,
+        reference=replicated_ref,
         active_timeout=active_t,
         start_time=stats.start_time,
         biflows=device.get_biflow_export(),

@@ -5,12 +5,15 @@ Copyright: (C) 2023 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 """
+
 import ipaddress
 import logging
+import time
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from ftanalyzer.common.pandas_multiprocessing import PandasMultiprocessingHelper
 from ftanalyzer.models.sm_data_types import (
     SMException,
     SMMetricType,
@@ -82,7 +85,7 @@ class StatisticalModel:
     def __init__(
         self,
         flows: str,
-        reference: str,
+        reference: Union[str, pd.DataFrame],
         start_time: int = 0,
         merge: bool = False,
         biflows_ts_correction: bool = False,
@@ -93,8 +96,9 @@ class StatisticalModel:
         ----------
         flows : str
             Path to a CSV containing flow records acquired from a network probe.
-        reference : str
+        reference : str or pd.DataFrame
             Path to a CSV containing flow records acting as a reference.
+            Or DataFrame in corresponding format.
         start_time : int
             Treat times in the reference file as offsets (in milliseconds) from the provided start time.
             UTC timestamp in milliseconds.
@@ -119,8 +123,11 @@ class StatisticalModel:
             flows["DST_PORT"] = flows["DST_PORT"].fillna(0)
             self._flows = flows.astype(self.CSV_COLUMN_TYPES)
 
-            logging.getLogger().debug("reading file with references=%s", reference)
-            self._ref = pd.read_csv(reference, engine="pyarrow", dtype=self.CSV_COLUMN_TYPES)
+            if isinstance(reference, str):
+                logging.getLogger().debug("reading file with references=%s", reference)
+                self._ref = pd.read_csv(reference, engine="pyarrow", dtype=self.CSV_COLUMN_TYPES)
+            else:
+                self._ref = reference
         except Exception as err:
             raise SMException("Unable to read file with flows.") from err
 
@@ -131,10 +138,8 @@ class StatisticalModel:
         if merge:
             self._merge_flows(biflows_ts_correction)
 
-        self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(ipaddress.ip_address)
-        self._flows.loc[:, "DST_IP"] = self._flows["DST_IP"].apply(ipaddress.ip_address)
-        self._ref.loc[:, "SRC_IP"] = self._ref["SRC_IP"].apply(ipaddress.ip_address)
-        self._ref.loc[:, "DST_IP"] = self._ref["DST_IP"].apply(ipaddress.ip_address)
+        self._flows_ip_addresses_converted = False
+        self._ref_ip_addresses_converted = isinstance(reference, pd.DataFrame)
 
     def validate(self, rules: List[SMRule]) -> StatisticalReport:
         """Evaluate data in the statistical model based on the provided evaluation rules.
@@ -215,6 +220,24 @@ class StatisticalModel:
 
             self._flows = flows.loc[:, list(self.CSV_COLUMN_TYPES.keys()) + ["FLOW_COUNT"]]
 
+    def _convert_ip_addresses(self) -> None:
+        """Convert str ip addresses to objects (ipaddress library) in DataFrames."""
+
+        if self._flows_ip_addresses_converted and self._ref_ip_addresses_converted:
+            return
+
+        logging.getLogger().debug("Start applying ip_address...")
+        start = time.time()
+        with PandasMultiprocessingHelper() as pool:
+            pool.apply(self._flows, [("SRC_IP", ipaddress.ip_address, []), ("DST_IP", ipaddress.ip_address, [])])
+            if not self._ref_ip_addresses_converted:
+                # convert to object only when reference is loaded from CSV file
+                pool.apply(self._ref, [("SRC_IP", ipaddress.ip_address, []), ("DST_IP", ipaddress.ip_address, [])])
+        end = time.time()
+        logging.getLogger().debug("IP address applied in %.2f seconds.", (end - start))
+
+        self._flows_ip_addresses_converted, self._ref_ip_addresses_converted = (True, True)
+
     def _filter_segment(
         self, segment: Optional[Union[SMSubnetSegment, SMTimeSegment]]
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -232,6 +255,7 @@ class StatisticalModel:
         """
 
         if isinstance(segment, SMSubnetSegment):
+            self._convert_ip_addresses()
             return self._filter_subnet_segment(segment)
 
         if isinstance(segment, SMTimeSegment):

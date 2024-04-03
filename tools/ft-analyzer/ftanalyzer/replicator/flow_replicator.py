@@ -8,16 +8,18 @@ FlowReplicator tool. Tool is used to replicate flows in reference CSV file, whic
 in case a replicator (ft-replay) was used as a generator during testing.
 """
 
-
 from __future__ import annotations
 
 import ipaddress
+import logging
+import operator
 import re
 from dataclasses import dataclass
 from typing import Any, Iterable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from ftanalyzer.common.pandas_multiprocessing import PandasMultiprocessingHelper
 
 
 class FlowReplicatorException(Exception):
@@ -190,12 +192,11 @@ class FlowReplicator:
     def replicate(
         self,
         input_file: str,
-        output_file: str,
         loops: int,
         merge_across_loops: bool = False,
         inactive_timeout: int = -1,
         speed_multiplier: float = 1,
-    ) -> None:
+    ) -> pd.DataFrame:
         """Read source data and replicate source flows based on configuration.
         Save replication result to CSV file. Helper columns like "ORIG_INDEX" are not exported.
 
@@ -230,25 +231,34 @@ class FlowReplicator:
         except Exception as err:
             raise FlowReplicatorException("Unable to read file with flows.") from err
 
-        self._flows.loc[:, "SRC_IP"] = self._flows["SRC_IP"].apply(self.ip_address)
-        self._flows.loc[:, "DST_IP"] = self._flows["DST_IP"].apply(self.ip_address)
-        # index of source flow is used when merging flows within single loop
-        self._flows["ORIG_INDEX"] = self._flows.index
+        with PandasMultiprocessingHelper() as pool:
+            pool.apply(self._flows, [("SRC_IP", self.ip_address, []), ("DST_IP", self.ip_address, [])])
 
-        # transform speed to time multiplier
-        # e.g. time multiplier 0.5 corresponds to traffic played 2x faster
-        time_multiplier = 1 / speed_multiplier
+            # index of source flow is used when merging flows within single loop
+            self._flows["ORIG_INDEX"] = self._flows.index
 
-        # replicate and drop original record indexes - deduplicate
-        result = self._replicate(loops, time_multiplier)
-        result.reset_index(drop=True, inplace=True)
-        result.reindex()
+            # transform speed to time multiplier
+            # e.g. time multiplier 0.5 corresponds to traffic played 2x faster
+            time_multiplier = 1 / speed_multiplier
+
+            # replicate and drop original record indexes - deduplicate
+            result = self._replicate(loops, time_multiplier)
+            result.reset_index(drop=True, inplace=True)
+            result.reindex()
+
+            pool.binary(
+                result,
+                [
+                    ("SRC_IP", operator.add, "SRC_IP", "_SRC_IP_OFFSET", []),
+                    ("DST_IP", operator.add, "DST_IP", "_DST_IP_OFFSET", []),
+                ],
+            )
 
         if merge_across_loops:
             self._inactive_timeout = inactive_timeout * 1000 if inactive_timeout > -1 else None
             result = self._merge_across_loop(result)
 
-        result.loc[:, self.CSV_COLUMN_TYPES.keys()].to_csv(output_file, index=False)
+        return result.loc[:, self.CSV_COLUMN_TYPES.keys()]
 
     @staticmethod
     def _parse_config_item(item: str, src_dict: dict) -> Optional[IpAddConstant]:
@@ -361,13 +371,17 @@ class FlowReplicator:
         )
         self._flows["_START_OFFSET"] = ((self._flows["START_TIME"] - loop_start) * time_multiplier).astype(np.uint64)
 
-        res = pd.DataFrame()
+        self._flows["_SRC_IP_OFFSET"] = 0
+        self._flows["_DST_IP_OFFSET"] = 0
+
+        tmp_dataframes = []
         for loop_n in range(loops):
+            logging.getLogger().debug("Processing %d loop...", loop_n)
             if loop_n in self._ignore_loops:
                 continue
-            loop_flows = self._process_single_loop(loop_n, loop_start, loop_length)
-            res = pd.concat([res, loop_flows], axis=0)
+            tmp_dataframes.append(self._process_single_loop(loop_n, loop_start, loop_length))
 
+        res = pd.concat(tmp_dataframes, axis=0)
         return res
 
     def _process_single_loop(self, loop_n: int, global_start: int, loop_length: int) -> pd.DataFrame:
@@ -399,8 +413,9 @@ class FlowReplicator:
         flows = self._flows.copy()
         flows["START_TIME"] = time_offset + flows["_START_OFFSET"]
         flows["END_TIME"] = flows["START_TIME"] + flows["_FLOW_LEN"]
-        flows["SRC_IP"] = flows["SRC_IP"] + srcip_offset
-        flows["DST_IP"] = flows["DST_IP"] + dstip_offset
+
+        flows["_SRC_IP_OFFSET"] = flows["_SRC_IP_OFFSET"] + srcip_offset
+        flows["_DST_IP_OFFSET"] = flows["_DST_IP_OFFSET"] + dstip_offset
 
         res = [
             self._process_replication_unit(unit, flows)
@@ -413,7 +428,7 @@ class FlowReplicator:
         # (when replication unit does not change src nor dst ip)
         # ORIG_INDEX - leave flows that are separated in input csv unmerged - expectation of correct reference
         # (e.g. two flows with the same flow key at different times)
-        key = self.FLOW_KEY + ["ORIG_INDEX"]
+        key = self.FLOW_KEY + ["ORIG_INDEX", "_SRC_IP_OFFSET", "_DST_IP_OFFSET"]
         res = res.groupby(key, sort=False).agg(self.AGGREGATE_SPLIT_FLOWS).reset_index()
         res.reindex()
         res.sort_values(by=["ORIG_INDEX"], inplace=True)
@@ -438,9 +453,9 @@ class FlowReplicator:
 
         flows = orig_flows.copy()
         if unit.srcip:
-            flows["SRC_IP"] = flows["SRC_IP"] + unit.srcip.value
+            flows["_SRC_IP_OFFSET"] = flows["_SRC_IP_OFFSET"] + unit.srcip.value
         if unit.dstip:
-            flows["DST_IP"] = flows["DST_IP"] + unit.dstip.value
+            flows["_DST_IP_OFFSET"] = flows["_DST_IP_OFFSET"] + unit.dstip.value
         return flows
 
     def _merge_func(self, group: pd.DataFrame) -> pd.DataFrame:
