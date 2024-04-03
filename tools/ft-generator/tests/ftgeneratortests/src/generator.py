@@ -126,6 +126,7 @@ class Generator:
         In all cases, function created new temporary profiles file, which will be used by generator.
 
         If Path provided, profiles will be copied.
+        If FlowCache provided, profiles are converted to csv and written to file.
         If str provided, content is written to file.
         If None provided, default ones will be used.
 
