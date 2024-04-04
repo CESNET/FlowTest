@@ -7,7 +7,6 @@ SPDX-License-Identifier: BSD-3-Clause
 Base class for probe, generator and collector builder. Used by topology for constructing objects by pytest arguments.
 """
 
-
 import datetime
 import logging
 import pkgutil
