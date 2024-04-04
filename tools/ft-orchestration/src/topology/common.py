@@ -71,6 +71,16 @@ def pytest_addoption(parser: pytest.Parser):
         help="Archive data to analyze (CSV file) in log directory. Relevant for simulation tests.",
     )
 
+    parser.addoption(
+        "--extra-import-path",
+        action="append",
+        default=[],
+        help=(
+            "Add a relative or absolute path from which connectors are imported. "
+            "Argument can be used repeatedly to add more dirs. Extra paths has higher priority."
+        ),
+    )
+
 
 @pytest.fixture(scope="session")
 def config(request: pytest.FixtureRequest) -> Config:
