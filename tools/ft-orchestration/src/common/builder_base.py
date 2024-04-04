@@ -190,13 +190,13 @@ class BuilderBase(ABC):
         logging.getLogger().info("Environment setup with ansible done.")
 
     @staticmethod
-    def _find_class(module_path: str, class_name: str, interface: type):
+    def _find_class(module_paths: list[str], class_name: str, interface: type):
         """Get dynamically imported class by name and interface in given directory.
 
         Parameters
         ----------
-        module_path : str
-            Path to a directory to search in.
+        module_paths : list[str]
+            List of paths to directories to search in.
         class_name : str
             Name of searched class.
         interface : type
@@ -213,7 +213,7 @@ class BuilderBase(ABC):
             If class not found.
         """
 
-        for finder, submodule_name, is_pkg in pkgutil.walk_packages([module_path]):
+        for finder, submodule_name, is_pkg in pkgutil.walk_packages(module_paths):
             if is_pkg:
                 continue
             submodule = finder.find_module(submodule_name).load_module(submodule_name)

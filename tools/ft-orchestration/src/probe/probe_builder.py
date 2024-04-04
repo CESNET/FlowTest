@@ -82,7 +82,7 @@ class ProbeBuilder(BuilderBase, Device):
         # cmd additional arguments has higher priority, update arguments from config
         self._connector_args.update(cmd_connector_args)
 
-        self._class = self._find_class(PROBE_IMPORT_PATH, probe_cfg.type, ProbeInterface)
+        self._class = self._find_class([PROBE_IMPORT_PATH], probe_cfg.type, ProbeInterface)
 
     # pylint: disable=arguments-differ
     def get(self, protocols: list[str], mtu: Optional[int] = None, **kwargs) -> ProbeInterface:

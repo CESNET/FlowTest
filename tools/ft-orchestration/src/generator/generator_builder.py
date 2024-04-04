@@ -89,7 +89,7 @@ class GeneratorBuilder(BuilderBase, Generator):
             raise BuilderError("Number of generator interfaces should match number of probe interfaces.")
 
         interface = Replicator if replicator else PcapPlayer
-        self._class = self._find_class(GENERATOR_IMPORT_PATH, generator_cfg.type, interface)
+        self._class = self._find_class([GENERATOR_IMPORT_PATH], generator_cfg.type, interface)
 
     # pylint: disable=arguments-differ
     def get(self, mtu: Optional[int] = None) -> Union[PcapPlayer, Replicator]:
