@@ -71,6 +71,20 @@ The ft-replay tool is typically used as a replicator.
                             E.g.: ftreplay:vlan=90;orig-mac;mtu=3500
 ```
 
+### Additional pytest arguments
+The orchestration tool specifies additional optional arguments that may be useful for debugging purposes or for
+non-standard use cases.
+
+```
+--disable-ansible           Disable objects (generator, probe, collector) preparation via ansible.
+
+--archive-test-data         Archive test data (CSV file) in the log directory for later analysis.
+                            Relevant for simulation tests.
+
+--extra-import-path         Add a relative or absolute path from which connectors are imported.
+                            Argument can be used repeatedly to add more dirs. Extra paths has higher priority.
+```
+
 ### Validation tests
 Description and annotation of the validation tests can be found in `flowtest_root/testing/validation`. According to the
 YAML files in this folder, the tests are dynamically generated and tagged with the `validation` marker. This can be used
