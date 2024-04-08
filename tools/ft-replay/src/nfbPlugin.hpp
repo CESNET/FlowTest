@@ -34,6 +34,7 @@ namespace replay {
 struct NfbPluginConfig {
 	std::string deviceName;
 	size_t queueCount = 0;
+	size_t queueOffset = 0;
 	size_t maxBurstSize = 64;
 	size_t packetSize = 0;
 	SuperPacketsMode superPacketsMode = SuperPacketsMode::Auto;
