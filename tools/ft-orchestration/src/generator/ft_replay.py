@@ -7,7 +7,6 @@ SPDX-License-Identifier: BSD-3-Clause
 Connector for ft-replay tool.
 """
 
-
 import logging
 import re
 import shutil
