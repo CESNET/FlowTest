@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=42", "wheel>=0.34"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fttrimmer"
+version = "1.0.0"
+description = "Library for trimming network profiles from ft-profiler tool."
+authors = [
+  {name = " Vaclav Seidler", email = "Vaclav.Seidler@progress.com"},
+]
+maintainers = [
+  {name = " Vaclav Seidler", email = "Vaclav.Seidler@progress.com"}
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD-3-Clause",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+
+dependencies = [
+  "numpy",
+  "pandas",
+]
+
+[project.scripts]
+fttrimmer = "fttrimmer.fttrimmer:main"
