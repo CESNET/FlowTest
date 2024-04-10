@@ -64,6 +64,13 @@ def pytest_addoption(parser: pytest.Parser):
         help="Disable objects (generator, probe, collector) preparation via ansible.",
     )
 
+    parser.addoption(
+        "--archive-test-data",
+        choices=["no", "failed", "always"],
+        default="no",
+        help="Archive data to analyze (CSV file) in log directory. Relevant for simulation tests.",
+    )
+
 
 @pytest.fixture(scope="session")
 def config(request: pytest.FixtureRequest) -> Config:

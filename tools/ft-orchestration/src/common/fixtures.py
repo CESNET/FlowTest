@@ -9,6 +9,7 @@ Pytest fixtures for the use in testing scenarios.
 
 import datetime
 import os
+import shutil
 import tempfile
 
 import pytest
@@ -135,3 +136,22 @@ def fixture_xfail_by_probe(request: pytest.FixtureRequest, test_id: str, device:
             whitelist_segment = whitelist.get_items(mark.name)
             if whitelist_segment and test_id in whitelist_segment:
                 request.applymarker(pytest.mark.xfail(run=True, reason=whitelist_segment[test_id] or ""))
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Function):
+    """Hook to save CSV data when archive-test-data argument is specified.
+
+    Parameters
+    ----------
+    item: pytest.Function
+        Test item.
+    """
+
+    outcome = yield
+    report = outcome.get_result()
+
+    if report.when == "call":
+        archive_data = item.config.getoption("archive_test_data")
+        if (archive_data == "failed" and report.outcome == "failed") or archive_data == "always":
+            shutil.move(item.funcargs.get("tmp_dir"), os.path.join(item.funcargs.get("log_dir"), "data"))

@@ -11,7 +11,6 @@ and evaluating the number of processed packets before and after the flooding per
 import ipaddress
 import logging
 import os
-import shutil
 
 import pytest
 from ftanalyzer.models.sm_data_types import SMRule, SMSubnetSegment
@@ -270,5 +269,4 @@ def test_simulation_overload(
     HTMLReportData.simulation_summary_report.update_stats("sim_overload", report.is_passing())
 
     if not report.is_passing():
-        shutil.move(tmp_dir, os.path.join(log_dir, "data"))
         assert False, f"evaluation of test: {request.function.__name__}[{test_id}] failed"
