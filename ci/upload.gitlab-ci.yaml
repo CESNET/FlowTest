@@ -8,12 +8,7 @@ upload python packages:
       export TWINE_PASSWORD=${CI_JOB_TOKEN}
 
       set +e  # allow errors (job ends if return code isn't 0 by default)
-      pipenv run python3 -m twine upload --verbose --repository-url $REPO_URL tools/**/dist/* > out.txt
-      if [ $? != 0 ]; then
-          # ignore error if file already exists, otherwise raise an error
-          set -e
-          cat out.txt | grep "File name has already been taken"
-      fi
+      pipenv run python3 -m twine upload --verbose --skip-existing --repository-url $REPO_URL tools/**/dist/*
   only: ['main']
 
 upload rpm package:
