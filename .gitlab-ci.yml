@@ -22,3 +22,4 @@ variables:
   DOCKER_SHELL_TAG: docker-ci-shell
   DOCKER_IMAGE_TAG: docker-ci-image
   DOCKER_IMAGE: $CI_PROJECT_PATH_SLUG/$CI_COMMIT_REF_SLUG
+  FF_SCRIPT_SECTIONS: true
