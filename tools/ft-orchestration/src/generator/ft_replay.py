@@ -15,6 +15,7 @@ import time
 from dataclasses import dataclass, field, fields
 from os import path
 from pathlib import Path
+from string import digits
 from typing import Iterable, Optional, Union
 
 import yaml
@@ -139,7 +140,13 @@ class FtReplayOutputPluginSettings:
         if self.output_plugin in ["raw", "xdp", "packet"]:
             args.append(f"ifc={interface}")
         if self.output_plugin == "nfb":
-            args.append(f"device={interface}")
+            if interface.rstrip(digits)[-1] == ",":
+                dev, queue_offset = interface.rsplit(",", 1)
+            else:
+                dev = interface
+                queue_offset = 0
+            args.append(f"device={dev}")
+            args.append(f"queueOffset={queue_offset}")
         if self.output_plugin == "pcapFile":
             args.append(f"file={interface}")
 
