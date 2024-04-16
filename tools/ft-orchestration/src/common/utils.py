@@ -9,7 +9,7 @@ Functions with different purpose which can be utilized in testing scenarios.
 
 import logging
 import os
-from typing import Optional
+from typing import Optional, Union
 
 import pytest
 from dataclass_wizard.errors import MissingFields, ParseError
@@ -51,7 +51,10 @@ def download_logs(dest: str, **kwargs) -> None:
 
 
 def get_replicator_prefix(
-    min_prefix: int, default_prefix: int, ipv4_range: Optional[str], ipv6_range: Optional[str]
+    min_prefix: int,
+    default_prefix: int,
+    ipv4_range: Optional[Union[list[str], str]],
+    ipv6_range: Optional[Union[list[str], str]],
 ) -> int:
     """Determine the value for replicator prefix so that it does not overlap with provided configuration.
 
@@ -61,9 +64,9 @@ def get_replicator_prefix(
         Minimum prefix value which is acceptable.
     default_prefix: int
         Default prefix value to be used if possible.
-    ipv4_range: str, None
+    ipv4_range: str or list[str], None
         IPv4 range settings for the generator.
-    ipv6_range: str, None
+    ipv6_range: str or list[str], None
         IPv6 range settings for the generator.
 
     Returns
@@ -72,8 +75,20 @@ def get_replicator_prefix(
         Prefix which should be used in the replicator.
     """
 
-    ipv4_prefix = 32 if ipv4_range is None else int(ipv4_range.split("/")[1])
-    ipv6_prefix = 32 if ipv6_range is None else int(ipv6_range.split("/")[1])
+    if isinstance(ipv4_range, str):
+        ipv4_prefix = int(ipv4_range.split("/")[1])
+    elif isinstance(ipv4_range, list):
+        ipv4_prefix = min(int(r.split("/")[1]) for r in ipv4_range)
+    else:
+        ipv4_prefix = 32
+
+    if isinstance(ipv6_range, str):
+        ipv6_prefix = int(ipv6_range.split("/")[1])
+    elif isinstance(ipv6_range, list):
+        ipv6_prefix = min(int(r.split("/")[1]) for r in ipv6_range)
+    else:
+        ipv6_prefix = 32
+
     configured_prefix = min([ipv4_prefix, ipv6_prefix])
 
     # check prefixes do not overlap
