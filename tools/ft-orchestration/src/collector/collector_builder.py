@@ -27,6 +27,7 @@ class CollectorBuilder(BuilderBase, Analyzer):
         self,
         config: Config,
         disable_ansible: bool,
+        extra_import_paths: list[str],
         alias: str,
         input_plugin: str,
         port: int,
@@ -40,6 +41,8 @@ class CollectorBuilder(BuilderBase, Analyzer):
             Static configuration object.
         disable_ansible: bool
             If True, ansible preparation (with ansible_playbook_role) is disabled.
+        extra_import_paths: list[str]
+            Extra paths from which connectors are imported.
         alias : str
             Unique identifier in static configuration.
         input_plugin : str
@@ -69,7 +72,8 @@ class CollectorBuilder(BuilderBase, Analyzer):
         self._probe_target = ProbeTarget(collector_cfg.name, port, input_plugin)
         self._connector_args = cmd_connector_args
 
-        self._class = self._find_class(COLLECTOR_IMPORT_PATH, collector_cfg.type, CollectorInterface)
+        import_paths = extra_import_paths + [COLLECTOR_IMPORT_PATH]
+        self._class = self._find_class(import_paths, collector_cfg.type, CollectorInterface)
 
     # pylint: disable=arguments-differ
     def get(self) -> CollectorInterface:

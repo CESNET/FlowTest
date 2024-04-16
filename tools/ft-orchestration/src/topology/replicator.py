@@ -98,10 +98,12 @@ def topology_replicator(
     )
 
     disable_ansible = request.config.getoption("disable_ansible")
+    extra_import_paths = request.config.getoption("extra_import_path")
 
     collector_builder = CollectorBuilder(
         config,
         disable_ansible,
+        extra_import_paths,
         collector_option.alias,
         collector_option.arguments.pop("protocol"),
         collector_option.arguments.pop("port"),
@@ -112,6 +114,7 @@ def topology_replicator(
     probe_builder = ProbeBuilder(
         config,
         disable_ansible,
+        extra_import_paths,
         probe_option.alias,
         collector_builder.get_probe_target(),
         probe_option.arguments.pop("ifc"),
@@ -122,6 +125,7 @@ def topology_replicator(
     generator_builder = GeneratorBuilder(
         config,
         disable_ansible,
+        extra_import_paths,
         generator_option.alias,
         [ifc.mac for ifc in probe_builder.get_enabled_interfaces()],
         probe_builder.get_biflow_export(),

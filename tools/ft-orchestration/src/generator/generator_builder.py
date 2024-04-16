@@ -20,6 +20,7 @@ from src.generator.interface import PcapPlayer, Replicator
 GENERATOR_IMPORT_PATH = path.dirname(path.realpath(__file__))
 
 
+# pylint: disable=too-many-arguments
 class GeneratorBuilder(BuilderBase, Generator):
     """Builder for creating a generator instance based on a static configuration.
     Generator class is dynamically imported from module in 'generator' directory."""
@@ -28,6 +29,7 @@ class GeneratorBuilder(BuilderBase, Generator):
         self,
         config: Config,
         disable_ansible: bool,
+        extra_import_paths: List[str],
         alias: str,
         probe_mac_addresses: List[str],
         biflow_export: bool,
@@ -44,6 +46,8 @@ class GeneratorBuilder(BuilderBase, Generator):
             Static configuration object.
         disable_ansible: bool
             If True, ansible preparation (with ansible_playbook_role) is disabled.
+        extra_import_paths: List[str]
+            Extra paths from which connectors are imported.
         alias : str
             Unique identifier in static configuration.
         probe_mac_addresses : List[str]
@@ -89,7 +93,8 @@ class GeneratorBuilder(BuilderBase, Generator):
             raise BuilderError("Number of generator interfaces should match number of probe interfaces.")
 
         interface = Replicator if replicator else PcapPlayer
-        self._class = self._find_class(GENERATOR_IMPORT_PATH, generator_cfg.type, interface)
+        import_paths = extra_import_paths + [GENERATOR_IMPORT_PATH]
+        self._class = self._find_class(import_paths, generator_cfg.type, interface)
 
     # pylint: disable=arguments-differ
     def get(self, mtu: Optional[int] = None) -> Union[PcapPlayer, Replicator]:

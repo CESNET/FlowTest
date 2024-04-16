@@ -30,6 +30,7 @@ class ProbeBuilder(BuilderBase, Device):
         self,
         config: Config,
         disable_ansible: bool,
+        extra_import_paths: List[str],
         alias: str,
         target: ProbeTarget,
         enabled_interfaces: List[str],
@@ -43,6 +44,8 @@ class ProbeBuilder(BuilderBase, Device):
             Static configuration object.
         disable_ansible: bool
             If True, ansible preparation (with ansible_playbook_role) is disabled.
+        extra_import_paths: List[str]
+            Extra paths from which connectors are imported.
         alias : str
             Unique identifier in static configuration.
         target : ProbeTarget
@@ -82,7 +85,8 @@ class ProbeBuilder(BuilderBase, Device):
         # cmd additional arguments has higher priority, update arguments from config
         self._connector_args.update(cmd_connector_args)
 
-        self._class = self._find_class(PROBE_IMPORT_PATH, probe_cfg.type, ProbeInterface)
+        import_paths = extra_import_paths + [PROBE_IMPORT_PATH]
+        self._class = self._find_class(import_paths, probe_cfg.type, ProbeInterface)
 
     # pylint: disable=arguments-differ
     def get(self, protocols: list[str], mtu: Optional[int] = None, **kwargs) -> ProbeInterface:
