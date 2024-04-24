@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 Orchestration configuration entity - ProbeCfg"""
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from dataclass_wizard import YAMLWizard
 from src.config.authentication import AuthenticationCfg
@@ -19,6 +19,7 @@ class ProbeCfgException(Exception):
     """Exception raised by the ProbeCfg class"""
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class ProbeCfg(YAMLWizard):
     """ProbeCfg configuration entity"""
@@ -31,6 +32,9 @@ class ProbeCfg(YAMLWizard):
     protocols: List[str]
     connector: Optional[dict] = None
     ansible_playbook_role: Optional[str] = None
+    ansible_extra_vars: Optional[dict[str, Any]] = None
+    ansible_host_group: Optional[str] = None
+    ansible_skip_tags: Optional[list[str]] = None
     tests_whitelist: Optional[str] = None
     biflow_export: bool = False
 
