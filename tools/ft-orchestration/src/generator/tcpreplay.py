@@ -14,7 +14,7 @@ import shutil
 import tempfile
 from os import path
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from lbr_testsuite.executable import (
     AsyncTool,
@@ -89,16 +89,18 @@ class TcpReplay(PcapPlayer):
         self._work_dir = tempfile.mkdtemp()
         self._log_file = Path(self._work_dir, "tcpreplay.log")
 
-    def add_interface(self, ifc_name: str, dst_mac: Optional[str] = None):
+    def add_interface(self, ifc_name: str, dst_mac: Optional[Union[str, list[str]]] = None):
         """Add interface on which traffic will be replayed.
 
         Parameters
         ----------
         ifc_name : str
             String name of interface, e.g. os name or pci address.
-        dst_mac : str, optional
+        dst_mac : str or list, optional
             If specified, destination mac address will be edited
             in packets which are replayed on interface.
+            Use list of mac addresses to distribute packets to
+            multiple probe interfaces.
 
         Raises
         ------
@@ -110,7 +112,15 @@ class TcpReplay(PcapPlayer):
             raise RuntimeError("Tcpreplay generator supports only one replaying interface.")
 
         self._interface = ifc_name
-        self._dst_mac = dst_mac
+        if isinstance(dst_mac, list):
+            if len(dst_mac) == 1:
+                self._dst_mac = dst_mac[0]
+            elif len(dst_mac) == 0:
+                self._dst_mac = None
+            else:
+                raise RuntimeError("Tcpreplay does not support multiple destination mac addresses.")
+        else:
+            self._dst_mac = dst_mac
 
     # pylint: disable=arguments-differ
     def start(
