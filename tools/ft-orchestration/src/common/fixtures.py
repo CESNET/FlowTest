@@ -154,4 +154,7 @@ def pytest_runtest_makereport(item: pytest.Function):
     if report.when == "call":
         archive_data = item.config.getoption("archive_test_data")
         if (archive_data == "failed" and report.outcome == "failed") or archive_data == "always":
-            shutil.move(item.funcargs.get("tmp_dir"), os.path.join(item.funcargs.get("log_dir"), "data"))
+            _tmp_dir = item.funcargs.get("tmp_dir")
+            _log_dir = item.funcargs.get("log_dir")
+            if isinstance(_tmp_dir, str) and isinstance(_log_dir, str):
+                shutil.move(_tmp_dir, os.path.join(_log_dir, "data"))
