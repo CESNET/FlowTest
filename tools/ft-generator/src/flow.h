@@ -129,6 +129,7 @@ private:
 	std::vector<std::unique_ptr<Layer>> _layerStack;
 
 	const config::Config& _config; //< Reference to the generator configuration
+	uint64_t _sizeTillIpLayer;
 
 	/**
 	 * @brief Add new protocol layer.

@@ -32,6 +32,7 @@
 #include "timestampgenerator.h"
 #include "utils.h"
 
+#include <pcapplusplus/EthLayer.h>
 #include <pcapplusplus/IPv4Layer.h>
 #include <pcapplusplus/IPv6Layer.h>
 #include <pcapplusplus/IcmpLayer.h>
@@ -39,6 +40,7 @@
 #include <pcapplusplus/Packet.h>
 #include <pcapplusplus/TcpLayer.h>
 #include <pcapplusplus/UdpLayer.h>
+#include <pcapplusplus/VlanLayer.h>
 
 #include <algorithm>
 #include <cassert>
@@ -49,6 +51,9 @@
 
 namespace generator {
 
+static constexpr int ETH_HDR_SIZE = sizeof(pcpp::ether_header);
+static constexpr int MPLS_HDR_SIZE = 4; // pcpp doesn't expose the struct, so we cannot use sizeof
+static constexpr int VLAN_HDR_SIZE = sizeof(pcpp::vlan_header);
 static constexpr int ICMP_HDR_SIZE = sizeof(pcpp::icmphdr);
 static constexpr int ICMPV6_HDR_SIZE = sizeof(pcpp::icmpv6hdr);
 static constexpr int IPV4_HDR_SIZE = sizeof(pcpp::iphdr);
@@ -167,6 +172,19 @@ ShouldTlsEncrypt(const config::TlsEncryption& encryptionConfig, const FlowProfil
 	return RandomGenerator::GetInstance().RandomDouble() < probability;
 }
 
+static std::vector<IntervalInfo>
+AdjustPacketSizesToL3(std::vector<IntervalInfo> intervals, uint64_t sizeTillIpLayer)
+{
+	for (IntervalInfo& interval : intervals) {
+		if (interval._from < sizeTillIpLayer || interval._to < sizeTillIpLayer) {
+			throw std::invalid_argument("minimal packet size is too low");
+		}
+		interval._from -= sizeTillIpLayer;
+		interval._to -= sizeTillIpLayer;
+	}
+	return intervals;
+}
+
 Flow::Flow(
 	uint64_t id,
 	const FlowProfile& profile,
@@ -183,6 +201,7 @@ Flow::Flow(
 	, _config(config)
 {
 	// ==================================== L2 ====================================
+	_sizeTillIpLayer = ETH_HDR_SIZE;
 	AddLayer(std::make_unique<Ethernet>(addresses._srcMac, addresses._dstMac));
 
 	// Optional L2 encapsulation
@@ -191,15 +210,17 @@ Flow::Flow(
 		const auto& layer = encapsLayers[i];
 		if (const auto* vlan = std::get_if<config::EncapsulationLayerVlan>(&layer)) {
 			AddLayer(std::make_unique<Vlan>(vlan->GetId()));
+			_sizeTillIpLayer += VLAN_HDR_SIZE;
 		} else if (const auto* mpls = std::get_if<config::EncapsulationLayerMpls>(&layer)) {
 			AddLayer(std::make_unique<Mpls>(mpls->GetLabel()));
+			_sizeTillIpLayer += MPLS_HDR_SIZE;
 		} else {
 			throw std::runtime_error("Invalid encapsulation layer");
 		}
 	}
 
 	// ==================================== L3 ====================================
-	uint64_t headerLengthsFromIpLayer = 0;
+	uint64_t sizeFromIpLayer = 0;
 
 	switch (profile._l3Proto) {
 	case L3Protocol::Unknown:
@@ -215,7 +236,7 @@ Flow::Flow(
 			config.GetIPv4().GetFragmentationProbability(),
 			config.GetIPv4().GetMinPacketSizeToFragment()));
 
-		headerLengthsFromIpLayer += IPV4_HDR_SIZE;
+		sizeFromIpLayer += IPV4_HDR_SIZE;
 	} break;
 
 	case L3Protocol::Ipv6: {
@@ -228,7 +249,7 @@ Flow::Flow(
 			config.GetIPv6().GetFragmentationProbability(),
 			config.GetIPv6().GetMinPacketSizeToFragment()));
 
-		headerLengthsFromIpLayer += IPV6_HDR_SIZE;
+		sizeFromIpLayer += IPV6_HDR_SIZE;
 	} break;
 	}
 
@@ -239,12 +260,12 @@ Flow::Flow(
 
 	case L4Protocol::Tcp: {
 		AddLayer(std::make_unique<Tcp>(profile._srcPort, profile._dstPort));
-		headerLengthsFromIpLayer += TCP_HDR_SIZE;
+		sizeFromIpLayer += TCP_HDR_SIZE;
 	} break;
 
 	case L4Protocol::Udp: {
 		AddLayer(std::make_unique<Udp>(profile._srcPort, profile._dstPort));
-		headerLengthsFromIpLayer += UDP_HDR_SIZE;
+		sizeFromIpLayer += UDP_HDR_SIZE;
 	} break;
 
 	case L4Protocol::Icmp: {
@@ -268,7 +289,7 @@ Flow::Flow(
 	if (enabledProtocols.Includes(config::PayloadProtocol::Tls)
 		&& ShouldTlsEncrypt(_config.GetPayload().GetTlsEncryption(), profile)) {
 		uint64_t maxTlsPayloadSize = _config.GetPacketSizeProbabilities().MaxNormalizedPacketSize();
-		maxTlsPayloadSize = SafeSub(maxTlsPayloadSize, headerLengthsFromIpLayer);
+		maxTlsPayloadSize = SafeSub(maxTlsPayloadSize, _sizeTillIpLayer + sizeFromIpLayer);
 		AddLayer(std::make_unique<Tls>(maxTlsPayloadSize));
 
 	} else if (
@@ -472,7 +493,9 @@ void Flow::PlanPacketsTimestamps()
 
 void Flow::PlanPacketsSizes()
 {
-	const auto& intervals = _config.GetPacketSizeProbabilities().AsNormalizedIntervals();
+	const auto& intervals = AdjustPacketSizesToL3(
+		_config.GetPacketSizeProbabilities().AsNormalizedIntervals(),
+		_sizeTillIpLayer);
 	auto fwdGen = PacketSizeGenerator::Construct(intervals, _fwdPackets, _fwdBytes);
 	auto revGen = PacketSizeGenerator::Construct(intervals, _revPackets, _revBytes);
 

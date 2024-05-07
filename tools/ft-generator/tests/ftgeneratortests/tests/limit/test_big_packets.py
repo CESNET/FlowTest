@@ -8,6 +8,7 @@ SPDX-License-Identifier: BSD-3-Clause
 File contains big packets test for ft-generator module.
 """
 
+import pytest
 from ftgeneratortests.src import (
     MTU_SIZE,
     Flow,
@@ -17,6 +18,56 @@ from ftgeneratortests.src import (
     parse_pcap,
     parse_report,
 )
+from scapy.utils import PcapReader
+
+
+def create_vlan_config() -> GeneratorConfig:
+    """Function used to create custom configuration for generator.
+
+    Returns
+    -------
+    GeneratorConfig
+        Created generator configuration.
+    """
+
+    config = GeneratorConfig(
+        [
+            GeneratorConfig.Encapsulation(
+                [
+                    GeneratorConfig.Encapsulation.Layer("vlan", None, 1),
+                    GeneratorConfig.Encapsulation.Layer("vlan", None, 2),
+                ],
+                "100%",
+            ),
+        ],
+        None,
+        None,
+    )
+    return config
+
+
+def create_mpls_config() -> GeneratorConfig:
+    """Function used to create custom configuration for generator.
+
+    Returns
+    -------
+    GeneratorConfig
+        Created generator configuration.
+    """
+
+    config = GeneratorConfig(
+        [
+            GeneratorConfig.Encapsulation(
+                [
+                    GeneratorConfig.Encapsulation.Layer("mpls", 3, None),
+                ],
+                "100%",
+            ),
+        ],
+        None,
+        None,
+    )
+    return config
 
 
 def create_profiles() -> FlowCache:
@@ -46,7 +97,8 @@ def create_profiles() -> FlowCache:
     return flow_cache
 
 
-def test_big_packets(ft_generator: Generator):
+@pytest.mark.parametrize("config", [GeneratorConfig(), create_vlan_config(), create_mpls_config()])
+def test_big_packets(ft_generator: Generator, config: GeneratorConfig):
     """Test verifies if too big packets can be generated.
     Ft-generator should fail or modify packet size.
 
@@ -60,6 +112,9 @@ def test_big_packets(ft_generator: Generator):
 
     pcap_file, report_file = ft_generator.generate(config, create_profiles())
 
+    for packet in PcapReader(pcap_file.as_posix()):
+        assert len(packet) <= MTU_SIZE
+
     pcap = parse_pcap(pcap_file)
     report = parse_report(report_file)
 
@@ -67,4 +122,4 @@ def test_big_packets(ft_generator: Generator):
 
     for key, value in pcap.items():
         assert value.compare_content(report.get(key))
-        assert report.get(key).packets == 1 and report.get(key).bytes < MTU_SIZE
+        assert report.get(key).packets == 1 and report.get(key).bytes <= MTU_SIZE

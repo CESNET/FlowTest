@@ -9,8 +9,6 @@
 #include "packetsizeprobabilities.h"
 #include "common.h"
 
-#include <pcapplusplus/EthLayer.h>
-
 #include <algorithm>
 #include <numeric>
 
@@ -24,20 +22,6 @@ const static std::vector<IntervalInfo> DEFAULT_PACKET_SIZE_PROBABILITIES
 	   {320, 639, 0.012},
 	   {640, 1279, 0.0092},
 	   {1280, 1514, 0.6119}};
-
-static constexpr int ETHER_HDR_SIZE = sizeof(pcpp::ether_header);
-
-static std::vector<IntervalInfo> AdjustPacketSizesToL3(std::vector<IntervalInfo> intervals)
-{
-	for (IntervalInfo& interval : intervals) {
-		if (interval._from < ETHER_HDR_SIZE || interval._to < ETHER_HDR_SIZE) {
-			throw std::invalid_argument("value must be at least the size of an L2 header");
-		}
-		interval._from -= ETHER_HDR_SIZE;
-		interval._to -= ETHER_HDR_SIZE;
-	}
-	return intervals;
-}
 
 static bool IntervalContains(const IntervalInfo& interval, uint64_t value)
 {
@@ -84,9 +68,6 @@ static std::vector<IntervalInfo> NormalizeIntervals(std::vector<IntervalInfo> in
 		first = false;
 	}
 	intervals = std::move(tmp);
-
-	// Adjust to L3
-	intervals = AdjustPacketSizesToL3(intervals);
 
 	return intervals;
 }
