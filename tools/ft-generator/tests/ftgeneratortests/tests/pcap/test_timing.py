@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from ftgeneratortests.src import (
-    TIMING_REL_TOLERANCE,
+    TIMING_ABS_TOLERANCE,
     Generator,
     GeneratorConfig,
     parse_pcap,
@@ -78,5 +78,5 @@ def test_timing(ft_generator: Generator, custom_config: Optional[Path]):
     assert len(pcap) == len(report)
 
     for key, value in pcap.items():
-        assert math.isclose(value.start_time, report.get(key).start_time, rel_tol=TIMING_REL_TOLERANCE)
-        assert math.isclose(value.end_time, report.get(key).end_time, rel_tol=TIMING_REL_TOLERANCE)
+        assert math.isclose(value.start_time, report.get(key).start_time, abs_tol=TIMING_ABS_TOLERANCE)
+        assert math.isclose(value.end_time, report.get(key).end_time, abs_tol=TIMING_ABS_TOLERANCE)
