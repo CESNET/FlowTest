@@ -51,10 +51,6 @@ class FtGeneratorConfig(YAMLWizard, JSONWizard, key_transform="SNAKE"):
         A map of values, where key is a definition of an interval in the form of
         <lower bound>-<upper bound>, e.g. 100-200, and value is a probability of
         choosing a value from that interval in the form of a floating point number 0.0.
-    max_flow_inter_packet_gap: int, optional
-        Specifies the maximum number of seconds two consecutive packets in a flow can be apart.
-        In case the constraint could not be fulfilled, the flow will be trimmed resulting in
-        a different END_TIME than the provided one. None = no limit.
     """
 
     @dataclass
@@ -146,12 +142,58 @@ class FtGeneratorConfig(YAMLWizard, JSONWizard, key_transform="SNAKE"):
 
         mac_range: Union[list[str], str]
 
+    @dataclass
+    class Timestamps:
+        """Definition of timestamp configuration.
+
+        Attributes
+        ----------
+        link_speed: Optional[str]
+            The speed of the link used for calculation of the minimal duration needed to transfer a packet
+            onto the wire, specified as a integer value and a speed unit (i.e. `100000 mbps`, `400 gbps`)
+            _(default = 100 gbps)_
+        min_packet_gap: Optional[str]
+            _Additional_ delay to wait after each packet expressed as a time unit
+            (e.g. `1 s`, `1 ms`, `10 us`, `500 ns`) _(default = no delay)_
+        flow_min_dir_switch_gap: Optional[str]
+            _Minimal_ delay to wait between two consequent packets of a flow of different
+            directions expressed as a time unit (see above)
+            _(default = no delay)_
+        flow_max_interpacket_gap: Optional[str]
+            Maximum delay between two consequent packets of a flow expressed as a time unit (see above)
+            _(default = no limit)_
+        """
+
+        link_speed: Optional[str] = None
+        min_packet_gap: Optional[str] = None
+        flow_min_dir_switch_gap: Optional[str] = None
+        flow_max_interpacket_gap: Optional[str] = None
+
+        def update(self, other: "Timestamps"):
+            """
+            Update values in this configuration with non-default values from the provided configuration.
+
+            Parameters
+            ----------
+            other: Timestamps
+                Timestamps configuration.
+            """
+
+            if other.link_speed is not None:
+                self.link_speed = other.link_speed
+            if other.min_packet_gap is not None:
+                self.min_packet_gap = other.min_packet_gap
+            if other.flow_min_dir_switch_gap is not None:
+                self.flow_min_dir_switch_gap = other.flow_min_dir_switch_gap
+            if other.flow_max_interpacket_gap is not None:
+                self.flow_max_interpacket_gap = other.flow_max_interpacket_gap
+
     encapsulation: Optional[list[Encapsulation]] = None
     ipv4: IP = IP()
     ipv6: IP = IP()
     mac: Optional[Mac] = None
     packet_size_probabilities: Optional[dict[str, float]] = None
-    max_flow_inter_packet_gap: Optional[int] = None
+    timestamps: Timestamps = Timestamps()
 
     def update(self, other: "FtGeneratorConfig") -> None:
         """
@@ -175,8 +217,7 @@ class FtGeneratorConfig(YAMLWizard, JSONWizard, key_transform="SNAKE"):
         if other.packet_size_probabilities is not None:
             self.packet_size_probabilities = other.packet_size_probabilities
 
-        if other.max_flow_inter_packet_gap is not None:
-            self.max_flow_inter_packet_gap = other.max_flow_inter_packet_gap
+        self.timestamps.update(other.timestamps)
 
 
 def _custom_dump(data: Any, stream: TextIO = None, **kwds) -> Optional[str]:

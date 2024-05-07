@@ -244,7 +244,7 @@ def test_simulation_threshold(
         _, inactive_t = probe_instance.get_timeouts()
 
         generator_instance = generator.get(scenario.mtu)
-        generator_conf.max_flow_inter_packet_gap = inactive_t - 1
+        generator_conf.timestamps.flow_max_interpacket_gap = f"{inactive_t - 1}s"
 
         # run test
         result = run_single_test(max(1, int(speed_current / scenario.default.mbps)), MbpsSpeed(speed_current))
