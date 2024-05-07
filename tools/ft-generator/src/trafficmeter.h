@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "config/config.h"
 #include "flowprofile.h"
 #include "logger.h"
 #include "packet.h"
@@ -42,6 +43,9 @@ struct FlowRecord {
 	L3Protocol _l3Proto;
 	L4Protocol _l4Proto;
 
+	ft::Timestamp _desiredFirstTs;
+	ft::Timestamp _desiredLastTs;
+
 	ft::Timestamp _fwdFirstTs;
 	ft::Timestamp _fwdLastTs;
 	MacAddress _fwdMacAddr;
@@ -63,6 +67,8 @@ struct FlowRecord {
 	uint64_t _desiredRevBytes = 0;
 };
 
+uint64_t GetPacketSizeFromIPLayer(const PcppPacket& packet);
+
 /**
  * @brief Traffic metering component
  *
@@ -71,6 +77,13 @@ struct FlowRecord {
  */
 class TrafficMeter {
 public:
+	/**
+	 * @brief Create a new TrafficMeter instance
+	 *
+	 * @param config  The generator configuration
+	 */
+	TrafficMeter(const config::Config& config);
+
 	/**
 	 * @brief Open a new flow for metering
 	 *
@@ -117,9 +130,19 @@ public:
 	void PrintComparisonStats() const;
 
 private:
+	const config::Config& _config;
+
 	std::vector<FlowRecord> _records; //< The flow records
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("TrafficMeter");
+
+	struct TimestampErrorStats {
+		uint64_t _numStartTimeShifted = 0;
+		uint64_t _numEndTimeShifted = 0;
+		uint64_t _numMaxGapExceeded = 0;
+	};
+
+	TimestampErrorStats _tsErrorStats;
 
 	void ExtractPacketParams(
 		const PcppPacket& packet,

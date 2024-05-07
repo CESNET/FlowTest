@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 	}
 
 	try {
-		TrafficMeter trafficMeter;
+		TrafficMeter trafficMeter(config);
 		FlowProfileReader profileReader(args.GetProfilesFile(), args.ShouldSkipUnknown());
 		PcapWriter pcapWriter(args.GetOutputFile());
 		Generator generator(profileReader, trafficMeter, config, args);
