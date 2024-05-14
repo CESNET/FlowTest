@@ -19,7 +19,7 @@ class ProbeInterface(ABC):
     """Abstract class defining common interface for all probes"""
 
     @abstractmethod
-    def __init__(self, executor, target, protocols, interfaces, verbose, mtu, **kwargs):
+    def __init__(self, executor, target, protocols, interfaces, *, verbose, mtu, **kwargs):
         """Initialize the local or remote probe interface as object
 
         Parameters
@@ -37,10 +37,10 @@ class ProbeInterface(ABC):
         interfaces : list(InterfaceCfg)
             Network interfaces where the exporting process should be initiated.
 
-        verbose : bool
+        verbose : bool, optional
             Increase verbosity of probe logs.
 
-        mtu : int
+        mtu : int, optional
             The maximum transmission unit to be set at the probe input.
 
         kwargs : dict
