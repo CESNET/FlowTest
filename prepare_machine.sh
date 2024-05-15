@@ -23,6 +23,7 @@ print_help()
 	report "  -c<dir>       - specify dir to be used for ssh control path on the local machine (default: ${SSH_CONTROL_PATH_DIR})"
 	report "  -s            - skip python virtual environment (pipenv) creation"
 	report "  -e<dir>       - change python virtualenv dirname (default: ${VENV_DIR})"
+	report "  -x<vars>      - extra ansible vars to be used (key=value format, e.g. nfb_card=/dev/nfb1)"
 	report "  -v            - increase verbosity of ansible"
 	report "  -h            - print help"
 }
@@ -32,9 +33,10 @@ become="${BECOME}"
 tmp_dir=${TMP_DIR}
 ssh_control_path_dir=${SSH_CONTROL_PATH_DIR}
 venv_dir=${VENV_DIR}
+ansible_extra_vars=""
 verbosity=""
 
-while getopts 'hp:b:r:c:se:v' c; do
+while getopts 'hp:b:r:c:se:x:v' c; do
 	case $c in
 	h)
 		print_help
@@ -57,6 +59,9 @@ while getopts 'hp:b:r:c:se:v' c; do
 	;;
 	e)
 		venv_dir="$OPTARG"
+	;;
+	x)
+		ansible_extra_vars="$OPTARG"
 	;;
 	v)
 		test -z "${verbosity}" && verbosity="-v" || verbosity="${verbosity}v"
@@ -88,6 +93,7 @@ ansible-playbook \
 	-e ansible_remote_tmp="${tmp_dir}" \
 	-i localhost, \
 	--connection=local \
+	--extra-vars "$ansible_extra_vars" \
 	"${playbook}"
 
 ansible_rc=$?
