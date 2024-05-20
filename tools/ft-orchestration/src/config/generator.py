@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 Orchestration configuration entity - GeneratorCfg"""
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from dataclass_wizard import YAMLWizard
 from src.config.authentication import AuthenticationCfg
@@ -29,6 +29,9 @@ class GeneratorCfg(YAMLWizard):
     authentication: str
     connector: Optional[dict] = None
     ansible_playbook_role: Optional[str] = None
+    ansible_extra_vars: Optional[dict[str, Any]] = None
+    ansible_host_group: Optional[str] = None
+    ansible_skip_tags: Optional[list[str]] = None
 
     def check(self, authentications: Dict[str, AuthenticationCfg]) -> None:
         """Check the configuration validity.

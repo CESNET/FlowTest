@@ -10,6 +10,7 @@ Base class for probe, generator and collector builder. Used by topology for cons
 import datetime
 import logging
 import pkgutil
+import shlex
 import tempfile
 from abc import ABC, abstractmethod
 from os import path
@@ -139,15 +140,16 @@ class BuilderBase(ABC):
             self._executor = RemoteExecutor(object_cfg.name, auth.username, auth.password, auth.key_path)
 
         if object_cfg.ansible_playbook_role and not self._disable_ansible:
-            self._run_ansible(object_cfg.ansible_playbook_role, auth)
+            self._run_ansible(object_cfg, auth)
 
-    def _run_ansible(self, ansible_playbook_role: str, auth: AuthenticationCfg):
+    # pylint: disable=too-many-locals
+    def _run_ansible(self, object_cfg: Union[ProbeCfg, GeneratorCfg, CollectorCfg], auth: AuthenticationCfg):
         """Run ansible playbook on REMOTE which required by constructed object. E.g. install probe/generator software.
 
         Parameters
         ----------
-        ansible_playbook_role : str
-            Name of ansible playbook.
+        object_cfg : Union[ProbeCfg, GeneratorCfg, CollectorCfg]
+            Configuration of object which is to be created.
         auth : AuthenticationCfg
             Object with authentication method, used in ansible inventory.
         """
@@ -155,12 +157,21 @@ class BuilderBase(ABC):
         user = auth.username if auth.username else lbr_testsuite.get_real_user()
         remote_tmp = f"/tmp/ansible-{user}/tmp"
 
+        host_group = shlex.quote(object_cfg.ansible_host_group) if object_cfg.ansible_host_group else "all"
+
         host_vars = {"ansible_user": user}
         if auth.password:
             host_vars["ansible_password"] = auth.password
         if auth.key_path:
             host_vars["ansible_ssh_private_key_file"] = auth.key_path
-        inventory_data = {"all": {"hosts": {self._executor.get_host(): host_vars}}}
+        inventory_data = {host_group: {"hosts": {self._executor.get_host(): host_vars}}}
+
+        extra_vars = (
+            "--extra-vars=" + shlex.quote(str(object_cfg.ansible_extra_vars)) if object_cfg.ansible_extra_vars else ""
+        )
+        skip_tags = (
+            "--skip-tags=" + shlex.quote(",".join(object_cfg.ansible_skip_tags)) if object_cfg.ansible_skip_tags else ""
+        )
 
         with tempfile.TemporaryDirectory(prefix="flowtest-ansible-") as local_tmp:
             inventory_path = path.join(local_tmp, "inventory.yaml")
@@ -169,21 +180,26 @@ class BuilderBase(ABC):
             with open(inventory_path, "w", encoding="utf-8") as inventory_file:
                 yaml.safe_dump(inventory_data, inventory_file)
 
-            logging.getLogger().info("Running environment setup - ansible playbook '%s'...", ansible_playbook_role)
+            logging.getLogger().info(
+                "Running environment setup - ansible playbook '%s'...", object_cfg.ansible_playbook_role
+            )
 
             cmd = (
                 f"ANSIBLE_SSH_CONTROL_PATH_DIR={ssh_control_path_dir} "
                 "ANSIBLE_HOST_KEY_CHECKING=False "
                 f"ansible-playbook -i {inventory_path} -e ansible_remote_tmp={remote_tmp} "
-                f"{ANSIBLE_PATH}/{ansible_playbook_role}"
+                f"{extra_vars} "
+                f"{skip_tags} "
+                f"{ANSIBLE_PATH}/{object_cfg.ansible_playbook_role}"
             )
+            logging.getLogger().info("Running command %s", cmd)
             ansible_cmd = Tool(cmd, failure_verbosity="no-exception")
             stdout, stderr = ansible_cmd.run()
             if ansible_cmd.returncode() != 0:
                 logging.getLogger().error("Ansible failed!")
                 logging.getLogger().error("Stdout: %s", stdout)
                 logging.getLogger().error("Stderr: %s", stderr)
-                raise BuilderError(f"Ansible playbook '{ansible_playbook_role}' failed.")
+                raise BuilderError(f"Ansible playbook '{object_cfg.ansible_playbook_role}' failed.")
 
         logging.getLogger().info("Ansible output: %s", stdout)
 
