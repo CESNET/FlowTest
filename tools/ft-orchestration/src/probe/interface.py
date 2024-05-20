@@ -19,7 +19,19 @@ class ProbeInterface(ABC):
     """Abstract class defining common interface for all probes"""
 
     @abstractmethod
-    def __init__(self, executor, target, protocols, interfaces, verbose, mtu, **kwargs):
+    def __init__(
+        self,
+        executor,
+        target,
+        protocols,
+        interfaces,
+        *,
+        verbose,
+        mtu,
+        active_timeout,
+        inactive_timeout,
+        **kwargs,
+    ):
         """Initialize the local or remote probe interface as object
 
         Parameters
@@ -37,11 +49,17 @@ class ProbeInterface(ABC):
         interfaces : list(InterfaceCfg)
             Network interfaces where the exporting process should be initiated.
 
-        verbose : bool
+        verbose : bool, optional
             Increase verbosity of probe logs.
 
-        mtu : int
+        mtu : int, optional
             The maximum transmission unit to be set at the probe input.
+
+        active_timeout : int, optional
+            Maximum duration of an ongoing flow before the probe exports it (in seconds).
+
+        inactive_timeout : int, optional
+            Maximum duration for which a flow is kept in the probe if no new data updates it (in seconds).
 
         kwargs : dict
             Additional startup arguments for specific probe variants.
