@@ -47,7 +47,9 @@ rpmbuild [Rocky Linux 9]:
 python package build:
   stage: build
   script:
-    - cd tools/ft-profiler
+    - cd $CI_PROJECT_DIR/tools/ft-profiler
+    - pipenv run python3 -m build
+    - cd $CI_PROJECT_DIR/tools/ft-profile-trimmer
     - pipenv run python3 -m build
   artifacts:
     paths: [tools/**/*.whl, tools/**/*.tar.gz]
