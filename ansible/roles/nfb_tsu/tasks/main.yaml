@@ -10,7 +10,7 @@
   failed_when: not card_stat.stat.exists
 
 - name: Determine escaped systemd path of the FPGA card ({{ nfb_card }})
-  ansible.builtin.command: "systemd-escape -p {{ nfb_card | ansible.builtin.realpath }}"
+  ansible.builtin.command: "systemd-escape -p {{ nfb_card }}"
   register: card_escaped
 
 - name: Install NFB-TSU systemd service (if not already present)
