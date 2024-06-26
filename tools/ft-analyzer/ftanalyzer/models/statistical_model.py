@@ -162,7 +162,7 @@ class StatisticalModel:
 
         report = StatisticalReport()
         for rule in rules:
-            flows, ref = self._filter_segment(rule.segment)
+            flows, ref, _ = self._filter_segment(rule.segment)
 
             # Check duplicated metrics.
             if len({m.key for m in rule.metrics}) != len(rule.metrics):
@@ -240,7 +240,7 @@ class StatisticalModel:
 
     def _filter_segment(
         self, segment: Optional[Union[SMSubnetSegment, SMTimeSegment]]
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series]:
         """Create subsets of data frames based on the provided segment.
 
         Parameters
@@ -251,7 +251,7 @@ class StatisticalModel:
         Returns
         ------
         tuple
-            subset of flows acquired from the probe, subset of reference flows
+            subset of flows acquired from the probe, subset of reference flows, used flows mask
         """
 
         if isinstance(segment, SMSubnetSegment):
@@ -262,9 +262,9 @@ class StatisticalModel:
             return self._filter_time_segment(segment)
 
         assert segment is None
-        return self._flows, self._ref
+        return self._flows, self._ref, pd.Series([True] * self._flows.shape[0])
 
-    def _filter_subnet_segment(self, segment: SMSubnetSegment) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def _filter_subnet_segment(self, segment: SMSubnetSegment) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series]:
         """Create subsets of data frames based on subnets.
 
         Parameters
@@ -275,7 +275,7 @@ class StatisticalModel:
         Returns
         ------
         tuple
-            subset of flows acquired from the probe, subset of reference flows
+            subset of flows acquired from the probe, subset of reference flows, used flows mask
         """
 
         subnet_source = ipaddress.ip_network(segment.source) if segment.source is not None else None
@@ -327,9 +327,13 @@ class StatisticalModel:
                 mask_flow = self._flows["DST_IP"].apply(lambda x: x in subnet_dest)
                 mask_ref = self._ref["DST_IP"].apply(lambda x: x in subnet_dest)
 
-        return self._flows[mask_flow].reset_index(drop=True), self._ref[mask_ref].reset_index(drop=True)
+        return (
+            self._flows[mask_flow].reset_index(drop=True),
+            self._ref[mask_ref].reset_index(drop=True),
+            mask_flow,
+        )
 
-    def _filter_time_segment(self, segment: SMTimeSegment) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def _filter_time_segment(self, segment: SMTimeSegment) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series]:
         """Create subsets of data frames based on time interval.
 
         Parameters
@@ -340,7 +344,7 @@ class StatisticalModel:
         Returns
         ------
         tuple
-            subset of flows acquired from the probe, subset of reference flows
+            subset of flows acquired from the probe, subset of reference flows, used flows mask
         """
 
         start_time = end_time = None
@@ -364,4 +368,8 @@ class StatisticalModel:
             mask_flow = self._flows["END_TIME"].apply(lambda x: x <= end_time)
             mask_ref = self._ref["END_TIME"].apply(lambda x: x <= end_time)
 
-        return self._flows[mask_flow].reset_index(drop=True), self._ref[mask_ref].reset_index(drop=True)
+        return (
+            self._flows[mask_flow].reset_index(drop=True),
+            self._ref[mask_ref].reset_index(drop=True),
+            mask_flow,
+        )

@@ -115,7 +115,7 @@ class PreciseModel(StatisticalModel):
 
         for segment in segments:
             self._report.add_segment(segment)
-            flows, refs = self._filter_segment(segment)
+            flows, refs, _ = self._filter_segment(segment)
 
             # perform outer join thank to which we can easily identify flows
             # which are in one frame and not the other using '_merge' column
