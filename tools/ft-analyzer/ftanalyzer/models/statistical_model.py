@@ -8,7 +8,9 @@ SPDX-License-Identifier: BSD-3-Clause
 
 import ipaddress
 import logging
+import operator
 import time
+from functools import reduce
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -16,6 +18,7 @@ import pandas as pd
 from ftanalyzer.common.pandas_multiprocessing import PandasMultiprocessingHelper
 from ftanalyzer.models.sm_data_types import (
     SMException,
+    SMMetric,
     SMMetricType,
     SMRule,
     SMSubnetSegment,
@@ -141,13 +144,17 @@ class StatisticalModel:
         self._flows_ip_addresses_converted = False
         self._ref_ip_addresses_converted = isinstance(reference, pd.DataFrame)
 
-    def validate(self, rules: List[SMRule]) -> StatisticalReport:
+    def validate(self, rules: List[SMRule], check_complement: bool = False) -> StatisticalReport:
         """Evaluate data in the statistical model based on the provided evaluation rules.
 
         Parameters
         ----------
         rules : list
             Evaluation rules which are used for the evaluation.
+        check_complement : bool, optional
+            Check if complement of segments in rules is empty. Default disabled.
+            Subnet or time segments used in the rules are considered complete
+            in this case.
 
         Returns
         ------
@@ -161,8 +168,10 @@ class StatisticalModel:
         """
 
         report = StatisticalReport()
+        all_flow_masks = []
         for rule in rules:
-            flows, ref, _ = self._filter_segment(rule.segment)
+            flows, ref, mask_flow = self._filter_segment(rule.segment)
+            all_flow_masks.append(mask_flow)
 
             # Check duplicated metrics.
             if len({m.key for m in rule.metrics}) != len(rule.metrics):
@@ -180,6 +189,18 @@ class StatisticalModel:
                     SMTestOutcome(
                         metric, rule.segment, value, reference, abs(np.int64(value) - np.int64(reference)) / reference
                     )
+                )
+
+        if check_complement:
+            # pylint: disable=invalid-unary-operand-type
+            flows = self._flows[~(reduce(operator.or_, all_flow_masks))].reset_index(drop=True)
+
+            for metric in [SMMetric(SMMetricType.PACKETS, 0), SMMetric(SMMetricType.BYTES, 0)]:
+                value = flows[metric.key.value].sum()
+                reference = 0
+
+                report.add_test(
+                    SMTestOutcome(metric, "COMPLEMENT OF SEGMENTS", value, reference, 0 if value == reference else 1)
                 )
 
         return report
