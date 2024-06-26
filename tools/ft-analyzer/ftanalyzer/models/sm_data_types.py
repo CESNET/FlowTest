@@ -172,7 +172,7 @@ class SMTestOutcome:
     ----------
     metrics : SMMetric
         Evaluation metric.
-    segment : SMSubnetSegment, SMTimeSegment, None
+    segment : SMSubnetSegment, SMTimeSegment, None, str
         Segment used to filter data before applying the evaluation metric.
     value : int
         The value of the metric acquired from the probe data.
@@ -184,7 +184,7 @@ class SMTestOutcome:
     """
 
     metric: SMMetric
-    segment: Optional[Union[SMSubnetSegment, SMTimeSegment]]
+    segment: Optional[Union[SMSubnetSegment, SMTimeSegment, str]]
     value: int
     reference: int
     diff: float
