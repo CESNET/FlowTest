@@ -222,3 +222,50 @@ def test_biflows_ts_correction():
     report.print_results()
 
     assert report.is_passing() is True
+
+
+def test_subnet_segment_check_complement():
+    """Test basic functionality in a specified subnet segment. Check that complement is empty."""
+
+    model = PMod(os.path.join(REF_PATH, "small.csv"), os.path.join(REF_PATH, "small.csv"), 300)
+    segment1 = SMSubnetSegment(source="10.100.40.140/32", bidir=True)
+    report = model.validate_precise([segment1], check_complement=True)
+    report.print_results()
+
+    assert report.is_passing() is True
+
+
+def test_subnet_segment_check_complement_fail():
+    """Test dividing input data into segments by subnets. Complement is not empty."""
+
+    model = PMod(os.path.join(FLOWS_PATH, "base_shuffle.csv"), os.path.join(REF_PATH, "base.csv"), 300)
+    segment1 = SMSubnetSegment(source="192.168.51.0/24", dest="81.2.248.0/24", bidir=True)
+    segment2 = SMSubnetSegment(dest="ff02::2")
+    segment3 = SMSubnetSegment(source="10.100.56.132", dest="37.187.104.44", bidir=True)
+    report = model.validate_precise([segment1, segment2, segment3], check_complement=True)
+    report.print_results()
+
+    assert report.is_passing() is False
+
+    assert report.get_test(segment1).is_passing() is True
+    assert report.get_test(segment2).is_passing() is True
+    assert report.get_test(segment3).is_passing() is True
+    assert report.get_test("COMPLEMENT OF SEGMENTS").is_passing() is False
+
+
+def test_subnet_time_segment_combination_check_complement():
+    """Test dividing input data into segments by both subnet and time. Check that complement is empty."""
+
+    model = PMod(
+        os.path.join(FLOWS_PATH, "split.csv"), os.path.join(REF_PATH, "split.csv"), 300, start_time=1694766005473
+    )
+    segment1 = SMSubnetSegment(source="158.251.62.121/32", bidir=True)
+
+    tstart = datetime(2023, 9, 15, 8, 20, 00, 0, timezone.utc)
+    tend = datetime(2023, 9, 15, 8, 25, 30, 0, timezone.utc)
+    segment2 = SMTimeSegment(start=tstart, end=tend)
+
+    report = model.validate_precise([segment1, segment2], check_complement=True)
+    report.print_results()
+
+    assert report.is_passing() is True
