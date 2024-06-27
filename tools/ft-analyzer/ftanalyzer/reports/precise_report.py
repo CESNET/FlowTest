@@ -68,7 +68,7 @@ class PMTestOutcome:
 
     Attributes
     ----------
-    segment : SMSubnetSegment, SMTimeSegment, None
+    segment : SMSubnetSegment, SMTimeSegment, None, str
         Segment used to filter flow and reference data.
     split : list
         Flows split into more flows than expected.
@@ -82,7 +82,7 @@ class PMTestOutcome:
         Pairs of a flow and its assumed reference flow which values of packets and bytes differ.
     """
 
-    segment: Union[SMSubnetSegment, SMTimeSegment, None] = None
+    segment: Union[SMSubnetSegment, SMTimeSegment, None, str] = None
     split: list[PMFlow] = field(default_factory=list)
     missing: list[PMFlow] = field(default_factory=list)
     unexpected: list[PMFlow] = field(default_factory=list)
@@ -118,13 +118,13 @@ class PreciseReport:
 
         self.tests = []
 
-    def add_segment(self, segment: Union[SMSubnetSegment, SMTimeSegment, None]) -> None:
+    def add_segment(self, segment: Union[SMSubnetSegment, SMTimeSegment, None, str]) -> None:
         """Add new segment to the report. All following tests will be added to this segment
         until the next segment is added.
 
         Parameters
         ----------
-        segment : SMSubnetSegment, SMTimeSegment, None
+        segment : SMSubnetSegment, SMTimeSegment, None, str
             New segment.
 
         Raises
@@ -180,12 +180,12 @@ class PreciseReport:
 
         return all(test.is_passing() for test in self.tests)
 
-    def get_test(self, segment: Union[SMSubnetSegment, SMTimeSegment, None] = None) -> Optional[PMTestOutcome]:
+    def get_test(self, segment: Union[SMSubnetSegment, SMTimeSegment, None, str] = None) -> Optional[PMTestOutcome]:
         """Find specific test outcome for a segment.
 
         Parameters
         ----------
-        segment: SMSubnetSegment, SMTimeSegment, None
+        segment: SMSubnetSegment, SMTimeSegment, None, str
             Segment that was used in the test (if any).
 
         Returns
