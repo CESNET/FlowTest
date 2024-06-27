@@ -6,6 +6,8 @@ SPDX-License-Identifier: BSD-3-Clause
 
 """
 
+import operator
+from functools import reduce
 from typing import Optional, Union
 
 import pandas as pd
@@ -81,6 +83,7 @@ class PreciseModel(StatisticalModel):
         self,
         segments: Optional[list[Union[SMSubnetSegment, SMTimeSegment]]] = None,
         ok_time_diff: int = DEFAULT_OK_TIME_DIFF,
+        check_complement: bool = False,
     ) -> PreciseReport:
         """Evaluate data in the precise model for each of the provided segments.
 
@@ -98,6 +101,10 @@ class PreciseModel(StatisticalModel):
             If None, the evaluation is performed for all data.
         ok_time_diff : int
             Maximum difference between timestamps of a flow and its reference flow which is not reported (in ms).
+        check_complement : bool, optional
+            Check if complement of segments is empty. Default disabled.
+            Subnet or time segments are considered complete
+            in this case.
 
         Returns
         ------
@@ -113,9 +120,11 @@ class PreciseModel(StatisticalModel):
         if self._flows_ip_addresses_converted != self._ref_ip_addresses_converted:
             self._convert_ip_addresses()
 
+        all_flow_masks = []
         for segment in segments:
             self._report.add_segment(segment)
-            flows, refs, _ = self._filter_segment(segment)
+            flows, refs, mask_flow = self._filter_segment(segment)
+            all_flow_masks.append(mask_flow)
 
             # perform outer join thank to which we can easily identify flows
             # which are in one frame and not the other using '_merge' column
@@ -143,6 +152,12 @@ class PreciseModel(StatisticalModel):
             self._report_flows(
                 flows.iloc[combined["index_x"]].sort_values(by=["FLOW_COUNT"], ascending=False), PMTestCategory.SPLIT
             )
+
+        if check_complement:
+            self._report.add_segment("COMPLEMENT OF SEGMENTS")
+            # pylint: disable=invalid-unary-operand-type
+            flows = self._flows[~(reduce(operator.or_, all_flow_masks))].reset_index(drop=True)
+            self._report_flows(flows, PMTestCategory.UNEXPECTED)
 
         return self._report
 
