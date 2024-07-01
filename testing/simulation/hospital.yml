@@ -5,7 +5,7 @@ marks: [hospitals]
 requirements:
   speed: 10
 profile: https://liberouter.org/repo/flowtest/profiles/10G_Hospital/profile_trimmed_360s_10s.csv
-mtu: 1522
+mtu: 2048
 sampling: 1.0
 
 # default configuration describing the setup during profile collection
@@ -55,7 +55,13 @@ sim_general:
       model: "precise"
 
 sim_threshold:
-  - id: hospital_max_throughput
+  - id: throughput_no_plugins
+    marks: []
+    mbps_accuracy: 50
+    mbps_required: 5000
+    probe:
+      protocols: []
+  - id: throughput_l7
     marks: []
     mbps_accuracy: 50
     mbps_required: 1500

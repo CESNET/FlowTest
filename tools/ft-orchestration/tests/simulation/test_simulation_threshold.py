@@ -13,6 +13,7 @@ import ipaddress
 import logging
 import os
 import shutil
+import time
 
 import pandas as pd
 import pytest
@@ -200,7 +201,11 @@ def test_simulation_threshold(
         collector_instance.stop()
 
         collector_instance.get_reader().save_csv(flows_file)
+        logging.getLogger().debug("Start applying flow replicator...")
+        start = time.time()
         replicated_ref = flow_replicator.replicate(input_file=ref_file, loops=loops)
+        end = time.time()
+        logging.getLogger().debug("Flows replicated in %.2f seconds.", (end - start))
 
         flow_replicator = None
         gc.collect()
@@ -253,7 +258,9 @@ def test_simulation_threshold(
 
         # adjust speed
         speed_current = int((speed_max + speed_min) / 2)
-        speed_current = speed_current + (scenario.test.mbps_accuracy - speed_current % scenario.test.mbps_accuracy)
+        # round up to required accuracy
+        if speed_current % scenario.test.mbps_accuracy > 0:
+            speed_current = speed_current + (scenario.test.mbps_accuracy - speed_current % scenario.test.mbps_accuracy)
 
         # cleanup devices
         finalizer_download_logs()

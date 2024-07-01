@@ -1,0 +1,56 @@
+# Profile information which cannot be modified by the orchestration tool.
+name: Geant Morning 100G
+description: CESNET, Geant link, 100 Gbps
+marks: [geant, 100G]
+requirements:
+  speed: 100
+profile: https://liberouter.org/repo/flowtest/profiles/100G_CesnetGeant_MorningRiseInTraffic/profile_trimmed_1-40_360s_10s.csv
+mtu: 9020
+sampling: 0.025
+
+# default configuration describing the setup during profile collection
+default:
+  pps: 3015896
+  mbps: 26890
+  generator:
+    mac:
+      mac_range: "aa:aa:aa:aa:aa:a0/44"
+    packet_size_probabilities:
+      "64-64": .0794
+      "65-127": .2840
+      "128-255": .0212
+      "256-511": .0089
+      "512-1023": .0118
+      "1024-1518": .0707
+      "1519-9000": 0.5240
+  probe:
+    protocols: [eth, tcp, ipv4, ipv6, dns, http, tls]
+    active_timeout: 300
+    inactive_timeout: 30
+
+# individual tests for general simulation scenario
+sim_general:
+  - id: geant_morning_original
+    marks: [original]
+    speed_multiplier: 1.0
+  - id: geant_morning_precise
+    enabled: False
+    marks: [precise]
+    speed_multiplier: 1.0
+    analysis:
+      model: "precise"
+
+sim_threshold:
+  - id: geant_morning_throughput_no_plugins
+    marks: []
+    mbps_accuracy: 500
+    mbps_required: 50000
+    speed_max: 100000
+    probe:
+      protocols: []
+  - id: geant_morning_throughput_l7
+    enabled: False
+    marks: []
+    mbps_accuracy: 500
+    mbps_required: 25000
+    speed_max: 100000

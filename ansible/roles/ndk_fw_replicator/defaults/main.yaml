@@ -12,7 +12,7 @@ nfb_card: "/dev/nfb0"
 
 # Set MTU (Maximum transmission unit) of Ethernet interfaces
 # If empty, no configuration is performed.
-nfb_mtu: 9000
+nfb_mtu: 9020
 
 # Set PMA (Physical Medium Attachment) of the Ethernet interface (e.g. LR, SR).
 # For possible option see output of `nfb-eth -Pv`.
