@@ -125,7 +125,7 @@ void ConfigError::PrintPrettyError(
 	std::ostream& output,
 	int linesAround) const
 {
-	output << what() << std::endl;
+	output << what() << '\n';
 	std::ifstream file(configFilename);
 	if (!file) {
 		return;
@@ -143,7 +143,7 @@ void ConfigError::PrintPrettyError(
 				output << "   ";
 			}
 			output << std::setw(numW) << (lineNum + 1) << " |";
-			output << line << std::endl;
+			output << line << '\n';
 			if (lineNum == errLineNum) {
 				output << "     ";
 				for (int i = 0; i < numW; i++) {
@@ -153,7 +153,7 @@ void ConfigError::PrintPrettyError(
 					output << (line[errColNum] == '\t' ? '\t' : ' ');
 				}
 				output << "^";
-				output << std::endl;
+				output << '\n';
 			}
 		}
 		lineNum++;

@@ -126,55 +126,55 @@ int main(int argc, char* argv[])
 		}
 	} catch (const runtime_error& e) {
 		cerr << "Argument " << argv[optind - 2] << "=" << argv[optind - 1]
-			 << " parsing error: " << e.what() << endl;
+			 << " parsing error: " << e.what() << '\n';
 		exit(1);
 	}
 
 	if (profilePath.empty() || profileSamplePath.empty() || profileMetricsPath.empty()) {
-		cerr << "The following options are mandatory: -l, -u, -i, -o, -m" << endl;
+		cerr << "The following options are mandatory: -l, -u, -i, -o, -m" << '\n';
 		exit(1);
 	}
 
 	if (cfg.maxSampleSize <= cfg.minSampleSize and cfg.minSampleSize > 0
 		and cfg.maxSampleSize <= 1) {
 		cerr << "Maximum sample size: " << cfg.maxSampleSize
-			 << " must be higher than minimum sample size: " << cfg.minSampleSize << endl;
-		cerr << "Both values must be between 0 (excluded) and 1 (included)." << endl;
+			 << " must be higher than minimum sample size: " << cfg.minSampleSize << '\n';
+		cerr << "Both values must be between 0 (excluded) and 1 (included)." << '\n';
 		exit(1);
 	}
 
 	if (cfg.protoThreshold < 0 or cfg.protoThreshold > 1) {
 		cerr << "Protocol proportional representation limit sample size must be between 0 and 1."
-			 << endl;
+			 << '\n';
 		exit(1);
 	}
 
 	if (cfg.portThreshold < 0 or cfg.portThreshold > 1) {
 		cerr << "Protocol proportional representation limit sample size must be between 0 and 1."
-			 << endl;
+			 << '\n';
 		exit(1);
 	}
 
 	try {
 		if (cfg.verbose) {
-			cout << "Loading profile ..." << endl;
+			cout << "Loading profile ..." << '\n';
 		}
 
 		auto profile = make_shared<Profile>(cfg, profilePath);
 		auto evolution = Evolution(cfg, profile);
 		if (cfg.verbose) {
-			cout << "Creating initial population ..." << endl;
+			cout << "Creating initial population ..." << '\n';
 		}
 
 		evolution.CreateInitialPopulation();
 		if (cfg.verbose) {
-			cout << "Starting genetic algorithm ..." << endl;
+			cout << "Starting genetic algorithm ..." << '\n';
 		}
 
 		evolution.Run();
 		evolution.DumpSolution(profileSamplePath, profileMetricsPath);
 	} catch (const runtime_error& e) {
-		cerr << "Unexpected error: " << e.what() << endl;
+		cerr << "Unexpected error: " << e.what() << '\n';
 		exit(1);
 	}
 
