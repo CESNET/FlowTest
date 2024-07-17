@@ -115,7 +115,7 @@ void Evolution::Run()
 		UpdateFitnessStats();
 		if (_cfg.verbose) {
 			std::cout << "Generation: " << generation << ", best solution: " << _best.second
-					  << ", average solution: " << _avgFitness << std::endl;
+					  << ", average solution: " << _avgFitness << '\n';
 		}
 
 		// check if any of the current solutions is acceptable (it may not be the best solution)
@@ -123,8 +123,7 @@ void Evolution::Run()
 			if (_fenotype[i].diff.IsAcceptable(_cfg.deviation)) {
 				_best = {i, _fenotype[i].diff.fitness};
 				if (_cfg.verbose) {
-					std::cout << "Acceptable solution found with fitness: " << _best.second
-							  << std::endl;
+					std::cout << "Acceptable solution found with fitness: " << _best.second << '\n';
 				}
 
 				return;
