@@ -259,10 +259,12 @@ class TcpReplay(PcapPlayer):
         bts = int(re.findall(r"(\d+) bytes", output)[-1])
 
         start_time = re.findall(r"Test start: (.*) ...", output)[0].strip()
+        start_time = start_time[:26]  # reduce nanosec precision to microsec precision
         start_time = datetime.datetime.fromisoformat(start_time)
         start_time = int(start_time.timestamp() * 1000)
 
         end_time = re.findall(r"Test complete: (.*)", output)[0].strip()
+        end_time = end_time[:26]
         end_time = datetime.datetime.fromisoformat(end_time)
         end_time = int(end_time.timestamp() * 1000)
 
