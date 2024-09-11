@@ -140,7 +140,11 @@ class FlowReplicator:
         def __add__(self, other: int) -> FlowReplicator.IPv6Address:
             if not isinstance(other, int):
                 return NotImplemented
-            return self.__class__(int(self) + 2**96 * other)
+            added = int(self) + 2**96 * other
+            # overflow address
+            while added >= 2**128:
+                added -= 2**128
+            return self.__class__(added)
 
         def __lt__(self, other):
             if self._ip != other._ip:
@@ -152,6 +156,15 @@ class FlowReplicator:
         __lt__ can be performed over addresses with different versions (4 or 6).
         Necessary for DataFrame grouping.
         """
+
+        def __add__(self, other: int) -> FlowReplicator.IPv4Address:
+            if not isinstance(other, int):
+                return NotImplemented
+            added = int(self) + other
+            # overflow address
+            while added >= 2**32:
+                added -= 2**32
+            return self.__class__(added)
 
         def __lt__(self, other):
             if self._ip != other._ip:
