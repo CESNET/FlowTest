@@ -33,6 +33,7 @@ PROTOCOLS_TO_PLUGINS = {
     "dns": "dns",
     "http": "http",
     "tls": "tls",
+    "wg": "wg",
     # "vlan": "",    # unsupported
     # "mpls": "",    # unsupported
     # "gre": "",     # unsupported
@@ -85,6 +86,7 @@ FIELDS = {
         "dns_resp_rr.ttl",
         "dns_resp_rr.data",
     ],
+    "wg": ["wg_conf_level", "wg_src_peer", "wg_dst_peer"],
 }
 
 
