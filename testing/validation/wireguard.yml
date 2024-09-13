@@ -1,0 +1,50 @@
+name: WireGuard Traffic
+description: Check that traffic with WireGuard protocol is properly parsed.
+requirements:
+  protocols: [wg]
+marks: [wg]
+pcap: wg_udp_stream.pcap
+probe:
+  protocols: [wg]
+at_least_one: [wg_conf_level, wg_src_peer, wg_dst_peer]
+
+flows:
+  - src_ip: 147.32.110.220
+    dst_ip: 147.32.111.101
+    ip_version: 4
+    protocol: 17
+    src_port: 41993
+    dst_port: 44099
+    bytes: 17932
+    bytes@rev: 24804
+    packets: 138
+    packets@rev: 142
+    wg_conf_level: 100
+    wg_src_peer: 3848115376
+    wg_dst_peer: 3304217979
+  - src_ip: 147.32.110.220
+    dst_ip: 147.32.111.101
+    ip_version: 4
+    protocol: 17
+    src_port: 41993
+    dst_port: 44099
+    bytes: 3920
+    bytes@rev: 6300
+    packets: 29
+    packets@rev: 44
+    wg_conf_level: 100
+    wg_src_peer: 1791020594
+    wg_dst_peer: 3619843067
+  - src_ip: 147.32.110.220
+    dst_ip: 147.32.111.101
+    ip_version: 4
+    protocol: 17
+    src_port: 41993
+    dst_port: 44099
+    bytes: 5088
+    bytes@rev: 8220
+    packets: 37
+    packets@rev: 52
+    wg_conf_level: 100
+    wg_src_peer: 3580317389
+    wg_dst_peer: 2588969467
