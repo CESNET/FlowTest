@@ -203,3 +203,6 @@ fields:
     wg_dst_peer:
         type:      int
         direction: any
+    ovpn_conf_level:
+        type:      int
+        direction: any

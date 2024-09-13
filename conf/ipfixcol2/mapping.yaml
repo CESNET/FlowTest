@@ -222,3 +222,7 @@
   map: wg_src_peer
 'cesnet:WGDstPeer':
   map: wg_dst_peer
+
+# OPEN VPN
+'cesnet:OVPNConfLevel':
+  map: ovpn_conf_level
