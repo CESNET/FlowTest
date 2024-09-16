@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 File contains flow timing test for ft-generator module.
 """
+
 import math
 from pathlib import Path
 from typing import Optional

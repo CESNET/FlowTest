@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 File contains data structures which are used for statistical model tests.
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum

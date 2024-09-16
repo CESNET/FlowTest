@@ -5,6 +5,7 @@ Copyright: (C) 2023 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 """
+
 from typing import Optional, Union
 
 import pandas as pd
