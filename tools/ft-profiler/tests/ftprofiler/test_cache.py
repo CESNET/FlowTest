@@ -57,8 +57,7 @@ class GenerateCache:
         max_tend = 0
         for _ in range(0, flownr):
             flow = GenerateCache.gen_unique_flow()
-            if flow.end_time > max_tend:
-                max_tend = flow.end_time
+            max_tend = max(max_tend, flow.end_time)
             assert cache.add_flow(flow) == []
         return max_tend
 

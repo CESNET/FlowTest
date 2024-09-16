@@ -583,6 +583,8 @@ class Ipfixprobe(ProbeInterface, ABC):
             flag = "-p"
         elif plugin_type == IpfixprobePluginType.STORAGE:
             flag = "-s"
+        else:
+            raise ValueError("Not supported type of plugin.")
 
         str_args = ";".join([plugin_name] + plugin_args)
 
