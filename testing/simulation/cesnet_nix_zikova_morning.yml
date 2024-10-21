@@ -31,7 +31,7 @@ default:
 # individual tests for general simulation scenario
 sim_general:
   - id: nix_zikova_morning_original
-    enabled: False
+    enabled: True
     marks: [original]
     speed_multiplier: 1.0
   - id: nix_zikova_morning_precise
