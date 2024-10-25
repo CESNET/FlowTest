@@ -257,10 +257,8 @@ class ExtendedFlow(Flow):
         if self.mpls_label != other.mpls_label:
             raise ValueError("Flow::aggregate(): Packets from one flow have different mpls labels.")
 
-        if self.start_time > other.start_time:
-            self.start_time = other.start_time
-        if self.end_time < other.end_time:
-            self.end_time = other.end_time
+        self.start_time = min(self.start_time, other.start_time)
+        self.end_time = max(self.end_time, other.end_time)
 
         if self.check_flow_direction(other):
             self.packets += other.packets

@@ -5,6 +5,7 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 """
+
 import collections
 import os
 from typing import Any, Dict, List, Optional, Tuple

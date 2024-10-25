@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-3-Clause
 
 Mapping JSON output of ipfixcol2 (ipfix attributes) to format expected by validation tests (YAML test description).
 """
+
 import string
 from typing import Any, Tuple
 

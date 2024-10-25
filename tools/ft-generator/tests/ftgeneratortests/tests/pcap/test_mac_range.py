@@ -7,7 +7,6 @@ SPDX-License-Identifier: BSD-3-Clause
 File contains mac_range tests for ft-generator module.
 """
 
-
 from pathlib import Path
 from typing import Optional
 

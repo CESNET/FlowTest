@@ -78,8 +78,7 @@ class FlowCache:
             Cache overflow.
         """
 
-        if flow.end_time > self._now:
-            self._now = flow.end_time
+        self._now = max(self._now, flow.end_time)
 
         flow_hash = hash(flow)
 

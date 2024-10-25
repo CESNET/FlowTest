@@ -5,6 +5,7 @@ Copyright: (C) 2022 Flowmon Networks a.s.
 SPDX-License-Identifier: BSD-3-Clause
 
 Orchestration configuration entity - AuthenticationCfg"""
+
 from dataclasses import dataclass
 from os.path import exists, expanduser, expandvars
 from typing import Optional
