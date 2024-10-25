@@ -7,3 +7,7 @@ ndk_nic_firmwares:
     design: n6010-replicator-100g2
   NFB-200G2QL:
     design: nfb-200g2ql-replicator-100g2
+  AGI-FH400G-REV1:
+    design: agi-fh400g-replicator-400g1_rev1_gen5
+  AGI-FH400G-REV0:
+    design: agi-fh400g-replicator-400g1_rev0
