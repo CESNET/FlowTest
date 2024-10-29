@@ -214,3 +214,15 @@
 'flowmon:tlsJa3Fingerprint':
   map: tls_ja3
   converter: hex_to_lower
+
+# WIREGUARD
+'cesnet:WGConfLevel':
+  map: wg_conf_level
+'cesnet:WGSrcPeer':
+  map: wg_src_peer
+'cesnet:WGDstPeer':
+  map: wg_dst_peer
+
+# OPEN VPN
+'cesnet:OVPNConfLevel':
+  map: ovpn_conf_level

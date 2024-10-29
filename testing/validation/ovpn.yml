@@ -1,0 +1,43 @@
+name: Open VPN Traffic
+description: Check that traffic with Open VPN protocol is recognized.
+requirements:
+  protocols: [ovpn]
+marks: [ovpn]
+pcap: ovpn.pcap
+probe:
+  protocols: [ovpn]
+at_least_one: [ovpn_conf_level]
+
+flows:
+  - src_ip: 192.168.43.91
+    dst_ip: 90.178.247.107
+    ip_version: 4
+    protocol: 6
+    src_port: 54113
+    dst_port: 10103
+    bytes: 49004
+    bytes@rev: 64203
+    packets: 164
+    packets@rev: 166
+    ovpn_conf_level: 74
+  - src_ip: 90.178.247.107
+    dst_ip: 192.168.43.91
+    ip_version: 4
+    protocol: 17
+    src_port: 10102
+    dst_port: 60753
+    bytes: 1380
+    bytes@rev: 0
+    packets: 6
+    packets@rev: 0
+    ovpn_conf_level: 0
+  - src_ip: 90.178.247.107
+    dst_ip: 192.168.43.91
+    ip_version: 4
+    protocol: 17
+    src_port: 10100
+    dst_port: 62158
+    bytes: 204
+    bytes@rev: 0
+    packets: 3
+    packets@rev: 0

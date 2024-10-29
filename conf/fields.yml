@@ -194,3 +194,15 @@ fields:
     vxlan_id:
         type:      int
         direction: always
+    wg_conf_level:
+        type:      int
+        direction: any
+    wg_src_peer:
+        type:      int
+        direction: any
+    wg_dst_peer:
+        type:      int
+        direction: any
+    ovpn_conf_level:
+        type:      int
+        direction: any
