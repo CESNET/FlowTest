@@ -104,6 +104,7 @@ class SimConfig(YAMLWizard):
     speed_multiplier: Optional[float] = None
     probe: Optional[ProbeCfg] = None
     generator: Optional[FtGeneratorConfig] = None
+    prefilter_ranges: Optional[list[str]] = None
 
     def get_probe_conf(self, probe_type: str, default: ProbeCfg) -> dict:
         """Get probe configuration for a specific probe type (merged with the default configuration).
@@ -145,6 +146,27 @@ class SimConfig(YAMLWizard):
             default.update(self.generator)
 
         return default
+
+    def get_prefilter_conf(self, default: "SimConfig") -> list[str]:
+        """Get prefilter configuration (test configuration overrides default configuration).
+
+        Parameters
+        ----------
+        default: SimConfig
+            Default configuration.
+
+        Returns
+        -------
+        list[str]
+            Prefilter ranges.
+        """
+
+        res = default.prefilter_ranges if default.prefilter_ranges is not None else []
+
+        if self.prefilter_ranges is not None:
+            res = self.prefilter_ranges
+
+        return res
 
     def get_replay_speed(self, default: "SimConfig") -> Union[MbpsSpeed, MultiplierSpeed, PpsSpeed]:
         """

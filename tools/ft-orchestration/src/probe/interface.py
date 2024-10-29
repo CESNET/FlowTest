@@ -118,3 +118,14 @@ class ProbeInterface(ABC):
         """
 
         raise NotImplementedError
+
+    def set_prefilter(self, ip_ranges: list[str]) -> None:
+        """Set probe input filter. Probe will drop all the traffic except specified IP ranges.
+
+        Parameters
+        ----------
+        ip_ranges : list[str]
+            IP ranges passed by the filter.
+        """
+
+        raise NotImplementedError

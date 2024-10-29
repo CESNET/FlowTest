@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 Functions with different purpose which can be utilized in testing scenarios.
 """
 
+import ipaddress
 import logging
 import os
 from typing import Optional, Union
@@ -157,3 +158,37 @@ def collect_scenarios(path: str, target: ScenarioCfg, name: Optional[str] = None
             tests.append(pytest.param(None, file, marks=marks, id=file.removesuffix(".yml")))
 
     return tests
+
+
+def ip_network_add_offset(address: Union[ipaddress.IPv4Network, ipaddress.IPv6Network, str], offset: int):
+    """Add offset to IP network.
+    Respect ft-replay rules of replication. For IPv6 network constant is added to first 32 bits.
+
+    Parameters
+    ----------
+    address: Union[ipaddress.IPv4Network, ipaddress.IPv6Network, str]
+        Origin IP network. Can be string which is converted.
+    offset: int
+        Offset to add.
+
+    Returns
+    -------
+    ipaddress.IPv4Network or ipaddress.IPv6Network
+        Offset IP network.
+    """
+
+    if isinstance(address, str):
+        address = ipaddress.ip_network(address)
+
+    try:
+        if address.version == 6:
+            network_address = int(address.network_address) + 2**96 * offset
+            # overflow address
+            while network_address >= 2**128:
+                network_address -= 2**128
+        else:
+            network_address = address.network_address + offset
+        return ipaddress.ip_network((network_address, address.prefixlen))
+    except ValueError as ex:
+        logging.error("ip_network_add_offset error: %s", ex)
+        return address
