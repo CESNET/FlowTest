@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-3-Clause
 Connector for ft-generator tool.
 """
 
+import copy
 import hashlib
 import logging
 import pickle
@@ -23,6 +24,7 @@ import yaml
 from dataclass_wizard import JSONWizard, YAMLWizard
 from lbr_testsuite.executable import ExecutableProcessError, Executor, Rsync, Tool
 from src.common.tool_is_installed import assert_tool_is_installed
+from src.generator.profile_enhancer import ProfileEnhancer
 
 
 class FtGeneratorException(Exception):
@@ -533,6 +535,7 @@ class FtGenerator:
 
         assert_tool_is_installed(self._bin, executor)
 
+    # pylint: disable=too-many-locals
     def generate(
         self,
         profile_path: str,
@@ -566,6 +569,10 @@ class FtGenerator:
         if from_cache:
             return from_cache
 
+        # save unchanged config copy to save for cache saving
+        config_copy = copy.deepcopy(config)
+        enhanced_profile_path = self._enhance_profile(profile_path, config)
+
         config_arg = ""
         if config:
             local_config = path.join(self._local_workdir, "config.yaml")
@@ -575,7 +582,7 @@ class FtGenerator:
 
         pcap_path, csv_path = self._cache.generate_unique_paths(Path(profile_path).stem)
 
-        remote_profile_path = self._tmp_rsync.push_path(profile_path)
+        remote_profile_path = self._tmp_rsync.push_path(enhanced_profile_path)
         verbosity = ""
         if self._verbose:
             verbosity = "-v"
@@ -596,7 +603,7 @@ class FtGenerator:
             raise FtGeneratorException(f"Process ft-generator failed, {err}.") from err
 
         self._process_output(csv_path)
-        self._cache.update(profile_path, config, pcap_path, csv_path)
+        self._cache.update(profile_path, config_copy, pcap_path, csv_path)
 
         return (pcap_path, csv_path)
 
@@ -657,3 +664,49 @@ class FtGenerator:
         biflows.loc[:, self.CSV_OUT_COLUMN_NAMES].to_csv(local_csv_path, index=False)
 
         self._cache_rsync.push_path(local_csv_path)
+
+    def _enhance_profile(self, profile_path: str, config: Optional[FtGeneratorConfig]) -> str:
+        """If probabilities are given together with the IP ranges, enhance profile with
+        IP addresses according to the distribution.
+
+        Parameters
+        ----------
+        profile_path : str
+            Local path to profile file.
+        config : Optional[FtGeneratorConfig]
+            Configuration. Modified when enhancing (remove IP ranges).
+
+        Returns
+        -------
+        str
+            Path to enhanced profile file.
+        """
+
+        if not config:
+            return profile_path
+
+        ipv4_ranges = []
+        if config.ipv4 and config.ipv4.ip_range:
+            ipv4_ranges = config.ipv4.ip_range if isinstance(config.ipv4.ip_range, list) else [config.ipv4.ip_range]
+
+        ipv6_ranges = []
+        if config.ipv6 and config.ipv6.ip_range:
+            ipv6_ranges = config.ipv6.ip_range if isinstance(config.ipv6.ip_range, list) else [config.ipv6.ip_range]
+
+        if any(len(s.split(maxsplit=1)) > 1 for s in ipv4_ranges) or any(
+            len(s.split(maxsplit=1)) > 1 for s in ipv6_ranges
+        ):
+            profile_path_out = f"{path.splitext(profile_path)[0]}_enhanced.csv"
+
+            enhances = ProfileEnhancer()
+            enhances.enhance(profile_path, profile_path_out, ipv4_ranges, ipv6_ranges)
+
+            # remove ip ranges because ft-generator doesn't need them with enhanced profile
+            if config.ipv4.ip_range is not None:
+                config.ipv4.ip_range = None
+            if config.ipv6.ip_range is not None:
+                config.ipv6.ip_range = None
+
+            return profile_path_out
+
+        return profile_path

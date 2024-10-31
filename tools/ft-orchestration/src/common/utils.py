@@ -76,17 +76,18 @@ def get_replicator_prefix(
         Prefix which should be used in the replicator.
     """
 
+    # range could be in form "<range> <probability>%", split by whitespace firstly
     if isinstance(ipv4_range, str):
-        ipv4_prefix = int(ipv4_range.split("/")[1])
+        ipv4_prefix = int(ipv4_range.split()[0].split("/")[1])
     elif isinstance(ipv4_range, list):
-        ipv4_prefix = min(int(r.split("/")[1]) for r in ipv4_range)
+        ipv4_prefix = min(int(r.split()[0].split("/")[1]) for r in ipv4_range)
     else:
         ipv4_prefix = 32
 
     if isinstance(ipv6_range, str):
-        ipv6_prefix = int(ipv6_range.split("/")[1])
+        ipv6_prefix = int(ipv6_range.split()[0].split("/")[1])
     elif isinstance(ipv6_range, list):
-        ipv6_prefix = min(int(r.split("/")[1]) for r in ipv6_range)
+        ipv6_prefix = min(int(r.split()[0].split("/")[1]) for r in ipv6_range)
     else:
         ipv6_prefix = 32
 
