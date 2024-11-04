@@ -1,0 +1,130 @@
+# Profile information which cannot be modified by the orchestration tool.
+name: NIX Zikova Morning Traffic 100G
+description: CESNET, Geant link, 100 Gbps, Morning rise in traffic, Prefilter scenarios
+marks: [nix_zikova, 100G]
+requirements:
+  speed: 100
+profile: https://liberouter.org/repo/flowtest/profiles/100G_CesnetNixZikova_MorningTraffic/profile_trimmed_1-20_360s_10s.csv
+mtu: 9020
+sampling: 0.05
+
+# default configuration describing the setup during profile collection
+default:
+  pps: 998443
+  mbps: 6781
+  generator:
+    mac:
+      mac_range: "aa:aa:aa:aa:aa:a0/44"
+    packet_size_probabilities:
+      "64-64": .1685
+      "65-127": .3770
+      "128-255": .0677
+      "256-511": .0316
+      "512-1023": .0254
+      "1024-1518": .2086
+      "1519-9000": 0.1213
+  probe:
+    protocols: [eth, tcp, ipv4, ipv6, dns, http, tls]
+    active_timeout: 300
+    inactive_timeout: 30
+
+sim_general:
+  # testing probe with prefilter capability (only part of input traffic is analyzed)
+  # 10% of traffic (both IPv4, IPv6) is analyzed by probe
+  - id: nix_zikova_morning_prefilter_10%
+    enabled: True
+    marks: [prefilter]
+    speed_multiplier: 4.0
+    # monitored traffic is composed from 3 ip ranges and 3 single IPs, other traffic is filtered out
+    prefilter_ranges: &prefilter_3_3 [
+      "146.102.0.0/16",
+      "147.228.0.0/16",
+      "2001:0718:0001:0005::/64",
+      "210.190.41.124",
+      "138.15.172.216",
+      "fe80::7:8",
+    ]
+    generator:
+      ipv4:
+        ip_range: &prefilter_gen_ipv4_10 [
+          "146.102.0.0/16 4%",
+          "147.228.0.0/16 4%",
+          "210.190.41.124/32 1%",
+          "138.15.172.216/32 1%",
+          "128.0.0.0/8"
+        ]
+      ipv6:
+        ip_range: &prefilter_gen_ipv6_10 ["2001:0718:0001:0005::/64 8%", "fe80::7:8/128 2%", "1::/16"]
+    analysis:
+      model: "precise"
+    # 25% of traffic (both IPv4, IPv6) is analyzed by probe
+  - id: nix_zikova_morning_prefilter_25%
+    enabled: True
+    marks: [prefilter]
+    speed_multiplier: 4.0
+    prefilter_ranges: *prefilter_3_3
+    generator:
+      ipv4:
+        ip_range: &prefilter_gen_ipv4_25 [
+          "146.102.0.0/16 9%",
+          "147.228.0.0/16 10%",
+          "210.190.41.124/32 3%",
+          "138.15.172.216/32 3%",
+          "128.0.0.0/8"
+        ]
+      ipv6:
+        ip_range: &prefilter_gen_ipv6_25 ["2001:0718:0001:0005::/64 22%", "fe80::7:8/128 3%", "1::/16"]
+    analysis:
+      model: "precise"
+  # 10% of traffic (both IPv4, IPv6) is analyzed by probe
+  # active and inactive timeouts are set to smaller values = flows are exported more frequently
+  - id: nix_zikova_morning_prefilter_10%_quick_timeout
+    enabled: True
+    marks: [prefilter]
+    speed_multiplier: 4.0
+    prefilter_ranges: *prefilter_3_3
+    generator:
+      ipv4:
+        ip_range: *prefilter_gen_ipv4_10
+      ipv6:
+        ip_range: *prefilter_gen_ipv6_10
+    analysis:
+      model: "precise"
+    probe:
+      active_timeout: 60
+      inactive_timeout: 10
+  # 25% of traffic (both IPv4, IPv6) is analyzed by probe
+  # active and inactive timeouts are set to smaller values = flows are exported more frequently
+  - id: nix_zikova_morning_prefilter_25%_quick_timeout
+    enabled: True
+    marks: [prefilter]
+    speed_multiplier: 4.0
+    prefilter_ranges: *prefilter_3_3
+    generator:
+      ipv4:
+        ip_range: *prefilter_gen_ipv4_25
+      ipv6:
+        ip_range: *prefilter_gen_ipv6_25
+    analysis:
+      model: "precise"
+    probe:
+      active_timeout: 60
+      inactive_timeout: 10
+  # speeded up scenario to 400G with 10% of analyzed traffic
+  - id: nix_zikova_morning_prefilter_speedup
+    enabled: True
+    marks: [prefilter, speedup]
+    mbps: 400000
+    prefilter_ranges: *prefilter_3_3
+    generator:
+      ipv4:
+        ip_range: *prefilter_gen_ipv4_10
+      ipv6:
+        ip_range: *prefilter_gen_ipv6_10
+    analysis:
+      model: "statistical"
+      metrics:
+        - key: PACKETS
+          diff: 0
+        - key: BYTES
+          diff: 0
