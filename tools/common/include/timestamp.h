@@ -16,7 +16,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace generator {
+namespace ft {
 
 enum class TimeUnit : int {
 	Nanoseconds = 1,
@@ -224,4 +224,4 @@ private:
 	int64_t _nanosec = 0;
 };
 
-} // namespace generator
+} // namespace ft

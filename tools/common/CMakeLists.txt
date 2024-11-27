@@ -4,6 +4,7 @@ add_subdirectory(external)
 set(COMMON_SRC
 	src/logger.cpp
 	src/handlers.cpp
+	src/timestamp.cpp
 )
 
 add_library(common OBJECT ${COMMON_SRC})

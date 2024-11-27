@@ -93,12 +93,12 @@ static void GapsToTimestampsInPlace(uint64_t startUsec, std::vector<uint64_t>& v
 
 std::vector<uint64_t> GenerateTimestamps(
 	uint64_t numPackets,
-	const Timestamp& tsFirst,
-	const Timestamp& tsLast,
+	const ft::Timestamp& tsFirst,
+	const ft::Timestamp& tsLast,
 	std::optional<uint64_t> maxGapSec)
 {
-	assert(tsFirst >= Timestamp::From<TimeUnit::Seconds>(0));
-	assert(tsLast >= Timestamp::From<TimeUnit::Seconds>(0));
+	assert(tsFirst >= ft::Timestamp::From<ft::TimeUnit::Seconds>(0));
+	assert(tsLast >= ft::Timestamp::From<ft::TimeUnit::Seconds>(0));
 
 	// Prepare and check arguments and handle special cases
 	uint64_t start = tsFirst.ToNanoseconds();

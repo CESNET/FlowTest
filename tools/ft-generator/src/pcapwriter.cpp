@@ -44,7 +44,7 @@ PcapWriter::PcapWriter(const std::string& filename)
 	_fp = fp.release();
 }
 
-void PcapWriter::WritePacket(const std::byte* data, uint32_t length, Timestamp timestamp)
+void PcapWriter::WritePacket(const std::byte* data, uint32_t length, ft::Timestamp timestamp)
 {
 	pcap_pkthdr header;
 	header.caplen = length;

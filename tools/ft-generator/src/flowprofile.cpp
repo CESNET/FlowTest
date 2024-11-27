@@ -100,8 +100,8 @@ std::string FlowProfile::ToString() const
 {
 	std::stringstream ss;
 	ss << "FlowProfile("
-	   << "startTime=" << _startTime.ToString<TimeUnit::Milliseconds>() << ", "
-	   << "endTime=" << _endTime.ToString<TimeUnit::Milliseconds>() << ", "
+	   << "startTime=" << _startTime.ToString<ft::TimeUnit::Milliseconds>() << ", "
+	   << "endTime=" << _endTime.ToString<ft::TimeUnit::Milliseconds>() << ", "
 	   << "l3Proto=" << L3ProtocolToString(_l3Proto) << ", "
 	   << "l4Proto=" << L4ProtocolToString(_l4Proto) << ", "
 	   << "srcIp=" << (_srcIp ? _srcIp->toString() : "N/A") << ", "
@@ -197,13 +197,13 @@ std::optional<FlowProfile> FlowProfileReader::ParseProfile(const std::string& li
 	if (!startTime) {
 		ThrowParseError(line, "bad START_TIME");
 	}
-	profile._startTime = Timestamp::From<TimeUnit::Milliseconds>(*startTime);
+	profile._startTime = ft::Timestamp::From<ft::TimeUnit::Milliseconds>(*startTime);
 
 	std::optional<int64_t> endTime = ParseValue<int64_t>(pieces[_order[EndTime]]);
 	if (!endTime) {
 		ThrowParseError(line, "bad END_TIME");
 	}
-	profile._endTime = Timestamp::From<TimeUnit::Milliseconds>(*endTime);
+	profile._endTime = ft::Timestamp::From<ft::TimeUnit::Milliseconds>(*endTime);
 
 	std::optional<uint8_t> l3ProtoNum = ParseValue<uint8_t>(pieces[_order[L3Proto]]);
 	if (!l3ProtoNum) {

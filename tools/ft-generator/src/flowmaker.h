@@ -56,7 +56,7 @@ public:
 	/**
 	 * @brief Retrieve start time of the next flow profile that will be created
 	 */
-	const Timestamp& GetNextProfileStartTime() const
+	const ft::Timestamp& GetNextProfileStartTime() const
 	{
 		return _preparationQueue.front().second._startTime;
 	}
