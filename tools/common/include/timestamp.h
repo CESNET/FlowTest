@@ -184,6 +184,29 @@ public:
 	}
 
 	/**
+	 * @brief Add two timestamps
+	 */
+	friend Timestamp operator+(Timestamp a, Timestamp b)
+	{
+		int64_t sec = SafeAdd(a._sec, b._sec);
+		int64_t nanosec = SafeAdd(a._nanosec, b._nanosec);
+		if (nanosec >= UnitsInSecond(TimeUnit::Nanoseconds)) {
+			sec++;
+			nanosec -= UnitsInSecond(TimeUnit::Nanoseconds);
+		}
+		return {sec, nanosec};
+	}
+
+	/**
+	 * @brief Add timestamp
+	 */
+	friend Timestamp& operator+=(Timestamp& a, const Timestamp& b)
+	{
+		a = a + b;
+		return a;
+	}
+
+	/**
 	 * @brief Convert timestamp to string
 	 */
 	template <TimeUnit PrintUnit>
