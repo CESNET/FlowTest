@@ -59,6 +59,20 @@ inline void FromString<ft::Timestamp>(std::string_view str, ft::Timestamp& value
 }
 
 /**
+ * @brief Convert timestamp back to milliseconds.
+ * 	Nanoseconds are truncated – profiler assumes millisecond timestamps.
+ * @param ts timestamp to convert
+ * @return milliseconds from epoch
+ */
+inline int64_t TimestampToMilliseconds(const ft::Timestamp& ts)
+{
+	constexpr int divisor = 1'000'000;
+
+	int64_t value = ts.ToNanoseconds();
+	return value / divisor;
+}
+
+/**
  * @brief Configuration object for the evolution process.
  */
 struct EvolutionConfig {
