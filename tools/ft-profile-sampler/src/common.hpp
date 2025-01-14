@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include "timestamp.h"
 #include <charconv>
 #include <cinttypes>
 #include <cstring>
@@ -40,6 +41,21 @@ void FromString(std::string_view str, T& value)
 		throw std::runtime_error(
 			"'" + valueStr + "' is not a valid number due to unexpected characters");
 	}
+}
+
+/**
+ * @brief Specialization of FromString for ft::Timestamp object.
+ * 	Input string must represent milliseconds.
+ * @param str input string containing timestamp in milliseconds, can be negative
+ * @param value argument where the parsed value should be stored
+ */
+template <>
+inline void FromString<ft::Timestamp>(std::string_view str, ft::Timestamp& value)
+{
+	int64_t tsInt;
+	FromString(str, tsInt);
+
+	value = ft::Timestamp::From<ft::TimeUnit::Milliseconds>(tsInt);
 }
 
 /**
