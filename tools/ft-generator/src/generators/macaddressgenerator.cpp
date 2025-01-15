@@ -14,8 +14,8 @@ namespace generator {
 
 MacAddressGenerator::MacAddressGenerator(MacAddress baseAddr, uint8_t prefixLen)
 	: _gen(PrefixedGenerator(
-		std::vector<uint8_t>(baseAddr.getRawData(), baseAddr.getRawData() + 6),
-		prefixLen))
+		  std::vector<uint8_t>(baseAddr.getRawData(), baseAddr.getRawData() + 6),
+		  prefixLen))
 	, _prefixLen(prefixLen)
 {
 	if (prefixLen > 0 && !baseAddr.isValid()) {

@@ -55,9 +55,9 @@ struct UInt24Be {
 	 */
 	UInt24Be(unsigned int value)
 		: _value {
-			static_cast<uint8_t>((value & 0xff0000) >> 16),
-			static_cast<uint8_t>((value & 0xff00) >> 8),
-			static_cast<uint8_t>(value & 0xff)}
+			  static_cast<uint8_t>((value & 0xff0000) >> 16),
+			  static_cast<uint8_t>((value & 0xff00) >> 8),
+			  static_cast<uint8_t>(value & 0xff)}
 	{
 		if (value > UInt24Be::MAX) {
 			throw std::overflow_error("value is greater than the maximum possible value");
