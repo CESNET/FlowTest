@@ -18,6 +18,7 @@ ifeq ($(CTEST),)
 CTEST := ctest
 endif
 
+CLANG_TIDY_CONF="$(shell pwd)/.clang-tidy"
 SOURCE_DIR = tools/
 SOURCE_REGEX = '.*\.\(cpp\|hpp\|c\|h\)'
 
@@ -44,11 +45,11 @@ format-fix:
 
 .PHONY: tidy
 tidy: all
-	$(RUN_CLANG_TIDY) -p build -quiet -j $(shell nproc) $(SOURCE_DIR)
+	$(RUN_CLANG_TIDY) -p build -quiet -j $(shell nproc) -config-file=$(CLANG_TIDY_CONF) $(SOURCE_DIR)
 
 .PHONY: tidy-fix
 tidy-fix: all
-	$(RUN_CLANG_TIDY) -p build -quiet -fix -j $(shell nproc) $(SOURCE_DIR)
+	$(RUN_CLANG_TIDY) -p build -quiet -fix -j $(shell nproc) -config-file=$(CLANG_TIDY_CONF) $(SOURCE_DIR)
 
 .PHONY: test
 test: all

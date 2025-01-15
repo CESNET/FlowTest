@@ -1,9 +1,11 @@
-Checks:
-  '-*,
+Checks: >
+  -*,
   clang-analyzer-*,
   clang-diagnostic-*,
   performance-*,
-  readability-identifier-naming'
+  -performance-enum-size,
+  readability-identifier-naming
+
 FormatStyle: file
 WarningsAsErrors: '*'
 HeaderFilterRegex: 'tools/*'

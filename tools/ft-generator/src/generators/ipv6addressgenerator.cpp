@@ -12,7 +12,7 @@ namespace generator {
 
 IPv6AddressGenerator::IPv6AddressGenerator(IPv6Address netIp, uint8_t prefixLen)
 	: _gen(
-		PrefixedGenerator(std::vector<uint8_t>(netIp.toBytes(), netIp.toBytes() + 16), prefixLen))
+		  PrefixedGenerator(std::vector<uint8_t>(netIp.toBytes(), netIp.toBytes() + 16), prefixLen))
 {
 	if (prefixLen > 0 && !netIp.isValid()) {
 		throw std::invalid_argument("invalid IPv6AddressGenerator net address");
