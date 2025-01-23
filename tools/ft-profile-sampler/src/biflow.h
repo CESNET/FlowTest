@@ -47,4 +47,12 @@ struct __attribute__((aligned(64))) Biflow {
 	uint16_t dst_port {};
 	uint16_t l4_proto {};
 	uint8_t l3_proto {};
+
+	/** Duration of flow precomputed for efficiency (end_time - start_time). */
+	ft::Timestamp duration;
+	/** Packets in both directions precomputed for efficiency (packets + packets_rev). */
+	uint64_t packets_total;
+	/** How many bytes per packet used to compute bytes per second/window
+	 * ((bytes + bytes_rev) / packets_total). */
+	double bytes_per_packet;
 };

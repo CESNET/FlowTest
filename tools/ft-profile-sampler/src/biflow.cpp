@@ -37,6 +37,10 @@ Biflow::Biflow(std::string_view record)
 	if (bytes + bytes_rev == 0) {
 		throw std::runtime_error("Sum of bytes in a biflow record cannot be zero");
 	}
+
+	duration = end_time - start_time;
+	packets_total = (packets + packets_rev);
+	bytes_per_packet = static_cast<double>(bytes + bytes_rev) / packets_total;
 }
 
 template <typename T>
