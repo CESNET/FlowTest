@@ -95,3 +95,41 @@ double Biflow::BytesInInterval(ft::Timestamp start, ft::Timestamp end) const
 {
 	return PacketsInInterval(start, end) * bytes_per_packet;
 }
+
+void Biflow::CreateHistogram(ft::Timestamp start, ft::Timestamp interval, unsigned nOfBins)
+{
+	if (interval.ToNanoseconds() <= 0) {
+		throw std::invalid_argument("interval must be positive number greater than zero");
+	}
+	if (start > start_time) {
+		throw std::invalid_argument(
+			"global start of histogram should be greater than biflow start");
+	}
+
+	start_window_idx = (start_time - start).ToNanoseconds() / interval.ToNanoseconds();
+	end_window_idx = (end_time - start).ToNanoseconds() / interval.ToNanoseconds();
+	if (end_window_idx > nOfBins) {
+		throw std::invalid_argument("bins are not covering all the biflow (nOfBins is too small)");
+	}
+
+	pkt_hist.reserve(end_window_idx - start_window_idx + 1);
+	auto actStart = start;
+	for (unsigned i = 0; i < nOfBins; i++) {
+		if (i >= start_window_idx && i <= end_window_idx) {
+			pkt_hist.emplace_back(PacketsInInterval(actStart, actStart + interval));
+		}
+		actStart += interval;
+	}
+}
+
+double Biflow::GetHistogramBin(unsigned idx) const
+{
+	if (pkt_hist.size() == 0) {
+		std::runtime_error("packet histogram has not been created");
+	}
+
+	if (idx >= start_window_idx && idx <= end_window_idx) {
+		return pkt_hist[idx - start_window_idx];
+	}
+	return 0.0;
+}
