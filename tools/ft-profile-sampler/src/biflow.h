@@ -8,6 +8,7 @@
 
 #pragma once
 #include "common.hpp"
+#include "timestamp.h"
 
 /**
  * @brief Structure representing a biflow record present in the profile.
@@ -36,8 +37,8 @@ struct __attribute__((aligned(64))) Biflow {
 	std::string_view ConsumeField(std::string_view line, T& value);
 	friend std::ostream& operator<<(std::ostream& os, const Biflow& f);
 
-	int64_t start_time {};
-	int64_t end_time {};
+	ft::Timestamp start_time {};
+	ft::Timestamp end_time {};
 	uint64_t packets {};
 	uint64_t bytes {};
 	uint64_t packets_rev {};
