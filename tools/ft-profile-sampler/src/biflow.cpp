@@ -66,3 +66,32 @@ std::ostream& operator<<(std::ostream& os, const Biflow& f)
 	os << f.packets_rev << ',' << f.bytes_rev;
 	return os;
 }
+
+double Biflow::PacketsInInterval(ft::Timestamp start, ft::Timestamp end) const
+{
+	if (end < start_time || start > end_time) {
+		return 0.0;
+	}
+
+	if (duration.ToNanoseconds() == 0) {
+		return packets_total;
+	}
+
+	/* Truncate interval by start or end time of biflow to count only relevant interval into
+	 * interval length. */
+	if (start < start_time) {
+		start = start_time;
+	}
+	if (end > end_time) {
+		end = end_time;
+	}
+
+	auto const intervalLen = end - start;
+	return (static_cast<double>(intervalLen.ToNanoseconds()) / duration.ToNanoseconds())
+		* packets_total;
+}
+
+double Biflow::BytesInInterval(ft::Timestamp start, ft::Timestamp end) const
+{
+	return PacketsInInterval(start, end) * bytes_per_packet;
+}

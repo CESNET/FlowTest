@@ -36,6 +36,22 @@ struct __attribute__((aligned(64))) Biflow {
 	template <typename T>
 	std::string_view ConsumeField(std::string_view line, T& value);
 	friend std::ostream& operator<<(std::ostream& os, const Biflow& f);
+	/**
+	 * @brief Get number of packets belonging to the interval.
+	 * 	Packets are averaged – may be real number.
+	 * @param start Start time of the interval.
+	 * @param end End time of the interval.
+	 * @return Number of packets belonging to the interval (may be real number).
+	 */
+	double PacketsInInterval(ft::Timestamp start, ft::Timestamp end) const;
+	/**
+	 * @brief Get number of bytes belonging to the interval.
+	 * 	Bytes are estimated based on the average packet size.
+	 * @param start Start time of the interval.
+	 * @param end End time of the interval.
+	 * @return Number of bytes belonging to the interval (may be real number).
+	 */
+	double BytesInInterval(ft::Timestamp start, ft::Timestamp end) const;
 
 	ft::Timestamp start_time {};
 	ft::Timestamp end_time {};
