@@ -111,4 +111,6 @@ struct EvolutionConfig {
 	double mutationCtrl {80};
 	/** Print debug messages. */
 	bool verbose {true};
+	/** Length of metrics window in seconds. */
+	size_t windowLength {5};
 };

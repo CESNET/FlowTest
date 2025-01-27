@@ -45,6 +45,9 @@ void PrintUsage()
 	std::cerr
 		<< "  --proto-limit, -r VALUE   Omit protocols which proportional representation "
 		   "in the profile is less than a threshold when calculating fitness (default: 0.005).\n";
+	std::cerr << "  --window-length, -w VALUE   Set length of window interval in seconds. "
+				 "Used to refine sampling over time. Smaller values means more precise sampling "
+				 "but it is more computationally intensive (default: 5s).\n";
 	std::cerr << "  --quiet, -q               Do not print any runtime information\n";
 	std::cerr << "  --help, -h                Show this help message\n";
 }
@@ -64,11 +67,12 @@ int main(int argc, char* argv[])
 		   {"population", required_argument, nullptr, 'p'},
 		   {"port-limit", required_argument, nullptr, 't'},
 		   {"proto-limit", required_argument, nullptr, 'r'},
+		   {"window-length", required_argument, nullptr, 'w'},
 		   {"quiet", no_argument, nullptr, 'q'},
 		   {"help", no_argument, nullptr, 'h'},
 		   {nullptr, 0, nullptr, 0}};
 
-	const char* shortOpts = "u:t:r:l:d:i:o:m:s:g:p:qh";
+	const char* shortOpts = "u:t:r:l:d:i:o:m:s:g:p:w:qh";
 
 	EvolutionConfig cfg;
 	optind = 0;
@@ -114,6 +118,9 @@ int main(int argc, char* argv[])
 			case 't':
 				FromString(optarg, cfg.portThreshold);
 				break;
+			case 'w':
+				FromString(optarg, cfg.windowLength);
+				break;
 			case 'q':
 				cfg.verbose = false;
 				break;
@@ -152,6 +159,11 @@ int main(int argc, char* argv[])
 	if (cfg.portThreshold < 0 or cfg.portThreshold > 1) {
 		cerr << "Protocol proportional representation limit sample size must be between 0 and 1."
 			 << '\n';
+		exit(1);
+	}
+
+	if (cfg.windowLength == 0) {
+		cerr << "Window length must be greater than zero.\n";
 		exit(1);
 	}
 
