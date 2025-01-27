@@ -113,4 +113,6 @@ struct EvolutionConfig {
 	bool verbose {true};
 	/** Length of metrics window in seconds. */
 	size_t windowLength {5};
+	/** Number of parallel workers (threads) used by evolution algorithm. */
+	uint8_t workersCount {8};
 };

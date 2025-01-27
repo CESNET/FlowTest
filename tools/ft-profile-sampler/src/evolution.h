@@ -126,9 +126,6 @@ private:
 	 */
 	std::vector<size_t> Selection();
 
-	/** Number of threads to be used when creating offsprings. */
-	static constexpr auto WORKERS_COUNT {8};
-
 	/** Evolution configuration. */
 	EvolutionConfig _cfg;
 	/** Maximum number of genes (biflows records) in the sample. */

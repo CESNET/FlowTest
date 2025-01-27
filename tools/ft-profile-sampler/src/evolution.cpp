@@ -68,7 +68,7 @@ void Evolution::Run()
 		// determine how many parents will be handled by each thread
 		// must be a factor of 2 due to the crossover operator
 		size_t batchStart = 0;
-		size_t batchSize = DIVIDE_ROUND_UP(_parentIndexes.size(), WORKERS_COUNT);
+		size_t batchSize = DIVIDE_ROUND_UP(_parentIndexes.size(), _cfg.workersCount);
 		if (batchSize % 2 == 1) {
 			batchSize++;
 		}
