@@ -134,6 +134,14 @@ struct Metrics {
 	Metrics& operator=(Metrics&&) = default;
 
 	/**
+	 * @brief Compute stats in time intervals (windows), window size is customizable by
+	 * configuration parameter
+	 * @param data all biflows in profile
+	 * @param histSize number of histogram bins from profile start to end
+	 */
+	void GatherWindowStats(const std::vector<Biflow>& data, unsigned histSize);
+
+	/**
 	 * @brief Compute relative difference in key metrics against the reference.
 	 * @param ref reference metrics object
 	 * @return Key metrics difference.
@@ -160,4 +168,10 @@ struct Metrics {
 	std::map<uint8_t, double> protos;
 	/** Representation of individual ports. */
 	std::map<uint16_t, double> ports;
+	/** Metric values in time intervals (histogram). */
+	std::vector<WindowStats> windows;
+
+private:
+	/** Copy of filtering vector (biflow subset) to use in gather methods. */
+	std::optional<std::vector<bool>> _filter;
 };

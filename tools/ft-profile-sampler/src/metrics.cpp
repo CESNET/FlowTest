@@ -17,6 +17,7 @@ Metrics::Metrics(
 	double protoThreshold,
 	double portThreshold,
 	std::optional<const std::vector<bool>> filter)
+	: _filter(filter)
 {
 	std::array<uint64_t, UINT8_MAX + 1> allProtos {};
 	std::array<uint64_t, UINT16_MAX + 1> allPorts {};
@@ -110,6 +111,46 @@ Metrics::Metrics(
 			break;
 		}
 		ports.emplace(p, representation);
+	}
+}
+
+/* Window interval is the same as the window size (configuration param) */
+constexpr unsigned WINDOW_SIZE = 1u;
+
+void Metrics::GatherWindowStats(const std::vector<Biflow>& data, unsigned histSize)
+{
+	const auto nOfWindows = histSize / WINDOW_SIZE;
+	std::vector<Window> windowsAcc;
+	windowsAcc.resize(nOfWindows);
+
+	for (size_t i = 0; i < data.size(); i++) {
+		if (_filter && !(*_filter)[i]) {
+			continue;
+		}
+		const auto& biflow = data[i];
+		for (unsigned windowIndex = biflow.start_window_idx / WINDOW_SIZE;
+			 windowIndex <= biflow.end_window_idx / WINDOW_SIZE + 1;
+			 windowIndex++) {
+			double pkts = 0;
+			for (unsigned j = 0; j < WINDOW_SIZE; j++) {
+				const auto secIndex = windowIndex * WINDOW_SIZE + j;
+				if (secIndex <= biflow.end_window_idx) {
+					pkts += biflow.GetHistogramBin(secIndex);
+				}
+			}
+
+			if (pkts > 0) {
+				windowsAcc[windowIndex].packetsCnt += pkts;
+			}
+		}
+	}
+
+	windows.resize(nOfWindows);
+	for (size_t i = 0; i < windows.size(); i++) {
+		auto& acc = windowsAcc[i];
+		auto& stats = windows[i];
+
+		stats.pktsToTotalRatio = acc.packetsCnt / static_cast<double>(packetsCnt);
 	}
 }
 
