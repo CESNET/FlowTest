@@ -121,12 +121,14 @@ struct Metrics {
 	 * @param portThreshold threshold for proportional representation of ports to be included in
 	 * metrics
 	 * @param filter compute the profile only from the specified biflow subset (optional)
+	 * @param histSize number of histogram bins from profile start to end
 	 */
 	Metrics(
 		const std::vector<Biflow>& data,
 		double protoThreshold,
 		double portThreshold,
-		std::optional<const std::vector<bool>> filter);
+		std::optional<const std::vector<bool>> filter,
+		unsigned histSize);
 	Metrics() = default;
 	Metrics(const Metrics&) = delete;
 	Metrics(Metrics&&) noexcept = default;

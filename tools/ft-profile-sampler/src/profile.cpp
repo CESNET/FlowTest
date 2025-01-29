@@ -84,7 +84,7 @@ Profile::Profile(const EvolutionConfig& cfg, std::string_view path)
 		biflow.CreateHistogram(startTime, ft::Timestamp(_cfg.windowLength, 0), _histSize);
 	}
 
-	_metrics = Metrics(_rows, _cfg.protoThreshold, _cfg.portThreshold, {});
+	_metrics = Metrics(_rows, _cfg.protoThreshold, _cfg.portThreshold, {}, _histSize);
 }
 
 void Profile::ParseProfileFile(const char* start, const char* end)
@@ -122,7 +122,7 @@ std::vector<Biflow> Profile::GetFlowSubset(const std::vector<bool>& genotype) co
 
 std::pair<Metrics, MetricsDiff> Profile::GetGenotypeMetrics(const std::vector<bool>& genotype) const
 {
-	auto metrics = Metrics(_rows, 0, 0, genotype);
+	auto metrics = Metrics(_rows, 0, 0, genotype, _histSize);
 	auto diff = metrics.Diff(_metrics);
 	return {std::move(metrics), std::move(diff)};
 }

@@ -16,7 +16,8 @@ Metrics::Metrics(
 	const std::vector<Biflow>& data,
 	double protoThreshold,
 	double portThreshold,
-	std::optional<const std::vector<bool>> filter)
+	std::optional<const std::vector<bool>> filter,
+	unsigned histSize)
 	: _filter(filter)
 {
 	std::array<uint64_t, UINT8_MAX + 1> allProtos {};
