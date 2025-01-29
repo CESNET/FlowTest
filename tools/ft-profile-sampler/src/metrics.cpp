@@ -154,6 +154,32 @@ void Metrics::GatherWindowStats(const std::vector<Biflow>& data, unsigned histSi
 	}
 }
 
+double Metrics::GetRSD(const std::vector<Biflow>& data, unsigned histSize) const
+{
+	const auto mean = static_cast<double>(packetsCnt) / histSize;
+	double acc = 0;
+
+	std::vector<double> pktsAcc;
+	pktsAcc.resize(histSize);
+
+	for (size_t i = 0; i < data.size(); i++) {
+		if (_filter && !(*_filter)[i]) {
+			continue;
+		}
+		const auto& biflow = data[i];
+
+		for (unsigned secIndex = 0; secIndex < histSize; secIndex++) {
+			const auto pkts = biflow.GetHistogramBin(secIndex);
+			pktsAcc[secIndex] += pkts;
+		}
+	}
+
+	for (const auto pkts : pktsAcc) {
+		acc += std::pow(pkts - mean, 2);
+	}
+	return std::sqrt(acc / histSize) / mean;
+}
+
 MetricsDiff Metrics::Diff(const Metrics& ref) const
 {
 	MetricsDiff diff;

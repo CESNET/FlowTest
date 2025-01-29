@@ -142,6 +142,16 @@ struct Metrics {
 	void GatherWindowStats(const std::vector<Biflow>& data, unsigned histSize);
 
 	/**
+	 * @brief Compute Relative Standard Deviation
+	 * Warning: calculation depends on the size of the window (configuration parameter),
+	 * big windows may indicate an inaccurate deviation
+	 * @param data all biflows in profile
+	 * @param histSize number of histogram bins from profile start to end
+	 * @return rsd as real number
+	 */
+	double GetRSD(const std::vector<Biflow>& data, unsigned histSize) const;
+
+	/**
 	 * @brief Compute relative difference in key metrics against the reference.
 	 * @param ref reference metrics object
 	 * @return Key metrics difference.
