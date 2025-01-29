@@ -50,6 +50,23 @@ struct PacketSizeDistribution {
 };
 
 /**
+ * @brief Structure holding aggregated values within a single time interval.
+ */
+struct Window {
+	double packetsCnt = 0;
+	/* Extend with additional metrics if needed. */
+};
+
+/**
+ * @brief Structure holding metrics or differences of metrics computed within
+ *  a single time interval.
+ */
+struct WindowStats {
+	double pktsToTotalRatio = 0;
+	/* Extend with additional metrics if needed. */
+};
+
+/**
  * @brief Contain relative difference between individual key metrics of two Metrics objects.
  */
 struct MetricsDiff {
