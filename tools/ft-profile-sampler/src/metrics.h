@@ -107,6 +107,8 @@ struct MetricsDiff {
 	std::map<uint16_t, double> ports;
 	/** Relative difference of average packet size distribution. */
 	PacketSizeDistribution avgPktSize;
+	/** Differences of metrics in specified time intervals. */
+	std::vector<WindowStats> windows;
 };
 
 /**

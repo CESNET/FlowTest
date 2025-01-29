@@ -113,6 +113,8 @@ Metrics::Metrics(
 		}
 		ports.emplace(p, representation);
 	}
+
+	GatherWindowStats(data, histSize);
 }
 
 /* Window interval is the same as the window size (configuration param) */
@@ -206,6 +208,15 @@ MetricsDiff Metrics::Diff(const Metrics& ref) const
 		diff.ports[port.first] = (val != ports.end()) ? REL_DIFF(val->second, port.second) : 100;
 	}
 
+	for (size_t i = 0; i < windows.size(); i++) {
+		const auto& w = windows[i];
+		const auto& refW = ref.windows[i];
+
+		WindowStats stats;
+		stats.pktsToTotalRatio = REL_DIFF(w.pktsToTotalRatio, refW.pktsToTotalRatio);
+		diff.windows.push_back(stats);
+	}
+
 	diff.ComputeFitness();
 	return diff;
 }
@@ -223,6 +234,16 @@ void MetricsDiff::ComputeFitness()
 	for (const auto& port : ports) {
 		fitness -= pow(port.second, 2);
 	}
+
+	double acc = 0;
+	for (const auto& w : windows) {
+		acc += w.pktsToTotalRatio;
+	}
+	acc = 100 - pow(acc / windows.size(), 2);
+
+	// 50% of the fitness consist of global profile metrics
+	// and 50% of aggregated window stats
+	fitness = fitness / 2 + acc / 2;
 
 	if (fitness < 0) {
 		fitness = 0;
@@ -251,6 +272,12 @@ bool MetricsDiff::IsAcceptable(double deviation) const
 			return x.second > deviation;
 		})) {
 		return false;
+	}
+
+	for (const auto& w : windows) {
+		if (w.pktsToTotalRatio > deviation) {
+			return false;
+		}
 	}
 
 	return true;
