@@ -312,7 +312,9 @@ std::ostream& operator<<(std::ostream& os, const EvolutionConfig& cfg)
 	os << "GENERATIONS: " << cfg.generations << '\n';
 	os << "POPULATION: " << cfg.population << '\n';
 	os << "MAX DEVIATION: " << cfg.deviation << '\n';
-	os << "SEED: " << cfg.seed << "\n\n";
+	os << "SEED: " << cfg.seed << '\n';
+	os << "AGGREGATION WINDOW SIZE: " << cfg.windowLength << '\n';
+	os << '\n';
 	return os;
 }
 
@@ -378,4 +380,13 @@ void Evolution::DumpSolution(std::string_view solutionPath, std::string_view met
 	metricsFile << "(1024, 9000]"
 				<< "\t" << origMetrics.pktSizes.huge << '\t' << best.metrics.pktSizes.huge << '\t'
 				<< best.diff.avgPktSize.huge << "\n";
+
+	metricsFile << '\n';
+
+	metricsFile << "WINDOWS METRICS\tDIFFS (%)\n";
+	metricsFile << "PKTS/TOTAL\t";
+	for (const auto& w : best.diff.windows) {
+		metricsFile << w.pktsToTotalRatio << " ";
+	}
+	metricsFile << '\n';
 }
