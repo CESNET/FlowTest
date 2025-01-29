@@ -180,18 +180,18 @@ int main(int argc, char* argv[])
 
 	try {
 		if (cfg.verbose) {
-			cout << "Loading profile ..." << '\n';
+			cout << "Loading profile ..." << '\n' << std::flush;
 		}
 
 		auto profile = make_shared<Profile>(cfg, profilePath);
 		auto evolution = Evolution(cfg, profile);
 		if (cfg.verbose) {
-			cout << "Creating initial population ..." << '\n';
+			cout << "Creating initial population ..." << '\n' << std::flush;
 		}
 
 		evolution.CreateInitialPopulation();
 		if (cfg.verbose) {
-			cout << "Starting genetic algorithm ..." << '\n';
+			cout << "Starting genetic algorithm ..." << '\n' << std::flush;
 		}
 
 		evolution.Run();
