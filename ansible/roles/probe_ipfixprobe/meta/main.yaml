@@ -1,7 +1,3 @@
 ---
 dependencies:
   - role: repository_nemea
-    when: ipfixprobe_package != "ipfixprobe-ndp"
-  - role: repository_flowtest
-    # ipfixprobe-ndp is temporarily stored in FlowTest reporitory
-    when: ipfixprobe_package == "ipfixprobe-ndp"
