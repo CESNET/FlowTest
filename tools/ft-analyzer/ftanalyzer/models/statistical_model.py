@@ -15,6 +15,11 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from ftanalyzer.common.fast_analyzer_wrapper import (
+    create_statistical_model,
+    fast_analyzer_available,
+    validate_statistical_model,
+)
 from ftanalyzer.common.pandas_multiprocessing import PandasMultiprocessingHelper
 from ftanalyzer.models.sm_data_types import (
     SMException,
@@ -54,6 +59,8 @@ class StatisticalModel:
         Flow records acquired from a network probe.
     _ref : pandas.DataFrame
         Flow records acting as a reference.
+    _fast_model : ft_fast_analyzer.StatisticalModel, optional
+        Statistical model from the ft_fast_analyzer module if available and usable.
     """
 
     # pylint: disable=too-few-public-methods
@@ -118,6 +125,13 @@ class StatisticalModel:
             Unable to process provided files.
         """
 
+        if fast_analyzer_available() and not merge and not biflows_ts_correction:
+            self._fast_model = create_statistical_model(flows, reference, start_time)
+            return
+
+        # fallback to python analyzer implementation
+        self._fast_model = None
+
         try:
             logging.getLogger().debug("reading file with flows=%s", flows)
             # ports could be empty in flows with protocol like ICMP
@@ -166,6 +180,9 @@ class StatisticalModel:
         SMException
             When duplicated metrics in a single validation rule are present.
         """
+
+        if self._fast_model is not None:
+            return validate_statistical_model(self._fast_model, rules, check_complement)
 
         report = StatisticalReport()
         all_flow_masks = []
