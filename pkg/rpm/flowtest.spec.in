@@ -40,6 +40,12 @@ Requires: dpdk-tools
 Requires: dpdk
 %endif
 
+%if 0%{?rhel} == 8
+Requires: python39
+%else
+Requires: python3
+%endif
+
 %if %{with nfb}
 BuildRequires: nfb-framework
 Requires: nfb-framework
@@ -67,5 +73,6 @@ that make up the main components of the test environment.
 %{_bindir}/ft-replay
 %{_bindir}/ft-generator
 %{_bindir}/ft-profile-sampler
+%{_pysitedir}/ft_fast_analyzer*.so
 
 %changelog

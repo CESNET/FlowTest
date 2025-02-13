@@ -16,6 +16,7 @@ set(SPEC_FILE "${RPMBUILD_DIR}/SPECS/flowtest.spec")
 set(RPMBUILD_ARGS
 	"-ba" "${SPEC_FILE}"
 	"--define" "_topdir ${RPMBUILD_DIR}/"
+	"--define" "_pysitedir ${PYTHON_INSTALL_SITE_DIR}/"
 )
 
 if (ENABLE_DPDK)
