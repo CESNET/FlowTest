@@ -776,12 +776,8 @@ class IpfixprobeDpdk(Ipfixprobe):
     ):
         interfaces_names = [ifc.name for ifc in interfaces]
         settings = IpfixprobeDpdkSettings(devices=interfaces_names, **kwargs)
+        self._mtu = mtu
         super().__init__(executor, target, protocols, interfaces, verbose, settings, sudo)
-
-        if mtu != 1522:
-            logging.getLogger().warning(
-                "DPDK input plugin does not support setting MTU size at this time. The value is ignored."
-            )
 
     def _prepare_cmd(self, target: ProbeTarget, protocols: List[str], settings: IpfixprobeSettings) -> str:
         self._check_plugin("dpdk")
@@ -809,6 +805,7 @@ class IpfixprobeDpdk(Ipfixprobe):
             dpdk_params.append(f"b={settings.mbuf_size}")
         if settings.mempool_size:
             dpdk_params.append(f"m={settings.mempool_size}")
+        dpdk_params.append(f"M={self._mtu}")
         eal_params_str = " ".join(eal_params)
         dpdk_params.append(f"e={eal_params_str}")
 
