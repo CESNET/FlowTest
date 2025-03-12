@@ -255,7 +255,7 @@ class TestWithFakeHost:
         probe.stop()
 
         expected = (
-            'ipfixprobe -i "dpdk;p=0;q=4;b=128;m=4096;e=--lcores (0-3)@(0-3) -m 2048 --file-prefix ipfixprobe'
+            'ipfixprobe -i "dpdk;p=0;q=4;b=128;m=4096;M=1522;e=--lcores (0-3)@(0-3) -m 2048 --file-prefix ipfixprobe'
             ' -a 0000:01:00.0" -i "dpdk" -i "dpdk" -i "dpdk" -s "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
         )
         assert expected == fake_host.last_command
@@ -272,9 +272,9 @@ class TestWithFakeHost:
         probe.stop()
 
         expected = (
-            'ipfixprobe -i "dpdk;p=0,1,2;q=4;b=128;m=4096;e=--lcores (0-3)@(0-3) -m 2048 --file-prefix ipfixprobe'
-            ' -a 0000:01:00.0 -a 0000:01:00.1 -a 0000:01:00.2" -i "dpdk" -i "dpdk" -i "dpdk" -s "cache;a=300;i=30"'
-            ' -o "ipfix;h=127.0.0.1;p=4739"'
+            'ipfixprobe -i "dpdk;p=0,1,2;q=4;b=128;m=4096;M=1522;e=--lcores (0-3)@(0-3) -m 2048 --file-prefix'
+            ' ipfixprobe -a 0000:01:00.0 -a 0000:01:00.1 -a 0000:01:00.2" -i "dpdk" -i "dpdk" -i "dpdk" -s'
+            ' "cache;a=300;i=30" -o "ipfix;h=127.0.0.1;p=4739"'
         )
         assert expected == fake_host.last_command
 
