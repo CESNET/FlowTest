@@ -19,3 +19,7 @@ target_include_directories(common
 		include
 		spdlog::spdlog
 )
+
+# To use common library (statically linked) in shared libraries (e.g. in python module ft-fast-analyzer)
+# is needed to set position-independent code on.
+set_property(TARGET common PROPERTY POSITION_INDEPENDENT_CODE ON)

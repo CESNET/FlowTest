@@ -8,6 +8,10 @@
 set(BUILD_SHARED_LIBS OFF)
 set(SPDLOG_BUILD_SHARED OFF)
 
+# To use logger (statically linked) in shared libraries (e.g. in python module ft-fast-analyzer)
+# is needed to set position-independent code on.
+set(SPDLOG_BUILD_PIC ON)
+
 FetchContent_Declare(
 	spdlog
 	GIT_REPOSITORY "https://github.com/gabime/spdlog.git"
