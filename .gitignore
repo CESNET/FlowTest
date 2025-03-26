@@ -12,3 +12,6 @@ build/
 
 # Clangd cache files
 .clang/
+
+# Python virtual enviroment
+venv/
