@@ -49,3 +49,11 @@
       - openssl
       - openssl-devel
     state: latest
+
+- name: dpdk library is installed
+  ansible.builtin.dnf:
+    name:
+      - dpdk
+      - dpdk-devel
+      - dpdk-tools
+    state: latest
