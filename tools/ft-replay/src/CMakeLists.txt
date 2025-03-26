@@ -70,6 +70,20 @@ add_executable(ft-replay
 	dissector/layer.cpp
 )
 
+if (ENABLE_DPDK)
+	target_sources(ft-replay PRIVATE
+		dpdkPlugin.cpp
+		dpdkPlugin.hpp
+		dpdkQueue.cpp
+		dpdkQueue.hpp
+		CStringArray/cStringArray.cpp
+		CStringArray/cStringArray.hpp
+	)
+	target_link_libraries(ft-replay PRIVATE
+		PkgConfig::libdpdk
+	)
+endif()
+
 if (ENABLE_NFB)
 	target_sources(ft-replay PRIVATE
 		nfbDeviceTree.hpp
