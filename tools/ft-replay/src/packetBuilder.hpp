@@ -14,6 +14,7 @@
 #include "rawPacketProvider.hpp"
 #include "replicator-core/macAddress.hpp"
 
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -96,6 +97,7 @@ private:
 	std::unique_ptr<std::byte[]> GetDataCopyWithVlan(const std::byte* rawData, uint16_t dataLen);
 	void ValidatePacketLength(uint16_t packetLength) const;
 	void PresetHwChecksum(Packet& packet);
+	int DecidePort(const std::byte* rawData, enum L3Type l3Type, uint16_t l3Offset) const;
 
 	uint16_t _vlanID = 0;
 	double _timeMultiplier = 1.0;

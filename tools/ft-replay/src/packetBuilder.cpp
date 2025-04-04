@@ -10,6 +10,7 @@
 
 #include "checksumCalculator.hpp"
 #include "dissector/dissector.hpp"
+#include "packet.hpp"
 
 #include <cstring>
 #include <initializer_list>
@@ -127,6 +128,19 @@ void PacketBuilder::PresetHwChecksum(Packet& packet)
 	}
 }
 
+int PacketBuilder::DecidePort(const std::byte* rawData, enum L3Type l3Type, uint16_t l3Offset) const
+{
+	if (l3Type == L3Type::IPv4) {
+		const iphdr* ipHeader = reinterpret_cast<const iphdr*>(rawData + l3Offset);
+		return std::memcmp(&ipHeader->saddr, &ipHeader->daddr, sizeof(ipHeader->saddr));
+	} else if (l3Type == L3Type::IPv6) {
+		const ip6_hdr* ip6Header = reinterpret_cast<const ip6_hdr*>(rawData + l3Offset);
+		return std::memcmp(&ip6Header->ip6_src, &ip6Header->ip6_dst, sizeof(ip6Header->ip6_src));
+	} else {
+		return 0;
+	}
+}
+
 static std::optional<size_t> LayersFindFirstOf(
 	const std::vector<dissector::Layer>& layers,
 	std::initializer_list<dissector::LayerType> types,
@@ -237,6 +251,12 @@ PacketInfo PacketBuilder::GetPacketInfo(const RawPacket* rawPacket) const
 		const Layer& l4Layer = layers[l4Pos.value()];
 		info.l4Offset = l4Layer._offset;
 		info.l4Type = LayerToL4Protocol(l4Layer._type);
+	}
+
+	if (DecidePort(rawPacket->data, info.l3Type, info.l3Offset) < 0) {
+		info.outInterface = OutInterface::Interface0;
+	} else {
+		info.outInterface = OutInterface::Interface1;
 	}
 
 	info.ipAddressesChecksum

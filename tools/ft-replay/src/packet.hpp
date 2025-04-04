@@ -34,6 +34,14 @@ enum class L4Type {
 };
 
 /**
+ * @brief Enum representing the output interface when replaying in multi-port mode
+ */
+enum class OutInterface {
+	Interface0,
+	Interface1,
+};
+
+/**
  * @brief Class representing the packet L3 info
  *
  */
@@ -45,6 +53,8 @@ struct PacketInfo {
 	uint16_t l4Offset; //< Zero if l4type == L4Type::NotFound
 
 	uint16_t ipAddressesChecksum; //< checksum of IP addresses in host byte order
+
+	enum OutInterface outInterface; //< used for multi-port replaying
 };
 
 /**
