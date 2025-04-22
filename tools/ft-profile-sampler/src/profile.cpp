@@ -59,6 +59,10 @@ Profile::Profile(const EvolutionConfig& cfg, std::string_view path)
 	munmap(data, fileStat.st_size);
 	close(fd);
 
+	if (_rows.size() == 0) {
+		throw std::runtime_error("Profile CSV must contain at least one record.");
+	}
+
 	// Compute Biflow histograms
 	const ft::Timestamp startTime = std::accumulate(
 		_rows.begin(),
