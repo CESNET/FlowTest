@@ -30,6 +30,7 @@ twine = "*"
 hypothesis = "*"
 docker = "*"
 isort = "*"
+packaging = "*"
 
 [requires]
 python_version = "3.9"
