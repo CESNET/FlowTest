@@ -35,7 +35,7 @@ class DiskSpaceError : public std::runtime_error {
  * @brief A generated packet
  */
 struct GeneratorPacket {
-	Timestamp _time; //< The flow time of the packet
+	ft::Timestamp _time; //< The flow time of the packet
 	uint64_t _size; //< The number of bytes of the packet
 	const std::byte* _data; //< The bytes of the packet
 };

@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include "timestamp.h"
 #include <charconv>
 #include <cinttypes>
 #include <cstring>
@@ -40,6 +41,35 @@ void FromString(std::string_view str, T& value)
 		throw std::runtime_error(
 			"'" + valueStr + "' is not a valid number due to unexpected characters");
 	}
+}
+
+/**
+ * @brief Specialization of FromString for ft::Timestamp object.
+ * 	Input string must represent milliseconds.
+ * @param str input string containing timestamp in milliseconds, can be negative
+ * @param value argument where the parsed value should be stored
+ */
+template <>
+inline void FromString<ft::Timestamp>(std::string_view str, ft::Timestamp& value)
+{
+	int64_t tsInt;
+	FromString(str, tsInt);
+
+	value = ft::Timestamp::From<ft::TimeUnit::Milliseconds>(tsInt);
+}
+
+/**
+ * @brief Convert timestamp back to milliseconds.
+ * 	Nanoseconds are truncated – profiler assumes millisecond timestamps.
+ * @param ts timestamp to convert
+ * @return milliseconds from epoch
+ */
+inline int64_t TimestampToMilliseconds(const ft::Timestamp& ts)
+{
+	constexpr int divisor = 1'000'000;
+
+	int64_t value = ts.ToNanoseconds();
+	return value / divisor;
 }
 
 /**
@@ -81,4 +111,8 @@ struct EvolutionConfig {
 	double mutationCtrl {80};
 	/** Print debug messages. */
 	bool verbose {true};
+	/** Length of metrics window in seconds. */
+	size_t windowLength {5};
+	/** Number of parallel workers (threads) used by evolution algorithm. */
+	uint8_t workersCount {8};
 };

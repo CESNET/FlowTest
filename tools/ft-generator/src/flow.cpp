@@ -436,7 +436,7 @@ PacketExtraInfo Flow::GenerateNextPacket(PcppPacket& packet)
 	return extra;
 }
 
-Timestamp Flow::GetNextPacketTime() const
+ft::Timestamp Flow::GetNextPacketTime() const
 {
 	return _packets.front()._timestamp;
 }
@@ -475,17 +475,17 @@ void Flow::PlanPacketsTimestamps()
 
 	auto it = timestamps.begin();
 	for (auto& pkt : _packets) {
-		pkt._timestamp = Timestamp::From<TimeUnit::Nanoseconds>(*it);
+		pkt._timestamp = ft::Timestamp::From<ft::TimeUnit::Nanoseconds>(*it);
 		it++;
 	}
 
 	if (_packets.size() > 0 && _packets.back()._timestamp != _tsLast) {
-		Timestamp newTsLast = _packets.back()._timestamp;
+		ft::Timestamp newTsLast = _packets.back()._timestamp;
 
 		_logger->info(
 			"Flow (line no. {}) has been trimmed by {}s to satisfy max gap",
 			_profileFileLineNum,
-			(_tsLast - newTsLast).ToString<TimeUnit::Seconds>());
+			(_tsLast - newTsLast).ToString<ft::TimeUnit::Seconds>());
 
 		_tsLast = newTsLast;
 	}

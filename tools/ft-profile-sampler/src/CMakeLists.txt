@@ -8,5 +8,5 @@ add_executable(ft-profile-sampler
 )
 
 target_compile_options(ft-profile-sampler PUBLIC -pthread)
-target_link_libraries(ft-profile-sampler PRIVATE pthread)
+target_link_libraries(ft-profile-sampler PRIVATE pthread common)
 install(TARGETS ft-profile-sampler DESTINATION ${INSTALL_DIR_BIN})

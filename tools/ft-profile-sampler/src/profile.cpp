@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cstring>
 #include <fcntl.h>
+#include <numeric>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -58,7 +59,36 @@ Profile::Profile(const EvolutionConfig& cfg, std::string_view path)
 	munmap(data, fileStat.st_size);
 	close(fd);
 
-	_metrics = Metrics(_rows, _cfg.protoThreshold, _cfg.portThreshold, {});
+	if (_rows.size() == 0) {
+		throw std::runtime_error("Profile CSV must contain at least one record.");
+	}
+
+	// Compute Biflow histograms
+	const ft::Timestamp startTime = std::accumulate(
+		_rows.begin(),
+		_rows.end(),
+		_rows[0].start_time,
+		[](ft::Timestamp ts, const Biflow& b2) { return std::min(ts, b2.start_time); });
+	const ft::Timestamp endTime = std::accumulate(
+		_rows.begin(),
+		_rows.end(),
+		_rows[0].end_time,
+		[](ft::Timestamp ts, const Biflow& b2) { return std::max(ts, b2.end_time); });
+	const auto duration = (endTime - startTime);
+	auto nOfBins = duration.SecPart();
+	if (duration.NanosecPart() > 0) {
+		nOfBins++;
+	}
+	if (nOfBins <= 0) {
+		nOfBins = 1;
+	}
+	_histSize = static_cast<unsigned>(std::ceil(static_cast<double>(nOfBins) / _cfg.windowLength));
+
+	for (auto& biflow : _rows) {
+		biflow.CreateHistogram(startTime, ft::Timestamp(_cfg.windowLength, 0), _histSize);
+	}
+
+	_metrics = Metrics(_rows, _cfg.protoThreshold, _cfg.portThreshold, {}, _histSize);
 }
 
 void Profile::ParseProfileFile(const char* start, const char* end)
@@ -96,7 +126,7 @@ std::vector<Biflow> Profile::GetFlowSubset(const std::vector<bool>& genotype) co
 
 std::pair<Metrics, MetricsDiff> Profile::GetGenotypeMetrics(const std::vector<bool>& genotype) const
 {
-	auto metrics = Metrics(_rows, 0, 0, genotype);
+	auto metrics = Metrics(_rows, 0, 0, genotype, _histSize);
 	auto diff = metrics.Diff(_metrics);
 	return {std::move(metrics), std::move(diff)};
 }

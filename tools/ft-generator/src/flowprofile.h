@@ -47,8 +47,8 @@ std::string L4ProtocolToString(L4Protocol protocol);
  * @brief Struct representing a flow profile entry in the input file
  */
 struct FlowProfile {
-	Timestamp _startTime;
-	Timestamp _endTime;
+	ft::Timestamp _startTime;
+	ft::Timestamp _endTime;
 	L3Protocol _l3Proto;
 	L4Protocol _l4Proto;
 	uint16_t _srcPort;

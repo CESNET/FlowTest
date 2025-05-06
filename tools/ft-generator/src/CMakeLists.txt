@@ -59,7 +59,6 @@ set(FT_GENERATOR_SOURCES
 	pcpppacket.cpp
 	randomgenerator.cpp
 	randomgeneratorengine.cpp
-	timestamp.cpp
 	timestampgenerator.cpp
 	trafficmeter.cpp
 	utils.cpp

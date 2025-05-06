@@ -29,7 +29,7 @@ class Layer;
  * @brief Extra information about the flow packet
  */
 struct PacketExtraInfo {
-	Timestamp _time; //< The timestamp of the packet
+	ft::Timestamp _time; //< The timestamp of the packet
 	Direction _direction; //< The direction of the packet
 };
 
@@ -54,8 +54,8 @@ public:
 	uint64_t _revPackets = 0; //< Number of packets in reverse direction
 	uint64_t _fwdBytes = 0; //< Number of bytes in forward direction
 	uint64_t _revBytes = 0; //< Number of bytes in reverse direction
-	Timestamp _tsFirst; //< Timestamp of the first packet
-	Timestamp _tsLast; //< Timestamp of the last packet
+	ft::Timestamp _tsFirst; //< ft::Timestamp of the first packet
+	ft::Timestamp _tsLast; //< ft::Timestamp of the last packet
 	std::list<Packet> _packets; //< The planned packets
 
 	/**
@@ -108,7 +108,7 @@ public:
 	 *
 	 * @return The time
 	 */
-	Timestamp GetNextPacketTime() const;
+	ft::Timestamp GetNextPacketTime() const;
 
 	/**
 	 * @brief Check whether the flow is finished and wont be generating any additional packets

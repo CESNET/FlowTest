@@ -11,6 +11,7 @@
 #pragma once
 #include "profile.h"
 #include <memory>
+#include <mutex>
 #include <random>
 #include <utility>
 
@@ -55,6 +56,8 @@ public:
 	 * @brief Randomly create initial population. All individuals have fitness > 0.
 	 */
 	void CreateInitialPopulation();
+
+	void InitialPopulationWorker(uint64_t seed);
 
 	/**
 	 * @brief Run the evolution process.
@@ -126,9 +129,6 @@ private:
 	 */
 	std::vector<size_t> Selection();
 
-	/** Number of threads to be used when creating offsprings. */
-	static constexpr auto WORKERS_COUNT {8};
-
 	/** Evolution configuration. */
 	EvolutionConfig _cfg;
 	/** Maximum number of genes (biflows records) in the sample. */
@@ -149,4 +149,6 @@ private:
 	std::vector<Individual> _fenotype;
 	/** Previous population. */
 	std::vector<size_t> _parentIndexes;
+	/** Mutex used to synchronize initial population workers. */
+	std::mutex _mtx;
 };

@@ -8,6 +8,6 @@
 
 #include "timestamp.h"
 
-namespace generator {
+namespace ft {
 
-} // namespace generator
+} // namespace ft

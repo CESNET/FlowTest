@@ -48,7 +48,7 @@ public:
 	 *
 	 * @throws runtime_error  When file write failed
 	 */
-	void WritePacket(const std::byte* data, uint32_t length, Timestamp timestamp);
+	void WritePacket(const std::byte* data, uint32_t length, ft::Timestamp timestamp);
 
 private:
 	std::unique_ptr<pcap_t, decltype(&pcap_close)> _pcap {nullptr, pcap_close};

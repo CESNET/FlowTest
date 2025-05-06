@@ -50,6 +50,23 @@ struct PacketSizeDistribution {
 };
 
 /**
+ * @brief Structure holding aggregated values within a single time interval.
+ */
+struct Window {
+	double packetsCnt = 0;
+	/* Extend with additional metrics if needed. */
+};
+
+/**
+ * @brief Structure holding metrics or differences of metrics computed within
+ *  a single time interval.
+ */
+struct WindowStats {
+	double pktsToTotalRatio = 0;
+	/* Extend with additional metrics if needed. */
+};
+
+/**
  * @brief Contain relative difference between individual key metrics of two Metrics objects.
  */
 struct MetricsDiff {
@@ -90,6 +107,8 @@ struct MetricsDiff {
 	std::map<uint16_t, double> ports;
 	/** Relative difference of average packet size distribution. */
 	PacketSizeDistribution avgPktSize;
+	/** Differences of metrics in specified time intervals. */
+	std::vector<WindowStats> windows;
 };
 
 /**
@@ -104,17 +123,37 @@ struct Metrics {
 	 * @param portThreshold threshold for proportional representation of ports to be included in
 	 * metrics
 	 * @param filter compute the profile only from the specified biflow subset (optional)
+	 * @param histSize number of histogram bins from profile start to end
 	 */
 	Metrics(
 		const std::vector<Biflow>& data,
 		double protoThreshold,
 		double portThreshold,
-		std::optional<const std::vector<bool>> filter);
+		std::optional<const std::vector<bool>> filter,
+		unsigned histSize);
 	Metrics() = default;
 	Metrics(const Metrics&) = delete;
 	Metrics(Metrics&&) noexcept = default;
 	Metrics& operator=(const Metrics&) = delete;
 	Metrics& operator=(Metrics&&) = default;
+
+	/**
+	 * @brief Compute stats in time intervals (windows), window size is customizable by
+	 * configuration parameter
+	 * @param data all biflows in profile
+	 * @param histSize number of histogram bins from profile start to end
+	 */
+	void GatherWindowStats(const std::vector<Biflow>& data, unsigned histSize);
+
+	/**
+	 * @brief Compute Relative Standard Deviation
+	 * Warning: calculation depends on the size of the window (configuration parameter),
+	 * big windows may indicate an inaccurate deviation
+	 * @param data all biflows in profile
+	 * @param histSize number of histogram bins from profile start to end
+	 * @return rsd as real number
+	 */
+	double GetRSD(const std::vector<Biflow>& data, unsigned histSize) const;
 
 	/**
 	 * @brief Compute relative difference in key metrics against the reference.
@@ -143,4 +182,10 @@ struct Metrics {
 	std::map<uint8_t, double> protos;
 	/** Representation of individual ports. */
 	std::map<uint16_t, double> ports;
+	/** Metric values in time intervals (histogram). */
+	std::vector<WindowStats> windows;
+
+private:
+	/** Copy of filtering vector (biflow subset) to use in gather methods. */
+	std::optional<std::vector<bool>> _filter;
 };

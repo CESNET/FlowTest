@@ -42,11 +42,11 @@ TEST_CASE("timestamp gaps are generated correctly - single value and no max gap 
 {
 	const auto& timestamps = GenerateTimestamps(
 		2,
-		Timestamp::From<TimeUnit::Seconds>(0),
-		Timestamp::From<TimeUnit::Seconds>(500));
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(0),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(500));
 	CHECK(timestamps.size() == 2);
-	CHECK(timestamps.front() == Timestamp::From<TimeUnit::Seconds>(0).ToNanoseconds());
-	CHECK(timestamps.back() == Timestamp::From<TimeUnit::Seconds>(500).ToNanoseconds());
+	CHECK(timestamps.front() == ft::Timestamp::From<ft::TimeUnit::Seconds>(0).ToNanoseconds());
+	CHECK(timestamps.back() == ft::Timestamp::From<ft::TimeUnit::Seconds>(500).ToNanoseconds());
 
 	const auto& gaps = GetGaps(timestamps);
 	CHECK(gaps.size() == 1);
@@ -57,11 +57,11 @@ TEST_CASE("timestamp gaps are generated correctly - no max gap limit")
 {
 	const auto& timestamps = GenerateTimestamps(
 		10,
-		Timestamp::From<TimeUnit::Seconds>(0),
-		Timestamp::From<TimeUnit::Seconds>(500));
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(0),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(500));
 	CHECK(timestamps.size() == 10);
-	CHECK(timestamps.front() == Timestamp::From<TimeUnit::Seconds>(0).ToNanoseconds());
-	CHECK(timestamps.back() == Timestamp::From<TimeUnit::Seconds>(500).ToNanoseconds());
+	CHECK(timestamps.front() == ft::Timestamp::From<ft::TimeUnit::Seconds>(0).ToNanoseconds());
+	CHECK(timestamps.back() == ft::Timestamp::From<ft::TimeUnit::Seconds>(500).ToNanoseconds());
 
 	const auto& gaps = GetGaps(timestamps);
 	CHECK(gaps.size() == 9);
@@ -72,12 +72,12 @@ TEST_CASE("timestamp gaps are generated correctly - basic case")
 {
 	const auto& timestamps = GenerateTimestamps(
 		10,
-		Timestamp::From<TimeUnit::Seconds>(0),
-		Timestamp::From<TimeUnit::Seconds>(50),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(0),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(50),
 		10);
 	CHECK(timestamps.size() == 10);
-	CHECK(timestamps.front() == Timestamp::From<TimeUnit::Seconds>(0).ToNanoseconds());
-	CHECK(timestamps.back() == Timestamp::From<TimeUnit::Seconds>(50).ToNanoseconds());
+	CHECK(timestamps.front() == ft::Timestamp::From<ft::TimeUnit::Seconds>(0).ToNanoseconds());
+	CHECK(timestamps.back() == ft::Timestamp::From<ft::TimeUnit::Seconds>(50).ToNanoseconds());
 
 	const auto& gaps = GetGaps(timestamps);
 	CHECK(gaps.size() == 9);
@@ -89,12 +89,12 @@ TEST_CASE("timestamp gaps are generated correctly - basic case 2")
 {
 	const auto& timestamps = GenerateTimestamps(
 		1000,
-		Timestamp::From<TimeUnit::Seconds>(10000),
-		Timestamp::From<TimeUnit::Seconds>(20000),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(10000),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(20000),
 		20);
 	CHECK(timestamps.size() == 1000);
-	CHECK(timestamps.front() == Timestamp::From<TimeUnit::Seconds>(10000).ToNanoseconds());
-	CHECK(timestamps.back() == Timestamp::From<TimeUnit::Seconds>(20000).ToNanoseconds());
+	CHECK(timestamps.front() == ft::Timestamp::From<ft::TimeUnit::Seconds>(10000).ToNanoseconds());
+	CHECK(timestamps.back() == ft::Timestamp::From<ft::TimeUnit::Seconds>(20000).ToNanoseconds());
 
 	const auto& gaps = GetGaps(timestamps);
 	CHECK(gaps.size() == 999);
@@ -106,12 +106,12 @@ TEST_CASE("timestamp gaps are generated correctly - extreme case")
 {
 	const auto& timestamps = GenerateTimestamps(
 		11,
-		Timestamp::From<TimeUnit::Seconds>(0),
-		Timestamp::From<TimeUnit::Seconds>(10),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(0),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(10),
 		1);
 	CHECK(timestamps.size() == 11);
-	CHECK(timestamps.front() == Timestamp::From<TimeUnit::Seconds>(0).ToNanoseconds());
-	CHECK(timestamps.back() == Timestamp::From<TimeUnit::Seconds>(10).ToNanoseconds());
+	CHECK(timestamps.front() == ft::Timestamp::From<ft::TimeUnit::Seconds>(0).ToNanoseconds());
+	CHECK(timestamps.back() == ft::Timestamp::From<ft::TimeUnit::Seconds>(10).ToNanoseconds());
 
 	const auto& gaps = GetGaps(timestamps);
 	CHECK(gaps.size() == 10);
@@ -123,8 +123,8 @@ TEST_CASE("timestamp gaps are generated correctly - empty case")
 {
 	const auto& timestamps = GenerateTimestamps(
 		0,
-		Timestamp::From<TimeUnit::Seconds>(0),
-		Timestamp::From<TimeUnit::Seconds>(100),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(0),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(100),
 		1);
 	CHECK(timestamps.size() == 0);
 
@@ -136,23 +136,23 @@ TEST_CASE("timestamp gaps are generated correctly - single packet")
 {
 	const auto& timestamps = GenerateTimestamps(
 		1,
-		Timestamp::From<TimeUnit::Seconds>(100),
-		Timestamp::From<TimeUnit::Seconds>(100),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(100),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(100),
 		1);
 	CHECK(timestamps.size() == 1);
-	CHECK(timestamps[0] == Timestamp::From<TimeUnit::Seconds>(100).ToNanoseconds());
+	CHECK(timestamps[0] == ft::Timestamp::From<ft::TimeUnit::Seconds>(100).ToNanoseconds());
 }
 
 TEST_CASE("timestamp gaps are generated correctly - trim case")
 {
 	const auto& timestamps = GenerateTimestamps(
 		10,
-		Timestamp::From<TimeUnit::Seconds>(10),
-		Timestamp::From<TimeUnit::Seconds>(100),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(10),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(100),
 		1);
 	CHECK(timestamps.size() == 10);
-	CHECK(timestamps.front() == Timestamp::From<TimeUnit::Seconds>(10).ToNanoseconds());
-	CHECK(timestamps.back() == Timestamp::From<TimeUnit::Seconds>(19).ToNanoseconds());
+	CHECK(timestamps.front() == ft::Timestamp::From<ft::TimeUnit::Seconds>(10).ToNanoseconds());
+	CHECK(timestamps.back() == ft::Timestamp::From<ft::TimeUnit::Seconds>(19).ToNanoseconds());
 
 	const auto& gaps = GetGaps(timestamps);
 	CHECK(gaps.size() == 9);
@@ -164,12 +164,12 @@ TEST_CASE("timestamp gaps are generated correctly - trim case 2")
 {
 	const auto& timestamps = GenerateTimestamps(
 		10,
-		Timestamp::From<TimeUnit::Seconds>(0),
-		Timestamp::From<TimeUnit::Seconds>(60),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(0),
+		ft::Timestamp::From<ft::TimeUnit::Seconds>(60),
 		2);
 	CHECK(timestamps.size() == 10);
-	CHECK(timestamps.front() == Timestamp::From<TimeUnit::Seconds>(0).ToNanoseconds());
-	CHECK(timestamps.back() == Timestamp::From<TimeUnit::Seconds>(18).ToNanoseconds());
+	CHECK(timestamps.front() == ft::Timestamp::From<ft::TimeUnit::Seconds>(0).ToNanoseconds());
+	CHECK(timestamps.back() == ft::Timestamp::From<ft::TimeUnit::Seconds>(18).ToNanoseconds());
 
 	const auto& gaps = GetGaps(timestamps);
 	CHECK(gaps.size() == 9);
@@ -182,8 +182,8 @@ TEST_CASE("timestamp gaps are generated correctly - invalid case")
 	CHECK_THROWS_AS(
 		GenerateTimestamps(
 			10,
-			Timestamp::From<TimeUnit::Seconds>(100),
-			Timestamp::From<TimeUnit::Seconds>(0),
+			ft::Timestamp::From<ft::TimeUnit::Seconds>(100),
+			ft::Timestamp::From<ft::TimeUnit::Seconds>(0),
 			1),
 		std::logic_error);
 }

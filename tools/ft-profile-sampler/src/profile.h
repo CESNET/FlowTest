@@ -69,4 +69,6 @@ private:
 	std::vector<Biflow> _rows;
 	/** Metrics object of the original profile. */
 	Metrics _metrics;
+	/** Number of histogram bins. From profile start to end. */
+	unsigned _histSize = 0;
 };

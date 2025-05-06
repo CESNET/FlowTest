@@ -23,16 +23,42 @@ void Evolution::CreateInitialPopulation()
 	_minGenesCnt = floor(_cfg.minSampleSize * static_cast<double>(profileSize));
 	_maxGenesCnt = ceil(_cfg.maxSampleSize * static_cast<double>(profileSize));
 
-	std::uniform_int_distribution<uint64_t> geneCountDistrib(_minGenesCnt, _maxGenesCnt);
-	std::uniform_int_distribution<uint64_t> geneDistrib(0, profileSize);
 	_fenotype.reserve(_cfg.population);
 
-	while (_fenotype.size() < _cfg.population) {
+	std::vector<std::future<void>> futures;
+	std::uniform_int_distribution<uint64_t> seedDistr(0, UINT64_MAX);
+
+	for (size_t i = 0; i < _cfg.workersCount; i++) {
+		futures.emplace_back(
+			std::async(&Evolution::InitialPopulationWorker, this, seedDistr(_rnd)));
+	}
+
+	for (auto& fut : futures) {
+		fut.wait();
+	}
+
+	UpdateFitnessStats();
+}
+
+void Evolution::InitialPopulationWorker(uint64_t seed)
+{
+	uint64_t profileSize = _profile->GetSize();
+	std::mt19937_64 rnd(seed);
+	std::uniform_int_distribution<uint64_t> geneCountDistrib(_minGenesCnt, _maxGenesCnt);
+	std::uniform_int_distribution<uint64_t> geneDistrib(0, profileSize);
+	while (true) {
+		{
+			std::lock_guard<std::mutex> lock(_mtx);
+			if (_fenotype.size() >= _cfg.population) {
+				break;
+			}
+		}
+
 		std::vector<bool> genotype(profileSize, false);
-		uint64_t geneCount = geneCountDistrib(_rnd);
+		uint64_t geneCount = geneCountDistrib(rnd);
 		// pick random genes (with respect to the maximum and minimum number of genes)
 		for (uint64_t j = 0; j < geneCount; j++) {
-			uint64_t index = geneDistrib(_rnd);
+			uint64_t index = geneDistrib(rnd);
 			if (genotype[index]) {
 				j--;
 			} else {
@@ -43,13 +69,19 @@ void Evolution::CreateInitialPopulation()
 		// measure fitness and add the individual only if the fitness value is > 0
 		auto metrics = _profile->GetGenotypeMetrics(genotype);
 		if (metrics.second.fitness > 0) {
-			_fenotype.emplace_back(
-				std::move(genotype),
-				std::move(metrics.first),
-				std::move(metrics.second));
+			std::lock_guard<std::mutex> lock(_mtx);
+			// discard individual when population already filled
+			if (_fenotype.size() < _cfg.population) {
+				_fenotype.emplace_back(
+					std::move(genotype),
+					std::move(metrics.first),
+					std::move(metrics.second));
+				std::cout << "Individual SAVED: " << metrics.second.fitness << " ("
+						  << _fenotype.size() << "/" << _cfg.population << ")\n"
+						  << std::flush;
+			}
 		}
 	}
-	UpdateFitnessStats();
 }
 
 void Evolution::Run()
@@ -68,7 +100,7 @@ void Evolution::Run()
 		// determine how many parents will be handled by each thread
 		// must be a factor of 2 due to the crossover operator
 		size_t batchStart = 0;
-		size_t batchSize = DIVIDE_ROUND_UP(_parentIndexes.size(), WORKERS_COUNT);
+		size_t batchSize = DIVIDE_ROUND_UP(_parentIndexes.size(), _cfg.workersCount);
 		if (batchSize % 2 == 1) {
 			batchSize++;
 		}
@@ -115,7 +147,8 @@ void Evolution::Run()
 		UpdateFitnessStats();
 		if (_cfg.verbose) {
 			std::cout << "Generation: " << generation << ", best solution: " << _best.second
-					  << ", average solution: " << _avgFitness << '\n';
+					  << ", average solution: " << _avgFitness << '\n'
+					  << std::flush;
 		}
 
 		// check if any of the current solutions is acceptable (it may not be the best solution)
@@ -123,7 +156,8 @@ void Evolution::Run()
 			if (_fenotype[i].diff.IsAcceptable(_cfg.deviation)) {
 				_best = {i, _fenotype[i].diff.fitness};
 				if (_cfg.verbose) {
-					std::cout << "Acceptable solution found with fitness: " << _best.second << '\n';
+					std::cout << "Acceptable solution found with fitness: " << _best.second << '\n'
+							  << std::flush;
 				}
 
 				return;
@@ -280,7 +314,9 @@ std::ostream& operator<<(std::ostream& os, const EvolutionConfig& cfg)
 	os << "GENERATIONS: " << cfg.generations << '\n';
 	os << "POPULATION: " << cfg.population << '\n';
 	os << "MAX DEVIATION: " << cfg.deviation << '\n';
-	os << "SEED: " << cfg.seed << "\n\n";
+	os << "SEED: " << cfg.seed << '\n';
+	os << "AGGREGATION WINDOW SIZE: " << cfg.windowLength << '\n';
+	os << '\n';
 	return os;
 }
 
@@ -346,4 +382,13 @@ void Evolution::DumpSolution(std::string_view solutionPath, std::string_view met
 	metricsFile << "(1024, 9000]"
 				<< "\t" << origMetrics.pktSizes.huge << '\t' << best.metrics.pktSizes.huge << '\t'
 				<< best.diff.avgPktSize.huge << "\n";
+
+	metricsFile << '\n';
+
+	metricsFile << "WINDOWS METRICS\tDIFFS (%)\n";
+	metricsFile << "PKTS/TOTAL\t";
+	for (const auto& w : best.diff.windows) {
+		metricsFile << w.pktsToTotalRatio << " ";
+	}
+	metricsFile << '\n';
 }
