@@ -14,7 +14,7 @@ from typing import Optional, Union
 
 from ftgeneratortests.src import (
     REPORT_REL_TOLERANCE,
-    TIMING_REL_TOLERANCE,
+    TIMING_ABS_TOLERANCE,
     Flow,
     Generator,
     GeneratorConfig,
@@ -49,8 +49,8 @@ def search_profile_in_list(profile: Flow, flow_list: list) -> Union[Flow, None]:
             [
                 flow.src_port in (0, profile.src_port),
                 flow.dst_port in (0, profile.dst_port),
-                math.isclose(profile.start_time, flow.start_time, rel_tol=TIMING_REL_TOLERANCE),
-                math.isclose(profile.end_time, flow.end_time, rel_tol=TIMING_REL_TOLERANCE),
+                math.isclose(profile.start_time, flow.start_time, abs_tol=TIMING_ABS_TOLERANCE),
+                math.isclose(profile.end_time, flow.end_time, abs_tol=TIMING_ABS_TOLERANCE),
                 math.isclose(profile.packets, flow.packets, rel_tol=REPORT_REL_TOLERANCE),
                 math.isclose(profile.bytes, flow.bytes, rel_tol=REPORT_REL_TOLERANCE),
                 math.isclose(profile.packets_rev, flow.packets_rev, rel_tol=REPORT_REL_TOLERANCE),

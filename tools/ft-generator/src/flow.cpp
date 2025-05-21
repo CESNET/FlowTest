@@ -412,7 +412,8 @@ PacketExtraInfo Flow::GenerateNextPacket(PcppPacket& packet)
 
 	Packet packetPlan = _packets.front();
 	extra._direction = packetPlan._direction;
-	extra._time = packetPlan._timestamp;
+	extra._time = _tsGen->Get();
+	_tsGen->Next();
 
 	for (auto& [layer, params] : packetPlan._layers) {
 		layer->Build(packet, params, packetPlan);
@@ -438,7 +439,12 @@ PacketExtraInfo Flow::GenerateNextPacket(PcppPacket& packet)
 
 ft::Timestamp Flow::GetNextPacketTime() const
 {
-	return _packets.front()._timestamp;
+	return _tsGen->Get();
+}
+
+void Flow::ShiftTimestamp(uint64_t nanosecs)
+{
+	_tsGen->Shift(nanosecs);
 }
 
 bool Flow::IsFinished() const
@@ -467,28 +473,12 @@ void Flow::PlanPacketsDirections()
 
 void Flow::PlanPacketsTimestamps()
 {
-	const auto& timestamps = GenerateTimestamps(
-		_packets.size(),
+	_tsGen = std::make_unique<TimestampGenerator>(
+		_packets,
 		_tsFirst,
 		_tsLast,
-		_config.GetMaxFlowInterPacketGapSecs());
-
-	auto it = timestamps.begin();
-	for (auto& pkt : _packets) {
-		pkt._timestamp = ft::Timestamp::From<ft::TimeUnit::Nanoseconds>(*it);
-		it++;
-	}
-
-	if (_packets.size() > 0 && _packets.back()._timestamp != _tsLast) {
-		ft::Timestamp newTsLast = _packets.back()._timestamp;
-
-		_logger->info(
-			"Flow (line no. {}) has been trimmed by {}s to satisfy max gap",
-			_profileFileLineNum,
-			(_tsLast - newTsLast).ToString<ft::TimeUnit::Seconds>());
-
-		_tsLast = newTsLast;
-	}
+		_config.GetTimestamps(),
+		_sizeTillIpLayer);
 }
 
 void Flow::PlanPacketsSizes()

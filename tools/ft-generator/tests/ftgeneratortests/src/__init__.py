@@ -21,7 +21,7 @@ from ftgeneratortests.src.constants import (
     ENCAPSULATION_ABS_TOLERANCE,
     FRAGMENTATION_ABS_TOLERANCE,
     REPORT_REL_TOLERANCE,
-    TIMING_REL_TOLERANCE,
+    TIMING_ABS_TOLERANCE,
 )
 from ftgeneratortests.src.common import get_prob_from_str
 from ftgeneratortests.src.flow import ExtendedFlow, Flow

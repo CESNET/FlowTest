@@ -16,6 +16,7 @@
 #include "packet.h"
 #include "pcpppacket.h"
 #include "timestamp.h"
+#include "timestampgenerator.h"
 
 #include <list>
 #include <memory>
@@ -111,6 +112,14 @@ public:
 	ft::Timestamp GetNextPacketTime() const;
 
 	/**
+	 * @brief Shift the next packet timestamp and modify the subsequent packet timestamps to
+	 * accomodate for the shift
+	 *
+	 * @param nanosecs  The amount of nanoseconds to shift by
+	 */
+	void ShiftTimestamp(uint64_t nanosecs);
+
+	/**
 	 * @brief Check whether the flow is finished and wont be generating any additional packets
 	 *
 	 * @return true or false
@@ -130,6 +139,8 @@ private:
 
 	const config::Config& _config; //< Reference to the generator configuration
 	uint64_t _sizeTillIpLayer;
+
+	std::unique_ptr<TimestampGenerator> _tsGen;
 
 	/**
 	 * @brief Add new protocol layer.

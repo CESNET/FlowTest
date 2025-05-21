@@ -59,6 +59,11 @@ static bool ExtractTcpParamsFromPayloadLayer(
 	return true;
 }
 
+TrafficMeter::TrafficMeter(const config::Config& config)
+	: _config(config)
+{
+}
+
 void TrafficMeter::OpenFlow(uint64_t flowId, const FlowProfile& profile)
 {
 	if (flowId != _records.size()) {
@@ -67,6 +72,9 @@ void TrafficMeter::OpenFlow(uint64_t flowId, const FlowProfile& profile)
 	}
 
 	FlowRecord rec;
+
+	rec._desiredFirstTs = profile._startTime;
+	rec._desiredLastTs = profile._endTime;
 
 	rec._l3Proto = profile._l3Proto;
 	rec._l4Proto = profile._l4Proto;
@@ -82,8 +90,34 @@ void TrafficMeter::OpenFlow(uint64_t flowId, const FlowProfile& profile)
 
 void TrafficMeter::CloseFlow(uint64_t flowId)
 {
-	(void) flowId;
-	// No need to do anything for now...
+	assert(flowId < _records.size());
+	FlowRecord& rec = _records[flowId];
+
+	if (rec._fwdPkts == 0 && rec._revPkts == 0) {
+		// Can this even happen?
+		return;
+	}
+
+	ft::Timestamp firstTs;
+	ft::Timestamp lastTs;
+
+	if (rec._fwdPkts == 0) {
+		firstTs = rec._revFirstTs;
+		lastTs = rec._revLastTs;
+	} else if (rec._revPkts == 0) {
+		firstTs = rec._fwdFirstTs;
+		lastTs = rec._fwdLastTs;
+	} else {
+		firstTs = std::min(rec._fwdFirstTs, rec._revFirstTs);
+		lastTs = std::max(rec._fwdLastTs, rec._revLastTs);
+	}
+
+	if (firstTs != rec._desiredFirstTs) {
+		_tsErrorStats._numStartTimeShifted++;
+	}
+	if (lastTs != rec._desiredLastTs) {
+		_tsErrorStats._numEndTimeShifted++;
+	}
 }
 
 void TrafficMeter::ExtractPacketParams(
@@ -158,7 +192,7 @@ void TrafficMeter::ExtractPacketParams(
 	}
 }
 
-static uint64_t GetPacketSizeFromIPLayer(const PcppPacket& packet)
+uint64_t GetPacketSizeFromIPLayer(const PcppPacket& packet)
 {
 	const pcpp::Layer* layer = packet.getFirstLayer();
 
@@ -181,6 +215,23 @@ void TrafficMeter::RecordPacket(
 {
 	assert(flowId < _records.size());
 	FlowRecord& rec = _records[flowId];
+
+	ft::Timestamp lastTs;
+	if (rec._fwdPkts == 0) {
+		lastTs = rec._revLastTs;
+	} else if (rec._revPkts == 0) {
+		lastTs = rec._fwdLastTs;
+	} else {
+		lastTs = std::max(rec._fwdLastTs, rec._revLastTs);
+	}
+
+	if (rec._fwdPkts > 0 || rec._revPkts > 0) {
+		assert(time >= lastTs);
+		uint64_t gapNanos = (time - lastTs).ToNanoseconds();
+		if (gapNanos > _config.GetTimestamps().GetFlowMaxInterpacketGapNanos()) {
+			_tsErrorStats._numMaxGapExceeded++;
+		}
+	}
 
 	assert(dir != Direction::Unknown);
 	if (dir == Direction::Forward) {
@@ -348,6 +399,22 @@ void TrafficMeter::PrintComparisonStats() const
 		ToMetricUnits(recordedBytes),
 		totalBytesDiffRatio * 100.0,
 		avgBytesDiffRatio * 100.0);
+
+	if (_tsErrorStats._numStartTimeShifted > 0) {
+		_logger->warn(
+			"SUMMARY: Flow Start Time shifted in {} cases",
+			_tsErrorStats._numStartTimeShifted);
+	}
+	if (_tsErrorStats._numEndTimeShifted > 0) {
+		_logger->warn(
+			"SUMMARY: Flow End Time shifted in {} cases",
+			_tsErrorStats._numEndTimeShifted);
+	}
+	if (_tsErrorStats._numMaxGapExceeded > 0) {
+		_logger->warn(
+			"SUMMARY: Max Interpacket Gap exceeded in {} cases",
+			_tsErrorStats._numMaxGapExceeded);
+	}
 }
 
 } // namespace generator

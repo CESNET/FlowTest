@@ -89,6 +89,9 @@ private:
 
 	std::unique_ptr<FlowMaker> _flowMaker;
 
+	std::optional<ft::Timestamp>
+		_minNextPacketTime; //< Minimal packet time the next generated packet can have
+
 	void PrepareProfiles();
 	void CheckEnoughDiskSpace();
 	std::unique_ptr<Flow> GetNextFlow();

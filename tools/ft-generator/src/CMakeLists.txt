@@ -11,6 +11,7 @@ set(FT_GENERATOR_SOURCES
 	config/packetsizeprobabilities.cpp
 	config/payload.cpp
 	config/portrange.cpp
+	config/timestamps.cpp
 	config/tlsencryption.cpp
 	data/tlskeys.cpp
 	data/words.cpp
