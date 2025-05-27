@@ -266,7 +266,7 @@ packet_size_probabilities:
   1280-1514: 0.6119
 
 timestamps:
-    flow_max_inter_packet_gap: 30s
+    flow_max_interpacket_gap: 30s
 
 payload:
     enabled_protocols: [http, dns, tls]
