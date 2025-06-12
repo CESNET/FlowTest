@@ -28,6 +28,7 @@ void Evolution::CreateInitialPopulation()
 	std::vector<std::future<void>> futures;
 	std::uniform_int_distribution<uint64_t> seedDistr(0, UINT64_MAX);
 
+	futures.reserve(_cfg.workersCount);
 	for (size_t i = 0; i < _cfg.workersCount; i++) {
 		futures.emplace_back(
 			std::async(&Evolution::InitialPopulationWorker, this, seedDistr(_rnd)));
