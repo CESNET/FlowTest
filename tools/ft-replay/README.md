@@ -278,3 +278,34 @@ firmware for high-speed playback and hardware offloads. Suitable for speeds of 1
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 64] |
 | superPacket | Enable Super Packet feature (merging of small packets into larger ones). <br>[value: no, yes, auto, default: auto (enabled if available)] |
 | packetSize | Maximal size (Bytes) of single packet. [value: number, default: MTU, max: 14000] |
+
+### **dpdk**
+Send packets over DPDK. Requires a network card that supports DPDK. Suitable for speeds of 100 Gbps and above.
+
+#### **How to enable**
+By default `ft-replay` is compiled without DPDK support. To enable it, the project must be built with additional flag:
+`cmake .. -DENABLE_DPDK=ON`.
+
+#### **Hugepages**
+For correct operation of this plugin, hugepages need to be allocated prior to starting `ft-replay`. Hugepages can be allocated with:
+`dpdk-hugepages --setup 1G` (1GB is the minimum recommended memory size allocated for hugepages, for bigger sizes change `1G` to `XG`
+where `X` is the desired size).
+
+#### **NIC Binding**
+If the NIC used by the dpdk plugin is not Nvidia/Mellanox then it must be bound to a different driver (e.g. `vfio-pci`) before starting the plugin. The binding can be done
+with tools like `dpdk-devbind` (https://doc.dpdk.org/guides/tools/devbind.html). The PCIe address of a network interface can be displayed
+with a command: `dpdk-devbind --status`.
+
+#### **Multi-port replaying mode**
+Based on the command line arguments it is able to operate in two-port (multi-port) replaying mode. The plugin is able to divide packets between the selected interfaces
+based on their source and destination IP addresses (ie. it guarantees that each direction of the same biflow will go through a different interface). To enable this mode of
+replaying you can specify two addresses in the `addr` parameter delimited by `#`. For example: `addr=0000:xx:00.0#0000:xx:00.1`.
+
+| Parameter | Description   |
+|---	|---	|
+| addr | PCI address of the output interface(s). This parameter is mandatory [value: address(es)]   |
+| queueCount | Specifies the number of TX queues. [value: number, default: 1]  |
+| queueSize | Specify the size of the TX queue. [value: number (of packets), default: 4096] |
+| poolSize | Specify the size of the memory pool used by the DPDK queues. [value: number (of packets), default: 8192] |
+| burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 64] |
+| MTU | MTU of the output interface. [value: number, default: 1518] |
