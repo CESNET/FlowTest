@@ -43,7 +43,9 @@ clang-tidy:
   script:
     - "make tidy"
   variables:
-    CMAKE_ARGS: -DENABLE_NFB=ON
+    CMAKE_ARGS: -DENABLE_NFB=ON -DENABLE_DPDK=ON
+    CC: clang
+    CXX: clang++
 
 doxy-filename:
   stage: check
