@@ -12,6 +12,7 @@
 #include "dissector/dissector.hpp"
 #include "packet.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <initializer_list>
 #include <iterator>
