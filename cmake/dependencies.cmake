@@ -7,6 +7,8 @@ find_package(Threads REQUIRED)
 find_package(GLPK REQUIRED)
 find_package(OpenSSL REQUIRED)
 
+pkg_check_modules(numa REQUIRED IMPORTED_TARGET numa)
+
 # DPDK framework
 if (ENABLE_DPDK)
 	pkg_check_modules(libdpdk REQUIRED IMPORTED_TARGET libdpdk)

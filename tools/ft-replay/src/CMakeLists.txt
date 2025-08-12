@@ -66,6 +66,8 @@ add_executable(ft-replay
 	replicator-core/replicator.cpp
 	replicator-core/packetModifier.hpp
 	replicator-core/packetModifier.cpp
+	threadManager.cpp
+	threadManager.hpp
 	dissector/dissector.cpp
 	dissector/layer.cpp
 )
@@ -117,6 +119,7 @@ endif()
 
 target_link_libraries(ft-replay PRIVATE
 	common
+	PkgConfig::numa
 	pcap::pcap
 	xdp::xdp
 	xxhash::xxhash
