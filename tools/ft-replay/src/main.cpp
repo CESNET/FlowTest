@@ -18,6 +18,7 @@
 #include "packetBuilder.hpp"
 #include "packetQueueProvider.hpp"
 #include "rawPacketProvider.hpp"
+#include "threadManager.hpp"
 
 #include "replicator-core/configParser.hpp"
 #include "replicator-core/configParserFactory.hpp"
@@ -170,10 +171,32 @@ void PrintConfiguredHwOffloads(const Offloads& configuredHwOffloads)
 
 void ReplicatorExecutor(const Config& config)
 {
+	/*
+	 * Sets the initial thread affinity in
+	 * the case that the user specifies CPU cores.
+	 * This ensures that the output plugin structures
+	 * will be created on the appropriate cores and
+	 * prevents unnecessary thread context migration.
+	 */
+	SetInitialAffinity(config.GetThreadManagerCores());
+
 	std::vector<std::thread> threads;
 	std::unique_ptr<OutputPlugin> outputPlugin;
 	std::unique_ptr<ConfigParser> replicatorConfigParser;
 	outputPlugin = OutputPluginFactory::Instance().Create(config.GetOutputPluginSpecification());
+	ThreadManager threadManager(
+		config.GetThreadManagerCores(),
+		outputPlugin.get()->GetNumaNode(),
+		outputPlugin.get()->GetQueueCount());
+	/*
+	 * Resets the thread affinity as the NUMA
+	 * node to which the NIC is connected
+	 * might be determined by the output plugin.
+	 * This ensures that the packet allocation will be
+	 * done on the appropriate cores even if the user did
+	 * not specify any cores.
+	 */
+	threadManager.ResetThreadAffinity();
 	replicatorConfigParser = ConfigParserFactory::Instance().Create(config.GetReplicatorConfig());
 
 	size_t queueCount = outputPlugin->GetQueueCount();
@@ -216,6 +239,13 @@ void ReplicatorExecutor(const Config& config)
 		replicator.SetRequestedOffloads(requestedSwOffloads);
 		replicator.SetReplicatorStrategy(replicatorConfigParser.get());
 
+		/*
+		 * Sets the affinity of the current thread
+		 * and then creates a child thread that
+		 * inherits the affinity mask.
+		 */
+		threadManager.SetThreadAffinity(queueId);
+
 		std::thread worker(
 			ReplicationThread,
 			std::move(replicator),
@@ -223,6 +253,8 @@ void ReplicatorExecutor(const Config& config)
 			config.GetLoopsCount());
 		threads.emplace_back(std::move(worker));
 	}
+
+	threadManager.ResetThreadAffinity();
 
 	for (auto& thread : threads) {
 		thread.join();
