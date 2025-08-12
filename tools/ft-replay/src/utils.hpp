@@ -8,10 +8,46 @@
 
 #pragma once
 
+#include <charconv>
 #include <cstdint>
+#include <cstring>
+#include <iostream>
 #include <string_view>
 
 namespace replay::utils {
+
+/**
+ * @brief Parse numeric value from a string.
+ * @tparam T type of the value
+ * @param str beginning of the string
+ * @param key name of the argument used in error messages
+ * @param value argument where the parsed value should be stored
+ * @throws runtime_error parsing error
+ */
+template <typename T>
+void FromString(std::string_view str, std::string_view key, T& value)
+{
+	const char* begin = str.data();
+	const char* end = begin + str.size();
+	std::string err {key};
+
+	auto [ptr, ec] {std::from_chars(begin, end, value)};
+	if (ec == std::errc() && ptr == end) {
+		return;
+	}
+
+	const std::string valueStr {str};
+
+	if (ec == std::errc::result_out_of_range) {
+		throw std::runtime_error("'" + valueStr + "' is out of range in argument " + err);
+	} else if (ec == std::errc::invalid_argument) {
+		throw std::runtime_error("'" + valueStr + "' is not a valid number in argument " + err);
+	} else {
+		throw std::runtime_error(
+			"'" + valueStr + "' is not a valid number due to unexpected characters in argument "
+			+ err);
+	}
+}
 
 /**
  * @brief Perform case insensitive comparison of two strings.

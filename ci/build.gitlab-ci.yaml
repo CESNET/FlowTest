@@ -5,7 +5,7 @@
   variables:
     CFLAGS: -Werror
     CXXFLAGS: -Werror
-    CMAKE_ARGS: -DCMAKE_BUILD_TYPE=Debug -DENABLE_NFB=ON
+    CMAKE_ARGS: -DCMAKE_BUILD_TYPE=Debug -DENABLE_NFB=ON -DENABLE_DPDK=ON
 
 build [Oracle Linux 8]:
   extends: .build

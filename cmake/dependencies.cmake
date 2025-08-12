@@ -7,6 +7,11 @@ find_package(Threads REQUIRED)
 find_package(GLPK REQUIRED)
 find_package(OpenSSL REQUIRED)
 
+# DPDK framework
+if (ENABLE_DPDK)
+	pkg_check_modules(libdpdk REQUIRED IMPORTED_TARGET libdpdk)
+endif()
+
 # NFB framework for CESNET FPGA cards
 if (ENABLE_NFB)
 	find_package(NFB REQUIRED)
