@@ -11,10 +11,12 @@
 #include "config.hpp"
 #include "logger.h"
 #include "offloads.hpp"
+#include "threadManager.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 
 namespace replay {
@@ -55,6 +57,13 @@ public:
 	 * @return Configured offloads.
 	 */
 	virtual Offloads ConfigureOffloads(const OffloadRequests& offloads);
+
+	/**
+	 * @brief Get NUMA node to which the NIC is connected
+	 *
+	 * @return ID of NUMA or nullopt
+	 */
+	virtual NumaNode GetNumaNode();
 
 	/**
 	 * @brief Get MTU of the output interface

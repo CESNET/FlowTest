@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <map>
+#include <optional>
 #include <string>
 
 namespace replay {
@@ -46,6 +47,11 @@ std::map<std::string, std::string> OutputPlugin::SplitArguments(const std::strin
 Offloads OutputPlugin::ConfigureOffloads([[maybe_unused]] const OffloadRequests& offloads)
 {
 	return 0;
+}
+
+NumaNode OutputPlugin::GetNumaNode()
+{
+	return std::nullopt;
 }
 
 } // namespace replay
