@@ -57,3 +57,11 @@
       - dpdk-devel
       - dpdk-tools
     state: latest
+
+- name: numa library is installed
+  ansible.builtin.dnf:
+    name:
+      - numactl
+      - numactl-devel
+      - numactl-libs
+    state: latest
