@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <set>
 #include <string_view>
 
 namespace replay::utils {
@@ -47,6 +48,65 @@ void FromString(std::string_view str, std::string_view key, T& value)
 			"'" + valueStr + "' is not a valid number due to unexpected characters in argument "
 			+ err);
 	}
+}
+
+/**
+ * @brief Parse numeric values from a string delimited by delimiter
+ * @tparam T type of the values
+ * @param str string to parse
+ * @param delimiter separates the numeric values inside the string
+ * @param key name of the argument used in error messages
+ * @throws invalid_argument argument error
+ * @return set of the parsed values
+ */
+template <typename T>
+std::set<T>
+ParseListOfNumbers(std::string_view str, std::string_view delimiter, std::string_view key)
+{
+	std::set<T> resultSet;
+
+	size_t start = 0;
+	size_t end = 0;
+
+	while (end != std::string::npos) {
+		end = str.find(delimiter, start);
+		std::string resultString(str.substr(start, end - start));
+
+		if (resultString.empty()) {
+			throw std::invalid_argument("Empty value given in argument: " + std::string(key));
+		}
+
+		size_t rangeDelimiter = resultString.find('-');
+		if (rangeDelimiter != std::string::npos) {
+			std::string startStr = resultString.substr(0, rangeDelimiter);
+			std::string endStr = resultString.substr(rangeDelimiter + 1);
+
+			if (startStr.empty() || endStr.empty()) {
+				throw std::invalid_argument("Malformed range in argument: " + std::string(key));
+			}
+
+			T rangeStart, rangeEnd;
+			utils::FromString<T>(startStr, key, rangeStart);
+			utils::FromString<T>(endStr, key, rangeEnd);
+
+			if (rangeEnd < rangeStart) {
+				throw std::invalid_argument(
+					"Invalid range: end < start in argument: " + std::string(key));
+			}
+
+			for (T val = rangeStart; val <= rangeEnd; ++val) {
+				resultSet.insert(val);
+			}
+		} else {
+			T value;
+			utils::FromString<T>(resultString, key, value);
+			resultSet.insert(value);
+		}
+
+		start = end + delimiter.length();
+	}
+
+	return resultSet;
 }
 
 /**
