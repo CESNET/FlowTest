@@ -1,5 +1,7 @@
 # Enable build with support for NFB FPGA cards
 %bcond_with nfb
+# Enable build with support for network cards with DPDK support
+%bcond_with dpdk
 
 Name:          flowtest
 Version:       @VERSION@
@@ -30,6 +32,12 @@ Requires: openssl
 Requires: libxdp
 %endif
 
+%if %{with dpdk}
+BuildRequires: dpdk-devel
+Requires: dpdk-tools
+Requires: dpdk
+%endif
+
 %if %{with nfb}
 BuildRequires: nfb-framework
 Requires: nfb-framework
@@ -46,7 +54,7 @@ that make up the main components of the test environment.
 %autosetup
 
 %build
-%cmake -DCMAKE_BUILD_TYPE=Release %{?with_nfb:-DENABLE_NFB=ON}
+%cmake -DCMAKE_BUILD_TYPE=Release %{?with_nfb:-DENABLE_NFB=ON} %{?with_dpdk:-DENABLE_DPDK=ON}
 %cmake_build
 
 %install

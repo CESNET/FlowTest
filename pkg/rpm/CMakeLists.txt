@@ -18,6 +18,10 @@ set(RPMBUILD_ARGS
 	"--define" "_topdir ${RPMBUILD_DIR}/"
 )
 
+if (ENABLE_DPDK)
+	list(APPEND RPMBUILD_ARGS "--with" "dpdk")
+endif()
+
 if (ENABLE_NFB)
 	list(APPEND RPMBUILD_ARGS "--with" "nfb")
 endif()
