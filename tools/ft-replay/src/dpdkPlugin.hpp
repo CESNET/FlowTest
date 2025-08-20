@@ -56,6 +56,13 @@ public:
 	size_t GetMTU() const noexcept override;
 
 	/**
+	 * @brief Get NUMA node to which the NIC is connected
+	 *
+	 * @return ID of NUMA or nullopt
+	 */
+	NumaNode GetNumaNode() override;
+
+	/**
 	 * @brief Get pointer to ID-specific OutputQueue
 	 *
 	 * @param[in] queueID  Has to be in range of 0 - GetQueueCount()-1

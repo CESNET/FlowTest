@@ -81,6 +81,31 @@ OutputQueue* DpdkPlugin::GetQueue(uint16_t queueId)
 	return _queues.at(queueId).get();
 }
 
+NumaNode DpdkPlugin::GetNumaNode()
+{
+	NumaNode result = std::nullopt;
+
+	for (uint16_t port : _ports) {
+		int ret = rte_eth_dev_socket_id(port);
+		if (ret < 0) {
+			// Unable to determine the NUMA node
+			continue;
+		}
+
+		if (!result.has_value()) {
+			result = static_cast<size_t>(ret);
+			continue;
+		}
+
+		if (result.value() != static_cast<size_t>(ret)) {
+			_logger->warn("Specified PCIe addresses are connected to different NUMA nodes");
+			return std::nullopt;
+		}
+	}
+
+	return result;
+}
+
 DpdkPlugin::~DpdkPlugin()
 {
 	for (uint16_t port : _ports) {
@@ -170,8 +195,6 @@ void DpdkPlugin::FillDpdkArgs(CStringArray& array)
 		array.Push("-a");
 		array.Push(pciAddress);
 	}
-	array.Push("--lcores");
-	array.Push("0@(0-" + std::to_string(_queueCount) + ")");
 }
 
 void DpdkPlugin::ParseAddr(const std::string& value)
