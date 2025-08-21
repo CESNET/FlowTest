@@ -12,15 +12,21 @@
 #include "dpdkQueue.hpp"
 #include "outputPluginFactoryRegistrator.hpp"
 #include "utils.hpp"
+#include <algorithm>
 #include <cinttypes>
 #include <cstdint>
 #include <iostream>
 #include <memory>
+#include <numa.h>
+#include <numaif.h>
+#include <optional>
 #include <rte_eal.h>
 #include <rte_ethdev.h>
 #include <rte_ether.h>
+#include <rte_lcore.h>
 #include <stdexcept>
 #include <string>
+#include <sys/sysinfo.h>
 
 namespace replay {
 
@@ -43,13 +49,25 @@ DpdkPlugin::DpdkPlugin(const std::string& params)
 		throw std::runtime_error("DpdkPlugin::DpdkPlugin() has failed");
 	}
 
+	std::vector<uint16_t> queueCountMax;
 	for (std::string& pciAddress : _PCIAddresses) {
-		ret = ConfigureDpdkPort(pciAddress);
+		struct rte_eth_dev_info devInfo;
+		ret = GetDpdkPort(pciAddress, &devInfo);
+
+		queueCountMax.push_back(devInfo.max_tx_queues);
+
 		_ports.push_back(ret);
 		queueParams.ports.push_back(ret);
 	}
 
+	DetermineNumaNode();
+
+	if (_queueCount == 0) {
+		_queueCount = DetermineQueueCount(queueCountMax);
+	}
+
 	for (uint16_t portId : _ports) {
+		ConfigureDpdkPort(portId);
 		if (rte_eth_dev_start(portId) != 0) {
 			_logger->error("rte_eth_dev_start() has failed");
 			throw std::runtime_error("DpdkPlugin::DpdkPlugin() has failed");
@@ -83,27 +101,7 @@ OutputQueue* DpdkPlugin::GetQueue(uint16_t queueId)
 
 NumaNode DpdkPlugin::GetNumaNode()
 {
-	NumaNode result = std::nullopt;
-
-	for (uint16_t port : _ports) {
-		int ret = rte_eth_dev_socket_id(port);
-		if (ret < 0) {
-			// Unable to determine the NUMA node
-			continue;
-		}
-
-		if (!result.has_value()) {
-			result = static_cast<size_t>(ret);
-			continue;
-		}
-
-		if (result.value() != static_cast<size_t>(ret)) {
-			_logger->warn("Specified PCIe addresses are connected to different NUMA nodes");
-			return std::nullopt;
-		}
-	}
-
-	return result;
+	return _numaNode;
 }
 
 DpdkPlugin::~DpdkPlugin()
@@ -122,9 +120,9 @@ DpdkPlugin::~DpdkPlugin()
 		_logger->error("rte_eal_cleanup() has failed");
 }
 
-int DpdkPlugin::ConfigureDpdkPort(const std::string& PCIAddress)
+int DpdkPlugin::GetDpdkPort(const std::string& PCIAddress, struct rte_eth_dev_info* devInfo)
 {
-	auto throwErr = []() { throw std::runtime_error("DpdkPlugin::ConfigurePort() has failed"); };
+	auto throwErr = []() { throw std::runtime_error("DpdkPlugin::GetDpdkPort() has failed"); };
 	int ret;
 
 	uint16_t portId;
@@ -142,25 +140,33 @@ int DpdkPlugin::ConfigureDpdkPort(const std::string& PCIAddress)
 		throwErr();
 	}
 
-	struct rte_eth_dev_info devInfo;
-	ret = rte_eth_dev_info_get(portId, &devInfo);
+	ret = rte_eth_dev_info_get(portId, devInfo);
 	if (ret < 0) {
 		_logger->error("rte_eth_dev_info() has failed with code {}", ret);
 		throwErr();
 	}
 
-	if (_MTUSize < devInfo.min_mtu || _MTUSize > devInfo.max_mtu) {
+	if (_MTUSize < devInfo->min_mtu || _MTUSize > devInfo->max_mtu) {
 		_logger->error(
 			"MTU size of out NIC supported range {}-{}",
-			devInfo.min_mtu,
-			devInfo.max_mtu);
+			devInfo->min_mtu,
+			devInfo->max_mtu);
 		throwErr();
 	}
 
-	if (_queueCount > devInfo.max_tx_queues) {
-		_logger->error("Queue count of out range. max: {}", devInfo.max_tx_queues);
+	if (_queueCount > devInfo->max_tx_queues) {
+		_logger->error("Queue count of out range. max: {}", devInfo->max_tx_queues);
 		throwErr();
 	}
+
+	return portId;
+}
+
+void DpdkPlugin::ConfigureDpdkPort(uint16_t portId)
+{
+	auto throwErr
+		= []() { throw std::runtime_error("DpdkPlugin::ConfigureDpdkPort() has failed"); };
+	int ret;
 
 	struct rte_eth_conf portConfig;
 	std::memset(&portConfig, 0, sizeof(portConfig));
@@ -184,8 +190,6 @@ int DpdkPlugin::ConfigureDpdkPort(const std::string& PCIAddress)
 		_logger->error("rte_eth_dev_set_mtu() has failed with code {}", ret);
 		throwErr();
 	}
-
-	return portId;
 }
 
 void DpdkPlugin::FillDpdkArgs(CStringArray& array)
@@ -195,6 +199,58 @@ void DpdkPlugin::FillDpdkArgs(CStringArray& array)
 		array.Push("-a");
 		array.Push(pciAddress);
 	}
+}
+
+size_t DpdkPlugin::DetermineQueueCount(std::vector<uint16_t>& queueCountMax)
+{
+	size_t maxQueues;
+	maxQueues = *std::min_element(queueCountMax.begin(), queueCountMax.end());
+
+	if (_numaNode != std::nullopt && numa_available() >= 0) {
+		std::unique_ptr<struct bitmask, decltype(&numa_free_cpumask)> cpusOnNode(
+			numa_allocate_cpumask(),
+			&numa_free_cpumask);
+		int ret = numa_node_to_cpus(_numaNode.value(), cpusOnNode.get());
+
+		if (ret == 0) {
+			size_t cpuCount {0};
+			for (size_t i {0}; i < cpusOnNode.get()->size; ++i) {
+				if (numa_bitmask_isbitset(cpusOnNode.get(), i)) {
+					cpuCount++;
+				}
+			}
+
+			return std::min(maxQueues, cpuCount);
+		}
+	}
+
+	return std::min(maxQueues, static_cast<size_t>(get_nprocs()));
+}
+
+void DpdkPlugin::DetermineNumaNode()
+{
+	NumaNode result = std::nullopt;
+
+	for (uint16_t port : _ports) {
+		int ret = rte_eth_dev_socket_id(port);
+		if (ret < 0) {
+			// Unable to determine the NUMA node
+			continue;
+		}
+
+		if (!result.has_value()) {
+			result = static_cast<size_t>(ret);
+			continue;
+		}
+
+		if (result.value() != static_cast<size_t>(ret)) {
+			_logger->warn("Specified PCIe addresses are connected to different NUMA nodes");
+			_numaNode = std::nullopt;
+			return;
+		}
+	}
+
+	_numaNode = result;
 }
 
 void DpdkPlugin::ParseAddr(const std::string& value)

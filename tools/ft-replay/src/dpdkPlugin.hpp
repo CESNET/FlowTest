@@ -14,6 +14,7 @@
 #include "logger.h"
 #include "outputPlugin.hpp"
 #include "outputQueue.hpp"
+#include "threadManager.hpp"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -76,17 +77,21 @@ private:
 	void ParseAddr(const std::string& value);
 	void ParseMap(const std::map<std::string, std::string>& argMap);
 	void FillDpdkArgs(CStringArray& array);
-	int ConfigureDpdkPort(const std::string& PCIAddress);
+	int GetDpdkPort(const std::string& PCIAddress, struct rte_eth_dev_info* devInfo);
+	void ConfigureDpdkPort(uint16_t portId);
+	size_t DetermineQueueCount(std::vector<uint16_t>& queueCountMax);
+	void DetermineNumaNode();
 
 	std::vector<std::unique_ptr<DpdkQueue>> _queues;
 	std::vector<std::string> _PCIAddresses;
 	size_t _memPoolSize = 8192;
-	size_t _queueCount = 1;
+	size_t _queueCount = 0;
 	size_t _MTUSize = 1518;
 	size_t _queueSize = 4096;
 	size_t _burstSize = 64;
 
 	std::vector<uint16_t> _ports;
+	NumaNode _numaNode;
 
 	std::shared_ptr<spdlog::logger> _logger = ft::LoggerGet("DpdkPlugin");
 };
