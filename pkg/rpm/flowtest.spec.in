@@ -20,6 +20,7 @@ BuildRequires: libpcap-devel
 BuildRequires: libbpf-devel
 BuildRequires: glpk-devel
 BuildRequires: openssl-devel
+BuildRequires: numactl-devel
 %if 0%{?rhel} > 8
 BuildRequires: libxdp-devel
 %endif
@@ -28,6 +29,7 @@ Requires: libpcap
 Requires: libbpf
 Requires: glpk
 Requires: openssl
+Requires: numactl-libs
 %if 0%{?rhel} > 8
 Requires: libxdp
 %endif
