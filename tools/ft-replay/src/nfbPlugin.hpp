@@ -80,6 +80,13 @@ public:
 	OutputQueue* GetQueue(uint16_t queueId) override;
 
 	/**
+	 * @brief Get NUMA node to which the NIC is connected
+	 *
+	 * @return ID of NUMA or nullopt
+	 */
+	NumaNode GetNumaNode() override;
+
+	/**
 	 * @brief Determines and configure the available offloads.
 	 *
 	 * @param offloads The requested offloads to configure.

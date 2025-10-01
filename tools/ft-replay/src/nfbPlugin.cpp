@@ -302,6 +302,32 @@ OutputQueue* NfbPlugin::GetQueue(uint16_t queueId)
 	return _queues.at(queueId).get();
 }
 
+NumaNode NfbPlugin::GetNumaNode()
+{
+	NumaNode result = std::nullopt;
+	int node;
+
+	for (auto& queue : _queues) {
+		node = queue.get()->GetQueueNumaNode();
+		if (node < 0) {
+			// Unable to determine the NUMA node
+			continue;
+		}
+
+		if (!result.has_value()) {
+			result = static_cast<size_t>(node);
+			continue;
+		}
+
+		if (result.value() != static_cast<size_t>(node)) {
+			_logger->warn("The NFB device is connected to multiple NUMA nodes");
+			return std::nullopt;
+		}
+	}
+
+	return result;
+}
+
 Offloads NfbPlugin::ConfigureOffloads(const OffloadRequests& offloadRequests)
 {
 	NfbReplicatorFirmware replicatorFirmware(_nfbDevice.get());
