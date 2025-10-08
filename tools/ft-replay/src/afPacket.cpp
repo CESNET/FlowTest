@@ -349,6 +349,11 @@ size_t AfPacketPlugin::GetMTU() const noexcept
 	return _maxPacketSize;
 }
 
+NumaNode AfPacketPlugin::GetNumaNode()
+{
+	return utils::GetInterfaceNumaNode(_config._ifcName);
+}
+
 void AfPacketPlugin::PrintSettings()
 {
 	std::string report = "Used setings:";
