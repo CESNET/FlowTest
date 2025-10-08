@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "threadManager.hpp"
 #include <charconv>
 #include <cstdint>
 #include <cstring>
@@ -138,5 +139,11 @@ bool StrToBool(std::string_view str);
  * @throw std::runtime_error if the MTU cannot be obtained.
  */
 uint16_t GetInterfaceMTU(const std::string& name);
+
+/**
+ * @brief Get NUMA node of the specified network interface
+ *
+ */
+NumaNode GetInterfaceNumaNode(const std::string& interface);
 
 } // namespace replay::utils
