@@ -7,8 +7,10 @@
  */
 
 #include "config.hpp"
+#include "utils.hpp"
 
 #include <handlers.h>
+#include <set>
 
 #include <cassert>
 #include <iostream>
@@ -19,7 +21,8 @@ namespace replay {
 
 enum longOptsValues {
 	OPT_SRC_MAC = 256, // Value that cannot collide with chars
-	OPT_DST_MAC
+	OPT_DST_MAC,
+	OPT_CORES
 };
 
 Config::Config()
@@ -89,6 +92,11 @@ void Config::Parse(int argc, char** argv)
 		case 'h':
 			_help = true;
 			break;
+		case OPT_CORES: {
+			std::string cores = optarg;
+			_threadManagerCores = utils::ParseListOfNumbers<size_t>(cores, ",", "--cpu-cores");
+			break;
+		}
 		case OPT_SRC_MAC:
 			_srcMac.emplace(std::string(optarg));
 			break;
@@ -144,6 +152,7 @@ const option* Config::GetLongOptions()
 		   {"topspeed", no_argument, nullptr, 't'},
 		   {"vlan-id", required_argument, nullptr, 'v'},
 		   {"loop", required_argument, nullptr, 'l'},
+		   {"cpu-cores", required_argument, nullptr, OPT_CORES},
 		   {"help", no_argument, nullptr, 'h'},
 		   {"no-freeram-check", no_argument, nullptr, 'n'},
 		   {"src-mac", required_argument, nullptr, OPT_SRC_MAC},
@@ -183,6 +192,11 @@ void Config::SetRateLimit(Config::RateLimit limit)
 const std::string& Config::GetReplicatorConfig() const
 {
 	return _replicatorConfig;
+}
+
+const std::set<size_t>& Config::GetThreadManagerCores() const
+{
+	return _threadManagerCores;
 }
 
 const std::string& Config::GetOutputPluginSpecification() const
@@ -261,6 +275,8 @@ void Config::PrintUsage() const
 	std::cout << "  -h, --help                Show this help message\n";
 	std::cout << "  --src-mac=mac             Rewrite all source MAC addresses\n";
 	std::cout << "  --dst-mac=mac             Rewrite all destination MAC addresses\n";
+	std::cout
+		<< "  --cpu-cores=list          Set affinity to specified CPU cores (e.g. \"1,2,6-10\")\n";
 }
 
 } // namespace replay

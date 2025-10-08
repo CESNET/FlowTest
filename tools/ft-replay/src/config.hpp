@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <getopt.h>
 #include <optional>
+#include <set>
 #include <string>
 #include <variant>
 
@@ -107,6 +108,8 @@ public:
 
 	/** @brief Get replicator config filename. */
 	const std::string& GetReplicatorConfig() const;
+	/** @brief Get threadManager cores. */
+	const std::set<size_t>& GetThreadManagerCores() const;
 	/** @brief Get Output plugin specification. */
 	const std::string& GetOutputPluginSpecification() const;
 	/** @brief Get input pcap filename. */
@@ -145,6 +148,7 @@ private:
 	std::string _outputPlugin;
 	std::string _pcapFile;
 	bool _hwOffloadsSupport;
+	std::set<size_t> _threadManagerCores;
 	float _timeMultiplier;
 
 	std::optional<RateLimit> _rateLimit;

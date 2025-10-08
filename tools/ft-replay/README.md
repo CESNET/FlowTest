@@ -54,6 +54,7 @@ Arguments:
   -h, --help                      Show this help message
       --src-mac=MAC               Rewrite all source MAC addresses
       --dst-mac=MAC               Rewrite all destination MAC addresses
+      --cpu-cores=LIST		  Set affinity to specified CPU cores (e.g. "1,2,6-10")
 ```
 
 Detailed description:
@@ -90,6 +91,17 @@ that when the original checksums are incorrect, the updated checksums will also 
 addresses of packets. The address change is made when the file is being loaded into memory. Note,
 however, that the MAC addresses themselves can be independently modified later by the replication
 units (see "Replicator" below).
+
+--cpu-cores=LIST: By specifying a list of CPU cores, the user can manipulate the thread affinity.
+The number of specified CPU cores must be at least the number of specified output plugin queues so that every
+thread (on which a queue runs) can get its own CPU core. This can be useful to minimalize thread migration
+between cores thus improving the efficiency of `ft-replay`.
+
+By default `ft-replay` tries to set the thread affinity to the best possible CPU subset. Even when --cpu-cores
+is not specified, NUMA node information can still be determined from output plugin in which case `ft-replay` restricts
+the thread affinity to the cores that belong to the NUMA node. The --cpu-cores parameters has priority over NUMA
+information so in a case when the user specifies a set of CPU cores that could harm the performance, a set of
+warnings will be displayed.
 ```
 
 # Replicator
