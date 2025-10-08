@@ -9,6 +9,7 @@
 #include "nfbQueue.hpp"
 
 #include <cassert>
+#include <nfb/ndp.h>
 
 namespace replay {
 
@@ -269,6 +270,11 @@ size_t NfbQueue::AlignBlockSize(size_t size)
 void NfbQueue::SetOffloads(Offloads offloads) noexcept
 {
 	_offloads = offloads;
+}
+
+int NfbQueue::GetQueueNumaNode()
+{
+	return ndp_queue_get_numa_node(_txQueue.get());
 }
 
 } // namespace replay
