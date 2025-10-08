@@ -9,6 +9,7 @@
 #include "xdp.hpp"
 
 #include "ethTool.hpp"
+#include "threadManager.hpp"
 #include "utils.hpp"
 
 #include <arpa/inet.h>
@@ -286,6 +287,11 @@ Offloads XdpPlugin::ConfigureOffloads(const OffloadRequests& offloads)
 {
 	(void) offloads;
 	return 0;
+}
+
+NumaNode XdpPlugin::GetNumaNode()
+{
+	return utils::GetInterfaceNumaNode(_cfg._ifcName);
 }
 
 void XdpPlugin::PrintSettings()

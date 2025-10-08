@@ -257,6 +257,13 @@ public:
 	 */
 	Offloads ConfigureOffloads(const OffloadRequests& offloads) override;
 
+	/**
+	 * @brief Get NUMA node to which the NIC is connected
+	 *
+	 * @return ID of NUMA or nullopt
+	 */
+	NumaNode GetNumaNode() override;
+
 private:
 	void PrintSettings();
 	void ParseMap(const std::map<std::string, std::string>& argMap);
