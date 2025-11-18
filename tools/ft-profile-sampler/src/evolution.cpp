@@ -117,12 +117,13 @@ void Evolution::Run()
 			}
 
 			// start workers which create new offsprings
-			threads.emplace_back(std::async(
-				&Evolution::CreateParallelOffsprings,
-				this,
-				batchStart,
-				batchSize,
-				seedDistr(_rnd)));
+			threads.emplace_back(
+				std::async(
+					&Evolution::CreateParallelOffsprings,
+					this,
+					batchStart,
+					batchSize,
+					seedDistr(_rnd)));
 			batchStart += batchSize;
 		}
 

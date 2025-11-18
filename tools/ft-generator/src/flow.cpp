@@ -230,11 +230,12 @@ Flow::Flow(
 		assert(addresses._srcIp.getType() == IPAddress::AddressType::IPv4AddressType);
 		assert(addresses._dstIp.getType() == IPAddress::AddressType::IPv4AddressType);
 
-		AddLayer(std::make_unique<IPv4>(
-			addresses._srcIp.getIPv4(),
-			addresses._dstIp.getIPv4(),
-			config.GetIPv4().GetFragmentationProbability(),
-			config.GetIPv4().GetMinPacketSizeToFragment()));
+		AddLayer(
+			std::make_unique<IPv4>(
+				addresses._srcIp.getIPv4(),
+				addresses._dstIp.getIPv4(),
+				config.GetIPv4().GetFragmentationProbability(),
+				config.GetIPv4().GetMinPacketSizeToFragment()));
 
 		sizeFromIpLayer += IPV4_HDR_SIZE;
 	} break;
@@ -243,11 +244,12 @@ Flow::Flow(
 		assert(addresses._srcIp.getType() == IPAddress::AddressType::IPv6AddressType);
 		assert(addresses._dstIp.getType() == IPAddress::AddressType::IPv6AddressType);
 
-		AddLayer(std::make_unique<IPv6>(
-			addresses._srcIp.getIPv6(),
-			addresses._dstIp.getIPv6(),
-			config.GetIPv6().GetFragmentationProbability(),
-			config.GetIPv6().GetMinPacketSizeToFragment()));
+		AddLayer(
+			std::make_unique<IPv6>(
+				addresses._srcIp.getIPv6(),
+				addresses._dstIp.getIPv6(),
+				config.GetIPv6().GetFragmentationProbability(),
+				config.GetIPv6().GetMinPacketSizeToFragment()));
 
 		sizeFromIpLayer += IPV6_HDR_SIZE;
 	} break;
