@@ -3,9 +3,14 @@
   ansible.builtin.dnf:
     name:
       - python3
-      - python3-setuptools
       - python3-pip
     state: latest
+
+- name: System python3-setuptools is uninstalled (because pipenv installs our version)
+  ansible.builtin.dnf:
+    name:
+      - python3-setuptools
+    state: absent
 
 - name: Python pipenv is installed (over pip)
   ansible.builtin.command: pip3 install pipenv
