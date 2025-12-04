@@ -6,11 +6,9 @@
       - python3-pip
     state: latest
 
-- name: System python3-setuptools is uninstalled (because pipenv installs our version)
-  ansible.builtin.dnf:
-    name:
-      - python3-setuptools
-    state: absent
+- name: Pipx is installed (over pip)
+  ansible.builtin.command: pip3 install pipx
 
-- name: Python pipenv is installed (over pip)
-  ansible.builtin.command: pip3 install pipenv
+# Pipx may not be in PATH, run with python3 -m
+- name: Python pipenv is installed (over pipx, globally)
+  ansible.builtin.command: python3 -m pipx install pipenv --global

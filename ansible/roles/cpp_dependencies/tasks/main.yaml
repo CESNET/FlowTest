@@ -32,6 +32,9 @@
       - libbpf
       - libbpf-devel
     state: latest
+    enablerepo: "{{ extra_repos }}"
+  vars:
+    extra_repos: "{{ ['ol8_UEKR7'] if ansible_os_family == 'RedHat' and ansible_distribution_major_version | int == 8 else [] }}"
 
 - name: libxdp library is installed
   ansible.builtin.dnf:
