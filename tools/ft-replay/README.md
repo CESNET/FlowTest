@@ -316,7 +316,7 @@ replaying you can specify two addresses in the `addr` parameter delimited by `#`
 | Parameter | Description   |
 |---	|---	|
 | addr | PCI address of the output interface(s). This parameter is mandatory [value: address(es)]   |
-| queueCount | Specifies the number of TX queues. [value: number, default: 1]  |
+| queueCount | Specifies the number of TX queues. [value: number, default: allSuitable]  |
 | queueSize | Specify the size of the TX queue. [value: number (of packets), default: 4096] |
 | poolSize | Specify the size of the memory pool used by the DPDK queues. [value: number (of packets), default: 8192] |
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 64] |
