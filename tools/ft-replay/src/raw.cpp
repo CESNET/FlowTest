@@ -148,6 +148,11 @@ OutputQueue* RawPlugin::GetQueue(uint16_t queueId)
 	return _queue.get();
 }
 
+NumaNode RawPlugin::GetNumaNode()
+{
+	return utils::GetInterfaceNumaNode(_ifcName);
+}
+
 void RawPlugin::ParseMap(const std::map<std::string, std::string>& argMap)
 {
 	for (const auto& [key, value] : argMap) {

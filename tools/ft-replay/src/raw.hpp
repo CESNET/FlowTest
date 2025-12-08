@@ -122,6 +122,13 @@ public:
 	 */
 	OutputQueue* GetQueue(uint16_t queueId) override;
 
+	/**
+	 * @brief Get NUMA node to which the NIC is connected
+	 *
+	 * @return ID of NUMA or nullopt
+	 */
+	NumaNode GetNumaNode() override;
+
 private:
 	/**
 	 * @brief Parse arguments in map

@@ -132,6 +132,13 @@ public:
 	/** @brief Get MTU of the AF_PACKET interface. */
 	size_t GetMTU() const noexcept override;
 
+	/**
+	 * @brief Get NUMA node to which the NIC is connected
+	 *
+	 * @return ID of NUMA or nullopt
+	 */
+	NumaNode GetNumaNode() override;
+
 private:
 	void PrintSettings();
 	void ParseMap(const std::map<std::string, std::string>& argMap);

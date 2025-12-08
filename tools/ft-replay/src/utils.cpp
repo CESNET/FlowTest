@@ -13,6 +13,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <net/if.h>
 #include <stdexcept>
 #include <string>
@@ -64,6 +65,26 @@ uint16_t GetInterfaceMTU(const std::string& name)
 	}
 
 	return ifReq.ifr_mtu;
+}
+
+NumaNode GetInterfaceNumaNode(const std::string& interface)
+{
+	std::string pathStart("/sys/class/net/");
+	std::string pathEnd("/device/numa_node");
+	std::string pathFinal = pathStart + interface + pathEnd;
+
+	std::ifstream node(pathFinal);
+
+	if (!node.is_open()) {
+		return std::nullopt;
+	}
+
+	int ret;
+	if (node >> ret && ret >= 0) {
+		return ret;
+	}
+
+	return std::nullopt;
 }
 
 } // namespace replay::utils

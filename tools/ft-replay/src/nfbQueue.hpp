@@ -91,6 +91,12 @@ public:
 	void SetOffloads(Offloads offloads) noexcept;
 
 	/**
+	 * @brief get the numa node of the queue
+	 * @return Id of the numa node or < 0 on error
+	 */
+	int GetQueueNumaNode();
+
+	/**
 	 * @brief Flush output buffer
 	 */
 	void Flush() override;
