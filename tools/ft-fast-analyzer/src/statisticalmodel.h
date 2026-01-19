@@ -200,6 +200,8 @@ struct SMRule {
 	/**
 	 * @brief Constructs an SMRule with metrics and an all-segment.
 	 * @param metrics The metrics to use in the rule.
+	 *
+	 * @note Metrics vector is copied.
 	 */
 	SMRule(const std::vector<SMMetric>& metrics)
 		: metrics(metrics)
@@ -211,6 +213,8 @@ struct SMRule {
 	 * @brief Constructs an SMRule with metrics and a subnet segment.
 	 * @param metrics The metrics to use in the rule.
 	 * @param subnetSegment The subnet segment to use in the rule.
+	 *
+	 * @note Metrics vector and segment are copied.
 	 */
 	SMRule(const std::vector<SMMetric>& metrics, const SMSubnetSegment& subnetSegment)
 		: metrics(metrics)
@@ -222,6 +226,8 @@ struct SMRule {
 	 * @brief Constructs an SMRule with metrics and a time segment.
 	 * @param metrics The metrics to use in the rule.
 	 * @param timeSegment The time segment to use in the rule.
+	 *
+	 * @note Metrics vector and segment are copied.
 	 */
 	SMRule(const std::vector<SMMetric>& metrics, const SMTimeSegment& timeSegment)
 		: metrics(metrics)

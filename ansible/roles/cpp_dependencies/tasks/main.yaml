@@ -68,3 +68,11 @@
       - numactl-devel
       - numactl-libs
     state: latest
+
+- name: python3-devel is installed (for pybind11)
+  ansible.builtin.dnf:
+    name:
+      - "{{ package }}"
+    state: latest
+  vars:
+    package: "{{ 'python39-devel' if ansible_distribution_major_version | int == 8 else 'python3-devel' }}"
