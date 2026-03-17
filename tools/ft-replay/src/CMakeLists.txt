@@ -26,8 +26,8 @@ add_executable(ft-replay
 	memoryMapping.cpp
 	utils.cpp
 	utils.hpp
-	raw.cpp
-	raw.hpp
+	output/raw/raw.cpp
+	output/raw/raw.hpp
 	xdp.cpp
 	xdp.hpp
 	afPacket.cpp
