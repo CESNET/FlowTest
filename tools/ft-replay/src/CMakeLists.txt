@@ -36,8 +36,8 @@ add_executable(ft-replay
 	ethTool.hpp
 	socketDescriptor.cpp
 	socketDescriptor.hpp
-	pcapFile.cpp
-	pcapFile.hpp
+	output/pcapFile/pcapFile.cpp
+	output/pcapFile/pcapFile.hpp
 	rateLimiter.hpp
 	rateLimiter.cpp
 	countDownLatch.hpp
