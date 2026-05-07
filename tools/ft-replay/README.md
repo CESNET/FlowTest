@@ -224,9 +224,17 @@ Example:
 pcapFile:file=replay.pcap,queueCount=8
 ```
 
+#### **Multiport replaying mode**
+Based on the command line arguments some plugins are able to operate in two-port (multiport) replaying mode. The plugins are able to divide packets between the selected interfaces
+based on their source and destination IP addresses (ie. it guarantees that each direction of the same biflow will go through a different interface). To enable this mode of
+replaying see the description of the individual plugins that support this feature. (Plugins supported: pcapFile, dpdk)
+
 ### **pcapFile**
 Store packets into PCAP files. A separate file is created for each queue. It serves mainly to
 demonstrate how the packets will be edited and transmitted.
+
+#### **Multiport**
+To enable the multiport mode `multiPort` parameter must be set to `true`.
 
 | Parameter | Description   |
 |---	|---	|
@@ -234,6 +242,7 @@ demonstrate how the packets will be edited and transmitted.
 | queueCount | Specifies the queue numbers to use. [value: number, default: 1]  |
 | burstSize  | Sent packets in bursts of \<size\>. [value: number, default: 1024] |
 | packetSize | Maximal size (Bytes) of single packet. [value: number, default: 2048]  |
+| multiPort | Enables multiport mode. [value: bool, default: false]  |
 
 ### **raw**
 Send packets through raw socket. Allows transmission through only one output queue. Only suitable
@@ -308,10 +317,8 @@ If the NIC used by the dpdk plugin is not Nvidia/Mellanox then it must be bound 
 with tools like `dpdk-devbind` (https://doc.dpdk.org/guides/tools/devbind.html). The PCIe address of a network interface can be displayed
 with a command: `dpdk-devbind --status`.
 
-#### **Multi-port replaying mode**
-Based on the command line arguments it is able to operate in two-port (multi-port) replaying mode. The plugin is able to divide packets between the selected interfaces
-based on their source and destination IP addresses (ie. it guarantees that each direction of the same biflow will go through a different interface). To enable this mode of
-replaying you can specify two addresses in the `addr` parameter delimited by `#`. For example: `addr=0000:xx:00.0#0000:xx:00.1`.
+#### **Multiport**
+To enable the multiport mode you can specify two addresses in the `addr` parameter delimited by `#`. For example: `addr=0000:xx:00.0#0000:xx:00.1`.
 
 | Parameter | Description   |
 |---	|---	|
