@@ -227,7 +227,7 @@ pcapFile:file=replay.pcap,queueCount=8
 #### **Multiport replaying mode**
 Based on the command line arguments some plugins are able to operate in two-port (multiport) replaying mode. The plugins are able to divide packets between the selected interfaces
 based on their source and destination IP addresses (ie. it guarantees that each direction of the same biflow will go through a different interface). To enable this mode of
-replaying see the description of the individual plugins that support this feature. (Plugins supported: pcapFile, dpdk)
+replaying see the description of the individual plugins that support this feature. (Plugins supported: pcapFile, raw, dpdk)
 
 ### **pcapFile**
 Store packets into PCAP files. A separate file is created for each queue. It serves mainly to
@@ -247,6 +247,9 @@ To enable the multiport mode `multiPort` parameter must be set to `true`.
 ### **raw**
 Send packets through raw socket. Allows transmission through only one output queue. Only suitable
 for lower speeds (e.g. 1 Gbps) due to system overhead.
+
+#### **Multiport**
+To enable the multiport mode you can specify two addresses in the `ifc` parameter delimited by `#`. For example: `ifc=ens0#ens1`.
 
 | Parameter | Description   |
 |---	|---	|
