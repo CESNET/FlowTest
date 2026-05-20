@@ -26,8 +26,12 @@ add_executable(ft-replay
 	memoryMapping.cpp
 	utils.cpp
 	utils.hpp
-	raw.cpp
-	raw.hpp
+	output/raw/rawPlugin.cpp
+	output/raw/rawPlugin.hpp
+	output/raw/rawQueue.cpp
+	output/raw/rawQueue.hpp
+	output/raw/rawWriter.cpp
+	output/raw/rawWriter.hpp
 	xdp.cpp
 	xdp.hpp
 	afPacket.cpp
@@ -36,8 +40,12 @@ add_executable(ft-replay
 	ethTool.hpp
 	socketDescriptor.cpp
 	socketDescriptor.hpp
-	pcapFile.cpp
-	pcapFile.hpp
+	output/pcapFile/pcapFilePlugin.cpp
+	output/pcapFile/pcapFilePlugin.hpp
+	output/pcapFile/pcapFileQueue.cpp
+	output/pcapFile/pcapFileQueue.hpp
+	output/pcapFile/pcapFileWriter.cpp
+	output/pcapFile/pcapFileWriter.hpp
 	rateLimiter.hpp
 	rateLimiter.cpp
 	countDownLatch.hpp
