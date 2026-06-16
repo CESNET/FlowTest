@@ -129,7 +129,7 @@ void PacketBuilder::PresetHwChecksum(Packet& packet)
 	}
 }
 
-int PacketBuilder::DecidePort(const std::byte* rawData, enum L3Type l3Type, uint16_t l3Offset) const
+int PacketBuilder::DecidePort(const std::byte* rawData, L3Type l3Type, uint16_t l3Offset) const
 {
 	if (l3Type == L3Type::IPv4) {
 		const iphdr* ipHeader = reinterpret_cast<const iphdr*>(rawData + l3Offset);
