@@ -132,7 +132,7 @@ void Metrics::GatherWindowStats(const std::vector<Biflow>& data, unsigned histSi
 		}
 		const auto& biflow = data[i];
 		for (unsigned windowIndex = biflow.start_window_idx / WINDOW_SIZE;
-			 windowIndex <= biflow.end_window_idx / WINDOW_SIZE + 1;
+			 windowIndex <= biflow.end_window_idx / WINDOW_SIZE;
 			 windowIndex++) {
 			double pkts = 0;
 			for (unsigned j = 0; j < WINDOW_SIZE; j++) {
