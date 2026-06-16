@@ -46,7 +46,7 @@ void Evolution::InitialPopulationWorker(uint64_t seed)
 	uint64_t profileSize = _profile->GetSize();
 	std::mt19937_64 rnd(seed);
 	std::uniform_int_distribution<uint64_t> geneCountDistrib(_minGenesCnt, _maxGenesCnt);
-	std::uniform_int_distribution<uint64_t> geneDistrib(0, profileSize);
+	std::uniform_int_distribution<uint64_t> geneDistrib(0, profileSize - 1);
 	while (true) {
 		{
 			std::lock_guard<std::mutex> lock(_mtx);
