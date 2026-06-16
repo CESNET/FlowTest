@@ -191,7 +191,7 @@ uint64_t ParseSpeedUnit(const YAML::Node& node)
 		throw ConfigError(node, "invalid speed unit value");
 	}
 
-	return OverflowCheckedMultiply(*value, multiplier * 8);
+	return OverflowCheckedMultiply(*value, multiplier);
 }
 
 void ConfigError::PrintPrettyError(
