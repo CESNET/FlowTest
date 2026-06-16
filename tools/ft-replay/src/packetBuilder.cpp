@@ -254,7 +254,7 @@ PacketInfo PacketBuilder::GetPacketInfo(const RawPacket* rawPacket) const
 		info.l4Type = LayerToL4Protocol(l4Layer._type);
 	}
 
-	if (DecidePort(rawPacket->data, info.l3Type, info.l3Offset) < 0) {
+	if (DecidePort(rawPacket->data, info.l3Type, info.l3Offset) <= 0) {
 		info.outInterface = OutInterface::Interface0;
 	} else {
 		info.outInterface = OutInterface::Interface1;
