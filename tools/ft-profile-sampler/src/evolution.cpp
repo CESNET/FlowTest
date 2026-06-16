@@ -35,7 +35,7 @@ void Evolution::CreateInitialPopulation()
 	}
 
 	for (auto& fut : futures) {
-		fut.wait();
+		fut.get();
 	}
 
 	UpdateFitnessStats();
