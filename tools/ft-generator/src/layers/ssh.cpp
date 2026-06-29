@@ -10,6 +10,7 @@
 #include "../flowplanhelper.h"
 #include "sshbuilder.h"
 #include "sshconstants.h"
+#include <cstdint>
 
 namespace generator {
 
@@ -37,12 +38,61 @@ static void MakeSshExchangePackets(SshBuilder& builder, SshSettings& set, Callba
 	callback(builder.BuildNewKeys(), Direction::Reverse);
 }
 
+/**
+ * @brief Decides if the ssh connection should be established or not
+ *
+ * @param flow Current flow
+ * @return True if enough resources, False if not enough and should not establish the connection
+ */
+bool ShouldPlanSsh(Flow& flow)
+{
+	// check that there are at least enough packets in each direction
+	if (flow._fwdPackets < SSH_MIN_DIR_PKT_CNT) {
+		return false;
+	}
+	if (flow._revPackets < SSH_MIN_DIR_PKT_CNT) {
+		return false;
+	}
+
+	// check that there are at least enought bytes for kex exchange in each direction
+	if (flow._fwdBytes < SSH_MAX_KEX_BYTES_PER_DIR) {
+		return false;
+	}
+	if (flow._revBytes < SSH_MAX_KEX_BYTES_PER_DIR) {
+		return false;
+	}
+
+	// Check that there are enough bytes in the flow for minimal payload
+	uint64_t encryptionBytes = (flow._fwdBytes + flow._revBytes) - 2 * SSH_MAX_KEX_BYTES_PER_DIR;
+	uint64_t encryptionPackets = (flow._fwdPackets + flow._revPackets) - 2 * SSH_MIN_KEX_PKT_CNT;
+	if (SSH_MIN_ALGORITHM_PAYLOAD_SIZE > encryptionBytes / encryptionPackets) {
+		return false;
+	}
+
+	return true;
+}
+
 void Ssh::PlanFlow(Flow& flow)
 {
 	FlowPlanHelper planner(flow);
 
 	uint64_t availableBytesFwd = planner.BytesRemaining(Direction::Forward);
 	uint64_t availableBytesRev = planner.BytesRemaining(Direction::Reverse);
+
+	// if the flow doesn't fit the requiered sizes, do not establish the connection and generate
+	// random valid ssh packets.
+	if (!ShouldPlanSsh(flow)) {
+		uint32_t totalBytes = flow._fwdBytes + flow._revBytes;
+		uint32_t totalPackets = flow._packets.size();
+		uint32_t pktSize = totalBytes / totalPackets;
+		while (planner.PktsTillEnd() > 0) {
+			auto* pkt = planner.NextPacket();
+			Packet::layerParams params;
+			pkt->_size += pktSize;
+			pkt->_layers.emplace_back(this, params);
+		}
+		return;
+	}
 
 	MakeSshExchangePackets(_builder, _settings, [&](const Buffer& buffer, Direction dir) {
 		auto* pkt = planner.NextPacket();
