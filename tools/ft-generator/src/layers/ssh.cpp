@@ -7,7 +7,6 @@
  */
 
 #include "ssh.h"
-#include "../data/sshdata.h"
 #include "../flowplanhelper.h"
 #include "sshbuilder.h"
 #include "sshconstants.h"
@@ -26,10 +25,13 @@ enum class SshMap : int {
 // enough packets or bytes at the begining.
 // Returns vector with pairs consisting of message buffer and the direction of the packet.
 template <typename Callback>
-static void MakeSshExchangePackets(SshBuilder& builder, Callback callback)
+static void MakeSshExchangePackets(SshBuilder& builder, SshSettings& set, Callback callback)
+
 {
 	callback(builder.BuildIdString(), Direction::Forward);
 	callback(builder.BuildIdString(), Direction::Reverse);
+	callback(builder.BuildKexInit(set, Direction::Forward), Direction::Forward);
+	callback(builder.BuildKexInit(set, Direction::Reverse), Direction::Reverse);
 }
 
 void Ssh::PlanFlow(Flow& flow)
@@ -39,7 +41,7 @@ void Ssh::PlanFlow(Flow& flow)
 	uint64_t availableBytesFwd = planner.BytesRemaining(Direction::Forward);
 	uint64_t availableBytesRev = planner.BytesRemaining(Direction::Reverse);
 
-	MakeSshExchangePackets(_builder, [&](const Buffer& buffer, Direction dir) {
+	MakeSshExchangePackets(_builder, _settings, [&](const Buffer& buffer, Direction dir) {
 		auto* pkt = planner.NextPacket();
 
 		Packet::layerParams params;

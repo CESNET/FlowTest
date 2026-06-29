@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../buffer.h"
+#include "../packet.h"
 
 namespace generator {
 
@@ -22,6 +23,16 @@ public:
 	 * @return Buffer with the ID
 	 */
 	Buffer BuildIdString();
+
+	/**
+	 * @brief Build the key exchange message
+	 *
+	 * @param set The SshSettings structure
+	 * @param dir The direction of the packet
+	 *
+	 * @return Buffer with the message
+	 */
+	Buffer BuildKexInit(SshSettings& set, const Direction& dir);
 
 	/**
 	 * @brief Build the encrypted package data
