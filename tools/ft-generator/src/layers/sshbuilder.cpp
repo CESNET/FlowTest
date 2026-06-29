@@ -330,6 +330,16 @@ Buffer SshBuilder::BuildServerECDH(SshSettings& set)
 	return buf;
 }
 
+Buffer SshBuilder::BuildNewKeys()
+{
+	Buffer buf;
+	buf.Append<UInt32Be>(0); // reserve four bytes for packet size header
+	buf.Append<uint8_t>(0); // reserve byte for padding size header
+	buf.Append<uint8_t>(SSH_NEW_KEYS_MSG_CODE);
+	AppendPacketPadding(buf);
+	return buf;
+}
+
 Buffer SshBuilder::BuildEncryptedPackage(std::size_t payloadSize, SshSettings& set)
 {
 	auto& rnd = RandomGenerator::GetInstance();

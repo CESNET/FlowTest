@@ -53,6 +53,13 @@ public:
 	Buffer BuildServerECDH(SshSettings& set);
 
 	/**
+	 * @brief Build the New Keys message
+	 *
+	 * @return Buffer wit hthe New Keys message
+	 */
+	Buffer BuildNewKeys();
+
+	/**
 	 * @brief Build the encrypted package data
 	 *
 	 * @param payloadSize The desired length of the resulting message

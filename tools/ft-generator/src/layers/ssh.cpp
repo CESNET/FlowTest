@@ -26,7 +26,6 @@ enum class SshMap : int {
 // Returns vector with pairs consisting of message buffer and the direction of the packet.
 template <typename Callback>
 static void MakeSshExchangePackets(SshBuilder& builder, SshSettings& set, Callback callback)
-
 {
 	callback(builder.BuildIdString(), Direction::Forward);
 	callback(builder.BuildIdString(), Direction::Reverse);
@@ -34,6 +33,8 @@ static void MakeSshExchangePackets(SshBuilder& builder, SshSettings& set, Callba
 	callback(builder.BuildKexInit(set, Direction::Reverse), Direction::Reverse);
 	callback(builder.BuildClientECDH(set), Direction::Forward);
 	callback(builder.BuildServerECDH(set), Direction::Reverse);
+	callback(builder.BuildNewKeys(), Direction::Forward);
+	callback(builder.BuildNewKeys(), Direction::Reverse);
 }
 
 void Ssh::PlanFlow(Flow& flow)
