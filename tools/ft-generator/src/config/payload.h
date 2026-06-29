@@ -19,7 +19,7 @@ namespace config {
 /**
  * @brief The possible payload protocols
  */
-enum class PayloadProtocol { Http, Dns, Tls };
+enum class PayloadProtocol { Http, Dns, Tls, Ssh };
 
 /**
  * @brief A list of payload protocols
@@ -78,7 +78,7 @@ public:
 
 private:
 	PayloadProtocolList _enabledProtocols
-		= {PayloadProtocol::Http, PayloadProtocol::Dns, PayloadProtocol::Tls};
+		= {PayloadProtocol::Http, PayloadProtocol::Dns, PayloadProtocol::Tls, PayloadProtocol::Ssh};
 	TlsEncryption _tlsEncryption;
 };
 

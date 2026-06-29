@@ -50,7 +50,7 @@ public:
 
 private:
 	std::vector<PortRange> _alwaysEncryptPorts = {{443}};
-	std::vector<PortRange> _neverEncryptPorts = {{80}};
+	std::vector<PortRange> _neverEncryptPorts = {{80}, {22}};
 	double _otherwiseEncryptProbability = 0.3;
 };
 
