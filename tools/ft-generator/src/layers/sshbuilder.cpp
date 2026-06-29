@@ -39,6 +39,9 @@ static void AppendPacketPadding(Buffer& buf)
 	buf.WriteAt<uint8_t>(4, paddingSize);
 }
 
+// For the Client and Server ID strings there could be possible protocol version incompatibilities
+// but so far I have yet to come across any evidence that would suggest this behavior
+// most of them are SSHv2 anyway
 Buffer SshBuilder::BuildIdString()
 {
 	auto& rnd = RandomGenerator::GetInstance();
@@ -221,6 +224,106 @@ Buffer SshBuilder::BuildKexInit(SshSettings& set, const Direction& dir)
 
 	// Reserved four bytes of zeros
 	buf.Append<uint32_t>(0);
+
+	AppendPacketPadding(buf);
+
+	return buf;
+}
+
+Buffer SshBuilder::BuildClientECDH(SshSettings& set)
+{
+	auto& rnd = RandomGenerator::GetInstance();
+
+	Buffer buf;
+
+	buf.Append<UInt32Be>(0); // reserve four bytes for packet size header
+	buf.Append<uint8_t>(0); // reserve byte for padding size header
+
+	buf.Append<uint8_t>(SSH_ECDH_CLIENT_MSG_CODE);
+
+	// lambda function for appending random key from given set of keys
+	auto appendClientKey = [&](const auto& keySet) {
+		auto& selectedKey = keySet[rnd.RandomUInt(0, keySet.size() - 1)];
+		buf.Append<UInt32Be>(selectedKey.size());
+		for (size_t i = 0; i < selectedKey.size(); i++) {
+			buf.Append<uint8_t>(selectedKey[i]);
+		}
+	};
+
+	// The only supperted kex algorithms are these three
+	if (set.kexAlgorithm.first == "curve25519-sha256") {
+		appendClientKey(SSH_KEX_CURVE25519_SHA256_KEYS);
+	} else if (set.kexAlgorithm.first == "diffie-hellman-group14-sha256") {
+		appendClientKey(SSH_KEX_DIFFIE_HELLMAN_GROUP14_SHA256_KEYS);
+	} else if (set.kexAlgorithm.first == "ecdh-sha2-nistp256") {
+		appendClientKey(SSH_KEX_ECDH_SHA2_NISTP256_KEYS);
+	}
+
+	AppendPacketPadding(buf);
+
+	return buf;
+}
+
+Buffer SshBuilder::BuildServerECDH(SshSettings& set)
+{
+	auto& rnd = RandomGenerator::GetInstance();
+
+	Buffer buf;
+
+	// lambda function to append kex host key and signature
+	auto appendKex = [&](const auto& keySet) {
+		size_t idx = rnd.RandomUInt(0, keySet.size() - 1);
+		auto& selected = keySet[idx];
+		buf.Append<UInt32Be>(
+			SSH_DEFAULT_SIZE_BYTES * 2 + set.pubKeyAlgorithm.first.size() + selected.size());
+		buf.Append<UInt32Be>(set.pubKeyAlgorithm.first.size());
+		buf.Append(set.pubKeyAlgorithm.first);
+		buf.Append<UInt32Be>(selected.size());
+		for (size_t i = 0; i < selected.size(); i++) {
+			buf.Append<uint8_t>(selected[i]);
+		}
+	};
+
+	// lambda function to append ephemeral key
+	auto appendEphemeralKey = [&](const auto& keySet) {
+		auto& selectedKey = keySet[rnd.RandomUInt(0, keySet.size() - 1)];
+		buf.Append<UInt32Be>(selectedKey.size());
+		for (size_t i = 0; i < selectedKey.size(); i++) {
+			buf.Append<uint8_t>(selectedKey[i]);
+		}
+	};
+
+	buf.Append<UInt32Be>(0); // reserve four bytes for packet size header
+	buf.Append<uint8_t>(0); // reserve byte for padding size header
+
+	buf.Append<uint8_t>(SSH_ECDH_SERVER_MSG_CODE);
+
+	// Select kex host key algorithm
+	if (set.pubKeyAlgorithm.second == 32) {
+		appendKex(SSH_ED25519_KEYS);
+	} else if (set.pubKeyAlgorithm.second == 128) {
+		appendKex(SSH_DSA_1024_KEYS);
+	} else if (set.pubKeyAlgorithm.second == 256) {
+		appendKex(SSH_RSA_2048_KEYS);
+	}
+
+	// Select kex ephemeral key
+	if (set.kexAlgorithm.first == "curve25519-sha256") {
+		appendEphemeralKey(SSH_KEX_CURVE25519_SHA256_KEYS);
+	} else if (set.kexAlgorithm.first == "diffie-hellman-group14-sha256") {
+		appendEphemeralKey(SSH_KEX_DIFFIE_HELLMAN_GROUP14_SHA256_KEYS);
+	} else if (set.kexAlgorithm.first == "ecdh-sha2-nistp256") {
+		appendEphemeralKey(SSH_KEX_ECDH_SHA2_NISTP256_KEYS);
+	}
+
+	// Select kex host key signature
+	if (set.pubKeyAlgorithm.second == 32) {
+		appendKex(SSH_ED25519_SIGNATURES);
+	} else if (set.pubKeyAlgorithm.second == 128) {
+		appendKex(SSH_DSA_1024_SIGNATURES);
+	} else if (set.pubKeyAlgorithm.second == 256) {
+		appendKex(SSH_RSA_2048_SIGNATURES);
+	}
 
 	AppendPacketPadding(buf);
 

@@ -32,6 +32,8 @@ static void MakeSshExchangePackets(SshBuilder& builder, SshSettings& set, Callba
 	callback(builder.BuildIdString(), Direction::Reverse);
 	callback(builder.BuildKexInit(set, Direction::Forward), Direction::Forward);
 	callback(builder.BuildKexInit(set, Direction::Reverse), Direction::Reverse);
+	callback(builder.BuildClientECDH(set), Direction::Forward);
+	callback(builder.BuildServerECDH(set), Direction::Reverse);
 }
 
 void Ssh::PlanFlow(Flow& flow)

@@ -35,6 +35,24 @@ public:
 	Buffer BuildKexInit(SshSettings& set, const Direction& dir);
 
 	/**
+	 * @brief Build the client ECDH (and other algoritm) key exchange
+	 *
+	 * @param set The SshSettings structure
+	 *
+	 * @return Buffer with the client ECDH key exchange
+	 */
+	Buffer BuildClientECDH(SshSettings& set);
+
+	/**
+	 * @brief Build the server ECDH (and other algoritm) key exchange
+	 *
+	 * @param set The SshSettings structure
+	 *
+	 * @return Buffer with the serverECDH key exchange
+	 */
+	Buffer BuildServerECDH(SshSettings& set);
+
+	/**
 	 * @brief Build the encrypted package data
 	 *
 	 * @param payloadSize The desired length of the resulting message
