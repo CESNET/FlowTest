@@ -17,6 +17,13 @@ struct SshSettings;
 class SshBuilder {
 public:
 	/**
+	 * @brief Build the ID string packet message
+	 *
+	 * @return Buffer with the ID
+	 */
+	Buffer BuildIdString();
+
+	/**
 	 * @brief Build the encrypted package data
 	 *
 	 * @param payloadSize The desired length of the resulting message

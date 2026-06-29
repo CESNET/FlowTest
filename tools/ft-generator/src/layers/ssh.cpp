@@ -22,12 +22,44 @@ enum class SshMap : int {
 
 } // namespace
 
+// Helper function to build the unencrypted key exchange pacekts. It does not check if there are
+// enough packets or bytes at the begining.
+// Returns vector with pairs consisting of message buffer and the direction of the packet.
+template <typename Callback>
+static void MakeSshExchangePackets(SshBuilder& builder, Callback callback)
+{
+	callback(builder.BuildIdString(), Direction::Forward);
+	callback(builder.BuildIdString(), Direction::Reverse);
+}
+
 void Ssh::PlanFlow(Flow& flow)
 {
 	FlowPlanHelper planner(flow);
 
 	uint64_t availableBytesFwd = planner.BytesRemaining(Direction::Forward);
 	uint64_t availableBytesRev = planner.BytesRemaining(Direction::Reverse);
+
+	MakeSshExchangePackets(_builder, [&](const Buffer& buffer, Direction dir) {
+		auto* pkt = planner.NextPacket();
+
+		Packet::layerParams params;
+
+		params[int(SshMap::StoreIndex)] = _messageStore.size();
+
+		pkt->_size += buffer.Length();
+		_messageStore.emplace_back(buffer);
+
+		pkt->_direction = dir;
+		if (dir == Direction::Forward) {
+			availableBytesFwd -= pkt->_size;
+		} else if (dir == Direction::Reverse) {
+			availableBytesRev -= pkt->_size;
+		}
+		pkt->_isFinished = true;
+
+		pkt->_layers.emplace_back(this, params);
+		planner.IncludePkt(pkt);
+	});
 
 	// if the amount of bytes exceeds the minimum required payload size for all the packets use only
 	// the extra space for generation this should generally help to prevent generating more bytes

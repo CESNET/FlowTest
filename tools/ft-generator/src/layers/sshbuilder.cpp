@@ -8,11 +8,20 @@
  */
 
 #include "sshbuilder.h"
+#include "../data/sshdata.h"
 #include "../randomgenerator.h"
 #include "ssh.h"
 #include "sshconstants.h"
 
 namespace generator {
+
+Buffer SshBuilder::BuildIdString()
+{
+	auto& rnd = RandomGenerator::GetInstance();
+	Buffer buf;
+	buf.Append(rnd.RandomChoice(SSH_SOFTWARE_STRINGS));
+	return buf;
+}
 
 Buffer SshBuilder::BuildEncryptedPackage(std::size_t payloadSize, SshSettings& set)
 {
