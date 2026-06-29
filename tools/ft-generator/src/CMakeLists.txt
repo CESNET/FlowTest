@@ -14,6 +14,7 @@ set(FT_GENERATOR_SOURCES
 	config/timestamps.cpp
 	config/tlsencryption.cpp
 	data/tlskeys.cpp
+	data/sshdata.cpp
 	data/words.cpp
 	domainnamegenerator.cpp
 	flow.cpp
