@@ -19,7 +19,7 @@
       register: tsu_services
 
     - name: Stop all active NFB-TSU services started by FlowTest
-      ansible.builtin.systemd_service:
+      ansible.builtin.systemd:
         name: "{{ item }}"
         state: stopped
       loop: "{{ tsu_services.stdout_lines }}"
