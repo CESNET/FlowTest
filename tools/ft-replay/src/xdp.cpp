@@ -215,10 +215,6 @@ size_t XdpQueue::GetMaxBurstSize() const noexcept
 
 void XdpQueue::CollectSlots()
 {
-	if (_outstandingTx == 0) {
-		return;
-	}
-
 	if (_wakeUpFlag) {
 		sendto(_socket.GetDescriptor(), nullptr, 0, MSG_DONTWAIT, nullptr, 0);
 	}
