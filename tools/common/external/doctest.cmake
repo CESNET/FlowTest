@@ -10,7 +10,7 @@ ExternalProject_Add(
 	PREFIX ${CMAKE_BINARY_DIR}/doctest
 
 	GIT_REPOSITORY https://github.com/doctest/doctest.git
-	GIT_TAG "v2.4.11"
+	GIT_TAG "v2.5.0"
 	GIT_SHALLOW ON
 
 	UPDATE_COMMAND ""
