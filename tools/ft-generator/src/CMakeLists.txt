@@ -14,6 +14,7 @@ set(FT_GENERATOR_SOURCES
 	config/timestamps.cpp
 	config/tlsencryption.cpp
 	data/tlskeys.cpp
+	data/sshdata.cpp
 	data/words.cpp
 	domainnamegenerator.cpp
 	flow.cpp
@@ -47,6 +48,8 @@ set(FT_GENERATOR_SOURCES
 	layers/tls.cpp
 	layers/tlsbuilder.cpp
 	layers/tlssignature.cpp
+	layers/ssh.cpp
+	layers/sshbuilder.cpp
 	layers/udp.cpp
 	layers/vlan.cpp
 	normalizedflowidentifier.cpp

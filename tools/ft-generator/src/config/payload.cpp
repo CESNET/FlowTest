@@ -19,6 +19,7 @@ static PayloadProtocol ParsePayloadProtocol(const YAML::Node& node)
 	static std::map<std::string, PayloadProtocol> protocolNameToProtocol {
 		{"http", PayloadProtocol::Http},
 		{"dns", PayloadProtocol::Dns},
+		{"ssh", PayloadProtocol::Ssh},
 		{"tls", PayloadProtocol::Tls}};
 	static std::string protocolNames = StringJoin(KeysOfMap(protocolNameToProtocol), ", ");
 

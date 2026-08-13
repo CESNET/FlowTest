@@ -66,6 +66,23 @@ struct UInt24Be {
 };
 
 /**
+ * @brief An uint32 stored in big endian
+ */
+struct UInt32Be {
+	uint32_t _value; //< The value (big endian)
+
+	/**
+	 * @brief Constructor from a uint32_t
+	 *
+	 * @param value  The value in host endianity
+	 */
+	UInt32Be(uint32_t value)
+		: _value(htobe32(value))
+	{
+	}
+};
+
+/**
  * @brief A simple memory buffer class
  */
 class Buffer {

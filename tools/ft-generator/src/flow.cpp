@@ -20,6 +20,7 @@
 #include "layers/ipv6.h"
 #include "layers/mpls.h"
 #include "layers/payload.h"
+#include "layers/ssh.h"
 #include "layers/tcp.h"
 #include "layers/tls.h"
 #include "layers/udp.h"
@@ -304,6 +305,11 @@ Flow::Flow(
 		enabledProtocols.Includes(config::PayloadProtocol::Dns)
 		&& profile._l4Proto == L4Protocol::Udp && profile._dstPort == 53) {
 		AddLayer(std::make_unique<Dns>());
+
+	} else if (
+		enabledProtocols.Includes(config::PayloadProtocol::Ssh)
+		&& profile._l4Proto == L4Protocol::Tcp && profile._dstPort == 22) {
+		AddLayer(std::make_unique<Ssh>());
 
 	} else if (profile._l4Proto == L4Protocol::Tcp || profile._l4Proto == L4Protocol::Udp) {
 		AddLayer(std::make_unique<Payload>());
