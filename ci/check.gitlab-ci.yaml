@@ -2,7 +2,7 @@ editorconfig:
   stage: check
   needs: []
   image: mstruebing/editorconfig-checker
-  script: [ec]
+  script: [editorconfig-checker]
 
 cppcheck-style:
   stage: check
