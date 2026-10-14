@@ -80,7 +80,7 @@ struct SMSubnetSegment final : public SMSegment {
 
 	std::optional<IPNetwork> source; ///< Source subnet.
 	std::optional<IPNetwork> dest; ///< Destination subnet.
-	bool bidir; ///< Bidirectional flag.
+	bool bidir = false; ///< Bidirectional flag.
 };
 
 /**

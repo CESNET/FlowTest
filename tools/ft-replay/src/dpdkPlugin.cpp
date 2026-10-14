@@ -30,6 +30,9 @@
 
 namespace replay {
 
+// Ethernet frame overhead: 14-byte header + 4-byte FCS
+static constexpr size_t ETH_OVERHEAD = 18;
+
 // register the dpdk plugin to the factory
 OutputPluginFactoryRegistrator<DpdkPlugin> dpdkPluginRegistration("dpdk");
 
@@ -146,7 +149,7 @@ int DpdkPlugin::GetDpdkPort(const std::string& PCIAddress, struct rte_eth_dev_in
 		throwErr();
 	}
 
-	if (_MTUSize < devInfo->min_mtu || _MTUSize > devInfo->max_mtu) {
+	if ((_MTUSize - ETH_OVERHEAD) < devInfo->min_mtu || (_MTUSize - ETH_OVERHEAD) > devInfo->max_mtu) {
 		_logger->error(
 			"MTU size of out NIC supported range {}-{}",
 			devInfo->min_mtu,
@@ -185,7 +188,7 @@ void DpdkPlugin::ConfigureDpdkPort(uint16_t portId)
 		}
 	}
 
-	ret = rte_eth_dev_set_mtu(portId, _MTUSize);
+	ret = rte_eth_dev_set_mtu(portId, _MTUSize - ETH_OVERHEAD);
 	if (ret < 0) {
 		_logger->error("rte_eth_dev_set_mtu() has failed with code {}", ret);
 		throwErr();

@@ -32,7 +32,7 @@ def calc_min_gap_nanos(packet_size, link_speed_gbps, min_packet_gap_ns):
 
     transfer_nanos = frame_total * 1_000_000_000 / (link_speed_gbps * 1_000_000_000)
 
-    return min(transfer_nanos, min_packet_gap_ns)
+    return transfer_nanos + min_packet_gap_ns
 
 
 def test_timestamp(ft_generator: Generator):

@@ -129,7 +129,7 @@ void PacketBuilder::PresetHwChecksum(Packet& packet)
 	}
 }
 
-int PacketBuilder::DecidePort(const std::byte* rawData, enum L3Type l3Type, uint16_t l3Offset) const
+int PacketBuilder::DecidePort(const std::byte* rawData, L3Type l3Type, uint16_t l3Offset) const
 {
 	if (l3Type == L3Type::IPv4) {
 		const iphdr* ipHeader = reinterpret_cast<const iphdr*>(rawData + l3Offset);
@@ -254,7 +254,7 @@ PacketInfo PacketBuilder::GetPacketInfo(const RawPacket* rawPacket) const
 		info.l4Type = LayerToL4Protocol(l4Layer._type);
 	}
 
-	if (DecidePort(rawPacket->data, info.l3Type, info.l3Offset) < 0) {
+	if (DecidePort(rawPacket->data, info.l3Type, info.l3Offset) <= 0) {
 		info.outInterface = OutInterface::Interface0;
 	} else {
 		info.outInterface = OutInterface::Interface1;

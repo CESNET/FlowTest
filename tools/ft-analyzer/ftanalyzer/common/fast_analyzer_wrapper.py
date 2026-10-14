@@ -36,8 +36,7 @@ from ftanalyzer.models.sm_data_types import (
 )
 from ftanalyzer.reports.statistical_report import StatisticalReport
 
-SITE_PACKAGES_PREFIX = sysconfig.get_path("stdlib")
-GLOBAL_IMPORT_DIR = f"{SITE_PACKAGES_PREFIX}/site-packages/flowtest"
+GLOBAL_IMPORT_DIR = os.path.join(sysconfig.get_path("platlib"), "flowtest")
 
 
 def fast_analyzer_available() -> bool:

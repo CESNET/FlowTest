@@ -125,7 +125,7 @@ void Biflow::CreateHistogram(ft::Timestamp start, ft::Timestamp interval, unsign
 double Biflow::GetHistogramBin(unsigned idx) const
 {
 	if (pkt_hist.size() == 0) {
-		std::runtime_error("packet histogram has not been created");
+		throw std::runtime_error("packet histogram has not been created");
 	}
 
 	if (idx >= start_window_idx && idx <= end_window_idx) {

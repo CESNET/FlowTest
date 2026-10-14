@@ -47,15 +47,15 @@ enum class OutInterface {
  *
  */
 struct PacketInfo {
-	enum L3Type l3Type;
+	L3Type l3Type;
 	uint16_t l3Offset;
 
-	enum L4Type l4Type;
+	L4Type l4Type;
 	uint16_t l4Offset; //< Zero if l4type == L4Type::NotFound
 
 	uint16_t ipAddressesChecksum; //< checksum of IP addresses in host byte order
 
-	enum OutInterface outInterface; //< used for multi-port replaying
+	OutInterface outInterface; //< used for multi-port replaying
 };
 
 /**
